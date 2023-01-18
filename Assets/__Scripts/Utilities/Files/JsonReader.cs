@@ -33,7 +33,10 @@ public class JsonReader
             info = new BeatmapInfo();
         }
 
-        info = BeatmapUtility.AddNullsInfo(info);
+        if(info != null)
+        {
+            info = BeatmapUtility.AddNullsInfo(info);
+        }
         return info;
     }
 

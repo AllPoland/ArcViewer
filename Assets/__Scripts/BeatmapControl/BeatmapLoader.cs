@@ -52,6 +52,12 @@ public class BeatmapLoader : MonoBehaviour
         yield return new WaitUntil(() => infoTask.IsCompleted);
         BeatmapInfo info = infoTask.Result;
 
+        if(info == null)
+        {
+            UpdateMapInfo(null, new List<Difficulty>(), null);
+            yield break;
+        }
+
         Debug.Log("Loading difficulties.");
         Task<List<Difficulty>> diffTask = Task.Run(() => LoadDiffsAsync(directory, info, beatmapManager));
         
@@ -89,8 +95,6 @@ public class BeatmapLoader : MonoBehaviour
         Debug.Log("Loading complete.");
 
         UpdateMapInfo(info, difficulties, song);
-
-        Loading = false;
     }
 
 
@@ -139,13 +143,19 @@ public class BeatmapLoader : MonoBehaviour
         Debug.Log("Loading complete.");
 
         UpdateMapInfo(info, difficulties, song);
-
-        Loading = false;
     }
 
 
     private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song)
     {
+        Loading = false;
+        
+        if(info == null || difficulties.Count == 0 || song == null)
+        {
+            Debug.LogWarning("Failed to load map file");
+            return;
+        }
+
         UIStateManager.CurrentState = UIState.Previewer;
         
         beatmapManager.Info = info;
@@ -161,6 +171,8 @@ public class BeatmapLoader : MonoBehaviour
         string infoPath = Path.Combine(directory, "Info.dat");
 
         BeatmapInfo info = await JsonReader.LoadInfoAsync(infoPath);
+        if(info == null) return null;
+
         Debug.Log($"Loaded info for {info._songAuthorName} - {info._songName}, mapped by {info._levelAuthorName}");
         return info;
     }
