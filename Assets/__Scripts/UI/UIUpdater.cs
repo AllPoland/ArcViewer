@@ -17,14 +17,21 @@ public class UIUpdater : MonoBehaviour
             directoryField.text = "";
         }
 
-        selectionScreen.SetActive(newState == UIState.MapSelection);
+        selectionScreen.SetActive(newState == UIState.MapSelection && !BeatmapLoader.Loading);
         previewScreen.SetActive(newState == UIState.Previewer);
+    }
+
+
+    public void UpdateLoading(bool newLoading)
+    {
+        selectionScreen.SetActive(UIStateManager.CurrentState == UIState.MapSelection && !BeatmapLoader.Loading);
     }
 
 
     private void Start()
     {
         UIStateManager.OnUIStateChanged += UpdateState;
+        BeatmapLoader.OnLoadingChanged += UpdateLoading;
         UIStateManager.CurrentState = UIState.MapSelection;
     }
 
@@ -32,5 +39,6 @@ public class UIUpdater : MonoBehaviour
     private void OnDisable()
     {
         UIStateManager.OnUIStateChanged -= UpdateState;
+        BeatmapLoader.OnLoadingChanged -= UpdateLoading;
     }
 }
