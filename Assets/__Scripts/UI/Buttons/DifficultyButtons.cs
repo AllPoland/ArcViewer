@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
 
 public class DifficultyButtons : MonoBehaviour
 {
@@ -127,7 +125,7 @@ public class DifficultyButtons : MonoBehaviour
         }
 
         Difficulty preferredDiff = newDiffs.Find(x => x.difficultyRank == beatmapManager.CurrentMap.difficultyRank);
-        if(!preferredDiff.Equals( new Difficulty() ))
+        if(preferredDiff != null && !preferredDiff.Equals( new Difficulty() ))
         {
             beatmapManager.CurrentMap = preferredDiff;
         }

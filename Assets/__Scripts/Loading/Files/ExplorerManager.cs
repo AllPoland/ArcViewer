@@ -10,7 +10,13 @@ public class ExplorerManager : MonoBehaviour
 
     public void OpenFileExplorer()
     {
-        string[] paths = StandaloneFileBrowser.OpenFilePanel("Select Map", "", "", false);
+        var extensions = new []
+        {
+            new ExtensionFilter("Compressed (zip) Folders", "zip"),
+            new ExtensionFilter("All Files", ("*"))
+        };
+
+        string[] paths = StandaloneFileBrowser.OpenFilePanel("Select Map", "", extensions, false);
         
         if(paths.Length > 0)
         {

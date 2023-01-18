@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class FileUtil
 {
@@ -24,6 +26,44 @@ public class FileUtil
         }
 
         return type;
+    }
+
+
+    public static async Task<AudioClip> GetAudioFromFile(string path, AudioType type)
+    {
+        if(!File.Exists(path))
+        {
+            Debug.LogWarning("Trying to load audio from a nonexistant file!");
+            return null;
+        }
+
+        AudioClip song = null;
+        try
+        {
+        using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(path, type))
+        {
+            Debug.Log("Loading audio file.");
+            audioUwr.SendWebRequest();
+
+            while(!audioUwr.isDone) await Task.Delay(5);
+            
+            if(audioUwr.result == UnityWebRequest.Result.ConnectionError || audioUwr.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogWarning($"{audioUwr.error}");
+                return song;
+            }
+            else
+            {
+                song = DownloadHandlerAudioClip.GetContent(audioUwr);
+            }
+        }
+        }
+        catch(Exception err)
+        {
+            Debug.LogWarning($"Audio loading failed with exception: {err.Message}, {err.StackTrace}");
+        }
+
+        return song;
     }
 }
 

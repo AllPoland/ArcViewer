@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
+using System.IO.Compression;
 using UnityEngine;
-using UnityEngine.Networking;
 
 public class BeatmapLoader : MonoBehaviour
 {
@@ -21,6 +21,9 @@ public class BeatmapLoader : MonoBehaviour
             OnLoadingChanged?.Invoke(value);
         }
     }
+
+    public static int Progress = 0;
+    public static string LoadingMessage = "";
 
     public delegate void BoolDelegate(bool value);
     public static event BoolDelegate OnLoadingChanged;
@@ -44,6 +47,7 @@ public class BeatmapLoader : MonoBehaviour
         Loading = true;
 
         Debug.Log("Loading info.");
+        LoadingMessage = "Loading Info.dat";
         Task<BeatmapInfo> infoTask = Task.Run(() => LoadInfoAsync(directory));
 
         yield return new WaitUntil(() => infoTask.IsCompleted);
@@ -52,15 +56,16 @@ public class BeatmapLoader : MonoBehaviour
         if(info == null)
         {
             UpdateMapInfo(null, new List<Difficulty>(), null);
-            yield break;
         }
 
         Debug.Log("Loading difficulties.");
+        LoadingMessage = "Loading difficulty files";
         Task<List<Difficulty>> diffTask = Task.Run(() => LoadDiffsAsync(directory, info, beatmapManager));
         
         yield return new WaitUntil(() => diffTask.IsCompleted);
         List<Difficulty> difficulties = diffTask.Result;
 
+        LoadingMessage = "Loading song";
         string audioDirectory = Path.Combine(directory, info._songFilename);
         AudioClip song = null;
         if(File.Exists(audioDirectory))
@@ -68,21 +73,10 @@ public class BeatmapLoader : MonoBehaviour
             AudioType type = FileUtil.GetAudioTypeByDirectory(audioDirectory);
             Debug.Log($"Loading audio file with type of {type}.");
 
-            using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(audioDirectory, type))
-            {
-                Debug.Log("Loading audio file.");
-                audioUwr.SendWebRequest();
+            Task<AudioClip> audioTask = FileUtil.GetAudioFromFile(audioDirectory, type);
+            yield return new WaitUntil(() => audioTask.IsCompleted);
 
-                yield return new WaitUntil(() => audioUwr.isDone);
-                if(audioUwr.result == UnityWebRequest.Result.ConnectionError || audioUwr.result == UnityWebRequest.Result.ProtocolError)
-                {
-                    Debug.LogWarning($"{audioUwr.error}");
-                }
-                else
-                {
-                    song = DownloadHandlerAudioClip.GetContent(audioUwr);
-                }
-            }
+            song = audioTask.Result;
         }
         else
         {
@@ -90,6 +84,7 @@ public class BeatmapLoader : MonoBehaviour
         }
 
         Debug.Log("Loading complete.");
+        LoadingMessage = "Done";
 
         UpdateMapInfo(info, difficulties, song);
     }
@@ -100,6 +95,7 @@ public class BeatmapLoader : MonoBehaviour
         Loading = true;
 
         Debug.Log("Loading map zip.");
+        LoadingMessage = "Reading map zip";
         var loadZipTask = Task.Run(() => ZipReader.GetMapFromZipPathAsync(directory));
 
         yield return new WaitUntil(() => loadZipTask.IsCompleted);
@@ -109,28 +105,17 @@ public class BeatmapLoader : MonoBehaviour
         List<Difficulty> difficulties = result.Item2;
         TempFile audioFile = result.Item3;
 
+        LoadingMessage = "Loading song";
         AudioClip song = null;
         if(audioFile != null && File.Exists(audioFile.Path))
         {
-            string audioDirectory = audioFile.Path;
             AudioType type = FileUtil.GetAudioTypeByDirectory(info._songFilename);
             Debug.Log($"Loading audio file with type of {type}.");
 
-            using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(audioDirectory, type))
-            {
-                Debug.Log("Loading audio file.");
-                audioUwr.SendWebRequest();
+            Task<AudioClip> audioTask = FileUtil.GetAudioFromFile(audioFile.Path, type);
+            yield return new WaitUntil(() => audioTask.IsCompleted);
 
-                yield return new WaitUntil(() => audioUwr.isDone);
-                if(audioUwr.result == UnityWebRequest.Result.ConnectionError || audioUwr.result == UnityWebRequest.Result.ProtocolError)
-                {
-                    Debug.LogWarning($"{audioUwr.error}");
-                }
-                else
-                {
-                    song = DownloadHandlerAudioClip.GetContent(audioUwr);
-                }
-            }
+            song = audioTask.Result;
         }
         else
         {
@@ -138,6 +123,69 @@ public class BeatmapLoader : MonoBehaviour
         }
 
         Debug.Log("Loading complete.");
+        LoadingMessage = "Done";
+
+        UpdateMapInfo(info, difficulties, song);
+    }
+
+
+    private IEnumerator LoadMapURLCoroutine(string url)
+    {
+        Loading = true;
+
+        Debug.Log("Downloading map data.");
+        LoadingMessage = "Downloading map";
+        Task<Stream> downloadTask = Task.Run(() => WebMapLoader.LoadMapURL(url));
+
+        while(!downloadTask.IsCompleted)
+        {
+            Progress = WebMapLoader.Progress;
+            yield return null;
+        }
+        Stream zipStream = downloadTask.Result;
+        Progress = 0;
+
+        if(zipStream == null)
+        {
+            Debug.LogWarning("Download failed!");
+            UpdateMapInfo(null, new List<Difficulty>(), null);
+        }
+
+        LoadingMessage = "Loading map zip";
+        BeatmapInfo info = null;
+        List<Difficulty> difficulties = new List<Difficulty>();
+        TempFile audioFile = null;
+        using(ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Read))
+        {
+            Debug.Log("Loading map zip.");
+            var loadZipTask = Task.Run(() => ZipReader.GetMapFromZipArchiveAsync(archive));
+
+            yield return new WaitUntil(() => loadZipTask.IsCompleted);
+            var result = loadZipTask.Result;
+            info = result.Item1;
+            difficulties = result.Item2;
+            audioFile = result.Item3;
+        }
+
+        LoadingMessage = "Loading song";
+        AudioClip song = null;
+        if(audioFile != null && File.Exists(audioFile.Path))
+        {
+            AudioType type = FileUtil.GetAudioTypeByDirectory(info._songFilename);
+            Debug.Log($"Loading audio file with type of {type}.");
+
+            Task<AudioClip> audioTask = FileUtil.GetAudioFromFile(audioFile.Path, type);
+            yield return new WaitUntil(() => audioTask.IsCompleted);
+
+            song = audioTask.Result;
+        }
+        else
+        {
+            Debug.LogWarning("Audio file doesn't exist!");
+        }
+
+        Debug.Log("Loading complete.");
+        LoadingMessage = "Done";
 
         UpdateMapInfo(info, difficulties, song);
     }
@@ -145,7 +193,10 @@ public class BeatmapLoader : MonoBehaviour
 
     private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song)
     {
+        StopAllCoroutines();
         Loading = false;
+        Progress = 0;
+        LoadingMessage = "";
         
         if(info == null || difficulties.Count == 0 || song == null)
         {
@@ -211,6 +262,12 @@ public class BeatmapLoader : MonoBehaviour
         if(Loading)
         {
             Debug.LogWarning("Trying to load a map while already loading!");
+            return;
+        }
+
+        if(mapDirectory.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            StartCoroutine(LoadMapURLCoroutine(mapDirectory));
             return;
         }
 
