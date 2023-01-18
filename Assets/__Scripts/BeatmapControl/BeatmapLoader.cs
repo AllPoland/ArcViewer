@@ -25,9 +25,6 @@ public class BeatmapLoader : MonoBehaviour
     public delegate void BoolDelegate(bool value);
     public static event BoolDelegate OnLoadingChanged;
 
-    public const string MapFolder = "Map";
-    public string MapDirectory = "";
-
     private BeatmapManager beatmapManager;
     private AudioManager audioManager;
 
@@ -209,7 +206,7 @@ public class BeatmapLoader : MonoBehaviour
     }
 
 
-    public void LoadMapDirectory()
+    public void LoadMapDirectory(string mapDirectory)
     {
         if(Loading)
         {
@@ -217,31 +214,25 @@ public class BeatmapLoader : MonoBehaviour
             return;
         }
 
-        if(MapDirectory.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+        if(mapDirectory.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
         {
-            if(!File.Exists(MapDirectory))
+            if(!File.Exists(mapDirectory))
             {
                 Debug.LogWarning("Trying to load a map from a file that doesn't exist!");
                 return;
             }
 
-            StartCoroutine(LoadMapZipCoroutine(MapDirectory));
+            StartCoroutine(LoadMapZipCoroutine(mapDirectory));
             return;
         }
 
-        if(!Directory.Exists(MapDirectory))
+        if(!Directory.Exists(mapDirectory))
         {
             Debug.LogWarning("Trying to load a map from a directory that doesn't exist!");
             return;
         }
 
-        StartCoroutine(LoadMapDirectoryCoroutine(MapDirectory));
-    }
-
-
-    public void UpdateDirectory(string newDirectory)
-    {
-        MapDirectory = newDirectory;
+        StartCoroutine(LoadMapDirectoryCoroutine(mapDirectory));
     }
 
 

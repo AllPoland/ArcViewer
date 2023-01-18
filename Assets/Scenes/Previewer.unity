@@ -831,7 +831,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000061035156, y: -13}
+  m_AnchoredPosition: {x: 0, y: -13}
   m_SizeDelta: {x: 0.00012207, y: 26}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &90992640
@@ -1363,9 +1363,9 @@ RectTransform:
   m_Father: {fileID: 1851035721}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 509.68, y: -232.65}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 459.69, y: -182.65}
   m_SizeDelta: {x: 279.73, y: 238.27}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &226208895
@@ -1613,9 +1613,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 776929608}
-        m_TargetAssemblyTypeName: BeatmapLoader, Assembly-CSharp
-        m_MethodName: LoadMapDirectory
+      - m_Target: {fileID: 1935205303}
+        m_TargetAssemblyTypeName: MapDirectoryInput, Assembly-CSharp
+        m_MethodName: LoadMap
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2134,6 +2134,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectionScreen: {fileID: 1935205301}
   previewScreen: {fileID: 1851035720}
+  directoryField: {fileID: 1202759187}
 --- !u!1 &395744161
 GameObject:
   m_ObjectHideFlags: 0
@@ -3929,10 +3930,10 @@ RectTransform:
   m_Father: {fileID: 1851035721}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -689, y: 412}
-  m_SizeDelta: {x: 179.87, y: 40}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: -693.83, y: 355}
+  m_SizeDelta: {x: 188.56, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &738548459
 MonoBehaviour:
@@ -4393,7 +4394,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3ca66e2be3114f48a0eccbff6e8c533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MapDirectory: 
 --- !u!1 &804623413
 GameObject:
   m_ObjectHideFlags: 0
@@ -6205,8 +6205,8 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 776929608}
-        m_TargetAssemblyTypeName: BeatmapLoader, Assembly-CSharp
+      - m_Target: {fileID: 1935205303}
+        m_TargetAssemblyTypeName: MapDirectoryInput, Assembly-CSharp
         m_MethodName: UpdateDirectory
         m_Mode: 0
         m_Arguments:
@@ -6880,7 +6880,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000061035156, y: 79.5}
+  m_AnchoredPosition: {x: 0, y: 79.5}
   m_SizeDelta: {x: -0, y: -42.27}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1409923518
@@ -7316,6 +7316,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd1ec157459ed7a49a20946ed9423be5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  beatmapLoader: {fileID: 776929608}
 --- !u!1 &1535064359
 GameObject:
   m_ObjectHideFlags: 0
@@ -8087,10 +8088,10 @@ RectTransform:
   m_Father: {fileID: 1399682223}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: -1618, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1868831319
 GameObject:
@@ -8433,6 +8434,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1935205302}
+  - component: {fileID: 1935205303}
   m_Layer: 5
   m_Name: MapSelection
   m_TagString: Untagged
@@ -8458,11 +8460,25 @@ RectTransform:
   m_Father: {fileID: 1399682223}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: -100}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: -1500, y: -800}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1935205303
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1935205301}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44b787612ad97684e8c0f6cfedbfde4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  beatmapLoader: {fileID: 776929608}
+  MapDirectory: 
 --- !u!4 &1977914715 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5060135072979681751, guid: a0257aa0601abbc4680b01efb0fa46ce, type: 3}
