@@ -160,16 +160,16 @@ public class DifficultyButtons : MonoBehaviour
     }
 
 
-    private void Start()
+    private void OnEnable()
     {
         beatmapManager = BeatmapManager.Instance;
 
-        if(beatmapManager == null)
-        {
-            enabled = false;
-            return;
-        }
-
         beatmapManager.OnBeatmapDifficultyChanged += UpdateButtons;
+    }
+
+
+    private void OnDisable()
+    {
+        beatmapManager.OnBeatmapDifficultyChanged -= UpdateButtons;
     }
 }

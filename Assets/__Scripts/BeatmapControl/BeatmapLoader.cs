@@ -194,7 +194,6 @@ public class BeatmapLoader : MonoBehaviour
     private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song)
     {
         StopAllCoroutines();
-        Loading = false;
         Progress = 0;
         LoadingMessage = "";
         
@@ -204,13 +203,14 @@ public class BeatmapLoader : MonoBehaviour
             return;
         }
 
+        audioManager.UpdateAudioClip(song);
         UIStateManager.CurrentState = UIState.Previewer;
         
         beatmapManager.Info = info;
         beatmapManager.Difficulties = difficulties;
         beatmapManager.SetDefaultDifficulty();
 
-        audioManager.UpdateAudioClip(song);
+        Loading = false;
     }
 
 
