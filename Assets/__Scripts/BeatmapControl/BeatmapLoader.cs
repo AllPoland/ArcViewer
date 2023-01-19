@@ -203,7 +203,6 @@ public class BeatmapLoader : MonoBehaviour
 
         yield return new WaitUntil(() => apiTask.IsCompleted);
         string mapURL = apiTask.Result;
-        Debug.Log(mapURL);
 
         StartCoroutine(LoadMapURLCoroutine(mapURL));
     }

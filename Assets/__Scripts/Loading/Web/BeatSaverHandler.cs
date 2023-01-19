@@ -19,10 +19,6 @@ public class BeatSaverHandler
 
         BeatSaverResponse response = JsonUtility.FromJson<BeatSaverResponse>(json);
 
-        Debug.Log(json);
-        Debug.Log($"{response.id}, {response.name}, {response.automapper}");
-        Debug.Log(response.versions.Length);
-
         if(response.versions == null || response.versions.Length == 0)
         {
             return "";

@@ -37,6 +37,12 @@ public class ObjectManager : MonoBehaviour
     }
 
 
+    public static List<T> GetObjectsOnBeat<T>(List<T> objects, float beat) where T :BeatmapObject
+    {
+        return objects.FindAll(x => x.Beat == beat);
+    }
+
+
     public bool CheckInSpawnRange(float beat)
     {
         if(timeManager == null || beatmapManager == null)
