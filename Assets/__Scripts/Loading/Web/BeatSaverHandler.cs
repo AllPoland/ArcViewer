@@ -15,6 +15,8 @@ public class BeatSaverHandler
     {
         string json = await GetApiResponse(mapID);
 
+        if(json == "") return "";
+
         BeatSaverResponse response = JsonUtility.FromJson<BeatSaverResponse>(json);
 
         Debug.Log(json);

@@ -276,6 +276,11 @@ public class BeatmapLoader : MonoBehaviour
 
     public void LoadMapDirectory(string mapDirectory)
     {
+        if(mapDirectory == "")
+        {
+            return;
+        }
+
         if(Loading)
         {
             Debug.LogWarning("Trying to load a map while already loading!");
