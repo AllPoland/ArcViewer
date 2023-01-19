@@ -56,6 +56,7 @@ public class BeatmapLoader : MonoBehaviour
         if(info == null)
         {
             UpdateMapInfo(null, new List<Difficulty>(), null);
+            yield break;
         }
 
         Debug.Log("Loading difficulties.");
@@ -149,6 +150,7 @@ public class BeatmapLoader : MonoBehaviour
         {
             Debug.LogWarning("Download failed!");
             UpdateMapInfo(null, new List<Difficulty>(), null);
+            yield break;
         }
 
         LoadingMessage = "Loading map zip";
@@ -191,11 +193,28 @@ public class BeatmapLoader : MonoBehaviour
     }
 
 
+    private IEnumerator LoadMapIDCoroutine(string mapID)
+    {
+        Loading = true;
+
+        Debug.Log("Getting beat saver response");
+        LoadingMessage = "Fetching map from BeatSaver";
+        Task<string> apiTask = Task.Run(() => BeatSaverHandler.GetBeatSaverMapURL(mapID));
+
+        yield return new WaitUntil(() => apiTask.IsCompleted);
+        string mapURL = apiTask.Result;
+        Debug.Log(mapURL);
+
+        StartCoroutine(LoadMapURLCoroutine(mapURL));
+    }
+
+
     private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song)
     {
         StopAllCoroutines();
         Progress = 0;
         LoadingMessage = "";
+        Loading = false;
         
         if(info == null || difficulties.Count == 0 || song == null)
         {
@@ -209,8 +228,6 @@ public class BeatmapLoader : MonoBehaviour
         beatmapManager.Info = info;
         beatmapManager.Difficulties = difficulties;
         beatmapManager.SetDefaultDifficulty();
-
-        Loading = false;
     }
 
 
@@ -280,6 +297,12 @@ public class BeatmapLoader : MonoBehaviour
             }
 
             StartCoroutine(LoadMapZipCoroutine(mapDirectory));
+            return;
+        }
+
+        if(!mapDirectory.Contains(Path.DirectorySeparatorChar) && !mapDirectory.Contains(Path.AltDirectorySeparatorChar))
+        {
+            StartCoroutine(LoadMapIDCoroutine(mapDirectory));
             return;
         }
 
