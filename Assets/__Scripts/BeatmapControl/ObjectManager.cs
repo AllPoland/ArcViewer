@@ -28,7 +28,6 @@ public class ObjectManager : MonoBehaviour
     }
 
     private TimeManager timeManager;
-    private BeatmapManager beatmapManager;
 
 
     public static List<T> SortObjectsByBeat<T>(List<T> objects) where T : BeatmapObject
@@ -45,9 +44,9 @@ public class ObjectManager : MonoBehaviour
 
     public bool CheckInSpawnRange(float beat)
     {
-        if(timeManager == null || beatmapManager == null)
+        if(timeManager == null)
         {
-            Debug.Log("Null timemanager or beatmapmanager");
+            Debug.Log("Null timemanager");
             return false;
         }
 
@@ -55,14 +54,14 @@ public class ObjectManager : MonoBehaviour
         return
         (
             time > timeManager.CurrentTime &&
-            time <= timeManager.CurrentTime + beatmapManager.ReactionTime + Instance.moveTime
+            time <= timeManager.CurrentTime + BeatmapManager.ReactionTime + Instance.moveTime
         );
     }
 
 
     public float GetZPosition(float objectTime)
     {
-        float reactionTime = beatmapManager.ReactionTime;
+        float reactionTime = BeatmapManager.ReactionTime;
         float jumpTime = timeManager.CurrentTime + reactionTime;
 
         if(objectTime <= jumpTime)
@@ -76,22 +75,22 @@ public class ObjectManager : MonoBehaviour
             //Note hasn't jumped in yet. Place based on the jump-in stuff
             float timeDist = (objectTime - timeManager.CurrentTime - reactionTime) / moveTime;
             timeDist = Easings.Sine.Out(timeDist);
-            return beatmapManager.JumpDistance + (moveZ * timeDist);
+            return BeatmapManager.JumpDistance + (moveZ * timeDist);
         }
     }
 
 
     public float WorldSpaceFromTime(float time)
     {
-        float NJS = beatmapManager.CurrentMap.NoteJumpSpeed;
-        return time * NJS / beatmapManager.ReactionTime;
+        float NJS = BeatmapManager.CurrentMap.NoteJumpSpeed;
+        return time * NJS / BeatmapManager.ReactionTime;
     }
 
 
     public float TimeFromWorldspace(float position)
     {
-        float NJS = beatmapManager.CurrentMap.NoteJumpSpeed;
-        return (position / NJS) * beatmapManager.ReactionTime;
+        float NJS = BeatmapManager.CurrentMap.NoteJumpSpeed;
+        return (position / NJS) * BeatmapManager.ReactionTime;
     }
 
 
@@ -109,7 +108,6 @@ public class ObjectManager : MonoBehaviour
     private void Start()
     {
         timeManager = TimeManager.Instance;
-        beatmapManager = BeatmapManager.Instance;
     }
 
 

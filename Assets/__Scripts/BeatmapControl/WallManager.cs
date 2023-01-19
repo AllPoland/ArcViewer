@@ -19,7 +19,6 @@ public class WallManager : MonoBehaviour
 
     private TimeManager timeManager;
     private ObjectManager objectManager;
-    private BeatmapManager beatmapManager;
 
 
     public void LoadWallsFromDifficulty(Difficulty difficulty)
@@ -193,12 +192,9 @@ public class WallManager : MonoBehaviour
     {
         timeManager = TimeManager.Instance;
         objectManager = ObjectManager.Instance;
-        beatmapManager = BeatmapManager.Instance;
 
-        if(beatmapManager != null)
-        {
-            beatmapManager.OnBeatmapDifficultyChanged += LoadWallsFromDifficulty;
-        }
+        BeatmapManager.OnBeatmapDifficultyChanged += LoadWallsFromDifficulty;
+
         if(timeManager != null)
         {
             timeManager.OnBeatChanged += UpdateWallVisuals;

@@ -20,7 +20,6 @@ public class NoteManager : MonoBehaviour
     public List<Bomb> RenderedBombs = new List<Bomb>();
 
     private TimeManager timeManager;
-    private BeatmapManager beatmapManager;
     private ObjectManager objectManager;
 
     public static readonly Dictionary<int, float> DirectionAngles = new Dictionary<int, float>
@@ -271,7 +270,7 @@ public class NoteManager : MonoBehaviour
 
         //Calculate the Z position based on time
         float noteTime = TimeManager.TimeFromBeat(n.Beat);
-        float reactionTime = beatmapManager.ReactionTime;
+        float reactionTime = BeatmapManager.ReactionTime;
         float animationTime = objectManager.spawnAnimationTime;
         float jumpTime = timeManager.CurrentTime + reactionTime;
 
@@ -326,7 +325,7 @@ public class NoteManager : MonoBehaviour
 
 
         float bombTime = TimeManager.TimeFromBeat(b.Beat);
-        float reactionTime = beatmapManager.ReactionTime;
+        float reactionTime = BeatmapManager.ReactionTime;
         float jumpTime = timeManager.CurrentTime + reactionTime;
 
         float worldDist = objectManager.GetZPosition(bombTime);
@@ -472,13 +471,9 @@ public class NoteManager : MonoBehaviour
     private void Start()
     {
         timeManager = TimeManager.Instance;
-        beatmapManager = BeatmapManager.Instance;
         objectManager = ObjectManager.Instance;
 
-        if(beatmapManager != null)
-        {
-            beatmapManager.OnBeatmapDifficultyChanged += LoadNotesFromDifficulty;
-        }
+        BeatmapManager.OnBeatmapDifficultyChanged += LoadNotesFromDifficulty;
 
         if(timeManager != null)
         {

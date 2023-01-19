@@ -29,7 +29,7 @@ public class TimeManager : MonoBehaviour
             }
             else if(set < 0)
             {
-                Debug.Log("Time is less than 0");
+                Debug.LogWarning("Time is less than 0!");
                 set = 0;
             }
 
@@ -136,7 +136,7 @@ public class TimeManager : MonoBehaviour
 
     private void Start()
     {
-        BeatmapManager.Instance.OnBeatmapInfoChanged += UpdateInfo;
+        BeatmapManager.OnBeatmapInfoChanged += UpdateInfo;
         UIStateManager.OnUIStateChanged += UpdateUIState;
     }
 
@@ -159,6 +159,6 @@ public class TimeManager : MonoBehaviour
             Instance = null;
         }
 
-        BeatmapManager.Instance.OnBeatmapInfoChanged -= UpdateInfo;
+        BeatmapManager.OnBeatmapInfoChanged -= UpdateInfo;
     }
 }

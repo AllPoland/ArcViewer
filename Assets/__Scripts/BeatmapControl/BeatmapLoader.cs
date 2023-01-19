@@ -28,7 +28,6 @@ public class BeatmapLoader : MonoBehaviour
     public delegate void BoolDelegate(bool value);
     public static event BoolDelegate OnLoadingChanged;
 
-    private BeatmapManager beatmapManager;
     private AudioManager audioManager;
 
 
@@ -61,7 +60,7 @@ public class BeatmapLoader : MonoBehaviour
 
         Debug.Log("Loading difficulties.");
         LoadingMessage = "Loading difficulty files";
-        Task<List<Difficulty>> diffTask = Task.Run(() => LoadDiffsAsync(directory, info, beatmapManager));
+        Task<List<Difficulty>> diffTask = Task.Run(() => LoadDiffsAsync(directory, info));
         
         yield return new WaitUntil(() => diffTask.IsCompleted);
         List<Difficulty> difficulties = diffTask.Result;
@@ -224,9 +223,9 @@ public class BeatmapLoader : MonoBehaviour
         audioManager.UpdateAudioClip(song);
         UIStateManager.CurrentState = UIState.Previewer;
         
-        beatmapManager.Info = info;
-        beatmapManager.Difficulties = difficulties;
-        beatmapManager.SetDefaultDifficulty();
+        BeatmapManager.Info = info;
+        BeatmapManager.Difficulties = difficulties;
+        BeatmapManager.SetDefaultDifficulty();
     }
 
 
@@ -242,7 +241,7 @@ public class BeatmapLoader : MonoBehaviour
     }
 
 
-    public async Task<List<Difficulty>> LoadDiffsAsync(string directory, BeatmapInfo info, BeatmapManager outputBeatmapManager)
+    public async Task<List<Difficulty>> LoadDiffsAsync(string directory, BeatmapInfo info)
     {
         List<Difficulty> difficulties = new List<Difficulty>();
 
@@ -322,7 +321,6 @@ public class BeatmapLoader : MonoBehaviour
 
     private void Start()
     {
-        beatmapManager = BeatmapManager.Instance;
         audioManager = AudioManager.Instance;
     }
 }

@@ -26,7 +26,6 @@ public class AudioManager : MonoBehaviour
 
     private AudioSource source;
     private TimeManager timeManager;
-    private BeatmapManager beatmapManager;
 
 
     public void UpdateAudioClip(AudioClip newClip)
@@ -37,7 +36,7 @@ public class AudioManager : MonoBehaviour
         }
 
         source.clip = newClip;
-        timeManager.SongLength = newClip.length - beatmapManager.Info._songTimeOffset;
+        timeManager.SongLength = newClip.length - BeatmapManager.Info._songTimeOffset;
     }
 
 
@@ -83,7 +82,7 @@ public class AudioManager : MonoBehaviour
 
     public float GetSongTime()
     {
-        return timeManager.CurrentTime + beatmapManager.Info._songTimeOffset;
+        return timeManager.CurrentTime + BeatmapManager.Info._songTimeOffset;
     }
 
 
@@ -113,7 +112,6 @@ public class AudioManager : MonoBehaviour
     private void Start()
     {
         timeManager = TimeManager.Instance;
-        beatmapManager = BeatmapManager.Instance;
         
         timeManager.OnPlayingChanged += UpdatePlaying;
     }

@@ -8,8 +8,6 @@ public class InfoText : MonoBehaviour
     [SerializeField] private TextMeshProUGUI songText;
     [SerializeField] private TextMeshProUGUI mapperText;
 
-    private BeatmapManager beatmapManager;
-
 
     public void UpdateText(BeatmapInfo info)
     {
@@ -20,22 +18,14 @@ public class InfoText : MonoBehaviour
 
     private void OnEnable()
     {
-        if(beatmapManager == null) beatmapManager = BeatmapManager.Instance;
+        BeatmapManager.OnBeatmapInfoChanged += UpdateText;
 
-        if(beatmapManager != null)
-        {
-            beatmapManager.OnBeatmapInfoChanged += UpdateText;
-        }
-
-        UpdateText(beatmapManager?.Info ?? new BeatmapInfo());
+        UpdateText(BeatmapManager.Info ?? new BeatmapInfo());
     }
 
 
     private void OnDisable()
     {
-        if(beatmapManager != null)
-        {
-            beatmapManager.OnBeatmapInfoChanged -= UpdateText;
-        }
+        BeatmapManager.OnBeatmapInfoChanged -= UpdateText;
     }
 }

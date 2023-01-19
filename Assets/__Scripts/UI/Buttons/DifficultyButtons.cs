@@ -25,7 +25,6 @@ public class DifficultyButtons : MonoBehaviour
     [SerializeField] private GameObject expertButton;
     [SerializeField] private GameObject expertPlusButton;
 
-    private BeatmapManager beatmapManager;
     private DifficultyCharacteristic currentCharacteristic;
 
 
@@ -37,40 +36,40 @@ public class DifficultyButtons : MonoBehaviour
         Debug.Log($"Current diff is {currentCharacteristic}, {currentDifficulty.difficultyRank}");
         float y = buttonY;
 
-        if(beatmapManager.StandardDifficulties.Count > 0)
+        if(BeatmapManager.StandardDifficulties.Count > 0)
         {
             EnableButton(standardButton, ref y);
         }
-        if(beatmapManager.OneSaberDifficulties.Count > 0)
+        if(BeatmapManager.OneSaberDifficulties.Count > 0)
         {
             EnableButton(oneSaberButton, ref y);
         }
-        if(beatmapManager.NoArrowsDifficulties.Count > 0)
+        if(BeatmapManager.NoArrowsDifficulties.Count > 0)
         {
             EnableButton(noArrowsButton, ref y);
         }
-        if(beatmapManager.ThreeSixtyDifficulties.Count > 0)
+        if(BeatmapManager.ThreeSixtyDifficulties.Count > 0)
         {
             EnableButton(threeSixtyButton, ref y);
         }
-        if(beatmapManager.NinetyDifficulties.Count > 0)
+        if(BeatmapManager.NinetyDifficulties.Count > 0)
         {
             EnableButton(ninetyButton, ref y);
         }
-        if(beatmapManager.LightshowDifficulties.Count > 0)
+        if(BeatmapManager.LightshowDifficulties.Count > 0)
         {
             EnableButton(lightshowButton, ref y);
         }
-        if(beatmapManager.LawlessDifficulties.Count > 0)
+        if(BeatmapManager.LawlessDifficulties.Count > 0)
         {
             EnableButton(lawlessButton, ref y);
         }
-        if(beatmapManager.UnknownDifficulties.Count > 0)
+        if(BeatmapManager.UnknownDifficulties.Count > 0)
         {
             EnableButton(unknownButton, ref y);
         }
 
-        List<Difficulty> characteristicDiffs = beatmapManager.GetDifficultiesByCharacteristic(currentCharacteristic);
+        List<Difficulty> characteristicDiffs = BeatmapManager.GetDifficultiesByCharacteristic(currentCharacteristic);
         y = buttonY;
 
         if(characteristicDiffs.Any(x => x.difficultyRank == Diff.Easy))
@@ -117,33 +116,33 @@ public class DifficultyButtons : MonoBehaviour
 
     public void ChangeCharacteristic(int newCharacteristic)
     {
-        List<Difficulty> newDiffs = beatmapManager.GetDifficultiesByCharacteristic((DifficultyCharacteristic)newCharacteristic);
+        List<Difficulty> newDiffs = BeatmapManager.GetDifficultiesByCharacteristic((DifficultyCharacteristic)newCharacteristic);
         if(newDiffs.Count == 0)
         {
             Debug.LogWarning("Trying to load a characteristic the map doesn't have!");
             return;
         }
 
-        Difficulty preferredDiff = newDiffs.Find(x => x.difficultyRank == beatmapManager.CurrentMap.difficultyRank);
+        Difficulty preferredDiff = newDiffs.Find(x => x.difficultyRank == BeatmapManager.CurrentMap.difficultyRank);
         if(preferredDiff != null && !preferredDiff.Equals( new Difficulty() ))
         {
-            beatmapManager.CurrentMap = preferredDiff;
+            BeatmapManager.CurrentMap = preferredDiff;
         }
         else
         {
             Debug.Log("Unable to find a difficulty of matching rank. Using default.");
-            beatmapManager.CurrentMap = newDiffs[newDiffs.Count - 1];
+            BeatmapManager.CurrentMap = newDiffs[newDiffs.Count - 1];
         }
     }
 
 
     public void ChangeDifficulty(int newDifficulty)
     {
-        List<Difficulty> diffs = beatmapManager.GetDifficultiesByCharacteristic(beatmapManager.CurrentMap.characteristic);
+        List<Difficulty> diffs = BeatmapManager.GetDifficultiesByCharacteristic(BeatmapManager.CurrentMap.characteristic);
         Difficulty newDiff = diffs.Find(x => x.difficultyRank == (Diff)newDifficulty);
         if(!newDiff.Equals( new Difficulty() ))
         {
-            beatmapManager.CurrentMap = newDiff;
+            BeatmapManager.CurrentMap = newDiff;
         }
         else
         {
@@ -162,14 +161,12 @@ public class DifficultyButtons : MonoBehaviour
 
     private void OnEnable()
     {
-        beatmapManager = BeatmapManager.Instance;
-
-        beatmapManager.OnBeatmapDifficultyChanged += UpdateButtons;
+        BeatmapManager.OnBeatmapDifficultyChanged += UpdateButtons;
     }
 
 
     private void OnDisable()
     {
-        beatmapManager.OnBeatmapDifficultyChanged -= UpdateButtons;
+        BeatmapManager.OnBeatmapDifficultyChanged -= UpdateButtons;
     }
 }

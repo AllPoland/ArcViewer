@@ -1,14 +1,13 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class BeatmapManager : MonoBehaviour
 {
-    public static BeatmapManager Instance { get; private set; }
+    public static List<Difficulty> Difficulties = new List<Difficulty>();
 
-    public List<Difficulty> Difficulties = new List<Difficulty>();
-
-    public List<Difficulty> StandardDifficulties
+    public static List<Difficulty> StandardDifficulties
     {
         get
         {
@@ -16,7 +15,7 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public List<Difficulty> OneSaberDifficulties
+    public static List<Difficulty> OneSaberDifficulties
     {
         get
         {
@@ -24,7 +23,7 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public List<Difficulty> NoArrowsDifficulties
+    public static List<Difficulty> NoArrowsDifficulties
     {
         get
         {
@@ -32,7 +31,7 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public List<Difficulty> ThreeSixtyDifficulties
+    public static List<Difficulty> ThreeSixtyDifficulties
     {
         get
         {
@@ -40,7 +39,7 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public List<Difficulty> NinetyDifficulties
+    public static List<Difficulty> NinetyDifficulties
     {
         get
         {
@@ -48,7 +47,7 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public List<Difficulty> LightshowDifficulties
+    public static List<Difficulty> LightshowDifficulties
     {
         get
         {
@@ -56,7 +55,7 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public List<Difficulty> LawlessDifficulties
+    public static List<Difficulty> LawlessDifficulties
     {
         get
         {
@@ -64,7 +63,7 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public List<Difficulty> UnknownDifficulties
+    public static List<Difficulty> UnknownDifficulties
     {
         get
         {
@@ -73,8 +72,8 @@ public class BeatmapManager : MonoBehaviour
     }
 
 
-    private BeatmapInfo _info;
-    public BeatmapInfo Info
+    private static BeatmapInfo _info;
+    public static BeatmapInfo Info
     {
         get
         {
@@ -87,8 +86,8 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    private Difficulty _currentMap;
-    public Difficulty CurrentMap
+    private static Difficulty _currentMap;
+    public static Difficulty CurrentMap
     {
         get
         {
@@ -101,7 +100,7 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public float DefaultHJD
+    public static float DefaultHJD
     {
         get
         {
@@ -123,21 +122,21 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public float HJD
+    public static float HJD
     {
         get
         {
             return DefaultHJD + CurrentMap.SpawnOffset;
         }
     }
-    public float ReactionTime
+    public static float ReactionTime
     {
         get
         {
             return (60 / Info._beatsPerMinute) * HJD;
         }
     }
-    public float JumpDistance
+    public static float JumpDistance
     {
         get
         {
@@ -146,20 +145,20 @@ public class BeatmapManager : MonoBehaviour
     }
 
 
-    public float GetJumpDistance(float HJD, float BPM, float NJS)
+    public static float GetJumpDistance(float HJD, float BPM, float NJS)
     {
         float RT = (60 / BPM) * HJD;
         return NJS * 2 * RT;
     }
 
 
-    public List<Difficulty> GetDifficultiesByCharacteristic(DifficultyCharacteristic characteristic)
+    public static List<Difficulty> GetDifficultiesByCharacteristic(DifficultyCharacteristic characteristic)
     {
         return Difficulties.FindAll(x => x.characteristic == characteristic);
     }
 
 
-    public void SetDefaultDifficulty()
+    public static void SetDefaultDifficulty()
     {
         //Load the default difficulty
         //Else if chains my behated (I don't know of a better way to do this)
@@ -213,32 +212,14 @@ public class BeatmapManager : MonoBehaviour
     }
 
 
-    public delegate void BeatmapInfoDelegate(BeatmapInfo info);
-    public event BeatmapInfoDelegate OnBeatmapInfoChanged;
+    public static event Action<BeatmapInfo> OnBeatmapInfoChanged;
 
-    public delegate void DifficultyDelegate(Difficulty diff);
-    public event DifficultyDelegate OnBeatmapDifficultyChanged;
+    public static event Action<Difficulty> OnBeatmapDifficultyChanged;
 
 
     private void OnEnable()
     {
-        if(Instance && Instance != this)
-        {
-            Debug.Log("Duplicate BeatmapManager in scene.");
-            this.enabled = false;
-        }
-        else Instance = this;
-
         UIStateManager.OnUIStateChanged += UpdateUIState;
-    }
-
-
-    private void OnDisable()
-    {
-        if(Instance == this)
-        {
-            Instance = null;
-        }
     }
 }
 
