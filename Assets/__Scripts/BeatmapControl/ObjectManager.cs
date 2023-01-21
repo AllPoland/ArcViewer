@@ -16,7 +16,6 @@ public class ObjectManager : MonoBehaviour
     [SerializeField] public float moveZ = 200f;
     [SerializeField] public float moveTime = 0.25f;
     [SerializeField] public float spawnAnimationTime = 0.1f;
-    [SerializeField] public float spawnAnimationOffset = 0.6f;
     [SerializeField] public float behindCameraZ = -5f;
 
     public float BehindCameraTime

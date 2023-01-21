@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-3974840154475150887
+--- !u!114 &-7940896822650311595
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -15,13 +15,13 @@ MonoBehaviour:
   active: 1
   threshold:
     m_OverrideState: 1
-    m_Value: 1.2
+    m_Value: 1.3
   intensity:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.9
   scatter:
     m_OverrideState: 1
-    m_Value: 0.7
+    m_Value: 0.8
   clamp:
     m_OverrideState: 1
     m_Value: 4
@@ -32,8 +32,8 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   skipIterations:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0
   dirtTexture:
     m_OverrideState: 0
     m_Value: {fileID: 0}
@@ -51,27 +51,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: PostProcessing Profile
+  m_Name: EnvironmentPostProcessing Profile
   m_EditorClassIdentifier: 
   components:
-  - {fileID: -3974840154475150887}
-  - {fileID: 5285110789608778586}
---- !u!114 &5285110789608778586
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 221518ef91623a7438a71fef23660601, type: 3}
-  m_Name: WhiteBalance
-  m_EditorClassIdentifier: 
-  active: 1
-  temperature:
-    m_OverrideState: 0
-    m_Value: 1
-  tint:
-    m_OverrideState: 1
-    m_Value: 10
+  - {fileID: -7940896822650311595}

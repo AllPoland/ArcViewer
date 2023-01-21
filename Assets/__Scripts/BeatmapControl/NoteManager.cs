@@ -299,16 +299,25 @@ public class NoteManager : MonoBehaviour
         float targetAngle = DirectionAngles[directionIndex] + adjustment;
         float angle = 0;
 
-        float animationOffset = objectManager.spawnAnimationOffset;
-        float animationFinishTime = jumpTime - (animationTime * animationOffset);
-        if(noteTime <= animationFinishTime)
+        float animationFinishTime = jumpTime - (reactionTime * animationTime);
+        if(noteTime > jumpTime)
         {
+            //Note is still jumping in
+            angle = 0;
+        }
+        else if(noteTime <= animationFinishTime)
+        {
+            //Note is done with the animation
             angle = targetAngle;
         }
         else if(noteTime <= animationFinishTime + animationTime)
         {
-            float angleDist = 1 - ((noteTime - animationFinishTime) / animationTime);
+            float animationLength = reactionTime * animationTime;
+            float timeSinceJump = reactionTime - (noteTime - timeManager.CurrentTime);
+
+            float angleDist = timeSinceJump / animationLength;
             angleDist = Easings.Sine.Out(angleDist);
+
             angle = targetAngle * angleDist;
         }
 
