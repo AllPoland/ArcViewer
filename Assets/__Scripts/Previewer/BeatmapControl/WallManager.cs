@@ -7,6 +7,8 @@ public class WallManager : MonoBehaviour
     [SerializeField] private GameObject wallPrefab;
     [SerializeField] private GameObject wallParent;
 
+    [SerializeField] private float wallHeightOffset;
+
     public List<Wall> Walls = new List<Wall>();
     public List<Wall> RenderedWalls = new List<Wall>();
 
@@ -49,7 +51,7 @@ public class WallManager : MonoBehaviour
         float wallLength = objectManager.WorldSpaceFromTime(wallDurationTime);
 
         float laneWidth = objectManager.laneWidth;
-        float rowHeight = objectManager.rowHeight * 0.9f;
+        float rowHeight = objectManager.rowHeight;
 
         float width = w.Width * laneWidth;
 
@@ -59,35 +61,11 @@ public class WallManager : MonoBehaviour
         float correctionX = laneWidth * (w.Width - 1) / 2;
         float worldX = gridPos.x + correctionX;
 
-        float useY = w.y;
-        if(useY < 0)
-        {
-            useY = 0;
-        }
-        else if(useY >= 2)
-        {
-            useY = 1.5f;
-        }
-        else
-        {
-            useY = 0.5f;
-        }
-
-        float worldY = useY * rowHeight;
+        float worldY = w.y * rowHeight;
         float height = w.Height * rowHeight;
 
-        float correctionY = (height - objectManager.rowHeight) / 2;
-        worldY += correctionY;
-
-        //I'll need to lean how walls actually work so I don't have to manually handle these things...
-        if(w.y == 0)
-        {
-            worldY -= 0.3f;
-        }
-        else if(w.y == 2)
-        {
-            worldY += 0.2f;
-        }
+        worldY += height / 2;
+        worldY += wallHeightOffset;
 
         float worldDist = objectManager.GetZPosition(wallStartTime);
 
@@ -101,7 +79,9 @@ public class WallManager : MonoBehaviour
             RenderedWalls.Add(w);
         }
         w.Visual.transform.localPosition = new Vector3(worldX, worldY, worldDist);
-        w.Visual.transform.localScale = new Vector3(width, height, wallLength);
+
+        WallScaleHandler scaleHandler = w.Visual.GetComponent<WallScaleHandler>();
+        scaleHandler.SetScale(new Vector3(width, height, wallLength));
     }
 
 
@@ -166,7 +146,7 @@ public class WallManager : MonoBehaviour
                     else if(w.Duration <= w.Beat - lastBeat)
                     {
                         //Continue looping if this wall overlaps in time with another
-                        //This avoids edge cases where two walls that are close, with one ending before the other causing later walls to not update
+                        //This avoids edge cases where two walls that are close, with one ending before the other causes later walls to not update
                         break;
                     }
                 }

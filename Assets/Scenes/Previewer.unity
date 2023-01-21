@@ -1185,8 +1185,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Artist - Song
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 5d85b5238d4fc2946a608c95b4a6744f, type: 2}
-  m_sharedMaterial: {fileID: 3351713667102648783, guid: 5d85b5238d4fc2946a608c95b4a6744f, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 78be5821565fc5848a05da897476c0d3, type: 2}
+  m_sharedMaterial: {fileID: -8419783504037868241, guid: 78be5821565fc5848a05da897476c0d3, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -4544,8 +4544,8 @@ GameObject:
   m_Component:
   - component: {fileID: 448739039}
   - component: {fileID: 448739040}
-  m_Layer: 0
-  m_Name: PostProcessing
+  m_Layer: 9
+  m_Name: EnvironmentPostProcessing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4563,8 +4563,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 963194228}
-  m_RootOrder: 1
+  m_Father: {fileID: 946182465}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &448739040
 MonoBehaviour:
@@ -6990,7 +6990,7 @@ MonoBehaviour:
   moveZ: 250
   moveTime: 0.6
   spawnAnimationTime: 0.3
-  behindCameraZ: -6
+  behindCameraZ: -5
 --- !u!114 &776929604
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7038,6 +7038,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   wallPrefab: {fileID: 8635635155791510051, guid: f1c4c49a48f936242bb3a78dc6035d99, type: 3}
   wallParent: {fileID: 1101988757}
+  wallHeightOffset: -0.5
 --- !u!114 &776929608
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8564,7 +8565,7 @@ GameObject:
   - component: {fileID: 946182463}
   - component: {fileID: 946182464}
   m_Layer: 9
-  m_Name: ObjectsCamera
+  m_Name: EnvironmentCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8634,7 +8635,7 @@ MonoBehaviour:
   m_RendererIndex: 0
   m_VolumeLayerMask:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 513
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 1
@@ -8658,7 +8659,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 448739039}
   m_Father: {fileID: 963194228}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -8829,7 +8831,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 946182465}
-  - {fileID: 448739039}
   - {fileID: 1150886065}
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -10240,7 +10241,7 @@ Camera:
   m_AllowMSAA: 1
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
+  m_OcclusionCulling: 0
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
 --- !u!114 &1150886062
@@ -10291,7 +10292,7 @@ Transform:
   m_Children:
   - {fileID: 510029055}
   m_Father: {fileID: 963194228}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1153757672
 GameObject:
@@ -14498,8 +14499,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: '[Mapper]'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 5d85b5238d4fc2946a608c95b4a6744f, type: 2}
-  m_sharedMaterial: {fileID: 3351713667102648783, guid: 5d85b5238d4fc2946a608c95b4a6744f, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 78be5821565fc5848a05da897476c0d3, type: 2}
+  m_sharedMaterial: {fileID: -8419783504037868241, guid: 78be5821565fc5848a05da897476c0d3, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
