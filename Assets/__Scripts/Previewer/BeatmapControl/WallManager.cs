@@ -19,7 +19,6 @@ public class WallManager : MonoBehaviour
         1.5f
     };
 
-    private TimeManager timeManager;
     private ObjectManager objectManager;
 
 
@@ -40,14 +39,15 @@ public class WallManager : MonoBehaviour
         }
         else Walls = new List<Wall>();
 
-        UpdateWallVisuals(timeManager.CurrentBeat);
+        UpdateWallVisuals(TimeManager.CurrentBeat);
     }
 
 
     public void UpdateWallVisual(Wall w)
     {
         float wallStartTime = TimeManager.TimeFromBeat(w.Beat);
-        float wallDurationTime = TimeManager.TimeFromBeat(w.Duration);
+        float wallEndTime = TimeManager.TimeFromBeat(w.Beat + w.Duration);
+        float wallDurationTime = wallEndTime - wallStartTime;
         float wallLength = objectManager.WorldSpaceFromTime(wallDurationTime);
 
         float laneWidth = objectManager.laneWidth;
@@ -161,7 +161,7 @@ public class WallManager : MonoBehaviour
         float wallEndBeat = w.Beat + w.Duration;
         float wallEndTime = TimeManager.TimeFromBeat(wallEndBeat) - objectManager.BehindCameraTime;
 
-        bool timeInRange = timeManager.CurrentTime > wallStartTime && timeManager.CurrentTime <= wallEndTime;
+        bool timeInRange = TimeManager.CurrentTime > wallStartTime && TimeManager.CurrentTime <= wallEndTime;
         bool jumpTime = objectManager.CheckInSpawnRange(w.Beat);
 
         return jumpTime || timeInRange;
@@ -170,14 +170,9 @@ public class WallManager : MonoBehaviour
 
     private void Start()
     {
-        timeManager = TimeManager.Instance;
         objectManager = ObjectManager.Instance;
 
         BeatmapManager.OnBeatmapDifficultyChanged += LoadWallsFromDifficulty;
-
-        if(timeManager != null)
-        {
-            timeManager.OnBeatChanged += UpdateWallVisuals;
-        }
+        TimeManager.OnBeatChanged += UpdateWallVisuals;
     }
 }

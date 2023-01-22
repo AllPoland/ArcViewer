@@ -6,20 +6,19 @@ public class SkipButton : MonoBehaviour
 {
     [SerializeField] private float skipAmount = 5f;
 
-    private TimeManager timeManager;
     
 
     public void Skip(float amount)
     {
-        if(timeManager.ForcePause)
+        if(TimeManager.ForcePause)
         {
             return;
         }
-        bool wasPlaying = timeManager.Playing;
+        bool wasPlaying = TimeManager.Playing;
 
-        timeManager.SetPlaying(false);
-        timeManager.CurrentTime += amount;
-        timeManager.SetPlaying(wasPlaying);
+        TimeManager.SetPlaying(false);
+        TimeManager.CurrentTime += amount;
+        TimeManager.SetPlaying(wasPlaying);
     }
 
 
@@ -33,11 +32,5 @@ public class SkipButton : MonoBehaviour
         {
             Skip(skipAmount * -1f);
         }
-    }
-
-
-    private void Start()
-    {
-        timeManager = TimeManager.Instance;
     }
 }

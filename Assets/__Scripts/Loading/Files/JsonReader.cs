@@ -83,13 +83,16 @@ public class JsonReader
 
         try
         {
-            if(beatmapVersion.version == "3.0.0" || beatmapVersion.version == "3.1.0")
+            string[] v3Versions = {"3.0.0", "3.1.0", "3.2.0"};
+            string[] v2Versions = {"2.0.0", "2.2.0", "2.5.0", "2.6.0", "2.9.0"};
+
+            if(Array.IndexOf(v3Versions, beatmapVersion.version) > -1)
             {
                 //Parse the difficulty file
                 Debug.Log("Parsing map in V3 format.");
                 difficulty = JsonUtility.FromJson<BeatmapDifficulty>(json);
             }
-            else if(beatmapVersion._version == "2.9.0" || beatmapVersion._version == "2.6.0" || beatmapVersion._version == "2.5.0" || beatmapVersion._version == "2.2.0" || beatmapVersion._version == "2.0.0")
+            else if(Array.IndexOf(v2Versions, beatmapVersion._version) > -1)
             {
                 Debug.Log("Parsing map in V2 format.");
 

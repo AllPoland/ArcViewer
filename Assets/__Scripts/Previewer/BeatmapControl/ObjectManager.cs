@@ -26,8 +26,6 @@ public class ObjectManager : MonoBehaviour
         }
     }
 
-    private TimeManager timeManager;
-
 
     public static List<T> SortObjectsByBeat<T>(List<T> objects) where T : BeatmapObject
     {
@@ -43,17 +41,11 @@ public class ObjectManager : MonoBehaviour
 
     public bool CheckInSpawnRange(float beat)
     {
-        if(timeManager == null)
-        {
-            Debug.Log("Null timemanager");
-            return false;
-        }
-
         float time = TimeManager.TimeFromBeat(beat);
         return
         (
-            time > timeManager.CurrentTime &&
-            time <= timeManager.CurrentTime + BeatmapManager.ReactionTime + Instance.moveTime
+            time > TimeManager.CurrentTime &&
+            time <= TimeManager.CurrentTime + BeatmapManager.ReactionTime + Instance.moveTime
         );
     }
 
@@ -61,18 +53,18 @@ public class ObjectManager : MonoBehaviour
     public float GetZPosition(float objectTime)
     {
         float reactionTime = BeatmapManager.ReactionTime;
-        float jumpTime = timeManager.CurrentTime + reactionTime;
+        float jumpTime = TimeManager.CurrentTime + reactionTime;
 
         if(objectTime <= jumpTime)
         {
             //Note has jumped in. Place based on Jump Setting stuff
-            float timeDist = (objectTime - timeManager.CurrentTime);
+            float timeDist = (objectTime - TimeManager.CurrentTime);
             return WorldSpaceFromTime(timeDist);
         }
         else
         {
             //Note hasn't jumped in yet. Place based on the jump-in stuff
-            float timeDist = (objectTime - timeManager.CurrentTime - reactionTime) / moveTime;
+            float timeDist = (objectTime - TimeManager.CurrentTime - reactionTime) / moveTime;
             timeDist = Easings.Sine.Out(timeDist);
             return BeatmapManager.JumpDistance + (moveZ * timeDist);
         }
@@ -101,12 +93,6 @@ public class ObjectManager : MonoBehaviour
             this.enabled = false;
         }
         else Instance = this;
-    }
-
-
-    private void Start()
-    {
-        timeManager = TimeManager.Instance;
     }
 
 

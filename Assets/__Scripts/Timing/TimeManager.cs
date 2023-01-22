@@ -1,18 +1,22 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class TimeManager : MonoBehaviour
 {
-    public static TimeManager Instance { get; private set; }
+    public static float BPM = 120;
+    public static float SongLength = 0;
+    public static bool ForcePause;
+    public static float Correction = 0;
 
-    public float BPM = 120;
-    public float SongLength = 0;
-    public bool ForcePause;
-    public float Correction = 0;
+    public static List<BpmChange> BpmChanges = new List<BpmChange>();
 
-    private float _time = 0;
-    public float CurrentTime
+    public static event Action<float> OnBeatChanged;
+    public static event Action<bool> OnPlayingChanged;
+
+    private static float _time = 0;
+    public static float CurrentTime
     {
         get
         {
@@ -29,7 +33,6 @@ public class TimeManager : MonoBehaviour
             }
             else if(set < 0)
             {
-                Debug.LogWarning("Time is less than 0!");
                 set = 0;
             }
 
@@ -39,8 +42,8 @@ public class TimeManager : MonoBehaviour
         }
     }
 
-    private float _beat = 0;
-    public float CurrentBeat
+    private static float _beat = 0;
+    public static float CurrentBeat
     {
         get
         {
@@ -54,7 +57,44 @@ public class TimeManager : MonoBehaviour
         }
     }
 
-    public float Progress
+
+    public static float TimeFromBeat(float beat)
+    {
+        if(BpmChanges.Count == 0)
+        {
+            return RawTimeFromBeat(beat, BPM);
+        }
+
+        BpmChange lastChange = BpmChanges.FindLast(x => x.Beat < beat);
+        return lastChange.Time + RawTimeFromBeat(beat - lastChange.Beat, lastChange.BPM);
+    }
+
+
+    public static float BeatFromTime(float time)
+    {
+        if(BpmChanges.Count == 0)
+        {
+            return RawBeatFromTime(time, BPM);
+        }
+
+        BpmChange lastChange = BpmChanges.FindLast(x => x.Time < time);
+        return lastChange.Beat + RawBeatFromTime(time - lastChange.Time, lastChange.BPM);
+    }
+
+
+    public static float RawTimeFromBeat(float beat, float bpm)
+    {
+        return beat / bpm * 60;
+    }
+
+
+    public static float RawBeatFromTime(float time, float bpm)
+    {
+        return time / 60 * bpm;
+    }
+
+
+    public static float Progress
     {
         get
         {
@@ -71,8 +111,8 @@ public class TimeManager : MonoBehaviour
         }
     }
 
-    public bool Playing { get; private set; }
-    public void SetPlaying(bool newPlaying)
+    public static bool Playing { get; private set; }
+    public static void SetPlaying(bool newPlaying)
     {
         if(newPlaying == Playing)
         {
@@ -87,16 +127,10 @@ public class TimeManager : MonoBehaviour
         Playing = newPlaying;
     }
 
-    public void TogglePlaying()
+    public static void TogglePlaying()
     {
         SetPlaying(!Playing);
     }
-
-    public delegate void FloatDelegate(float value);
-    public event FloatDelegate OnBeatChanged;
-
-    public delegate void BoolDelegate(bool value);
-    public event BoolDelegate OnPlayingChanged;
 
 
     public void UpdateInfo(BeatmapInfo info)
@@ -106,22 +140,41 @@ public class TimeManager : MonoBehaviour
     }
 
 
+    public void UpdateDiff(Difficulty diff)
+    {
+        BpmChanges.Clear();
+
+        List<BpmEvent> bpmEvents = new List<BpmEvent>();
+        bpmEvents.AddRange(diff.beatmapDifficulty.bpmEvents);
+        //Events must be ordered by beat for this to work (the almost always are but just gotta be safe)
+        bpmEvents = bpmEvents.OrderBy(x => x.b).ToList();
+
+        //Calculate the time of each change and populate the bpmChanges list
+        float currentTime = 0;
+        float lastBeat = 0;
+        float lastBpm = BPM;
+        foreach(BpmEvent bpmEvent in bpmEvents)
+        {
+            currentTime += RawTimeFromBeat(bpmEvent.b - lastBeat, lastBpm);
+
+            BpmChange bpmChange = new BpmChange
+            {
+                Beat = bpmEvent.b,
+                Time = currentTime,
+                BPM = bpmEvent.m
+            };
+            BpmChanges.Add(bpmChange);
+
+            lastBeat = bpmEvent.b;
+            lastBpm = bpmEvent.m;
+        }
+    }
+
+
     public void UpdateUIState(UIState newState)
     {
         SetPlaying(false);
         CurrentTime = 0f;
-    }
-
-
-    public static float TimeFromBeat(float beat)
-    {
-        return beat / Instance.BPM * 60;
-    }
-
-
-    public static float BeatFromTime(float time)
-    {
-        return time / 60 * Instance.BPM;
     }
 
 
@@ -134,31 +187,26 @@ public class TimeManager : MonoBehaviour
     }
 
 
-    private void Start()
-    {
-        BeatmapManager.OnBeatmapInfoChanged += UpdateInfo;
-        UIStateManager.OnUIStateChanged += UpdateUIState;
-    }
-
-
     private void OnEnable()
     {
-        if(Instance && Instance != this)
-        {
-            Debug.Log("Duplicate TimeManager in scene.");
-            this.enabled = false;
-        }
-        else Instance = this;
+        BeatmapManager.OnBeatmapInfoChanged += UpdateInfo;
+        BeatmapManager.OnBeatmapDifficultyChanged += UpdateDiff;
+        UIStateManager.OnUIStateChanged += UpdateUIState;
     }
 
 
     private void OnDisable()
     {
-        if(Instance == this)
-        {
-            Instance = null;
-        }
-
         BeatmapManager.OnBeatmapInfoChanged -= UpdateInfo;
+        BeatmapManager.OnBeatmapDifficultyChanged -= UpdateDiff;
+        UIStateManager.OnUIStateChanged -= UpdateUIState;
     }
+}
+
+
+public struct BpmChange
+{
+    public float Beat;
+    public float Time;
+    public float BPM;
 }

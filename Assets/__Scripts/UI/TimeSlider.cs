@@ -8,7 +8,6 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     [SerializeField] private Slider slider;
 
-    private TimeManager timeManager;
     private bool Playing;
     private bool clicking;
     private bool clickPaused;
@@ -16,13 +15,13 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public void UpdateSlider(float beat)
     {
-        slider.value = timeManager.Progress;
+        slider.value = TimeManager.Progress;
     }
 
 
     public void SetProgress(float value)
     {
-        timeManager.Progress = value;
+        TimeManager.Progress = value;
     }
 
 
@@ -35,21 +34,21 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     public void OnPointerDown(PointerEventData eventData)
     {
         clicking = true;
-        clickPaused = timeManager.Playing;
+        clickPaused = TimeManager.Playing;
 
-        timeManager.ForcePause = true;
-        timeManager.SetPlaying(false);
+        TimeManager.ForcePause = true;
+        TimeManager.SetPlaying(false);
         SetProgress(slider.value);
     }
 
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        timeManager.ForcePause = false;
+        TimeManager.ForcePause = false;
         
         if(clickPaused)
         {
-            timeManager.SetPlaying(true);
+            TimeManager.SetPlaying(true);
         }
         clickPaused = false;
         clicking = false;
@@ -67,13 +66,8 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     private void Start()
     {
-        timeManager = TimeManager.Instance;
-
-        if(timeManager != null)
-        {
-            timeManager.OnBeatChanged += UpdateSlider;
-            timeManager.OnPlayingChanged += UpdatePlaying;
-        }
+        TimeManager.OnBeatChanged += UpdateSlider;
+        TimeManager.OnPlayingChanged += UpdatePlaying;
 
         slider = GetComponent<Slider>();
     }

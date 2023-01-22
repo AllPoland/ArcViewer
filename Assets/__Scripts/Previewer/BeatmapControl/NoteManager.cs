@@ -19,7 +19,6 @@ public class NoteManager : MonoBehaviour
     public List<Bomb> Bombs = new List<Bomb>();
     public List<Bomb> RenderedBombs = new List<Bomb>();
 
-    private TimeManager timeManager;
     private ObjectManager objectManager;
 
     public static readonly Dictionary<int, float> DirectionAngles = new Dictionary<int, float>
@@ -69,7 +68,7 @@ public class NoteManager : MonoBehaviour
             Bombs = new List<Bomb>();
         }
 
-        UpdateNoteVisuals(timeManager.CurrentBeat);
+        UpdateNoteVisuals(TimeManager.CurrentBeat);
     }
 
 
@@ -144,7 +143,14 @@ public class NoteManager : MonoBehaviour
             //Angle snapping requires exactly 2 notes
             return 0;
         }
-        notesOnBeat.RemoveAll(x => x.x == n.x && x.y == n.y);
+
+        //Disregard notes that are on the same row or column
+        notesOnBeat.RemoveAll(x => x.x == n.x || x.y == n.y);
+        if(notesOnBeat.Count == 0)
+        {
+            return 0;
+        }
+
         Note other = notesOnBeat[0];
         bool otherDot = other.Direction == 8;
 
@@ -272,7 +278,7 @@ public class NoteManager : MonoBehaviour
         float noteTime = TimeManager.TimeFromBeat(n.Beat);
         float reactionTime = BeatmapManager.ReactionTime;
         float animationTime = objectManager.spawnAnimationTime;
-        float jumpTime = timeManager.CurrentTime + reactionTime;
+        float jumpTime = TimeManager.CurrentTime + reactionTime;
 
         float worldDist = objectManager.GetZPosition(noteTime);
 
@@ -313,7 +319,7 @@ public class NoteManager : MonoBehaviour
         else if(noteTime <= animationFinishTime + animationTime)
         {
             float animationLength = reactionTime * animationTime;
-            float timeSinceJump = reactionTime - (noteTime - timeManager.CurrentTime);
+            float timeSinceJump = reactionTime - (noteTime - TimeManager.CurrentTime);
 
             float angleDist = timeSinceJump / animationLength;
             angleDist = Easings.Sine.Out(angleDist);
@@ -335,7 +341,7 @@ public class NoteManager : MonoBehaviour
 
         float bombTime = TimeManager.TimeFromBeat(b.Beat);
         float reactionTime = BeatmapManager.ReactionTime;
-        float jumpTime = timeManager.CurrentTime + reactionTime;
+        float jumpTime = TimeManager.CurrentTime + reactionTime;
 
         float worldDist = objectManager.GetZPosition(bombTime);
 
@@ -425,7 +431,7 @@ public class NoteManager : MonoBehaviour
 
         if(Notes.Count > 0)
         {
-            int firstNote = Notes.FindIndex(x => x.Beat > timeManager.CurrentBeat);
+            int firstNote = Notes.FindIndex(x => x.Beat > TimeManager.CurrentBeat);
             if(firstNote < 0)
             {
                 //Debug.Log("No more notes.");
@@ -447,7 +453,7 @@ public class NoteManager : MonoBehaviour
 
         if(Bombs.Count > 0)
         {
-            int firstBomb = Bombs.FindIndex(x => x.Beat > timeManager.CurrentBeat + TimeManager.BeatFromTime(objectManager.BehindCameraTime));
+            int firstBomb = Bombs.FindIndex(x => x.Beat > TimeManager.CurrentBeat + TimeManager.BeatFromTime(objectManager.BehindCameraTime));
             if(firstBomb < 0)
             {
                 //Debug.Log("No more bombs.");
@@ -471,7 +477,7 @@ public class NoteManager : MonoBehaviour
     private bool CheckBombInSpawnRange(Bomb b)
     {
         float bombTime = TimeManager.TimeFromBeat(b.Beat);
-        bool timeInRange = timeManager.CurrentTime > bombTime && timeManager.CurrentTime <= bombTime - objectManager.BehindCameraTime;
+        bool timeInRange = TimeManager.CurrentTime > bombTime && TimeManager.CurrentTime <= bombTime - objectManager.BehindCameraTime;
 
         return objectManager.CheckInSpawnRange(b.Beat) || timeInRange;
     }
@@ -479,15 +485,10 @@ public class NoteManager : MonoBehaviour
 
     private void Start()
     {
-        timeManager = TimeManager.Instance;
         objectManager = ObjectManager.Instance;
 
         BeatmapManager.OnBeatmapDifficultyChanged += LoadNotesFromDifficulty;
-
-        if(timeManager != null)
-        {
-            timeManager.OnBeatChanged += UpdateNoteVisuals;
-        }
+        TimeManager.OnBeatChanged += UpdateNoteVisuals;
     }
 }
 

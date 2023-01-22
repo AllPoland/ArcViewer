@@ -8,19 +8,18 @@ public class PlayButton : MonoBehaviour
     [SerializeField] private Sprite PlaySprite;
     [SerializeField] private Sprite PauseSprite;
 
-    private TimeManager timeManager;
     private Image image;
 
 
     public void TogglePlaying()
     {
-        timeManager.TogglePlaying();
+        TimeManager.TogglePlaying();
     }
 
 
     public void UpdatePlaying(bool newPlaying)
     {
-        image.sprite = !newPlaying && !timeManager.ForcePause ? PlaySprite : PauseSprite;
+        image.sprite = !newPlaying && !TimeManager.ForcePause ? PlaySprite : PauseSprite;
     }
 
 
@@ -35,12 +34,7 @@ public class PlayButton : MonoBehaviour
 
     private void Start()
     {
-        timeManager = TimeManager.Instance;
-
-        if(timeManager != null)
-        {
-            timeManager.OnPlayingChanged += UpdatePlaying;
-        }
+        TimeManager.OnPlayingChanged += UpdatePlaying;
 
         image = GetComponent<Image>();
     }

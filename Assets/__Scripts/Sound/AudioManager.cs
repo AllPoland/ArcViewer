@@ -25,7 +25,6 @@ public class AudioManager : MonoBehaviour
     }
 
     private AudioSource source;
-    private TimeManager timeManager;
 
 
     public void UpdateAudioClip(AudioClip newClip)
@@ -36,7 +35,7 @@ public class AudioManager : MonoBehaviour
         }
 
         source.clip = newClip;
-        timeManager.SongLength = newClip.length - BeatmapManager.Info._songTimeOffset;
+        TimeManager.SongLength = newClip.length - BeatmapManager.Info._songTimeOffset;
     }
 
 
@@ -62,27 +61,27 @@ public class AudioManager : MonoBehaviour
 
     public void CorrectTiming()
     {
-        if(!timeManager.Playing || !Correct)
+        if(!TimeManager.Playing || !Correct)
         {
-            timeManager.Correction = 0f;
+            TimeManager.Correction = 0f;
             return;
         }
         if(source.time <= 0 || source.time >= source.clip.length)
         {
-            UpdatePlaying(timeManager.Playing);
+            UpdatePlaying(TimeManager.Playing);
             return;
         }
 
         float disc = source.time - GetSongTime();
         float correction = disc > CorrectionRangeOverride ? disc : Mathf.Min(disc, MaxCorrection) ;
-        timeManager.Correction = correction;
+        TimeManager.Correction = correction;
         //Debug.Log($"Correcting by {correction} seconds.");
     }
 
 
     public float GetSongTime()
     {
-        return timeManager.CurrentTime + BeatmapManager.Info._songTimeOffset;
+        return TimeManager.CurrentTime + BeatmapManager.Info._songTimeOffset;
     }
 
 
@@ -111,8 +110,6 @@ public class AudioManager : MonoBehaviour
 
     private void Start()
     {
-        timeManager = TimeManager.Instance;
-        
-        timeManager.OnPlayingChanged += UpdatePlaying;
+        TimeManager.OnPlayingChanged += UpdatePlaying;
     }
 }

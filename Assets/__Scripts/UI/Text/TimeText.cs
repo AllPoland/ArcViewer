@@ -7,38 +7,33 @@ using TMPro;
 public class TimeText : MonoBehaviour
 {
     private TextMeshProUGUI text;
-    private TimeManager timeManager;
 
 
     public void UpdateText(float beat)
     {
-        string timeText = Math.Round(timeManager.CurrentTime, 2).ToString();
+        string timeText = Math.Round(TimeManager.CurrentTime, 2).ToString();
         string beatText = ((int)beat).ToString();
 
         text.text = $"{timeText}<br>{beatText}";
     }
 
 
-    private void Start()
+    private void OnEnable()
     {
         text = GetComponent<TextMeshProUGUI>();
         if(text == null)
         {
-            Debug.Log("There needs to be a text component on the gameobject.");
-            Destroy(gameObject);
+            Debug.LogWarning("There needs to be a text component on the gameobject!");
+            this.enabled = false;
             return;
         }
 
-        timeManager = TimeManager.Instance;
-        if(timeManager != null)
-        {
-            timeManager.OnBeatChanged += UpdateText;
-        }
-        else
-        {
-            Debug.Log("Found no Time Manager.");
-            Destroy(gameObject);
-            return;
-        }
+        TimeManager.OnBeatChanged += UpdateText;
+    }
+
+
+    private void OnDisable()
+    {
+        TimeManager.OnBeatChanged -= UpdateText;
     }
 }
