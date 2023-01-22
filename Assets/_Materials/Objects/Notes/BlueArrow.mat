@@ -11,7 +11,6 @@ Material:
   m_Shader: {fileID: 4800000, guid: 8d2bb70cbf9db8d4da26e15b26e74248, type: 3}
   m_ValidKeywords:
   - _EMISSION
-  - _SPECULAR_COLOR
   m_InvalidKeywords: []
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 1
@@ -107,7 +106,7 @@ Material:
     - _SmoothnessSource: 0
     - _SmoothnessTextureChannel: 0
     - _SpecSource: 0
-    - _SpecularHighlights: 0
+    - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _Surface: 0
     - _UVSec: 0
@@ -116,7 +115,7 @@ Material:
     m_Colors:
     - _BaseColor: {r: 0.7654414, g: 0.9506415, b: 0.9716981, a: 1}
     - _Color: {r: 0.7654414, g: 0.9506415, b: 0.9716981, a: 1}
-    - _EmissionColor: {r: 1.1901443, g: 1.3971261, b: 1.9766746, a: 1}
+    - _EmissionColor: {r: 1.110444, g: 1.3132207, b: 1.8443027, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.5}
   m_BuildTextureStacks: []
 --- !u!114 &2057740706353209551
