@@ -8,19 +8,25 @@ public class MapDirectoryInput : MonoBehaviour
 {
     [SerializeField] private BeatmapLoader beatmapLoader;
     [SerializeField] private GameObject directoryField;
+    [SerializeField] private Button openButton;
 
     public string MapDirectory;
 
 
     public void LoadMap()
     {
-        beatmapLoader.LoadMapDirectory(MapDirectory);
+        if(MapDirectory != "")
+        {
+            beatmapLoader.LoadMapDirectory(MapDirectory);
+        }
     }
 
 
     public void UpdateDirectory(string directory)
     {
         MapDirectory = directory;
+
+        openButton.interactable = directory != "";
     }
 
 

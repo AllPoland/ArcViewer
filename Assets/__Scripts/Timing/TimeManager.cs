@@ -27,7 +27,11 @@ public class TimeManager : MonoBehaviour
             float set = value;
             if(set >= SongLength)
             {
-                Debug.Log("Reached the end of the song.");
+                if(SongLength > 0)
+                {
+                    Debug.Log("Reached the end of the song.");
+                }
+                
                 SetPlaying(false);
                 set = SongLength;
             }

@@ -1,33 +1,28 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
 public class TimeText : MonoBehaviour
 {
-    private TextMeshProUGUI text;
+    [SerializeField] private TextMeshProUGUI timeText;
+    [SerializeField] private TextMeshProUGUI beatText;
 
 
     public void UpdateText(float beat)
     {
-        string timeText = Math.Round(TimeManager.CurrentTime, 2).ToString();
-        string beatText = ((int)beat).ToString();
+        uint currentTime = (uint)TimeManager.CurrentTime;
+        uint currentSeconds = currentTime % 60;
+        uint currentMinutes = currentTime / 60;
 
-        text.text = $"{timeText}<br>{beatText}";
+        string secondsString = currentSeconds >= 10 ? $"{currentSeconds}" : $"0{currentSeconds}";
+
+        timeText.text = $"{currentMinutes}:{secondsString}";
+        beatText.text = ((uint)beat).ToString();
     }
 
 
     private void OnEnable()
     {
-        text = GetComponent<TextMeshProUGUI>();
-        if(text == null)
-        {
-            Debug.LogWarning("There needs to be a text component on the gameobject!");
-            this.enabled = false;
-            return;
-        }
-
         TimeManager.OnBeatChanged += UpdateText;
     }
 

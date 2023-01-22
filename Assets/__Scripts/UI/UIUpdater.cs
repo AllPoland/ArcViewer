@@ -7,18 +7,20 @@ public class UIUpdater : MonoBehaviour
 {
     [SerializeField] private GameObject selectionScreen;
     [SerializeField] private GameObject previewScreen;
+    [SerializeField] private GameObject background;
     [SerializeField] private TMP_InputField directoryField;
 
 
     public void UpdateState(UIState newState)
     {
-        if(newState == UIState.Previewer)
+        if(newState == UIState.MapSelection)
         {
             directoryField.text = "";
         }
 
         selectionScreen.SetActive(newState == UIState.MapSelection && !BeatmapLoader.Loading);
         previewScreen.SetActive(newState == UIState.Previewer);
+        background.SetActive(newState == UIState.MapSelection);
     }
 
 
@@ -32,6 +34,7 @@ public class UIUpdater : MonoBehaviour
     {
         UIStateManager.OnUIStateChanged += UpdateState;
         BeatmapLoader.OnLoadingChanged += UpdateLoading;
+
         UIStateManager.CurrentState = UIState.MapSelection;
     }
 
