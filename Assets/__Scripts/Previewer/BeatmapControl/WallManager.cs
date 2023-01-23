@@ -61,10 +61,14 @@ public class WallManager : MonoBehaviour
         float correctionX = laneWidth * (w.Width - 1) / 2;
         float worldX = gridPos.x + correctionX;
 
-        float worldY = w.y * rowHeight;
-        float height = w.Height * rowHeight;
+        float wallY = Mathf.Clamp(w.y, 0, 2);
+        float worldY = wallY * rowHeight;
 
-        worldY += height / 2;
+        float maxHeight = 5 - wallY;
+        float wallHeight = Mathf.Min(w.Height, maxHeight);
+        float worldHeight = wallHeight * rowHeight;
+
+        worldY += worldHeight / 2;
         worldY += wallHeightOffset;
 
         float worldDist = objectManager.GetZPosition(wallStartTime);
@@ -76,12 +80,13 @@ public class WallManager : MonoBehaviour
             w.Visual = Instantiate(wallPrefab);
             w.Visual.transform.SetParent(wallParent.transform);
 
+            //Wall scale only needs to be set once when it's created
+            WallScaleHandler scaleHandler = w.Visual.GetComponent<WallScaleHandler>();
+            scaleHandler.SetScale(new Vector3(width, worldHeight, wallLength));
+
             RenderedWalls.Add(w);
         }
         w.Visual.transform.localPosition = new Vector3(worldX, worldY, worldDist);
-
-        WallScaleHandler scaleHandler = w.Visual.GetComponent<WallScaleHandler>();
-        scaleHandler.SetScale(new Vector3(width, height, wallLength));
     }
 
 

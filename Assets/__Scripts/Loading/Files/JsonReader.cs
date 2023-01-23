@@ -155,19 +155,19 @@ public class JsonReader
     }
 
 
-    public static Task<string> ReadFileAsync(string location)
+    public static async Task<string> ReadFileAsync(string location)
     {
         string text = "";
 
         if(!File.Exists(location))
         {
             Debug.LogWarning("Trying to read a file that doesn't exist!");
-            return Task.FromResult(text);
+            return text;
         }
 
         try
         {
-            text = File.ReadAllText(location);
+            text = await File.ReadAllTextAsync(location);
         }
         catch(Exception err)
         {
@@ -175,6 +175,6 @@ public class JsonReader
             text = "";
         }
 
-        return Task.FromResult(text);
+        return text;
     }
 }

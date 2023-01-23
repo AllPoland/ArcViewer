@@ -65,8 +65,8 @@ public class ObjectManager : MonoBehaviour
         else
         {
             //Note hasn't jumped in yet. Place based on the jump-in stuff
-            float timeDist = (objectTime - TimeManager.CurrentTime - reactionTime) / moveTime;
-            timeDist = Easings.Sine.Out(timeDist);
+            float timeDist = (objectTime - jumpTime) / moveTime;
+            timeDist = Easings.Quad.Out(timeDist);
             return BeatmapManager.JumpDistance + (moveZ * timeDist);
         }
     }

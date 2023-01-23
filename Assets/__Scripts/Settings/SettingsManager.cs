@@ -1,0 +1,183 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using UnityEngine;
+
+public class SettingsManager : MonoBehaviour
+{
+    private static Settings CurrentSettings = Settings.DefaultSettings;
+
+    public static Action OnSettingsUpdated;
+
+    private const string settingsFile = "UserSettings.json";
+
+    private bool saving;
+
+
+    private async Task WriteFileAsync(string text, string path)
+    {
+        await File.WriteAllTextAsync(path, text);
+    }
+
+
+    private IEnumerator SaveSettingsCoroutine()
+    {
+        saving = true;
+
+        string filePath = Path.Combine(Application.persistentDataPath, settingsFile);
+        string json = JsonUtility.ToJson(CurrentSettings);
+
+        Task writeTask = WriteFileAsync(json, filePath);
+        yield return new WaitUntil(() => writeTask.IsCompleted);
+
+        if(writeTask.Exception != null)
+        {
+            Debug.Log($"Failed to save settings with error: {writeTask.Exception.Message}, {writeTask.Exception.StackTrace}");
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to save your settings!");
+        }
+
+        saving = false;
+    }
+
+
+    public void SaveSettings()
+    {
+        if(saving)
+        {
+            Debug.Log("Trying to save settings when already saving!");
+            return;
+        }
+
+        StartCoroutine(SaveSettingsCoroutine());
+    }
+
+
+    private void LoadSettings()
+    {
+        string filePath = Path.Combine(Application.persistentDataPath, settingsFile);
+        
+        if(!File.Exists(filePath))
+        {
+            Debug.Log("Settings file doesn't exist. Using defaults.");
+            CurrentSettings = Settings.DefaultSettings;
+            SaveSettings();
+
+            OnSettingsUpdated?.Invoke();
+            return;
+        }
+
+        try
+        {
+            string json = File.ReadAllText(filePath);
+            CurrentSettings = JsonUtility.FromJson<Settings>(json);
+        }
+        catch(Exception err)
+        {
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to load settings! Reverting to default.");
+            Debug.LogWarning($"Failed to load settings with error: {err.Message}, {err.StackTrace}");
+
+            CurrentSettings = Settings.DefaultSettings;
+            SaveSettings();
+        }
+
+        OnSettingsUpdated?.Invoke();
+    }
+
+
+    public static bool GetRuleBool(string name)
+    {
+        if(CurrentSettings.BoolRules.ContainsKey(name))
+        {
+            return CurrentSettings.BoolRules[name];
+        }
+        else return false;
+    }
+
+
+    public static int GetRuleInt(string name)
+    {
+        if(CurrentSettings.IntRules.ContainsKey(name))
+        {
+            return CurrentSettings.IntRules[name];
+        }
+        else return 0;
+    }
+
+
+    public static float GetRuleFloat(string name)
+    {
+        if(CurrentSettings.FloatRules.ContainsKey(name))
+        {
+            return CurrentSettings.FloatRules[name];
+        }
+        else return 0;
+    }
+
+
+    public static void AddRule(string name, bool value)
+    {
+        Dictionary<string, bool> rules = CurrentSettings.BoolRules;
+        if(rules.ContainsKey(name))
+        {
+            rules[name] = value;
+        }
+        else
+        {
+            rules.Add(name, value);
+        }
+        OnSettingsUpdated?.Invoke();
+    }
+
+
+    public static void AddRule(string name, int value)
+    {
+        Dictionary<string, int> rules = CurrentSettings.IntRules;
+        if(rules.ContainsKey(name))
+        {
+            rules[name] = value;
+        }
+        else
+        {
+            rules.Add(name, value);
+        }
+        OnSettingsUpdated?.Invoke();
+    }
+
+
+    public static void AddRule(string name, float value)
+    {
+        Dictionary<string, float> rules = CurrentSettings.FloatRules;
+        if(rules.ContainsKey(name))
+        {
+            rules[name] = value;
+        }
+        else
+        {
+            rules.Add(name, value);
+        }
+        OnSettingsUpdated?.Invoke();
+    }
+
+
+    private void Start()
+    {
+        LoadSettings();
+    }
+}
+
+
+[Serializable]
+public class Settings
+{
+    public Dictionary<string, bool> BoolRules;
+    public Dictionary<string, int> IntRules;
+    public Dictionary<string, float> FloatRules;
+
+
+    public static Settings DefaultSettings = new Settings
+    {
+
+    };
+}

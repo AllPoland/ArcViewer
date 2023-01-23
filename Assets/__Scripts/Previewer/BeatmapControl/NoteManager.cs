@@ -277,7 +277,7 @@ public class NoteManager : MonoBehaviour
         //Calculate the Z position based on time
         float noteTime = TimeManager.TimeFromBeat(n.Beat);
         float reactionTime = BeatmapManager.ReactionTime;
-        float animationTime = objectManager.spawnAnimationTime;
+        float animationLength = reactionTime * objectManager.spawnAnimationTime;
         float jumpTime = TimeManager.CurrentTime + reactionTime;
 
         float worldDist = objectManager.GetZPosition(noteTime);
@@ -305,7 +305,7 @@ public class NoteManager : MonoBehaviour
         float targetAngle = DirectionAngles[directionIndex] + adjustment;
         float angle = 0;
 
-        float animationFinishTime = jumpTime - (reactionTime * animationTime);
+        float animationFinishTime = jumpTime - animationLength;
         if(noteTime > jumpTime)
         {
             //Note is still jumping in
@@ -316,9 +316,8 @@ public class NoteManager : MonoBehaviour
             //Note is done with the animation
             angle = targetAngle;
         }
-        else if(noteTime <= animationFinishTime + animationTime)
+        else if(noteTime <= animationFinishTime + animationLength)
         {
-            float animationLength = reactionTime * animationTime;
             float timeSinceJump = reactionTime - (noteTime - TimeManager.CurrentTime);
 
             float angleDist = timeSinceJump / animationLength;

@@ -139,7 +139,7 @@ public class BeatmapManager : MonoBehaviour
     {
         get
         {
-            return CurrentMap.NoteJumpSpeed * 2 * ReactionTime;
+            return GetJumpDistance(HJD, Info._beatsPerMinute, CurrentMap.NoteJumpSpeed);
         }
     }
 
