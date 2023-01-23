@@ -42,6 +42,7 @@ public class ZipReader
 
         if(infoData == null)
         {
+            ErrorHandler.Instance?.QueuePopup(ErrorType.Error, "Unable to load Info.dat!");
             Debug.LogWarning("Zip file has no Info.dat!");
             return (info, difficulties, songFile);
         }
@@ -51,17 +52,21 @@ public class ZipReader
 
         if(info._difficultyBeatmapSets.Length < 1)
         {
-            Debug.LogWarning("Info lists no difficulties!");
+            ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, "The map lists no difficulty sets!");
+            Debug.LogWarning("Info lists no difficulty sets!");
         }
 
         foreach(DifficultyBeatmapSet set in info._difficultyBeatmapSets)
         {
+            string characteristicName = set._beatmapCharacteristicName;
+            
             if(set._difficultyBeatmaps.Length == 0)
             {
+                ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, $"Characteristic {characteristicName} lists no difficulties!");
+                Debug.LogWarning($"{characteristicName} lists no difficulties!");
                 continue;
             }
 
-            string characteristicName = set._beatmapCharacteristicName;
             DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
 
             List<Difficulty> newDifficulties = new List<Difficulty>();
@@ -69,6 +74,10 @@ public class ZipReader
             {
                 Debug.Log($"Loading {beatmap._beatmapFilename}");
                 Difficulty diff = await Task.Run(() => GetDiff(beatmap, archive));
+                if(diff == null)
+                {
+                    continue;
+                }
                 
                 diff.characteristic = setCharacteristic;
                 newDifficulties.Add(diff);
@@ -90,6 +99,7 @@ public class ZipReader
 
         if(songFile == null)
         {
+            ErrorHandler.Instance?.QueuePopup(ErrorType.Error, "Song file not found!");
             Debug.LogWarning($"Didn't find audio file {songFilename}!");
         }
 
@@ -121,8 +131,9 @@ public class ZipReader
 
         if(diffData == null)
         {
+            ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, $"Unable to load {filename}!");
             Debug.LogWarning("Difficulty file not found!");
-            return Difficulty.Empty;
+            return null;
         }
 
         Debug.Log($"Parsing {filename}");

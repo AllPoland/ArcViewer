@@ -17,6 +17,7 @@ public class WebMapLoader : MonoBehaviour
 
         if(!url.EndsWith(".zip"))
         {
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "The url doesn't link to a zip!");
             Debug.Log("Attempted to load a map from a non-zip url.");
             return stream;
         }
@@ -67,6 +68,7 @@ public class WebMapLoader : MonoBehaviour
     {
         if(args.Error != null)
         {
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, $"Download failed! {args.Error.Message}");
             Debug.Log($"Download task failed with error:{args.Error.Message}, {args.Error.StackTrace}");
             result = new byte[0];
             return;
@@ -74,6 +76,7 @@ public class WebMapLoader : MonoBehaviour
 
         if(args.Cancelled)
         {
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Notification, "The download was cancelled!");
             Debug.LogWarning("Download task cancelled!");
             result = new byte[0];
             return;

@@ -54,6 +54,7 @@ public class BeatmapLoader : MonoBehaviour
 
         if(info == null)
         {
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Unable to load Info.dat!");
             UpdateMapInfo(null, new List<Difficulty>(), null);
             yield break;
         }
@@ -80,7 +81,8 @@ public class BeatmapLoader : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Audio file doesn't exist!");
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
+            Debug.LogWarning("Song file not found!");
         }
 
         Debug.Log("Loading complete.");
@@ -203,6 +205,12 @@ public class BeatmapLoader : MonoBehaviour
         yield return new WaitUntil(() => apiTask.IsCompleted);
         string mapURL = apiTask.Result;
 
+        if(mapURL == null || mapURL == "")
+        {
+            UpdateMapInfo(null, new List<Difficulty>(), null);
+            yield break;
+        }
+
         StartCoroutine(LoadMapURLCoroutine(mapURL));
     }
 
@@ -247,12 +255,14 @@ public class BeatmapLoader : MonoBehaviour
 
         foreach(DifficultyBeatmapSet set in info._difficultyBeatmapSets)
         {
+            string characteristicName = set._beatmapCharacteristicName;
+
             if(set._difficultyBeatmaps.Length == 0)
             {
+                Debug.LogWarning($"{characteristicName} lists no difficulties!");
                 continue;
             }
 
-            string characteristicName = set._beatmapCharacteristicName;
             DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
             
             List<Difficulty> newDifficulties = new List<Difficulty>();
@@ -260,6 +270,12 @@ public class BeatmapLoader : MonoBehaviour
             {
                 Debug.Log($"Loading {beatmap._beatmapFilename}");
                 Difficulty diff = await JsonReader.LoadDifficultyAsync(directory, beatmap);
+                if(diff == null)
+                {
+                    Debug.LogWarning($"Unable to load {beatmap._beatmapFilename}!");
+                    continue;
+                }
+
                 diff.characteristic = setCharacteristic;
                 newDifficulties.Add(diff);
             }
@@ -276,6 +292,7 @@ public class BeatmapLoader : MonoBehaviour
     {
         if(Loading)
         {
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "You're already loading something!");
             Debug.LogWarning("Trying to load a map while already loading!");
             return;
         }
@@ -290,6 +307,7 @@ public class BeatmapLoader : MonoBehaviour
         {
             if(!File.Exists(mapDirectory))
             {
+                ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "That file doesn't exist!");
                 Debug.LogWarning("Trying to load a map from a file that doesn't exist!");
                 return;
             }
@@ -306,6 +324,7 @@ public class BeatmapLoader : MonoBehaviour
 
         if(!Directory.Exists(mapDirectory))
         {
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "That directory doesn't exist!");
             Debug.LogWarning("Trying to load a map from a directory that doesn't exist!");
             return;
         }

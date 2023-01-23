@@ -42,6 +42,7 @@ public class BeatSaverHandler
         }
         catch(Exception err)
         {
+            ErrorHandler.Instance?.QueuePopup(ErrorType.Error, $"Couldn't find beatsaver map {mapID}! {err.Message}");
             Debug.Log($"Failed to get BeatSaver api response with error: {err.Message}, {err.StackTrace}");
             return "";
         }

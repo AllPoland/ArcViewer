@@ -35,7 +35,8 @@ public class ObjectManager : MonoBehaviour
 
     public static List<T> GetObjectsOnBeat<T>(List<T> objects, float beat) where T :BeatmapObject
     {
-        return objects.FindAll(x => x.Beat == beat);
+        float time = TimeManager.TimeFromBeat(beat);
+        return objects.FindAll(x => Mathf.Abs(TimeManager.TimeFromBeat(x.Beat) - time) <= 0.001);
     }
 
 
