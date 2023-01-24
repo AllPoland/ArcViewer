@@ -313,6 +313,20 @@ public class NoteManager : MonoBehaviour
     }
 
 
+    private float GetObjectY(float startY, float targetY, float objectTime)
+    {
+        float jumpTime = TimeManager.CurrentTime + BeatmapManager.ReactionTime;
+
+        if(objectTime > jumpTime)
+        {
+            return startY;
+        }
+        
+        float halfJumpDistance = BeatmapManager.JumpDistance / 2;
+        return SpawnParabola(targetY, startY, halfJumpDistance, objectManager.GetZPosition(objectTime));
+    }
+
+
     public void UpdateNoteVisual(Note n)
     {
         //Calculate the 2d position on the grid
@@ -345,27 +359,20 @@ public class NoteManager : MonoBehaviour
         float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
 
         float startY = (GetStartY(n) * objectManager.rowHeight) + floorOffset;
+        worldPos.y = GetObjectY(startY, targetPos.y, noteTime);
 
         if(noteTime > jumpTime)
         {
             //Note is still jumping in
-            worldPos.y = startY;
-
             angle = 0;
         }
-        else
+        else if(noteTime > jumpTime - rotationAnimationLength)
         {
-            float halfJumpDistance = BeatmapManager.JumpDistance / 2;
-            worldPos.y = SpawnParabola(targetPos.y, startY, halfJumpDistance, targetPos.z);
+            float timeSinceJump = reactionTime - (noteTime - TimeManager.CurrentTime);
+            float rotationProgress = timeSinceJump / rotationAnimationLength;
+            float angleDist = Easings.Sine.Out(rotationProgress);
 
-            if(noteTime > jumpTime - rotationAnimationLength)
-            {
-                float timeSinceJump = reactionTime - (noteTime - TimeManager.CurrentTime);
-                float rotationProgress = timeSinceJump / rotationAnimationLength;
-                float angleDist = Easings.Sine.Out(rotationProgress);
-
-                angle = targetAngle * angleDist;
-            }
+            angle = targetAngle * angleDist;
         }
 
         if(n.Visual == null)
@@ -400,16 +407,7 @@ public class NoteManager : MonoBehaviour
 
         Vector3 worldPos = targetPos;
         float startY = GetStartY(b) * objectManager.rowHeight + floorOffset;
-
-        if(bombTime > jumpTime)
-        {
-            worldPos.y = startY;
-        }
-        else
-        {
-            float halfJumpDistance = BeatmapManager.JumpDistance / 2;
-            worldPos.y = SpawnParabola(targetPos.y, startY, halfJumpDistance, targetPos.z / 2);
-        }
+        worldPos.y = GetObjectY(startY, targetPos.y, bombTime);
 
         if(b.Visual == null)
         {
