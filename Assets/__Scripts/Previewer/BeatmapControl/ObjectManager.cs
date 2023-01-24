@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -15,7 +14,7 @@ public class ObjectManager : MonoBehaviour
     [Header("Animation Settings")]
     [SerializeField] public float moveZ = 200f;
     [SerializeField] public float moveTime = 0.25f;
-    [SerializeField] public float spawnAnimationTime = 0.1f;
+    [SerializeField] public float rotationAnimationTime = 0.3f;
     [SerializeField] public float behindCameraZ = -5f;
 
     public float BehindCameraTime
@@ -33,7 +32,7 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public static List<T> GetObjectsOnBeat<T>(List<T> objects, float beat) where T :BeatmapObject
+    public static List<T> GetObjectsOnBeat<T>(List<T> objects, float beat) where T : BeatmapObject
     {
         float time = TimeManager.TimeFromBeat(beat);
         return objects.FindAll(x => Mathf.Abs(TimeManager.TimeFromBeat(x.Beat) - time) <= 0.001);
@@ -111,6 +110,8 @@ public class BeatmapObject
 {
     public float Beat;
     public GameObject Visual;
+    public float x;
+    public float y;
 
 
     public void ClearVisual()
@@ -125,8 +126,6 @@ public class BeatmapObject
 
 public class Note : BeatmapObject
 {
-    public int x;
-    public int y;
     public int Color;
     public int Direction;
     public int AngleOffset;
@@ -150,10 +149,6 @@ public class Note : BeatmapObject
 
 public class Bomb : BeatmapObject
 {
-    public int x;
-    public int y;
-
-
     public static Bomb BombFromBombNote(BombNote b)
     {
         return new Bomb
@@ -169,8 +164,6 @@ public class Bomb : BeatmapObject
 
 public class Wall : BeatmapObject
 {
-    public int x;
-    public int y;
     public float Duration;
     public int Width;
     public int Height;

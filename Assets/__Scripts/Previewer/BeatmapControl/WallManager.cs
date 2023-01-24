@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,7 +6,7 @@ public class WallManager : MonoBehaviour
     [SerializeField] private GameObject wallPrefab;
     [SerializeField] private GameObject wallParent;
 
-    [SerializeField] private float wallHeightOffset;
+    [SerializeField] private float wallHScale;
 
     public List<Wall> Walls = new List<Wall>();
     public List<Wall> RenderedWalls = new List<Wall>();
@@ -51,7 +50,6 @@ public class WallManager : MonoBehaviour
         float wallLength = objectManager.WorldSpaceFromTime(wallDurationTime);
 
         float laneWidth = objectManager.laneWidth;
-        float rowHeight = objectManager.rowHeight;
 
         float width = w.Width * laneWidth;
 
@@ -62,16 +60,16 @@ public class WallManager : MonoBehaviour
         float worldX = gridPos.x + correctionX;
 
         float wallY = Mathf.Clamp(w.y, 0, 2);
-        float worldY = wallY * rowHeight;
+        float worldY = wallY * wallHScale;
 
         float maxHeight = 5 - wallY;
         float wallHeight = Mathf.Min(w.Height, maxHeight);
-        float worldHeight = wallHeight * rowHeight;
+        float worldHeight = wallHeight * wallHScale;
 
         worldY += worldHeight / 2;
-        worldY += wallHeightOffset;
 
-        float worldDist = objectManager.GetZPosition(wallStartTime);
+        //Subtract 0.25 to make front face of wall line up with front face of note (walls just built like that)
+        float worldDist = objectManager.GetZPosition(wallStartTime) - 0.25f;
 
         worldDist += wallLength / 2;
 

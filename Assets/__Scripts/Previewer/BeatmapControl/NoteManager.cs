@@ -1,5 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class NoteManager : MonoBehaviour
@@ -12,6 +12,8 @@ public class NoteManager : MonoBehaviour
     [Header("Object Parents")]
     [SerializeField] private GameObject noteParent;
     [SerializeField] private GameObject bombParent;
+
+    [SerializeField] private float floorOffset;
 
     public List<Note> Notes = new List<Note>();
     public List<Note> RenderedNotes = new List<Note>();
@@ -134,9 +136,9 @@ public class NoteManager : MonoBehaviour
     {
         //Returns the angle offset the note should use to snap, or 0 if it shouldn't
         List<Note> notesOnBeat = ObjectManager.GetObjectsOnBeat<Note>(Notes, n.Beat);
-        notesOnBeat.RemoveAll(x => x.Color != n.Color);
+        if(notesOnBeat.Count == 0) return 0;
 
-        bool dot = n.Direction == 8;
+        notesOnBeat.RemoveAll(x => x.Color != n.Color);
 
         if(notesOnBeat.Count != 2)
         {
@@ -165,11 +167,12 @@ public class NoteManager : MonoBehaviour
             return 0;
         }
 
-        int xDist = n.x - other.x;
-        int yDist = n.y - other.y;
+        int xDist = (int)(n.x - other.x);
+        int yDist = (int)(n.y - other.y);
         int absxDist = Mathf.Abs(xDist);
         int absyDist = Mathf.Abs(yDist);
 
+        bool dot = n.Direction == 8;
         bool counterClockwise = xDist >= 0 != yDist >= 0;
         int directionMult = counterClockwise ? 1 : -1;
 
@@ -267,6 +270,49 @@ public class NoteManager : MonoBehaviour
     }
 
 
+    private static float SpawnParabola(float targetHeight, float baseHeight, float halfJumpDistance, float t)
+    {
+        float dSquared = Mathf.Pow(halfJumpDistance, 2);
+        float tSquared = Mathf.Pow(t, 2);
+
+        float movementRange = targetHeight - baseHeight;
+
+        return -(movementRange / dSquared) * tSquared + targetHeight;
+    }
+
+
+    private float GetStartY<T>(T n) where T : BeatmapObject
+    {
+        if(n.y <= 0) return 0;
+
+        List<Note> otherNotes = ObjectManager.GetObjectsOnBeat<Note>(Notes, n.Beat);
+        List<Bomb> otherBombs = ObjectManager.GetObjectsOnBeat<Bomb>(Bombs, n.Beat);
+
+        if(otherNotes.Count == 0 && otherBombs.Count == 0) return 0;
+
+        //Remove all notes that aren't directly below this one
+        otherNotes.RemoveAll(x => x.x != n.x || x.y >= n.y);
+        otherBombs.RemoveAll(x => x.x != n.x || x.y >= n.y);
+
+        if(otherNotes.Count == 0 && otherBombs.Count == 0) return 0;
+
+        float startPos = 0;
+        if(otherNotes.Count > 0)
+        {
+            //Need to recursively calculate the startYs of each note underneath
+            float maxY = otherNotes.Max(x => GetStartY(x)) + 1;
+            startPos = maxY;
+        }
+        if(otherBombs.Count > 0)
+        {
+            float maxY = otherBombs.Max(x => GetStartY(x)) + 1;
+            startPos = Mathf.Max(startPos, maxY);
+        }
+
+        return startPos;
+    }
+
+
     public void UpdateNoteVisual(Note n)
     {
         //Calculate the 2d position on the grid
@@ -276,13 +322,51 @@ public class NoteManager : MonoBehaviour
 
         //Calculate the Z position based on time
         float noteTime = TimeManager.TimeFromBeat(n.Beat);
+
         float reactionTime = BeatmapManager.ReactionTime;
-        float animationLength = reactionTime * objectManager.spawnAnimationTime;
         float jumpTime = TimeManager.CurrentTime + reactionTime;
 
         float worldDist = objectManager.GetZPosition(noteTime);
 
-        Vector3 worldPos = new Vector3(gridPos.x, gridPos.y, worldDist);
+        Vector3 targetPos = new Vector3(gridPos.x, gridPos.y, worldDist);
+
+        //Default to 0 in case of over-sized direction value
+        int directionIndex = n.Direction >= 0 && n.Direction < 9 ? n.Direction : 0;
+
+        float snapAngle = CheckAngleSnap(n);
+        bool useSnap = snapAngle != 0;
+        float adjustment = useSnap ? snapAngle : n.AngleOffset;
+
+        float targetAngle = DirectionAngles[directionIndex] + adjustment;
+
+        Vector3 worldPos = targetPos;
+        float angle = targetAngle;
+
+        float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
+
+        float startY = (GetStartY(n) * objectManager.rowHeight) + floorOffset;
+
+        if(noteTime > jumpTime)
+        {
+            //Note is still jumping in
+            worldPos.y = startY;
+
+            angle = 0;
+        }
+        else
+        {
+            float halfJumpDistance = BeatmapManager.JumpDistance / 2;
+            worldPos.y = SpawnParabola(targetPos.y, startY, halfJumpDistance, targetPos.z / 2);
+
+            if(noteTime > jumpTime - rotationAnimationLength)
+            {
+                float timeSinceJump = reactionTime - (noteTime - TimeManager.CurrentTime);
+                float rotationProgress = timeSinceJump / rotationAnimationLength;
+                float angleDist = Easings.Sine.Out(rotationProgress);
+
+                angle = targetAngle * angleDist;
+            }
+        }
 
         if(n.Visual == null)
         {
@@ -294,38 +378,6 @@ public class NoteManager : MonoBehaviour
             RenderedNotes.Add(n);
         }
         n.Visual.transform.localPosition = worldPos;
-
-        //Default to 0 in case of over-sized direction value
-        int directionIndex = n.Direction >= 0 && n.Direction < 9 ? n.Direction : 0;
-
-        float snapAngle = CheckAngleSnap(n);
-        bool useSnap = snapAngle != 0;
-        float adjustment = useSnap ? snapAngle : n.AngleOffset;
-
-        float targetAngle = DirectionAngles[directionIndex] + adjustment;
-        float angle = 0;
-
-        float animationFinishTime = jumpTime - animationLength;
-        if(noteTime > jumpTime)
-        {
-            //Note is still jumping in
-            angle = 0;
-        }
-        else if(noteTime <= animationFinishTime)
-        {
-            //Note is done with the animation
-            angle = targetAngle;
-        }
-        else if(noteTime <= animationFinishTime + animationLength)
-        {
-            float timeSinceJump = reactionTime - (noteTime - TimeManager.CurrentTime);
-
-            float angleDist = timeSinceJump / animationLength;
-            angleDist = Easings.Sine.Out(angleDist);
-
-            angle = targetAngle * angleDist;
-        }
-
         n.Visual.transform.localRotation = Quaternion.AngleAxis(angle, Vector3.forward);
     }
 
@@ -344,7 +396,20 @@ public class NoteManager : MonoBehaviour
 
         float worldDist = objectManager.GetZPosition(bombTime);
 
-        Vector3 worldPos = new Vector3(gridPos.x, gridPos.y, worldDist);
+        Vector3 targetPos = new Vector3(gridPos.x, gridPos.y, worldDist);
+
+        Vector3 worldPos = targetPos;
+        float startY = GetStartY(b) * objectManager.rowHeight + floorOffset;
+
+        if(bombTime > jumpTime)
+        {
+            worldPos.y = startY;
+        }
+        else
+        {
+            float halfJumpDistance = BeatmapManager.JumpDistance / 2;
+            worldPos.y = SpawnParabola(targetPos.y, startY, halfJumpDistance, targetPos.z / 2);
+        }
 
         if(b.Visual == null)
         {
