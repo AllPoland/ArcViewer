@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using UnityEngine;
 
 public class SettingsManager : MonoBehaviour
@@ -27,7 +28,8 @@ public class SettingsManager : MonoBehaviour
         saving = true;
 
         string filePath = Path.Combine(Application.persistentDataPath, settingsFile);
-        string json = JsonUtility.ToJson(CurrentSettings);
+        //Need to use newtonsoft otherwise dictionaries don't serialize
+        string json = JsonConvert.SerializeObject(CurrentSettings);
 
         Task writeTask = WriteFileAsync(json, filePath);
         yield return new WaitUntil(() => writeTask.IsCompleted);
@@ -88,9 +90,9 @@ public class SettingsManager : MonoBehaviour
 
     public static bool GetRuleBool(string name)
     {
-        if(CurrentSettings.BoolRules.ContainsKey(name))
+        if(CurrentSettings.Bools.ContainsKey(name))
         {
-            return CurrentSettings.BoolRules[name];
+            return CurrentSettings.Bools[name];
         }
         else return false;
     }
@@ -98,9 +100,9 @@ public class SettingsManager : MonoBehaviour
 
     public static int GetRuleInt(string name)
     {
-        if(CurrentSettings.IntRules.ContainsKey(name))
+        if(CurrentSettings.Ints.ContainsKey(name))
         {
-            return CurrentSettings.IntRules[name];
+            return CurrentSettings.Ints[name];
         }
         else return 0;
     }
@@ -108,9 +110,9 @@ public class SettingsManager : MonoBehaviour
 
     public static float GetRuleFloat(string name)
     {
-        if(CurrentSettings.FloatRules.ContainsKey(name))
+        if(CurrentSettings.Floats.ContainsKey(name))
         {
-            return CurrentSettings.FloatRules[name];
+            return CurrentSettings.Floats[name];
         }
         else return 0;
     }
@@ -118,7 +120,7 @@ public class SettingsManager : MonoBehaviour
 
     public static void AddRule(string name, bool value)
     {
-        Dictionary<string, bool> rules = CurrentSettings.BoolRules;
+        Dictionary<string, bool> rules = CurrentSettings.Bools;
         if(rules.ContainsKey(name))
         {
             rules[name] = value;
@@ -133,7 +135,7 @@ public class SettingsManager : MonoBehaviour
 
     public static void AddRule(string name, int value)
     {
-        Dictionary<string, int> rules = CurrentSettings.IntRules;
+        Dictionary<string, int> rules = CurrentSettings.Ints;
         if(rules.ContainsKey(name))
         {
             rules[name] = value;
@@ -148,7 +150,7 @@ public class SettingsManager : MonoBehaviour
 
     public static void AddRule(string name, float value)
     {
-        Dictionary<string, float> rules = CurrentSettings.FloatRules;
+        Dictionary<string, float> rules = CurrentSettings.Floats;
         if(rules.ContainsKey(name))
         {
             rules[name] = value;
@@ -171,13 +173,27 @@ public class SettingsManager : MonoBehaviour
 [Serializable]
 public class Settings
 {
-    public Dictionary<string, bool> BoolRules;
-    public Dictionary<string, int> IntRules;
-    public Dictionary<string, float> FloatRules;
+    public Dictionary<string, bool> Bools;
+    public Dictionary<string, int> Ints;
+    public Dictionary<string, float> Floats;
 
 
     public static Settings DefaultSettings = new Settings
     {
+        Bools = new Dictionary<string, bool>
+        {
 
+        },
+
+        Ints = new Dictionary<string, int>
+        {
+            {"vsync", 1},
+            {"framecap", 60}
+        },
+
+        Floats = new Dictionary<string, float>
+        {
+
+        }
     };
 }

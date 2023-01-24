@@ -8,7 +8,7 @@ public class TimeManager : MonoBehaviour
     public static float BPM = 120;
     public static float SongLength = 0;
     public static bool ForcePause;
-    public static float Correction = 0;
+    public static float TimeScale = 1f;
 
     public static List<BpmChange> BpmChanges = new List<BpmChange>();
 
@@ -150,7 +150,7 @@ public class TimeManager : MonoBehaviour
 
         List<BpmEvent> bpmEvents = new List<BpmEvent>();
         bpmEvents.AddRange(diff.beatmapDifficulty.bpmEvents);
-        //Events must be ordered by beat for this to work (the almost always are but just gotta be safe)
+        //Events must be ordered by beat for this to work (they almost always are but just gotta be safe)
         bpmEvents = bpmEvents.OrderBy(x => x.b).ToList();
 
         //Calculate the time of each change and populate the bpmChanges list
@@ -186,7 +186,7 @@ public class TimeManager : MonoBehaviour
     {
         if(Playing)
         {
-            CurrentTime += Time.deltaTime + Correction;
+            CurrentTime += Time.deltaTime * TimeScale;
         }
     }
 

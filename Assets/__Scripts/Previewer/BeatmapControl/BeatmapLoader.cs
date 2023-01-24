@@ -228,7 +228,7 @@ public class BeatmapLoader : MonoBehaviour
             return;
         }
 
-        audioManager.UpdateAudioClip(song);
+        audioManager.MusicClip = song;
         UIStateManager.CurrentState = UIState.Previewer;
         
         BeatmapManager.Info = info;

@@ -6,17 +6,10 @@ public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
 
-    public bool Correct = true;
-    public float MaxCorrection = 0.005f;
-    public float CorrectionRangeOverride = 0.05f;
-
     private AudioClip _musicClip;
     public AudioClip MusicClip
     {
-        get
-        {
-            return _musicClip;
-        }
+        get => _musicClip;
         set
         {
             _musicClip = value;
@@ -24,18 +17,28 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    private AudioSource source;
+    private AudioSource musicSource;
 
 
-    public void UpdateAudioClip(AudioClip newClip)
+    public static float GetMapTime()
     {
-        if(newClip == null)
-        {
-            return;
-        }
+        return TimeManager.CurrentTime + BeatmapManager.Info._songTimeOffset;
+    }
 
-        source.clip = newClip;
-        TimeManager.SongLength = newClip.length - BeatmapManager.Info._songTimeOffset;
+
+    public static float GetSongTime()
+    {
+        if(Instance?.MusicClip == null) return 0;
+
+        return (float)(Instance.musicSource.timeSamples) / Instance.MusicClip.frequency;
+    }
+
+
+    public static float GetSongLength()
+    {
+        if(Instance?.MusicClip == null) return 0;
+
+        return Instance.MusicClip.samples / Instance.MusicClip.frequency;
     }
 
 
@@ -43,57 +46,37 @@ public class AudioManager : MonoBehaviour
     {
         if(playing)
         {
-            float songTime = GetSongTime();
-            if(songTime <= 0 || songTime > source.clip.length)
+            float mapTime = GetMapTime();
+            if(mapTime < 0 || mapTime > GetSongLength())
             {
                 return;
             }
             
-            source.time = songTime;
-            source.Play();
+            musicSource.time = mapTime;
+            musicSource.Play();
         }
         else
         {
-            source.Stop();
+            musicSource.Stop();
         }
     }
 
 
-    public void CorrectTiming()
+    private void UpdateAudioClip(AudioClip newClip)
     {
-        if(!TimeManager.Playing || !Correct)
+        if(newClip == null)
         {
-            TimeManager.Correction = 0f;
-            return;
-        }
-        if(source.time <= 0 || source.time >= source.clip.length)
-        {
-            UpdatePlaying(TimeManager.Playing);
             return;
         }
 
-        float disc = source.time - GetSongTime();
-        float correction = disc > CorrectionRangeOverride ? disc : Mathf.Min(disc, MaxCorrection) ;
-        TimeManager.Correction = correction;
-        //Debug.Log($"Correcting by {correction} seconds.");
-    }
-
-
-    public float GetSongTime()
-    {
-        return TimeManager.CurrentTime + BeatmapManager.Info._songTimeOffset;
-    }
-
-
-    private void Update()
-    {
-        CorrectTiming();
+        musicSource.clip = newClip;
+        TimeManager.SongLength = GetSongLength() - BeatmapManager.Info._songTimeOffset;
     }
 
 
     private void Awake()
     {
-        source = GetComponent<AudioSource>();
+        musicSource = GetComponent<AudioSource>();
     }
 
 
