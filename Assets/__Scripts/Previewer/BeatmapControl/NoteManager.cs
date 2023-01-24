@@ -356,7 +356,7 @@ public class NoteManager : MonoBehaviour
         else
         {
             float halfJumpDistance = BeatmapManager.JumpDistance / 2;
-            worldPos.y = SpawnParabola(targetPos.y, startY, halfJumpDistance, targetPos.z / 2);
+            worldPos.y = SpawnParabola(targetPos.y, startY, halfJumpDistance, targetPos.z);
 
             if(noteTime > jumpTime - rotationAnimationLength)
             {

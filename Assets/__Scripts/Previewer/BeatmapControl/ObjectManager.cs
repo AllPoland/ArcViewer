@@ -58,7 +58,7 @@ public class ObjectManager : MonoBehaviour
         if(objectTime <= jumpTime)
         {
             //Note has jumped in. Place based on Jump Setting stuff
-            float timeDist = (objectTime - TimeManager.CurrentTime);
+            float timeDist = objectTime - TimeManager.CurrentTime;
             return WorldSpaceFromTime(timeDist);
         }
         else
@@ -66,7 +66,7 @@ public class ObjectManager : MonoBehaviour
             //Note hasn't jumped in yet. Place based on the jump-in stuff
             float timeDist = (objectTime - jumpTime) / moveTime;
             timeDist = Easings.Quad.Out(timeDist);
-            return BeatmapManager.JumpDistance + (moveZ * timeDist);
+            return (BeatmapManager.JumpDistance / 2) + (moveZ * timeDist);
         }
     }
 
@@ -74,14 +74,14 @@ public class ObjectManager : MonoBehaviour
     public float WorldSpaceFromTime(float time)
     {
         float NJS = BeatmapManager.CurrentMap.NoteJumpSpeed;
-        return time * NJS / BeatmapManager.ReactionTime;
+        return time * NJS;
     }
 
 
     public float TimeFromWorldspace(float position)
     {
         float NJS = BeatmapManager.CurrentMap.NoteJumpSpeed;
-        return (position / NJS) * BeatmapManager.ReactionTime;
+        return position / NJS;
     }
 
 
