@@ -42,41 +42,91 @@ public class NoteManager : MonoBehaviour
         ClearRenderedNotes();
         BeatmapDifficulty beatmap = difficulty.beatmapDifficulty;
 
+        List<Note> newNotes = new List<Note>();
+        List<Bomb> newBombs = new List<Bomb>();
+
         if(beatmap.colorNotes.Length > 0)
         {
-            List<Note> newNoteList = new List<Note>();
             foreach(ColorNote n in beatmap.colorNotes)
             {
                 Note newNote = Note.NoteFromColorNote(n);
-                //Preprocess window snap and start position because objectManager.GetObjectsOnBeat() has big overhead
-                newNote.WindowSnap = CheckAngleSnap(newNote);
-                newNote.StartY = GetStartY<Note>(newNote);
-
-                newNoteList.Add(newNote);
+                newNotes.Add(newNote);
             }
-            Notes = ObjectManager.SortObjectsByBeat<Note>(newNoteList);
         }
         else
         {
-            Notes = new List<Note>();
+            newNotes = new List<Note>();
         }
 
         if(beatmap.bombNotes.Length > 0)
         {
-            List<Bomb> newBombList = new List<Bomb>();
             foreach(BombNote b in beatmap.bombNotes)
             {
                 Bomb newBomb = Bomb.BombFromBombNote(b);
-                newBomb.StartY = GetStartY<Bomb>(newBomb);
-
-                newBombList.Add(newBomb);
+                newBombs.Add(newBomb);
             }
-            Bombs = ObjectManager.SortObjectsByBeat<Bomb>(newBombList);
         }
         else
         {
-            Bombs = new List<Bomb>();
+            newBombs = new List<Bomb>();
         }
+
+        //Precalculate startY and window snapping
+        List<BeatmapObject> notesAndBombs = new List<BeatmapObject>();
+        notesAndBombs.AddRange(newNotes);
+        notesAndBombs.AddRange(newBombs);
+        notesAndBombs = ObjectManager.SortObjectsByBeat<BeatmapObject>(notesAndBombs);
+
+        //These get repopulated with the modified (precalculated) objects
+        newNotes.Clear();
+        newBombs.Clear();
+
+        List<BeatmapObject> sameBeatObjects = new List<BeatmapObject>();
+        List<Note> notesOnBeat = new List<Note>();
+        List<Bomb> bombsOnBeat = new List<Bomb>();
+        for(int i = 0; i < notesAndBombs.Count; i++)
+        {
+            BeatmapObject current = notesAndBombs[i];
+
+            if(sameBeatObjects.Count == 0 || !ObjectManager.CheckSameBeat(current.Beat, sameBeatObjects[0].Beat))
+            {
+                //This object doesn't share the same beat with the previous objects
+                sameBeatObjects.Clear();
+
+                for(int x = i; x < notesAndBombs.Count; x++)
+                {
+                    //Gather all consecutive objects that share the same beat
+                    BeatmapObject check = notesAndBombs[x];
+                    if(ObjectManager.CheckSameBeat(check.Beat, current.Beat))
+                    {
+                        sameBeatObjects.Add(check);
+                        //Skip to the first object that doesn't share this beat next loop
+                        i = x;
+                    }
+                    else break;
+                }
+
+                notesOnBeat = sameBeatObjects.OfType<Note>().ToList();
+                bombsOnBeat = sameBeatObjects.OfType<Bomb>().ToList();
+            }
+
+            for(int x = 0; x < notesOnBeat.Count; x++)
+            {
+                Note n = notesOnBeat[x];
+                n.StartY = GetStartY(n, sameBeatObjects);
+                n.WindowSnap = CheckAngleSnap(n, notesOnBeat);
+                newNotes.Add(n);
+            }
+            for(int x = 0; x < bombsOnBeat.Count; x++)
+            {
+                Bomb b = bombsOnBeat[x];
+                b.StartY = GetStartY(b, sameBeatObjects);
+                newBombs.Add(b);
+            }
+        }
+
+        Notes = ObjectManager.SortObjectsByBeat<Note>(newNotes);
+        Bombs = ObjectManager.SortObjectsByBeat<Bomb>(newBombs);
 
         UpdateNoteVisuals(TimeManager.CurrentBeat);
     }
@@ -140,25 +190,28 @@ public class NoteManager : MonoBehaviour
     }
 
 
-    private float CheckAngleSnap(Note n)
+    private float CheckAngleSnap(Note n, List<Note> sameBeatNotes)
     {
+        List<Note> notesOnBeat = new List<Note>(sameBeatNotes);
+
+        float angleOffset = n.AngleOffset;
+
         //Returns the angle offset the note should use to snap, or 0 if it shouldn't
-        List<Note> notesOnBeat = ObjectManager.GetObjectsOnBeat<Note>(Notes, n.Beat);
-        if(notesOnBeat.Count == 0) return 0;
+        if(notesOnBeat.Count == 0) return angleOffset;
 
         notesOnBeat.RemoveAll(x => x.Color != n.Color);
 
         if(notesOnBeat.Count != 2)
         {
             //Angle snapping requires exactly 2 notes
-            return 0;
+            return angleOffset;
         }
 
         //Disregard notes that are on the same row or column
         notesOnBeat.RemoveAll(x => x.x == n.x || x.y == n.y);
         if(notesOnBeat.Count == 0)
         {
-            return 0;
+            return angleOffset;
         }
 
         Note other = notesOnBeat[0];
@@ -167,12 +220,12 @@ public class NoteManager : MonoBehaviour
         if(n.x == other.x || n.y == other.y)
         {
             //Straight horizontal or vertical angle doesn't need snapping
-            return 0;
+            return angleOffset;
         }
         if(!CheckSameDirection(n, other))
         {
             //Notes must have the same direction
-            return 0;
+            return angleOffset;
         }
 
         int xDist = (int)(n.x - other.x);
@@ -191,7 +244,7 @@ public class NoteManager : MonoBehaviour
             if(!dot)
             {
                 //No snapping needed for 45 degrees
-                return 0;
+                return angleOffset;
             }
             else
             {
@@ -203,7 +256,7 @@ public class NoteManager : MonoBehaviour
                 if(!CheckDiagonalNote(other))
                 {
                     //Don't snap if the other note isn't diagonal
-                    return 0;
+                    return angleOffset;
                 }
                 if((CheckUpwardNote(other) == yDist < 0) == (CheckRightNote(other) == xDist < 0))
                 {
@@ -230,7 +283,7 @@ public class NoteManager : MonoBehaviour
         
         bool mainVertical = windowType == WindowType.KnightMove && absyDist == 2;
 
-        float angle = 0;
+        float angle = angleOffset;
         if(dot)
         {
             //Force dots to match rotation direction
@@ -274,7 +327,7 @@ public class NoteManager : MonoBehaviour
             }
         }
 
-        return 0;
+        return angleOffset;
     }
 
 
@@ -289,35 +342,21 @@ public class NoteManager : MonoBehaviour
     }
 
 
-    private int GetStartY<T>(T n) where T : BeatmapObject
+    private int GetStartY(BeatmapObject n, List<BeatmapObject>sameBeatObjects)
     {
+        List<BeatmapObject> objectsOnBeat = new List<BeatmapObject>(sameBeatObjects);
+
         if(n.y <= 0) return 0;
 
-        List<Note> otherNotes = ObjectManager.GetObjectsOnBeat<Note>(Notes, n.Beat);
-        List<Bomb> otherBombs = ObjectManager.GetObjectsOnBeat<Bomb>(Bombs, n.Beat);
-
-        if(otherNotes.Count == 0 && otherBombs.Count == 0) return 0;
+        if(objectsOnBeat.Count == 0) return 0;
 
         //Remove all notes that aren't directly below this one
-        otherNotes.RemoveAll(x => x.x != n.x || x.y >= n.y);
-        otherBombs.RemoveAll(x => x.x != n.x || x.y >= n.y);
+        objectsOnBeat.RemoveAll(x => x.x != n.x || x.y >= n.y);
 
-        if(otherNotes.Count == 0 && otherBombs.Count == 0) return 0;
+        if(objectsOnBeat.Count == 0) return 0;
 
-        int startPos = 0;
-        if(otherNotes.Count > 0)
-        {
-            //Need to recursively calculate the startYs of each note underneath
-            int maxY = otherNotes.Max(x => GetStartY(x)) + 1;
-            startPos = maxY;
-        }
-        if(otherBombs.Count > 0)
-        {
-            int maxY = otherBombs.Max(x => GetStartY(x)) + 1;
-            startPos = Mathf.Max(startPos, maxY);
-        }
-
-        return startPos;
+        //Need to recursively calculate the startYs of each note underneath
+        return objectsOnBeat.Max(x => GetStartY(x, objectsOnBeat)) + 1;
     }
 
 
@@ -349,25 +388,17 @@ public class NoteManager : MonoBehaviour
         float jumpTime = TimeManager.CurrentTime + reactionTime;
 
         float worldDist = objectManager.GetZPosition(noteTime);
+        Vector3 worldPos = new Vector3(gridPos.x, gridPos.y, worldDist);
 
-        Vector3 targetPos = new Vector3(gridPos.x, gridPos.y, worldDist);
+        float startY = n.StartY * objectManager.rowHeight + floorOffset;
+        worldPos.y = GetObjectY(startY, worldPos.y, noteTime);
 
         //Default to 0 in case of over-sized direction value
         int directionIndex = n.Direction >= 0 && n.Direction < 9 ? n.Direction : 0;
+        float targetAngle = DirectionAngles[directionIndex] + n.WindowSnap;
 
-        float snapAngle = n.WindowSnap;
-        bool useSnap = snapAngle != 0;
-        float adjustment = useSnap ? snapAngle : n.AngleOffset;
-
-        float targetAngle = DirectionAngles[directionIndex] + adjustment;
-
-        Vector3 worldPos = targetPos;
         float angle = targetAngle;
-
         float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
-
-        float startY = n.StartY * objectManager.rowHeight + floorOffset;
-        worldPos.y = GetObjectY(startY, targetPos.y, noteTime);
 
         if(noteTime > jumpTime)
         {
@@ -404,18 +435,13 @@ public class NoteManager : MonoBehaviour
         gridPos.x += b.x * objectManager.laneWidth;
         gridPos.y += b.y * objectManager.rowHeight;
 
-
         float bombTime = TimeManager.TimeFromBeat(b.Beat);
-        float reactionTime = BeatmapManager.ReactionTime;
-        float jumpTime = TimeManager.CurrentTime + reactionTime;
-
         float worldDist = objectManager.GetZPosition(bombTime);
 
-        Vector3 targetPos = new Vector3(gridPos.x, gridPos.y, worldDist);
+        Vector3 worldPos = new Vector3(gridPos.x, gridPos.y, worldDist);
 
-        Vector3 worldPos = targetPos;
         float startY = b.StartY * objectManager.rowHeight + floorOffset;
-        worldPos.y = GetObjectY(startY, targetPos.y, bombTime);
+        worldPos.y = GetObjectY(startY, worldPos.y, bombTime);
 
         if(b.Visual == null)
         {
@@ -432,41 +458,27 @@ public class NoteManager : MonoBehaviour
     {
         if(RenderedNotes.Count > 0)
         {
-            //Holds a list of each note to be removed
-            //This needs to happen since removing an item from a list we're looping through breaks things
-            List<Note> removeNotes = new List<Note>();
-            foreach(Note n in RenderedNotes)
+            for(int i = RenderedNotes.Count - 1; i >= 0; i--)
             {
+                Note n = RenderedNotes[i];
                 if(!objectManager.CheckInSpawnRange(n.Beat))
                 {
                     n.ClearVisual();
-                    removeNotes.Add(n);
+                    RenderedNotes.Remove(n);
                 }
-            }
-
-            //Actually remove the notes from the list now
-            foreach(Note n in removeNotes)
-            {
-                RenderedNotes.Remove(n);
             }
         }
 
         if(RenderedBombs.Count > 0)
         {
-            //Repeat above for bombs
-            List<Bomb> removeBombs = new List<Bomb>();
-            foreach(Bomb b in RenderedBombs)
+            for(int i = RenderedBombs.Count - 1; i >= 0; i--)
             {
+                Bomb b = RenderedBombs[i];
                 if(!CheckBombInSpawnRange(b))
                 {
                     b.ClearVisual();
-                    removeBombs.Add(b);
+                    RenderedBombs.Remove(b);
                 }
-            }
-
-            foreach(Bomb b in removeBombs)
-            {
-                RenderedBombs.Remove(b);
             }
         }
     }
@@ -502,11 +514,7 @@ public class NoteManager : MonoBehaviour
         if(Notes.Count > 0)
         {
             int firstNote = Notes.FindIndex(x => x.Beat > TimeManager.CurrentBeat);
-            if(firstNote < 0)
-            {
-                //Debug.Log("No more notes.");
-            }
-            else
+            if(firstNote >= 0)
             {
                 for(int i = firstNote; i < Notes.Count; i++)
                 {
@@ -524,11 +532,7 @@ public class NoteManager : MonoBehaviour
         if(Bombs.Count > 0)
         {
             int firstBomb = Bombs.FindIndex(x => x.Beat > TimeManager.CurrentBeat + TimeManager.BeatFromTime(objectManager.BehindCameraTime));
-            if(firstBomb < 0)
-            {
-                //Debug.Log("No more bombs.");
-            }
-            else
+            if(firstBomb >= 0)
             {
                 for(int i = firstBomb; i < Bombs.Count; i++)
                 {

@@ -32,10 +32,10 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public static List<T> GetObjectsOnBeat<T>(List<T> objects, float beat) where T : BeatmapObject
+    public static bool CheckSameBeat(float beat1, float beat2)
     {
-        float time = TimeManager.TimeFromBeat(beat);
-        return objects.FindAll(x => Mathf.Abs(TimeManager.TimeFromBeat(x.Beat) - time) <= 0.001);
+        const float leeway = 0.001f;
+        return Mathf.Abs(TimeManager.TimeFromBeat(beat1) - TimeManager.TimeFromBeat(beat2)) <= leeway;
     }
 
 

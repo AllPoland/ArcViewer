@@ -33,7 +33,6 @@ public class WallManager : MonoBehaviour
             {
                 newWallList.Add( Wall.WallFromObstacle(o));
             }
-
             Walls = ObjectManager.SortObjectsByBeat<Wall>(newWallList);
         }
         else Walls = new List<Wall>();
@@ -45,8 +44,7 @@ public class WallManager : MonoBehaviour
     public void UpdateWallVisual(Wall w)
     {
         float wallStartTime = TimeManager.TimeFromBeat(w.Beat);
-        float wallEndTime = TimeManager.TimeFromBeat(w.Beat + w.Duration);
-        float wallDurationTime = wallEndTime - wallStartTime;
+        float wallDurationTime = TimeManager.TimeFromBeat(w.Duration);
         float wallLength = objectManager.WorldSpaceFromTime(wallDurationTime);
 
         float laneWidth = objectManager.laneWidth;
@@ -92,19 +90,14 @@ public class WallManager : MonoBehaviour
     {
         if(RenderedWalls.Count > 0)
         {
-            List<Wall> removeWalls = new List<Wall>();
-            foreach(Wall w in RenderedWalls)
+            for(int i = RenderedWalls.Count - 1; i >= 0; i--)
             {
+                Wall w = RenderedWalls[i];
                 if(!CheckWallInSpawnRange(w))
                 {
                     w.ClearVisual();
-                    removeWalls.Add(w);
+                    RenderedWalls.Remove(w);
                 }
-            }
-
-            foreach(Wall w in removeWalls)
-            {
-                RenderedWalls.Remove(w);
             }
         }
     }
@@ -130,11 +123,7 @@ public class WallManager : MonoBehaviour
         if(Walls.Count > 0)
         {
             int firstWall = Walls.FindIndex(x => CheckWallInSpawnRange(x));
-            if(firstWall < 0)
-            {
-                //Debug.Log("No more walls.");
-            }
-            else
+            if(firstWall >= 0)
             {
                 float lastBeat = 0f;
                 for(int i = firstWall; i < Walls.Count; i++)
