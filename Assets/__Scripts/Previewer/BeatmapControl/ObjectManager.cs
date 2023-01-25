@@ -129,6 +129,8 @@ public class Note : BeatmapObject
     public int Color;
     public int Direction;
     public int AngleOffset;
+    public float WindowSnap;
+    public int StartY;
 
 
     public static Note NoteFromColorNote(ColorNote n)
@@ -149,6 +151,8 @@ public class Note : BeatmapObject
 
 public class Bomb : BeatmapObject
 {
+    public int StartY;
+
     public static Bomb BombFromBombNote(BombNote b)
     {
         return new Bomb

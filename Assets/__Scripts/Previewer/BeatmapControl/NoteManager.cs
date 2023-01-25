@@ -47,7 +47,12 @@ public class NoteManager : MonoBehaviour
             List<Note> newNoteList = new List<Note>();
             foreach(ColorNote n in beatmap.colorNotes)
             {
-                newNoteList.Add( Note.NoteFromColorNote(n) );
+                Note newNote = Note.NoteFromColorNote(n);
+                //Preprocess window snap and start position because objectManager.GetObjectsOnBeat() has big overhead
+                newNote.WindowSnap = CheckAngleSnap(newNote);
+                newNote.StartY = GetStartY<Note>(newNote);
+
+                newNoteList.Add(newNote);
             }
             Notes = ObjectManager.SortObjectsByBeat<Note>(newNoteList);
         }
@@ -61,7 +66,10 @@ public class NoteManager : MonoBehaviour
             List<Bomb> newBombList = new List<Bomb>();
             foreach(BombNote b in beatmap.bombNotes)
             {
-                newBombList.Add( Bomb.BombFromBombNote(b) );
+                Bomb newBomb = Bomb.BombFromBombNote(b);
+                newBomb.StartY = GetStartY<Bomb>(newBomb);
+
+                newBombList.Add(newBomb);
             }
             Bombs = ObjectManager.SortObjectsByBeat<Bomb>(newBombList);
         }
@@ -281,7 +289,7 @@ public class NoteManager : MonoBehaviour
     }
 
 
-    private float GetStartY<T>(T n) where T : BeatmapObject
+    private int GetStartY<T>(T n) where T : BeatmapObject
     {
         if(n.y <= 0) return 0;
 
@@ -296,16 +304,16 @@ public class NoteManager : MonoBehaviour
 
         if(otherNotes.Count == 0 && otherBombs.Count == 0) return 0;
 
-        float startPos = 0;
+        int startPos = 0;
         if(otherNotes.Count > 0)
         {
             //Need to recursively calculate the startYs of each note underneath
-            float maxY = otherNotes.Max(x => GetStartY(x)) + 1;
+            int maxY = otherNotes.Max(x => GetStartY(x)) + 1;
             startPos = maxY;
         }
         if(otherBombs.Count > 0)
         {
-            float maxY = otherBombs.Max(x => GetStartY(x)) + 1;
+            int maxY = otherBombs.Max(x => GetStartY(x)) + 1;
             startPos = Mathf.Max(startPos, maxY);
         }
 
@@ -347,7 +355,7 @@ public class NoteManager : MonoBehaviour
         //Default to 0 in case of over-sized direction value
         int directionIndex = n.Direction >= 0 && n.Direction < 9 ? n.Direction : 0;
 
-        float snapAngle = CheckAngleSnap(n);
+        float snapAngle = n.WindowSnap;
         bool useSnap = snapAngle != 0;
         float adjustment = useSnap ? snapAngle : n.AngleOffset;
 
@@ -358,7 +366,7 @@ public class NoteManager : MonoBehaviour
 
         float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
 
-        float startY = (GetStartY(n) * objectManager.rowHeight) + floorOffset;
+        float startY = n.StartY * objectManager.rowHeight + floorOffset;
         worldPos.y = GetObjectY(startY, targetPos.y, noteTime);
 
         if(noteTime > jumpTime)
@@ -406,7 +414,7 @@ public class NoteManager : MonoBehaviour
         Vector3 targetPos = new Vector3(gridPos.x, gridPos.y, worldDist);
 
         Vector3 worldPos = targetPos;
-        float startY = GetStartY(b) * objectManager.rowHeight + floorOffset;
+        float startY = b.StartY * objectManager.rowHeight + floorOffset;
         worldPos.y = GetObjectY(startY, targetPos.y, bombTime);
 
         if(b.Visual == null)

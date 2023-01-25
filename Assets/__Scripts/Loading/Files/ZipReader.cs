@@ -47,7 +47,7 @@ public class ZipReader
             return (info, difficulties, songFile);
         }
 
-        string infoJson = System.Text.Encoding.ASCII.GetString(StreamToBytes(infoData));
+        string infoJson = System.Text.Encoding.UTF8.GetString(StreamToBytes(infoData));
         info = JsonUtility.FromJson<BeatmapInfo>(infoJson);
 
         if(info._difficultyBeatmapSets.Length < 1)

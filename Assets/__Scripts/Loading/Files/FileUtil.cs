@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
 using UnityEngine;
@@ -11,7 +9,6 @@ public class FileUtil
     public static AudioType GetAudioTypeByDirectory(string directory)
     {
         AudioType type = AudioType.UNKNOWN;
-        string check = directory.ToLower();
         if(directory.EndsWith(".ogg") || directory.EndsWith(".egg"))
         {
             type = AudioType.OGGVORBIS;
