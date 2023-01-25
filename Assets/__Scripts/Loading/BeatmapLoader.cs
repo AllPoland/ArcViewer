@@ -232,6 +232,7 @@ public class BeatmapLoader : MonoBehaviour
         
         BeatmapManager.Info = info;
         BeatmapManager.Difficulties = difficulties;
+        audioManager.MusicClip = song;
         BeatmapManager.SetDefaultDifficulty();
     }
 
