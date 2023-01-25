@@ -50,7 +50,6 @@ public class AudioManager : MonoBehaviour
             }
             
             float targetTime = mapTime - songTimeOffset;
-            Debug.Log(targetTime);
             if(targetTime < 0)
             {
                 //Need to wait for song time offset
