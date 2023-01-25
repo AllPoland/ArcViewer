@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class SettingsManager : MonoBehaviour
 {
-    private static Settings CurrentSettings = Settings.DefaultSettings;
+    public static Settings CurrentSettings { get; private set; }
 
     public static Action OnSettingsUpdated;
 
@@ -73,7 +73,7 @@ public class SettingsManager : MonoBehaviour
         try
         {
             string json = File.ReadAllText(filePath);
-            CurrentSettings = JsonUtility.FromJson<Settings>(json);
+            CurrentSettings = JsonConvert.DeserializeObject<Settings>(json);
         }
         catch(Exception err)
         {
@@ -163,7 +163,7 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-    private void Start()
+    private void Awake()
     {
         LoadSettings();
     }
@@ -182,12 +182,11 @@ public class Settings
     {
         Bools = new Dictionary<string, bool>
         {
-
+            {"vsync", true}
         },
 
         Ints = new Dictionary<string, int>
         {
-            {"vsync", 1},
             {"framecap", 60}
         },
 

@@ -44,7 +44,9 @@ public class WallManager : MonoBehaviour
     public void UpdateWallVisual(Wall w)
     {
         float wallStartTime = TimeManager.TimeFromBeat(w.Beat);
-        float wallDurationTime = TimeManager.TimeFromBeat(w.Duration);
+        float wallEndTime = TimeManager.TimeFromBeat(w.Beat + w.Duration);
+        //Can't just take w.Duration for this because it doesn't work with bpm changes
+        float wallDurationTime = wallEndTime - wallStartTime;
         float wallLength = objectManager.WorldSpaceFromTime(wallDurationTime);
 
         float laneWidth = objectManager.laneWidth;

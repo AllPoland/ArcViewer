@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class AudioManager : MonoBehaviour
@@ -16,18 +17,13 @@ public class AudioManager : MonoBehaviour
     }
 
     private AudioSource musicSource;
-    private float songTimeOffset;
-    private float scheduleMusicTime = -1;
 
 
     public static float GetSongTime()
     {
         if(Instance?.MusicClip == null) return 0;
 
-        //Music has offset to burn through before it starts playing, surrender control to timemanager
-        if(Instance.scheduleMusicTime > 0) return TimeManager.CurrentTime;
-
-        return ((float)(Instance.musicSource.timeSamples) / Instance.MusicClip.frequency) + Instance.songTimeOffset;
+        return (float)(Instance.musicSource.timeSamples) / Instance.MusicClip.frequency;
     }
 
 
@@ -35,7 +31,7 @@ public class AudioManager : MonoBehaviour
     {
         if(Instance?.MusicClip == null) return 0;
 
-        return (Instance.MusicClip.samples / Instance.MusicClip.frequency) + Instance.songTimeOffset;
+        return Instance.MusicClip.samples / Instance.MusicClip.frequency;
     }
 
 
@@ -48,17 +44,8 @@ public class AudioManager : MonoBehaviour
             {
                 return;
             }
-            
-            float targetTime = mapTime - songTimeOffset;
-            if(targetTime < 0)
-            {
-                //Need to wait for song time offset
-                scheduleMusicTime = songTimeOffset;
-                musicSource.Stop();
-                return;
-            }
 
-            musicSource.time = targetTime;
+            musicSource.time = mapTime;
             musicSource.Play();
         }
         else
@@ -75,18 +62,52 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
-        musicSource.clip = newClip;
-        songTimeOffset = BeatmapManager.Info._songTimeOffset;
-    }
+        float songTimeOffset = BeatmapManager.Info._songTimeOffset;
 
-
-    private void Update()
-    {
-        if(scheduleMusicTime > 0 && TimeManager.CurrentTime >= scheduleMusicTime)
+        //I *definitely* didn't steal this from ChroMapper (Caeden don't kill me)
+        if(songTimeOffset != 0)
         {
-            scheduleMusicTime = -1;
-            UpdatePlaying(true);
+            // Take songTimeOffset into account by adjusting newClip data forward/backward
+
+            // Guaranteed to always be an integer multiple of the number of channels
+            int songTimeOffsetSamples = Mathf.CeilToInt(songTimeOffset * newClip.frequency) * newClip.channels;
+            float[] samples = new float[newClip.samples * newClip.channels];
+
+            newClip.GetData(samples, 0);
+
+            // Negative offset: Shift existing data forward, fill in beginning blank with 0s
+            if(songTimeOffsetSamples < 0)
+            {
+                Array.Resize(ref samples, samples.Length - songTimeOffsetSamples);
+
+                for(int i = samples.Length - 1; i >= 0; i--)
+                {
+                    int shiftIndex = i + songTimeOffsetSamples;
+
+                    samples[i] = shiftIndex < 0 ? 0 : samples[shiftIndex];
+                }
+            }
+            // Positive offset: Shift existing data backward, cut off ending blank
+            else
+            {
+                for(int i = 0; i < samples.Length; i++)
+                {
+                    int shiftIndex = i + songTimeOffsetSamples;
+
+                    samples[i] = shiftIndex >= samples.Length ? 0 : samples[shiftIndex];
+                }
+
+                // Bit of a hacky workaround, since you can't create an AudioClip with 0 length,
+                // This just sets a minimum of 4096 samples per channel
+                Array.Resize(ref samples, Math.Max(samples.Length - songTimeOffsetSamples, newClip.channels * 4096));
+            }
+
+            // Create a new AudioClip because apparently you can't change the length of an existing one
+            newClip = AudioClip.Create(newClip.name, samples.Length / newClip.channels, newClip.channels, newClip.frequency, false);
+            newClip.SetData(samples, 0);
         }
+
+        musicSource.clip = newClip;
     }
 
 
