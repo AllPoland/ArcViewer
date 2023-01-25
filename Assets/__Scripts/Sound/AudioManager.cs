@@ -16,19 +16,18 @@ public class AudioManager : MonoBehaviour
     }
 
     private AudioSource musicSource;
-
-
-    public static float GetMapTime()
-    {
-        return TimeManager.CurrentTime + BeatmapManager.Info._songTimeOffset;
-    }
+    private float songTimeOffset;
+    private float scheduleMusicTime = -1;
 
 
     public static float GetSongTime()
     {
         if(Instance?.MusicClip == null) return 0;
 
-        return (float)(Instance.musicSource.timeSamples) / Instance.MusicClip.frequency;
+        //Music has offset to burn through before it starts playing, surrender control to timemanager
+        if(Instance.scheduleMusicTime > 0) return TimeManager.CurrentTime;
+
+        return ((float)(Instance.musicSource.timeSamples) / Instance.MusicClip.frequency) + Instance.songTimeOffset;
     }
 
 
@@ -36,7 +35,7 @@ public class AudioManager : MonoBehaviour
     {
         if(Instance?.MusicClip == null) return 0;
 
-        return Instance.MusicClip.samples / Instance.MusicClip.frequency;
+        return (Instance.MusicClip.samples / Instance.MusicClip.frequency) + Instance.songTimeOffset;
     }
 
 
@@ -44,13 +43,23 @@ public class AudioManager : MonoBehaviour
     {
         if(playing)
         {
-            float mapTime = GetMapTime();
+            float mapTime = TimeManager.CurrentTime;
             if(mapTime < 0 || mapTime > GetSongLength())
             {
                 return;
             }
             
-            musicSource.time = mapTime;
+            float targetTime = mapTime - songTimeOffset;
+            Debug.Log(targetTime);
+            if(targetTime < 0)
+            {
+                //Need to wait for song time offset
+                scheduleMusicTime = songTimeOffset;
+                musicSource.Stop();
+                return;
+            }
+
+            musicSource.time = targetTime;
             musicSource.Play();
         }
         else
@@ -68,7 +77,17 @@ public class AudioManager : MonoBehaviour
         }
 
         musicSource.clip = newClip;
-        TimeManager.SongLength = GetSongLength() - BeatmapManager.Info._songTimeOffset;
+        songTimeOffset = BeatmapManager.Info._songTimeOffset;
+    }
+
+
+    private void Update()
+    {
+        if(scheduleMusicTime > 0 && TimeManager.CurrentTime >= scheduleMusicTime)
+        {
+            scheduleMusicTime = -1;
+            UpdatePlaying(true);
+        }
     }
 
 

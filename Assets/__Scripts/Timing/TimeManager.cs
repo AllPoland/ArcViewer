@@ -6,7 +6,6 @@ using UnityEngine;
 public class TimeManager : MonoBehaviour
 {
     public static float BPM = 120;
-    public static float SongLength = 0;
     public static bool ForcePause;
     public static float TimeScale = 1f;
 
@@ -15,6 +14,7 @@ public class TimeManager : MonoBehaviour
     public static event Action<float> OnBeatChanged;
     public static event Action<bool> OnPlayingChanged;
 
+    private static float SongLength => AudioManager.GetSongLength();
     private static float _time = 0;
     public static float CurrentTime
     {
