@@ -124,13 +124,20 @@ public class BeatmapObject
 }
 
 
-public class Note : BeatmapObject
+public class HitSoundEmitter : BeatmapObject
+{
+    public AudioSource source;
+}
+
+
+public class Note : HitSoundEmitter
 {
     public int Color;
     public int Direction;
     public int AngleOffset;
     public float WindowSnap;
     public int StartY;
+    public NoteHandler noteHandler;
 
 
     public static Note NoteFromColorNote(ColorNote n)

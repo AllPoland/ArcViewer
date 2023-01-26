@@ -17,14 +17,14 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    public float musicVolume
+    public float MusicVolume
     {
         set
         {
             if(value == 0)
             {
-                musicMixer.SetFloat("Volume", -80);
-                return;
+                //Can't set this to 0 because Log breaks
+                value = 0.0001f;
             }
             //Logarithmic scaling makes volume slider feel more natural to the user
             musicMixer.SetFloat("Volume", Mathf.Log10(value) * 20);
@@ -81,50 +81,58 @@ public class AudioManager : MonoBehaviour
 
         float songTimeOffset = BeatmapManager.Info._songTimeOffset;
 
-        //I *definitely* didn't steal this from ChroMapper (Caeden don't kill me)
         if(songTimeOffset != 0)
         {
-            // Take songTimeOffset into account by adjusting newClip data forward/backward
-
-            // Guaranteed to always be an integer multiple of the number of channels
-            int songTimeOffsetSamples = Mathf.CeilToInt(songTimeOffset * newClip.frequency) * newClip.channels;
-            float[] samples = new float[newClip.samples * newClip.channels];
-
-            newClip.GetData(samples, 0);
-
-            // Negative offset: Shift existing data forward, fill in beginning blank with 0s
-            if(songTimeOffsetSamples < 0)
-            {
-                Array.Resize(ref samples, samples.Length - songTimeOffsetSamples);
-
-                for(int i = samples.Length - 1; i >= 0; i--)
-                {
-                    int shiftIndex = i + songTimeOffsetSamples;
-
-                    samples[i] = shiftIndex < 0 ? 0 : samples[shiftIndex];
-                }
-            }
-            // Positive offset: Shift existing data backward, cut off ending blank
-            else
-            {
-                for(int i = 0; i < samples.Length; i++)
-                {
-                    int shiftIndex = i + songTimeOffsetSamples;
-
-                    samples[i] = shiftIndex >= samples.Length ? 0 : samples[shiftIndex];
-                }
-
-                // Bit of a hacky workaround, since you can't create an AudioClip with 0 length,
-                // This just sets a minimum of 4096 samples per channel
-                Array.Resize(ref samples, Math.Max(samples.Length - songTimeOffsetSamples, newClip.channels * 4096));
-            }
-
-            // Create a new AudioClip because apparently you can't change the length of an existing one
-            newClip = AudioClip.Create(newClip.name, samples.Length / newClip.channels, newClip.channels, newClip.frequency, false);
-            newClip.SetData(samples, 0);
+            ApplySongTimeOffset(ref newClip);
         }
 
         musicSource.clip = newClip;
+    }
+
+
+    private void ApplySongTimeOffset(ref AudioClip clip)
+    {
+        //Take songTimeOffset into account by adjusting newClip data forward/backward
+        //I *definitely* didn't steal this from ChroMapper (Caeden don't kill me)
+
+        float songTimeOffset = BeatmapManager.Info._songTimeOffset;
+
+        //Guaranteed to always be an integer multiple of the number of channels
+        int songTimeOffsetSamples = Mathf.CeilToInt(songTimeOffset * clip.frequency) * clip.channels;
+        float[] samples = new float[clip.samples * clip.channels];
+
+        clip.GetData(samples, 0);
+
+        //Negative offset: Shift existing data forward, fill in beginning blank with 0s
+        if(songTimeOffsetSamples < 0)
+        {
+            Array.Resize(ref samples, samples.Length - songTimeOffsetSamples);
+
+            for(int i = samples.Length - 1; i >= 0; i--)
+            {
+                int shiftIndex = i + songTimeOffsetSamples;
+
+                samples[i] = shiftIndex < 0 ? 0 : samples[shiftIndex];
+            }
+        }
+        //Positive offset: Shift existing data backward, cut off ending blank
+        else
+        {
+            for(int i = 0; i < samples.Length; i++)
+            {
+                int shiftIndex = i + songTimeOffsetSamples;
+
+                samples[i] = shiftIndex >= samples.Length ? 0 : samples[shiftIndex];
+            }
+
+            // Bit of a hacky workaround, since you can't create an AudioClip with 0 length,
+            // This just sets a minimum of 4096 samples per channel
+            Array.Resize(ref samples, Math.Max(samples.Length - songTimeOffsetSamples, clip.channels * 4096));
+        }
+
+        // Create a new AudioClip because apparently you can't change the length of an existing one
+        clip = AudioClip.Create(clip.name, samples.Length / clip.channels, clip.channels, clip.frequency, false);
+        clip.SetData(samples, 0);
     }
 
 

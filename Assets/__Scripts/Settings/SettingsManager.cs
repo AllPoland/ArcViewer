@@ -221,7 +221,7 @@ public class Settings
         Floats = new Dictionary<string, float>
         {
             {"musicvolume", 1},
-            {"hitsoundvolume", 0.8f},
+            {"hitsoundvolume", 1},
             {"bloom", 1},
             {"backgroundbloom", 1}
         }

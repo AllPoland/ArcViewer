@@ -127,6 +127,11 @@ public class TimeManager : MonoBehaviour
             newPlaying = false;
         }
 
+        if(CurrentTime >= SongLength)
+        {
+            CurrentTime = 0;
+        }
+
         OnPlayingChanged?.Invoke(newPlaying);
         Playing = newPlaying;
     }

@@ -441,8 +441,18 @@ public class NoteManager : MonoBehaviour
                 renderer.material = n.Color == 0 ? simpleMaterialRed : simpleMaterialBlue;
             }
 
+            //Get the handler and audio source for hitsounds
+            n.noteHandler = n.Visual.GetComponent<NoteHandler>();
+            n.source = n.noteHandler.audioSource;
+
+            if(TimeManager.Playing && SettingsManager.GetFloat("hitsoundvolume") > 0)
+            {
+                HitSoundManager.ScheduleHitsound(noteTime, n.source);
+            }
+
             RenderedNotes.Add(n);
         }
+
         n.Visual.transform.localPosition = worldPos;
         n.Visual.transform.localRotation = Quaternion.AngleAxis(angle, Vector3.forward);
     }
@@ -486,6 +496,13 @@ public class NoteManager : MonoBehaviour
                 Note n = RenderedNotes[i];
                 if(!objectManager.CheckInSpawnRange(n.Beat))
                 {
+                    if(n.source.isPlaying)
+                    {
+                        //Only clear the visual elements if the hitsound is still playing
+                        n.noteHandler.DisableVisual();
+                        return;
+                    }
+
                     n.ClearVisual();
                     RenderedNotes.Remove(n);
                 }
@@ -509,6 +526,8 @@ public class NoteManager : MonoBehaviour
 
     public void ClearRenderedNotes()
     {
+        HitSoundManager.ClearScheduledSounds();
+
         //Clear all rendered notes
         if(RenderedNotes.Count > 0)
         {
@@ -580,12 +599,30 @@ public class NoteManager : MonoBehaviour
     }
 
 
+    public void RescheduleHitsounds(bool playing)
+    {
+        if(!playing)
+        {
+            return;
+        }
+
+        foreach(Note n in RenderedNotes)
+        {
+            if(n.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0)
+            {
+                HitSoundManager.ScheduleHitsound(TimeManager.TimeFromBeat(n.Beat), n.source);
+            }
+        }
+    }
+
+
     private void Start()
     {
         objectManager = ObjectManager.Instance;
 
         BeatmapManager.OnBeatmapDifficultyChanged += LoadNotesFromDifficulty;
         TimeManager.OnBeatChanged += UpdateNoteVisuals;
+        TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }
 }
 

@@ -3,11 +3,13 @@ using UnityEngine;
 public class AudioSettingsUpdater : MonoBehaviour
 {
     [SerializeField] private AudioManager audioManager;
+    [SerializeField] private HitSoundManager hitSoundManager;
 
 
     public void UpdateAudioSettings()
     {
-        audioManager.musicVolume = SettingsManager.GetFloat("musicvolume");
+        audioManager.MusicVolume = SettingsManager.GetFloat("musicvolume");
+        hitSoundManager.HitSoundVolume = SettingsManager.GetFloat("hitsoundvolume");
     }
 
 
