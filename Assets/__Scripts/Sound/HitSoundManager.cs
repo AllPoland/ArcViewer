@@ -44,6 +44,8 @@ public class HitSoundManager : MonoBehaviour
             time = noteTime
         };
 
+        sound.source.enabled = true;
+        sound.source.Stop();
         sound.source.clip = HitSound;
 
         if(randomPitch)
