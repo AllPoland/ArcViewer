@@ -206,6 +206,7 @@ public class Settings
         Bools = new Dictionary<string, bool>
         {
             {"randomhitsoundpitch", false},
+            {"spatialhitsounds", false},
             {"simplenotes", false},
             {"moveanimations", true},
             {"rotateanimations", true},

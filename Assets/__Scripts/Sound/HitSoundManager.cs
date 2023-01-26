@@ -8,9 +8,10 @@ public class HitSoundManager : MonoBehaviour
     public static AudioClip HitSound;
     public static List<ScheduledSound> scheduledSounds = new List<ScheduledSound>();
 
-    public static bool randomPitch = false;
-    public static float scheduleBuffer = 0.2f;
-    public static bool dynamicPriority = true;
+    public static bool RandomPitch = false;
+    public static bool Spacial = false;
+    public static float ScheduleBuffer = 0.2f;
+    public static bool DynamicPriority = true;
 
     public float HitSoundVolume
     {
@@ -48,11 +49,17 @@ public class HitSoundManager : MonoBehaviour
         sound.source.Stop();
         sound.source.clip = HitSound;
 
-        if(randomPitch)
+        if(RandomPitch)
         {
             sound.source.pitch = Random.Range(0.95f, 1.05f);
         }
         else sound.source.pitch = 1;
+
+        if(Spacial)
+        {
+            sound.source.spatialBlend = 0.5f;
+        }
+        else sound.source.spatialBlend = 0;
 
         TimeManager.OnBeatChanged += sound.UpdateTime;
         scheduledSounds.Add(sound);
@@ -129,15 +136,15 @@ public class ScheduledSound
         }
 
         float timeDifference = time - currentTime;
-        if(HitSoundManager.dynamicPriority)
+        if(HitSoundManager.DynamicPriority)
         {
             //Dynamically set sound priority so sounds don't get overridden by scheduled sounds
-            float progress = timeDifference / HitSoundManager.scheduleBuffer;
+            float progress = timeDifference / HitSoundManager.ScheduleBuffer;
             int priority = (int)(Mathf.Min(progress, 1) * 255) + 1;
             source.priority = priority;
         }
 
-        if(currentTime > time - HitSoundManager.scheduleBuffer && !source.isPlaying)
+        if(currentTime > time - HitSoundManager.ScheduleBuffer && !source.isPlaying)
         {
             if(!scheduled)
             {
