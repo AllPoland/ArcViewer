@@ -98,6 +98,17 @@ public class SettingsMenu : MonoBehaviour
     }
 
 
+    public void Close()
+    {
+        if(!Open)
+        {
+            return;
+        }
+
+        ToggleOpen();
+    }
+
+
     private void SetOpen()
     {
         Vector2 openPosition = new Vector2(closedPosition.x - panelWidth, closedPosition.y);
@@ -123,6 +134,8 @@ public class SettingsMenu : MonoBehaviour
 
         closedPosition = containerTransform.anchoredPosition;
         tabButtonPositions = tabButtonTransform.anchoredPosition;
+
+        SettingsManager.OnSettingsReset += Close;
 
         settingsPanel.SetActive(Open);
     }

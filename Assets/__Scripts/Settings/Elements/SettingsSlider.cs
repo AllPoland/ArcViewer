@@ -17,9 +17,9 @@ public class SettingsSlider : MonoBehaviour
     {
         if(!integerValue)
         {
-            SettingsManager.AddRule(rule, value);
+            SettingsManager.SetRule(rule, value);
         }
-        else SettingsManager.AddRule(rule, (int)value);
+        else SettingsManager.SetRule(rule, (int)value);
 
         if(maxOverride != "" && value >= slider.maxValue)
         {
@@ -55,14 +55,14 @@ public class SettingsSlider : MonoBehaviour
 
         if(!integerValue && SettingsManager.CurrentSettings?.Floats != null)
         {
-            float newValue = SettingsManager.GetRuleFloat(rule);
+            float newValue = SettingsManager.GetFloat(rule);
 
             slider.value = newValue;
             UpdateValue(slider.value);
         }
         else if(integerValue && SettingsManager.CurrentSettings?.Ints != null)
         {
-            int newValue = SettingsManager.GetRuleInt(rule);
+            int newValue = SettingsManager.GetInt(rule);
 
             slider.value = newValue;
             UpdateValue(slider.value);

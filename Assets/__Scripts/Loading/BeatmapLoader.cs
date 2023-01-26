@@ -290,6 +290,11 @@ public class BeatmapLoader : MonoBehaviour
 
     public void LoadMapDirectory(string mapDirectory)
     {
+        if(DialogueHandler.DialogueActive)
+        {
+            return;
+        }
+
         if(Loading)
         {
             ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "You're already loading something!");

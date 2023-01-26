@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class BackButton : MonoBehaviour
@@ -12,7 +10,7 @@ public class BackButton : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetButtonDown("Cancel") && UIStateManager.CurrentState == UIState.Previewer)
+        if(Input.GetButtonDown("Cancel") && UIStateManager.CurrentState == UIState.Previewer && !DialogueHandler.DialogueActive)
         {
             SetMapSelection();
         }

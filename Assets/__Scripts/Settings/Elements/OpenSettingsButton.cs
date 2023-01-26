@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,7 +8,7 @@ public class OpenSettingsButton : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetButtonDown("Toggle Options") && button.interactable)
+        if(Input.GetButtonDown("Toggle Options") && button.interactable && !DialogueHandler.DialogueActive)
         {
             button.onClick?.Invoke();
         }

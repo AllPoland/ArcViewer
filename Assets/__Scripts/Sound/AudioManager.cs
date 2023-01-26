@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class AudioManager : MonoBehaviour
 {
@@ -15,6 +16,22 @@ public class AudioManager : MonoBehaviour
             UpdateAudioClip(value);
         }
     }
+
+    public float musicVolume
+    {
+        set
+        {
+            if(value == 0)
+            {
+                musicMixer.SetFloat("Volume", -80);
+                return;
+            }
+            //Logarithmic scaling makes volume slider feel more natural to the user
+            musicMixer.SetFloat("Volume", Mathf.Log10(value) * 20);
+        }
+    }
+
+    [SerializeField] private AudioMixer musicMixer;
 
     private AudioSource musicSource;
 

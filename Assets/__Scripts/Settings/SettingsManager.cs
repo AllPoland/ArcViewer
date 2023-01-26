@@ -11,6 +11,7 @@ public class SettingsManager : MonoBehaviour
     public static Settings CurrentSettings { get; private set; }
 
     public static Action OnSettingsUpdated;
+    public static Action OnSettingsReset;
 
     private const string settingsFile = "UserSettings.json";
 
@@ -63,7 +64,7 @@ public class SettingsManager : MonoBehaviour
         if(!File.Exists(filePath))
         {
             Debug.Log("Settings file doesn't exist. Using defaults.");
-            CurrentSettings = Settings.DefaultSettings;
+            CurrentSettings = Settings.GetDefaultSettings();
             SaveSettings();
 
             OnSettingsUpdated?.Invoke();
@@ -80,7 +81,7 @@ public class SettingsManager : MonoBehaviour
             ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to load settings! Reverting to default.");
             Debug.LogWarning($"Failed to load settings with error: {err.Message}, {err.StackTrace}");
 
-            CurrentSettings = Settings.DefaultSettings;
+            CurrentSettings = Settings.GetDefaultSettings();
             SaveSettings();
         }
 
@@ -88,37 +89,49 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-    public static bool GetRuleBool(string name)
+    public static bool GetBool(string name)
     {
         if(CurrentSettings.Bools.ContainsKey(name))
         {
             return CurrentSettings.Bools[name];
         }
+        else if(Settings.GetDefaultSettings().Bools.ContainsKey(name))
+        {
+            return Settings.GetDefaultSettings().Bools[name];
+        }
         else return false;
     }
 
 
-    public static int GetRuleInt(string name)
+    public static int GetInt(string name)
     {
         if(CurrentSettings.Ints.ContainsKey(name))
         {
             return CurrentSettings.Ints[name];
         }
-        else return 0;
-    }
-
-
-    public static float GetRuleFloat(string name)
-    {
-        if(CurrentSettings.Floats.ContainsKey(name))
+        else if(Settings.GetDefaultSettings().Ints.ContainsKey(name))
         {
-            return CurrentSettings.Floats[name];
+            return Settings.GetDefaultSettings().Ints[name];
         }
         else return 0;
     }
 
 
-    public static void AddRule(string name, bool value)
+    public static float GetFloat(string name)
+    {
+        if(CurrentSettings.Floats.ContainsKey(name))
+        {
+            return CurrentSettings.Floats[name];
+        }
+        else if(Settings.GetDefaultSettings().Floats.ContainsKey(name))
+        {
+            return Settings.GetDefaultSettings().Floats[name];
+        }
+        else return 0;
+    }
+
+
+    public static void SetRule(string name, bool value)
     {
         Dictionary<string, bool> rules = CurrentSettings.Bools;
         if(rules.ContainsKey(name))
@@ -133,7 +146,7 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-    public static void AddRule(string name, int value)
+    public static void SetRule(string name, int value)
     {
         Dictionary<string, int> rules = CurrentSettings.Ints;
         if(rules.ContainsKey(name))
@@ -148,8 +161,10 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-    public static void AddRule(string name, float value)
+    public static void SetRule(string name, float value)
     {
+        value = (float)Math.Round(value, 2); //Why tf does the compiler read value as a double here?
+
         Dictionary<string, float> rules = CurrentSettings.Floats;
         if(rules.ContainsKey(name))
         {
@@ -159,6 +174,14 @@ public class SettingsManager : MonoBehaviour
         {
             rules.Add(name, value);
         }
+        OnSettingsUpdated?.Invoke();
+    }
+
+
+    public static void SetDefaults()
+    {
+        CurrentSettings = Settings.GetDefaultSettings();
+        OnSettingsReset?.Invoke();
         OnSettingsUpdated?.Invoke();
     }
 
@@ -178,21 +201,57 @@ public class Settings
     public Dictionary<string, float> Floats;
 
 
-    public static Settings DefaultSettings = new Settings
+    private static readonly Settings DefaultSettings = new Settings
     {
         Bools = new Dictionary<string, bool>
         {
-            {"vsync", true}
+            {"simplenotes", false},
+            {"moveanimations", true},
+            {"rotateanimations", true},
+            {"vsync", true},
+            {"ssao", true}
         },
 
         Ints = new Dictionary<string, int>
         {
-            {"framecap", 60}
+            {"framecap", 60},
+            {"antialiasing", 0}
         },
 
         Floats = new Dictionary<string, float>
         {
-
+            {"musicvolume", 1},
+            {"hitsoundvolume", 0.8f},
+            {"bloom", 1},
+            {"backgroundbloom", 1}
         }
     };
+
+
+    public static Settings GetDefaultSettings()
+    {
+        Settings settings = new Settings
+        {
+            Bools = new Dictionary<string, bool>(),
+            Ints = new Dictionary<string, int>(),
+            Floats = new Dictionary<string, float>()
+        };
+
+        foreach(var key in DefaultSettings.Bools)
+        {
+            settings.Bools.Add(key.Key, key.Value);
+        }
+
+        foreach(var key in DefaultSettings.Ints)
+        {
+            settings.Ints.Add(key.Key, key.Value);
+        }
+
+        foreach(var key in DefaultSettings.Floats)
+        {
+            settings.Floats.Add(key.Key, key.Value);
+        }
+
+        return settings;
+    }
 }

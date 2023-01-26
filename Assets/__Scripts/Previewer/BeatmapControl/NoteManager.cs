@@ -15,11 +15,19 @@ public class NoteManager : MonoBehaviour
 
     [SerializeField] private float floorOffset;
 
+    [Header("Materials")]
+    [SerializeField] private Material simpleMaterialRed;
+    [SerializeField] private Material simpleMaterialBlue;
+
     public List<Note> Notes = new List<Note>();
     public List<Note> RenderedNotes = new List<Note>();
 
     public List<Bomb> Bombs = new List<Bomb>();
     public List<Bomb> RenderedBombs = new List<Bomb>();
+
+    public bool useSimpleNoteMaterial = false;
+    public bool doRotationAnimation = true;
+    public bool doMovementAnimation = true;
 
     private ObjectManager objectManager;
 
@@ -390,8 +398,11 @@ public class NoteManager : MonoBehaviour
         float worldDist = objectManager.GetZPosition(noteTime);
         Vector3 worldPos = new Vector3(gridPos.x, gridPos.y, worldDist);
 
-        float startY = n.StartY * objectManager.rowHeight + floorOffset;
-        worldPos.y = GetObjectY(startY, worldPos.y, noteTime);
+        if(doMovementAnimation)
+        {
+            float startY = n.StartY * objectManager.rowHeight + floorOffset;
+            worldPos.y = GetObjectY(startY, worldPos.y, noteTime);
+        }
 
         //Default to 0 in case of over-sized direction value
         int directionIndex = n.Direction >= 0 && n.Direction < 9 ? n.Direction : 0;
@@ -400,18 +411,21 @@ public class NoteManager : MonoBehaviour
         float angle = targetAngle;
         float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
 
-        if(noteTime > jumpTime)
+        if(doRotationAnimation)
         {
-            //Note is still jumping in
-            angle = 0;
-        }
-        else if(noteTime > jumpTime - rotationAnimationLength)
-        {
-            float timeSinceJump = reactionTime - (noteTime - TimeManager.CurrentTime);
-            float rotationProgress = timeSinceJump / rotationAnimationLength;
-            float angleDist = Easings.Sine.Out(rotationProgress);
+            if(noteTime > jumpTime)
+            {
+                //Note is still jumping in
+                angle = 0;
+            }
+            else if(noteTime > jumpTime - rotationAnimationLength)
+            {
+                float timeSinceJump = reactionTime - (noteTime - TimeManager.CurrentTime);
+                float rotationProgress = timeSinceJump / rotationAnimationLength;
+                float angleDist = Easings.Sine.Out(rotationProgress);
 
-            angle = targetAngle * angleDist;
+                angle = targetAngle * angleDist;
+            }
         }
 
         if(n.Visual == null)
@@ -420,6 +434,12 @@ public class NoteManager : MonoBehaviour
             GameObject prefab = n.Color == 0 ? redNotePrefabs[dot] : blueNotePrefabs[dot];
             n.Visual = Instantiate(prefab);
             n.Visual.transform.SetParent(noteParent.transform);
+
+            if(useSimpleNoteMaterial)
+            {
+                MeshRenderer renderer = n.Visual.GetComponent<MeshRenderer>();
+                renderer.material = n.Color == 0 ? simpleMaterialRed : simpleMaterialBlue;
+            }
 
             RenderedNotes.Add(n);
         }
@@ -440,8 +460,11 @@ public class NoteManager : MonoBehaviour
 
         Vector3 worldPos = new Vector3(gridPos.x, gridPos.y, worldDist);
 
-        float startY = b.StartY * objectManager.rowHeight + floorOffset;
-        worldPos.y = GetObjectY(startY, worldPos.y, bombTime);
+        if(doMovementAnimation)
+        {
+            float startY = b.StartY * objectManager.rowHeight + floorOffset;
+            worldPos.y = GetObjectY(startY, worldPos.y, bombTime);
+        }
 
         if(b.Visual == null)
         {

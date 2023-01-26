@@ -10,7 +10,7 @@ public class SettingsBool : MonoBehaviour
 
     public void SetValue(bool value)
     {
-        SettingsManager.AddRule(rule, value);
+        SettingsManager.SetRule(rule, value);
     }
 
 
@@ -20,7 +20,7 @@ public class SettingsBool : MonoBehaviour
 
         if(SettingsManager.CurrentSettings?.Bools != null)
         {
-            bool newValue = SettingsManager.GetRuleBool(rule);
+            bool newValue = SettingsManager.GetBool(rule);
             toggle.isOn = newValue;
         }
     }
