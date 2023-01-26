@@ -163,7 +163,7 @@ public class SettingsManager : MonoBehaviour
 
     public static void SetRule(string name, float value)
     {
-        value = (float)Math.Round(value, 2); //Why tf does the compiler read value as a double here?
+        value = (float)Math.Round(value, 3); //Why tf does the compiler read value as a double here?
 
         Dictionary<string, float> rules = CurrentSettings.Floats;
         if(rules.ContainsKey(name))
@@ -205,15 +205,18 @@ public class Settings
     {
         Bools = new Dictionary<string, bool>
         {
+            {"randomhitsoundpitch", false},
             {"simplenotes", false},
             {"moveanimations", true},
             {"rotateanimations", true},
             {"vsync", true},
-            {"ssao", true}
+            {"ssao", true},
+            {"dynamicsoundpriority", true}
         },
 
         Ints = new Dictionary<string, int>
         {
+            {"hitsound", 0},
             {"framecap", 60},
             {"antialiasing", 0}
         },
@@ -223,13 +226,15 @@ public class Settings
             {"musicvolume", 1},
             {"hitsoundvolume", 1},
             {"bloom", 1},
-            {"backgroundbloom", 1}
+            {"backgroundbloom", 1},
+            {"hitsoundbuffer", 0.2f}
         }
     };
 
 
     public static Settings GetDefaultSettings()
     {
+        //Provides a deep copy of the default settings I hate reference types I hate reference types I hate reference types I hate reference types I hate reference types
         Settings settings = new Settings
         {
             Bools = new Dictionary<string, bool>(),

@@ -496,11 +496,11 @@ public class NoteManager : MonoBehaviour
                 Note n = RenderedNotes[i];
                 if(!objectManager.CheckInSpawnRange(n.Beat))
                 {
-                    if(n.source.isPlaying)
+                    if(n.source.enabled && n.source.isPlaying)
                     {
                         //Only clear the visual elements if the hitsound is still playing
                         n.noteHandler.DisableVisual();
-                        return;
+                        continue;
                     }
 
                     n.ClearVisual();

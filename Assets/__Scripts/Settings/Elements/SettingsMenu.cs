@@ -146,5 +146,6 @@ public enum SettingsTab
 {
     General,
     Visuals,
-    Graphics
+    Graphics,
+    Advanced
 }

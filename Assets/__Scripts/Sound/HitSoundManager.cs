@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,6 +7,10 @@ public class HitSoundManager : MonoBehaviour
 {
     public static AudioClip HitSound;
     public static List<ScheduledSound> scheduledSounds = new List<ScheduledSound>();
+
+    public static bool randomPitch = false;
+    public static float scheduleBuffer = 0.2f;
+    public static bool dynamicPriority = true;
 
     public float HitSoundVolume
     {
@@ -42,13 +44,15 @@ public class HitSoundManager : MonoBehaviour
             time = noteTime
         };
 
-        float timeDifference = noteTime - AudioManager.GetSongTime();
-
         sound.source.clip = HitSound;
-        sound.source.PlayScheduled(AudioSettings.dspTime + timeDifference);
+
+        if(randomPitch)
+        {
+            sound.source.pitch = Random.Range(0.95f, 1.05f);
+        }
+        else sound.source.pitch = 1;
 
         TimeManager.OnBeatChanged += sound.UpdateTime;
-
         scheduledSounds.Add(sound);
     }
 
@@ -90,10 +94,16 @@ public class ScheduledSound
     public AudioSource source;
     public float time;
 
+    private bool scheduled;
+
 
     public void Destroy()
     {
-        source?.Stop();
+        if(source != null)
+        {
+            source.Stop();
+            source.enabled = false;
+        }
 
         TimeManager.OnBeatChanged -= UpdateTime;
         parentList.Remove(this);
@@ -102,16 +112,37 @@ public class ScheduledSound
 
     public void UpdateTime(float currentBeat)
     {
-        if(source == null)
+        if(source == null || !source.isActiveAndEnabled)
         {
             Destroy();
             return;
         }
 
         float currentTime = AudioManager.GetSongTime();
-        if(!source.isPlaying)
+        if(currentTime > time + (source.clip.length / source.pitch))
         {
+            //The time to play the sound has already passed
             Destroy();
+            return;
+        }
+
+        float timeDifference = time - currentTime;
+        if(currentTime < time && HitSoundManager.dynamicPriority)
+        {
+            //Dynamically set sound priority so sounds don't get overridden by scheduled sounds
+            float progress = timeDifference / HitSoundManager.scheduleBuffer;
+            int priority = (int)((1 - progress) * 255) + 1;
+            source.priority = priority;
+        }
+
+        if(currentTime > time - HitSoundManager.scheduleBuffer && !source.isPlaying)
+        {
+            if(!scheduled)
+            {
+                //Audio hasn't been scheduled but it should be
+                source.PlayScheduled(AudioSettings.dspTime + timeDifference);
+                scheduled = true;
+            }
         }
     }
 }

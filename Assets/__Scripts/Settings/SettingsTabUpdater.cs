@@ -8,6 +8,7 @@ public class SettingsTabUpdater : MonoBehaviour
     [SerializeField] private GameObject generalMenu;
     [SerializeField] private GameObject visualsMenu;
     [SerializeField] private GameObject graphicsMenu;
+    [SerializeField] private GameObject advancedMenu;
 
 
     public void UpdateTab(SettingsTab newTab)
@@ -17,6 +18,7 @@ public class SettingsTabUpdater : MonoBehaviour
         generalMenu.SetActive(newTab == SettingsTab.General);
         visualsMenu.SetActive(newTab == SettingsTab.Visuals);
         graphicsMenu.SetActive(newTab == SettingsTab.Graphics);
+        advancedMenu.SetActive(newTab == SettingsTab.Advanced);
     }
 
 
