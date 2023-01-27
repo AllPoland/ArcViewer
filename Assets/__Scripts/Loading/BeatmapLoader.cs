@@ -231,8 +231,9 @@ public class BeatmapLoader : MonoBehaviour
         UIStateManager.CurrentState = UIState.Previewer;
         
         BeatmapManager.Info = info;
-        BeatmapManager.Difficulties = difficulties;
         audioManager.MusicClip = song;
+
+        BeatmapManager.Difficulties = difficulties;
         BeatmapManager.SetDefaultDifficulty();
     }
 

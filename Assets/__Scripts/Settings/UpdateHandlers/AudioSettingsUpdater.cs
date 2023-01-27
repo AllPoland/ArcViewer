@@ -13,7 +13,7 @@ public class AudioSettingsUpdater : MonoBehaviour
 
         hitSoundManager.HitSoundVolume = SettingsManager.GetFloat("hitsoundvolume");
         HitSoundManager.RandomPitch = SettingsManager.GetBool("randomhitsoundpitch");
-        HitSoundManager.Spacial = SettingsManager.GetBool("spatialhitsounds");
+        HitSoundManager.Spatial = SettingsManager.GetBool("spatialhitsounds");
         HitSoundManager.ScheduleBuffer = SettingsManager.GetFloat("hitsoundbuffer");
         HitSoundManager.DynamicPriority = SettingsManager.GetBool("dynamicsoundpriority");
 

@@ -6,69 +6,21 @@ public class BeatmapManager : MonoBehaviour
 {
     public static List<Difficulty> Difficulties = new List<Difficulty>();
 
-    public static List<Difficulty> StandardDifficulties
-    {
-        get
-        {
-            return GetDifficultiesByCharacteristic(DifficultyCharacteristic.Standard);
-        }
-    }
+    public static List<Difficulty> StandardDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Standard);
 
-    public static List<Difficulty> OneSaberDifficulties
-    {
-        get
-        {
-            return GetDifficultiesByCharacteristic(DifficultyCharacteristic.OneSaber);
-        }
-    }
+    public static List<Difficulty> OneSaberDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.OneSaber);
 
-    public static List<Difficulty> NoArrowsDifficulties
-    {
-        get
-        {
-            return GetDifficultiesByCharacteristic(DifficultyCharacteristic.NoArrows);
-        }
-    }
+    public static List<Difficulty> NoArrowsDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.NoArrows);
 
-    public static List<Difficulty> ThreeSixtyDifficulties
-    {
-        get
-        {
-            return GetDifficultiesByCharacteristic(DifficultyCharacteristic.ThreeSixty);
-        }
-    }
+    public static List<Difficulty> ThreeSixtyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.ThreeSixty);
 
-    public static List<Difficulty> NinetyDifficulties
-    {
-        get
-        {
-            return GetDifficultiesByCharacteristic(DifficultyCharacteristic.Ninety);
-        }
-    }
+    public static List<Difficulty> NinetyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Ninety);
 
-    public static List<Difficulty> LightshowDifficulties
-    {
-        get
-        {
-            return GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lightshow);
-        }
-    }
+    public static List<Difficulty> LightshowDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lightshow);
 
-    public static List<Difficulty> LawlessDifficulties
-    {
-        get
-        {
-            return GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lawless);
-        }
-    }
+    public static List<Difficulty> LawlessDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lawless);
 
-    public static List<Difficulty> UnknownDifficulties
-    {
-        get
-        {
-            return GetDifficultiesByCharacteristic(DifficultyCharacteristic.Unknown);
-        }
-    }
+    public static List<Difficulty> UnknownDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Unknown);
 
 
     private static BeatmapInfo _info;

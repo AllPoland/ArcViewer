@@ -1,23 +1,28 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class NoteManager : MonoBehaviour
 {
-    [Header("Prefabs")]
-    [SerializeField] private GameObject[] redNotePrefabs;
-    [SerializeField] private GameObject[] blueNotePrefabs;
-    [SerializeField] private GameObject bombPrefab;
+    [Header("Object Pools")]
+    [SerializeField] private ObjectPool notePool;
+    [SerializeField] private ObjectPool bombPool;
 
     [Header("Object Parents")]
     [SerializeField] private GameObject noteParent;
     [SerializeField] private GameObject bombParent;
 
-    [SerializeField] private float floorOffset;
-
     [Header("Materials")]
+    [SerializeField] private Material complexMaterialRed;
+    [SerializeField] private Material complexMaterialBlue;
     [SerializeField] private Material simpleMaterialRed;
     [SerializeField] private Material simpleMaterialBlue;
+    [SerializeField] private Material arrowMaterialRed;
+    [SerializeField] private Material arrowMaterialBlue;
+
+    [Header("Values")]
+    [SerializeField] private float floorOffset;
 
     public List<Note> Notes = new List<Note>();
     public List<Note> RenderedNotes = new List<Note>();
@@ -48,6 +53,8 @@ public class NoteManager : MonoBehaviour
     public void LoadNotesFromDifficulty(Difficulty difficulty)
     {
         ClearRenderedNotes();
+        notePool.SetPoolSize(0);
+        bombPool.SetPoolSize(0);
         BeatmapDifficulty beatmap = difficulty.beatmapDifficulty;
 
         List<Note> newNotes = new List<Note>();
@@ -122,7 +129,7 @@ public class NoteManager : MonoBehaviour
             {
                 Note n = notesOnBeat[x];
                 n.StartY = GetStartY(n, sameBeatObjects);
-                n.WindowSnap = CheckAngleSnap(n, notesOnBeat);
+                n.WindowSnap = GetAngleSnap(n, notesOnBeat);
                 newNotes.Add(n);
             }
             for(int x = 0; x < bombsOnBeat.Count; x++)
@@ -137,12 +144,6 @@ public class NoteManager : MonoBehaviour
         Bombs = ObjectManager.SortObjectsByBeat<Bomb>(newBombs);
 
         UpdateNoteVisuals(TimeManager.CurrentBeat);
-    }
-
-
-    private bool CheckSameDirection(Note n, Note other)
-    {
-        return n.Direction == other.Direction || n.Direction == 8 || other.Direction == 8;
     }
 
 
@@ -198,7 +199,7 @@ public class NoteManager : MonoBehaviour
     }
 
 
-    private float CheckAngleSnap(Note n, List<Note> sameBeatNotes)
+    private float GetAngleSnap(Note n, List<Note> sameBeatNotes)
     {
         List<Note> notesOnBeat = new List<Note>(sameBeatNotes);
 
@@ -230,7 +231,7 @@ public class NoteManager : MonoBehaviour
             //Straight horizontal or vertical angle doesn't need snapping
             return angleOffset;
         }
-        if(!CheckSameDirection(n, other))
+        if(!(n.Direction == other.Direction || n.Direction == 8 || other.Direction == 8))
         {
             //Notes must have the same direction
             return angleOffset;
@@ -364,7 +365,9 @@ public class NoteManager : MonoBehaviour
         if(objectsOnBeat.Count == 0) return 0;
 
         //Need to recursively calculate the startYs of each note underneath
-        return objectsOnBeat.Max(x => GetStartY(x, objectsOnBeat)) + 1;
+        int startY = objectsOnBeat.Max(x => GetStartY(x, objectsOnBeat)) + 1;
+        // Debug.Log($"{n.Beat}, {objectsOnBeat.Count}, {startY}");
+        return startY;
     }
 
 
@@ -430,20 +433,26 @@ public class NoteManager : MonoBehaviour
 
         if(n.Visual == null)
         {
-            int dot = n.Direction == 8 ? 1 : 0;
-            GameObject prefab = n.Color == 0 ? redNotePrefabs[dot] : blueNotePrefabs[dot];
-            n.Visual = Instantiate(prefab);
+            n.Visual = notePool.GetObject();
             n.Visual.transform.SetParent(noteParent.transform);
+
+            n.noteHandler = n.Visual.GetComponent<NoteHandler>();
+            n.source = n.noteHandler.audioSource;
+
+            n.noteHandler.SetArrow(n.Direction != 8);
+            n.noteHandler.SetArrowMaterial(n.Color == 0 ? arrowMaterialRed : arrowMaterialBlue);
 
             if(useSimpleNoteMaterial)
             {
-                MeshRenderer renderer = n.Visual.GetComponent<MeshRenderer>();
-                renderer.material = n.Color == 0 ? simpleMaterialRed : simpleMaterialBlue;
+                n.noteHandler.SetMaterial(n.Color == 0 ? simpleMaterialRed : simpleMaterialBlue);
+            }
+            else
+            {
+                n.noteHandler.SetMaterial(n.Color == 0 ? complexMaterialRed : complexMaterialBlue);
             }
 
-            //Get the handler and audio source for hitsounds
-            n.noteHandler = n.Visual.GetComponent<NoteHandler>();
-            n.source = n.noteHandler.audioSource;
+            n.Visual.SetActive(true);
+            n.noteHandler.EnableVisual();
 
             if(TimeManager.Playing && SettingsManager.GetFloat("hitsoundvolume") > 0)
             {
@@ -478,12 +487,31 @@ public class NoteManager : MonoBehaviour
 
         if(b.Visual == null)
         {
-            b.Visual = Instantiate(bombPrefab);
+            b.Visual = bombPool.GetObject();
             b.Visual.transform.SetParent(bombParent.transform);
+            b.Visual.SetActive(true);
 
             RenderedBombs.Add(b);
         }
         b.Visual.transform.localPosition = worldPos;
+    }
+
+
+    private void ReleaseNote(Note n)
+    {
+        n.source.Stop();
+        notePool.ReleaseObject(n.Visual);
+
+        n.Visual = null;
+        n.source = null;
+        n.noteHandler = null;
+    }
+
+
+    private void ReleaseBomb(Bomb b)
+    {
+        bombPool.ReleaseObject(b.Visual);
+        b.Visual = null;
     }
 
 
@@ -503,8 +531,12 @@ public class NoteManager : MonoBehaviour
                         continue;
                     }
 
-                    n.ClearVisual();
+                    ReleaseNote(n);
                     RenderedNotes.Remove(n);
+                }
+                else if(!n.noteHandler.Visible)
+                {
+                    n.noteHandler.EnableVisual();
                 }
             }
         }
@@ -514,9 +546,9 @@ public class NoteManager : MonoBehaviour
             for(int i = RenderedBombs.Count - 1; i >= 0; i--)
             {
                 Bomb b = RenderedBombs[i];
-                if(!CheckBombInSpawnRange(b))
+                if(!CheckBombInSpawnRange(b.Beat))
                 {
-                    b.ClearVisual();
+                    ReleaseBomb(b);
                     RenderedBombs.Remove(b);
                 }
             }
@@ -533,7 +565,7 @@ public class NoteManager : MonoBehaviour
         {
             foreach(Note n in RenderedNotes)
             {
-                n.ClearVisual();
+                ReleaseNote(n);
             }
             RenderedNotes.Clear();
         }
@@ -542,7 +574,7 @@ public class NoteManager : MonoBehaviour
         {
             foreach(Bomb b in RenderedBombs)
             {
-                b.ClearVisual();
+                ReleaseBomb(b);
             }
             RenderedBombs.Clear();
         }
@@ -555,7 +587,7 @@ public class NoteManager : MonoBehaviour
 
         if(Notes.Count > 0)
         {
-            int firstNote = Notes.FindIndex(x => x.Beat > TimeManager.CurrentBeat);
+            int firstNote = Notes.FindIndex(x => objectManager.CheckInSpawnRange(x.Beat));
             if(firstNote >= 0)
             {
                 for(int i = firstNote; i < Notes.Count; i++)
@@ -573,13 +605,13 @@ public class NoteManager : MonoBehaviour
 
         if(Bombs.Count > 0)
         {
-            int firstBomb = Bombs.FindIndex(x => x.Beat > TimeManager.CurrentBeat + TimeManager.BeatFromTime(objectManager.BehindCameraTime));
+            int firstBomb = Bombs.FindIndex(x => CheckBombInSpawnRange(x.Beat));
             if(firstBomb >= 0)
             {
                 for(int i = firstBomb; i < Bombs.Count; i++)
                 {
                     Bomb b = Bombs[i];
-                    if(CheckBombInSpawnRange(b))
+                    if(CheckBombInSpawnRange(b.Beat))
                     {
                         UpdateBombVisual(b);
                     }
@@ -590,12 +622,12 @@ public class NoteManager : MonoBehaviour
     }
 
 
-    private bool CheckBombInSpawnRange(Bomb b)
+    private bool CheckBombInSpawnRange(float beat)
     {
-        float bombTime = TimeManager.TimeFromBeat(b.Beat);
-        bool timeInRange = TimeManager.CurrentTime > bombTime && TimeManager.CurrentTime <= bombTime - objectManager.BehindCameraTime;
+        float bombTime = TimeManager.TimeFromBeat(beat);
+        bool timeInRange = TimeManager.CurrentTime >= bombTime && TimeManager.CurrentTime <= bombTime - objectManager.BehindCameraTime;
 
-        return objectManager.CheckInSpawnRange(b.Beat) || timeInRange;
+        return objectManager.CheckInSpawnRange(beat) || timeInRange;
     }
 
 

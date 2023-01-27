@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class WallManager : MonoBehaviour
 {
-    [SerializeField] private GameObject wallPrefab;
+    [SerializeField] private ObjectPool wallPool;
     [SerializeField] private GameObject wallParent;
 
     [SerializeField] private float wallHScale;
@@ -24,6 +24,7 @@ public class WallManager : MonoBehaviour
     public void LoadWallsFromDifficulty(Difficulty difficulty)
     {
         ClearRenderedWalls();
+        wallPool.SetPoolSize(0);
         BeatmapDifficulty beatmap = difficulty.beatmapDifficulty;
 
         if(beatmap.obstacles.Length > 0)
@@ -35,7 +36,10 @@ public class WallManager : MonoBehaviour
             }
             Walls = ObjectManager.SortObjectsByBeat<Wall>(newWallList);
         }
-        else Walls = new List<Wall>();
+        else
+        {
+            Walls = new List<Wall>();
+        }
 
         UpdateWallVisuals(TimeManager.CurrentBeat);
     }
@@ -75,8 +79,9 @@ public class WallManager : MonoBehaviour
 
         if(w.Visual == null)
         {
-            w.Visual = Instantiate(wallPrefab);
+            w.Visual = wallPool.GetObject();
             w.Visual.transform.SetParent(wallParent.transform);
+            w.Visual.SetActive(true);
 
             //Wall scale only needs to be set once when it's created
             WallScaleHandler scaleHandler = w.Visual.GetComponent<WallScaleHandler>();
@@ -85,6 +90,13 @@ public class WallManager : MonoBehaviour
             RenderedWalls.Add(w);
         }
         w.Visual.transform.localPosition = new Vector3(worldX, worldY, worldDist);
+    }
+
+
+    private void ReleaseWall(Wall w)
+    {
+        wallPool.ReleaseObject(w.Visual);
+        w.Visual = null;
     }
 
 
@@ -97,7 +109,7 @@ public class WallManager : MonoBehaviour
                 Wall w = RenderedWalls[i];
                 if(!CheckWallInSpawnRange(w))
                 {
-                    w.ClearVisual();
+                    ReleaseWall(w);
                     RenderedWalls.Remove(w);
                 }
             }
@@ -111,7 +123,7 @@ public class WallManager : MonoBehaviour
         {
             foreach(Wall w in RenderedWalls)
             {
-                w.ClearVisual();
+                ReleaseWall(w);
             }
             RenderedWalls.Clear();
         }

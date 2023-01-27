@@ -9,7 +9,7 @@ public class HitSoundManager : MonoBehaviour
     public static List<ScheduledSound> scheduledSounds = new List<ScheduledSound>();
 
     public static bool RandomPitch = false;
-    public static bool Spacial = false;
+    public static bool Spatial = false;
     public static float ScheduleBuffer = 0.2f;
     public static bool DynamicPriority = true;
 
@@ -32,9 +32,35 @@ public class HitSoundManager : MonoBehaviour
 
     public static void ScheduleHitsound(float noteTime, AudioSource noteSource)
     {
-        if(scheduledSounds.Any(x => Mathf.Abs(x.time - noteTime) <= 0.001))
+        noteSource.volume = 1f;
+
+        if(RandomPitch)
         {
-            //This sound has already been scheduled, don't stack
+            noteSource.pitch = Random.Range(0.95f, 1.05f);
+        }
+        else noteSource.pitch = 1;
+
+        if(Spatial)
+        {
+            noteSource.spatialBlend = 1f;
+        }
+        else noteSource.spatialBlend = 0;
+
+        if(Spatial)
+        {
+            ScheduledSound existingSound = scheduledSounds.FirstOrDefault(x => Mathf.Abs(x.time - noteTime) <= 0.001);
+            if(existingSound != null)
+            {
+                //This sound has already been scheduled, every source should have reduced volume
+                //This keeps the aggregate volume the same while making spatial audio sound correct
+                existingSound.source.volume *= 0.5f;
+                noteSource.volume *= 0.5f;
+                noteSource.pitch = existingSound.source.pitch;
+            }
+        }
+        else if(scheduledSounds.Any(x => Mathf.Abs(x.time - noteTime) <= 0.001))
+        {
+            //This sound has already been scheduled and we aren't using spatial audio, so sounds shouldn't stack
             return;
         }
 
@@ -48,18 +74,6 @@ public class HitSoundManager : MonoBehaviour
         sound.source.enabled = true;
         sound.source.Stop();
         sound.source.clip = HitSound;
-
-        if(RandomPitch)
-        {
-            sound.source.pitch = Random.Range(0.95f, 1.05f);
-        }
-        else sound.source.pitch = 1;
-
-        if(Spacial)
-        {
-            sound.source.spatialBlend = 0.5f;
-        }
-        else sound.source.spatialBlend = 0;
 
         TimeManager.OnBeatChanged += sound.UpdateTime;
         scheduledSounds.Add(sound);

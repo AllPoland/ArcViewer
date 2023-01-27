@@ -50,6 +50,18 @@ public class ObjectManager : MonoBehaviour
     }
 
 
+    public bool CheckInSpawnRange(float beat, float currentBeat)
+    {
+        float time = TimeManager.TimeFromBeat(beat);
+        float currentTime = TimeManager.TimeFromBeat(currentBeat);
+        return
+        (
+            time > currentTime &&
+            time <= currentTime + BeatmapManager.ReactionTime + Instance.moveTime
+        );
+    }
+
+
     public float GetZPosition(float objectTime)
     {
         float reactionTime = BeatmapManager.ReactionTime;
