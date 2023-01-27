@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -13,6 +12,10 @@ public class NoteManager : MonoBehaviour
     [SerializeField] private GameObject noteParent;
     [SerializeField] private GameObject bombParent;
 
+    [Header("Meshes")]
+    [SerializeField] private Mesh noteMesh;
+    [SerializeField] private Mesh chainHeadMesh;
+
     [Header("Materials")]
     [SerializeField] private Material complexMaterialRed;
     [SerializeField] private Material complexMaterialBlue;
@@ -20,6 +23,9 @@ public class NoteManager : MonoBehaviour
     [SerializeField] private Material simpleMaterialBlue;
     [SerializeField] private Material arrowMaterialRed;
     [SerializeField] private Material arrowMaterialBlue;
+
+    [Header("References")]
+    [SerializeField] private ChainManager chainManager;
 
     [Header("Values")]
     [SerializeField] private float floorOffset;
@@ -53,8 +59,8 @@ public class NoteManager : MonoBehaviour
     public void LoadNotesFromDifficulty(Difficulty difficulty)
     {
         ClearRenderedNotes();
-        notePool.SetPoolSize(0);
-        bombPool.SetPoolSize(0);
+        notePool.SetPoolSize(40);
+        bombPool.SetPoolSize(40);
         BeatmapDifficulty beatmap = difficulty.beatmapDifficulty;
 
         List<Note> newNotes = new List<Note>();

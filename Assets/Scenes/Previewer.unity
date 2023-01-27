@@ -6958,6 +6958,7 @@ Transform:
   - {fileID: 1540820443}
   - {fileID: 505201298}
   - {fileID: 1095058568}
+  - {fileID: 726814133}
   m_Father: {fileID: 776929601}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -7794,6 +7795,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 725689492}
   m_CullTransparentMesh: 1
+--- !u!1 &726814132
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 726814133}
+  - component: {fileID: 726814134}
+  m_Layer: 0
+  m_Name: ChainLinkPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &726814133
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 726814132}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 643289461}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &726814134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 726814132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b11d423a79d9014b94877b22799ef7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AvailableObjects: []
+  ActiveObjects: []
+  prefab: {fileID: 0}
 --- !u!1001 &728114970
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8324,6 +8372,7 @@ GameObject:
   - component: {fileID: 776929603}
   - component: {fileID: 776929606}
   - component: {fileID: 776929607}
+  - component: {fileID: 776929610}
   - component: {fileID: 776929602}
   - component: {fileID: 776929604}
   - component: {fileID: 776929608}
@@ -8415,12 +8464,15 @@ MonoBehaviour:
   bombPool: {fileID: 505201299}
   noteParent: {fileID: 553573861}
   bombParent: {fileID: 415920783}
+  noteMesh: {fileID: 0}
+  chainHeadMesh: {fileID: 0}
   complexMaterialRed: {fileID: 2100000, guid: 312d74011adf51f4e9515082ddbfc7b7, type: 2}
   complexMaterialBlue: {fileID: 2100000, guid: 88e0e4c9f1f0ba84aaa5488e3e36962f, type: 2}
   simpleMaterialRed: {fileID: 2100000, guid: dd516f5f7177efb4da46d849a0cec8eb, type: 2}
   simpleMaterialBlue: {fileID: 2100000, guid: 2a6e5e4a63d77e448b411fbca71648e9, type: 2}
   arrowMaterialRed: {fileID: 2100000, guid: 7df7e5bb80bf8ed499fb12b366089bb2, type: 2}
   arrowMaterialBlue: {fileID: 2100000, guid: 6cac9258f6b502b45ab778e12656caef, type: 2}
+  chainManager: {fileID: 0}
   floorOffset: -0.6
   useSimpleNoteMaterial: 0
   doRotationAnimation: 1
@@ -8465,6 +8517,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   noteManager: {fileID: 776929606}
+--- !u!114 &776929610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 776929600}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f15579d69ceeed644b68b19447d96b86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &778404757
 GameObject:
   m_ObjectHideFlags: 0

@@ -153,9 +153,17 @@ public class ScheduledSound
         if(HitSoundManager.DynamicPriority)
         {
             //Dynamically set sound priority so sounds don't get overridden by scheduled sounds
-            float progress = timeDifference / HitSoundManager.ScheduleBuffer;
-            int priority = (int)(Mathf.Min(progress, 1) * 255) + 1;
-            source.priority = priority;
+            //Thanks galx for making this code
+            if(currentTime - time > 0)
+            {
+                const float priorityFalloff = 384;
+                source.priority = Mathf.Clamp(1 + Mathf.RoundToInt((float)(currentTime - time) * priorityFalloff), 1, 256);
+            }
+            else
+            {
+                const float priorityRampup = 192;
+                source.priority = Mathf.Clamp(1 + Mathf.RoundToInt((float)(time - currentTime) * priorityRampup), 1, 256);
+            }
         }
 
         if(currentTime > time - HitSoundManager.ScheduleBuffer && !source.isPlaying)

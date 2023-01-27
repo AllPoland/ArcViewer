@@ -22,7 +22,15 @@ public class SettingsSlider : MonoBehaviour
         }
         else SettingsManager.SetRule(rule, (int)value);
 
-        labelText.text = Math.Round(value, 2).ToString();   
+        if(value == slider.maxValue && maxOverride != "")
+        {
+            labelText.text = maxOverride;
+        }
+        else if(value == slider.minValue && minOverride != "")
+        {
+            labelText.text = minOverride;
+        }
+        else labelText.text = Math.Round(value, 2).ToString();   
     }
 
 

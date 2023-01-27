@@ -24,7 +24,7 @@ public class WallManager : MonoBehaviour
     public void LoadWallsFromDifficulty(Difficulty difficulty)
     {
         ClearRenderedWalls();
-        wallPool.SetPoolSize(0);
+        wallPool.SetPoolSize(40);
         BeatmapDifficulty beatmap = difficulty.beatmapDifficulty;
 
         if(beatmap.obstacles.Length > 0)

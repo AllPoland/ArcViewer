@@ -149,6 +149,7 @@ public class Note : HitSoundEmitter
     public int AngleOffset;
     public float WindowSnap;
     public int StartY;
+    public bool isHead;
     public NoteHandler noteHandler;
 
 
@@ -205,4 +206,16 @@ public class Wall : BeatmapObject
             Visual = null
         };
     }
+}
+
+
+public class Chain : BeatmapObject
+{
+
+}
+
+
+public class ChainLink : HitSoundEmitter
+{
+
 }
