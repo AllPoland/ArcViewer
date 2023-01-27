@@ -125,7 +125,6 @@ public class ScheduledSound
         if(source != null)
         {
             source.Stop();
-            source.enabled = false;
         }
 
         TimeManager.OnBeatChanged -= UpdateTime;
@@ -142,7 +141,7 @@ public class ScheduledSound
         }
 
         float currentTime = AudioManager.GetSongTime();
-        if(currentTime > time + (source.clip.length / source.pitch))
+        if(currentTime > time + (source.clip.length / source.pitch) + 0.05)
         {
             //The time to play the sound has already passed
             Destroy();
@@ -157,12 +156,12 @@ public class ScheduledSound
             if(currentTime - time > 0)
             {
                 const float priorityFalloff = 384;
-                source.priority = Mathf.Clamp(1 + Mathf.RoundToInt((float)(currentTime - time) * priorityFalloff), 1, 256);
+                source.priority = Mathf.Clamp(1 + Mathf.RoundToInt((float)(currentTime - time) * priorityFalloff), 1, 254);
             }
             else
             {
                 const float priorityRampup = 192;
-                source.priority = Mathf.Clamp(1 + Mathf.RoundToInt((float)(time - currentTime) * priorityRampup), 1, 256);
+                source.priority = Mathf.Clamp(1 + Mathf.RoundToInt((float)(time - currentTime) * priorityRampup), 1, 255);
             }
         }
 
