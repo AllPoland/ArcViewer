@@ -4372,9 +4372,6 @@ MonoBehaviour:
   simpleMaterialBlue: {fileID: 2100000, guid: 2a6e5e4a63d77e448b411fbca71648e9, type: 2}
   arrowMaterialRed: {fileID: 2100000, guid: 7df7e5bb80bf8ed499fb12b366089bb2, type: 2}
   arrowMaterialBlue: {fileID: 2100000, guid: 6cac9258f6b502b45ab778e12656caef, type: 2}
-  useSimpleNoteMaterial: 0
-  doRotationAnimation: 1
-  doMovementAnimation: 1
 --- !u!1 &395744161
 GameObject:
   m_ObjectHideFlags: 0
@@ -5880,9 +5877,6 @@ MonoBehaviour:
   arrowMaterialRed: {fileID: 2100000, guid: 7df7e5bb80bf8ed499fb12b366089bb2, type: 2}
   arrowMaterialBlue: {fileID: 2100000, guid: 6cac9258f6b502b45ab778e12656caef, type: 2}
   chainManager: {fileID: 395449319}
-  useSimpleNoteMaterial: 0
-  doRotationAnimation: 1
-  doMovementAnimation: 1
 --- !u!1 &566137374
 GameObject:
   m_ObjectHideFlags: 0
@@ -7609,6 +7603,9 @@ MonoBehaviour:
   rotationAnimationTime: 0.3
   behindCameraZ: -5
   objectFloorOffset: -0.6
+  useSimpleNoteMaterial: 0
+  doRotationAnimation: 1
+  doMovementAnimation: 1
 --- !u!114 &776929604
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15066,6 +15063,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: bde41f93c645b1a42be60919b1e31f43, type: 3}
   - {fileID: 8300000, guid: f23001537acca224890faf67b766a586, type: 3}
   - {fileID: 8300000, guid: fe7b114ace936a146bbcd59a13e7f427, type: 3}
+  objectSettingsUpdater: {fileID: 776929609}
 --- !u!1 &1674772536
 GameObject:
   m_ObjectHideFlags: 0
@@ -17562,6 +17560,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54295b3b04f3eb34aba0bae0168a4109, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  justClosed: 0
 --- !u!1 &1920767029 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5241766548580045631, guid: 1917af5300baa7a4a8080f2e09dfc773, type: 3}

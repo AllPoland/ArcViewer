@@ -29,14 +29,6 @@ public class ObjectSettingsUpdater : MonoBehaviour
     private void OnEnable()
     {
         objectManager = ObjectManager.Instance;
-
-        SettingsManager.OnSettingsUpdated += UpdateObjectSettings;
-    }
-
-
-    private void OnDisable()
-    {
-        SettingsManager.OnSettingsUpdated -= UpdateObjectSettings;
     }
 
 

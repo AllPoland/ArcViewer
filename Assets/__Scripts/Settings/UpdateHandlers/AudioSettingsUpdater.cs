@@ -5,6 +5,7 @@ public class AudioSettingsUpdater : MonoBehaviour
     [SerializeField] private AudioManager audioManager;
     [SerializeField] private HitSoundManager hitSoundManager;
     [SerializeField] private AudioClip[] hitSounds;
+    [SerializeField] private ObjectSettingsUpdater objectSettingsUpdater;
 
 
     public void UpdateAudioSettings()
@@ -24,6 +25,11 @@ public class AudioSettingsUpdater : MonoBehaviour
         Mathf.Clamp(hitsound, 0, hitSounds.Length - 1);
         //I love making good variable names
         HitSoundManager.HitSound = hitSounds[hitsound];
+
+        //Extremely yucky spaghetti-type fix for object hitsounds not updating correctly
+        //I need to make sure objects update after hitsound has been set
+        HitSoundManager.ClearScheduledSounds();
+        objectSettingsUpdater.UpdateObjectSettings();
     }
 
 

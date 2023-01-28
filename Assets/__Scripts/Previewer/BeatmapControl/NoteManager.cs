@@ -524,8 +524,6 @@ public class NoteManager : MonoBehaviour
 
     public void ClearRenderedNotes()
     {
-        HitSoundManager.ClearScheduledSounds();
-
         //Clear all rendered notes
         if(RenderedNotes.Count > 0)
         {
