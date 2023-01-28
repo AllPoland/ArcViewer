@@ -5,6 +5,8 @@ public class ObjectSettingsUpdater : MonoBehaviour
     [SerializeField] private NoteManager noteManager;
     [SerializeField] private ChainManager chainManager;
 
+    private ObjectManager objectManager;
+
 
     public void UpdateObjectSettings()
     {
@@ -12,13 +14,9 @@ public class ObjectSettingsUpdater : MonoBehaviour
         bool moveAnimations = SettingsManager.GetBool("moveanimations");
         bool rotateAnimations = SettingsManager.GetBool("rotateanimations");
 
-        noteManager.useSimpleNoteMaterial = simpleNotes;
-        noteManager.doMovementAnimation = moveAnimations;
-        noteManager.doRotationAnimation = rotateAnimations;
-
-        chainManager.useSimpleNoteMaterial = simpleNotes;
-        chainManager.doMovementAnimation = moveAnimations;
-        chainManager.doRotationAnimation = rotateAnimations;
+        objectManager.useSimpleNoteMaterial = simpleNotes;
+        objectManager.doMovementAnimation = moveAnimations;
+        objectManager.doRotationAnimation = rotateAnimations;
 
         noteManager.ClearRenderedNotes();
         noteManager.UpdateNoteVisuals(TimeManager.CurrentBeat);
@@ -30,6 +28,8 @@ public class ObjectSettingsUpdater : MonoBehaviour
 
     private void OnEnable()
     {
+        objectManager = ObjectManager.Instance;
+
         SettingsManager.OnSettingsUpdated += UpdateObjectSettings;
     }
 

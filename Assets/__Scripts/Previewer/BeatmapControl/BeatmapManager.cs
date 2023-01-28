@@ -200,7 +200,7 @@ public class BeatmapManager : MonoBehaviour
 public class Difficulty
 {
     public DifficultyCharacteristic characteristic;
-    public Diff difficultyRank;
+    public DifficultyRank difficultyRank;
     public BeatmapDifficulty beatmapDifficulty;
     public float NoteJumpSpeed;
     public float SpawnOffset;
@@ -209,7 +209,7 @@ public class Difficulty
     public static Difficulty Empty = new Difficulty
     {
         characteristic = DifficultyCharacteristic.Unknown,
-        difficultyRank = Diff.ExpertPlus,
+        difficultyRank = DifficultyRank.ExpertPlus,
         beatmapDifficulty = BeatmapDifficulty.Empty,
         NoteJumpSpeed = 0,
         SpawnOffset = 0

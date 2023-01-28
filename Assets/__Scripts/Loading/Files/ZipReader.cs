@@ -7,23 +7,6 @@ using UnityEngine;
 
 public class ZipReader
 {
-    public static async Task<(BeatmapInfo, List<Difficulty>, TempFile)> GetMapFromZipPathAsync(string zipPath)
-    {
-        try
-        {
-            using(ZipArchive archive = await Task.Run(() => ZipFile.OpenRead(zipPath)))
-            {
-                return await GetMapFromZipArchiveAsync(archive);
-            }
-        }
-        catch(Exception err)
-        {
-            Debug.LogWarning($"Unhandled exception loading zip: {err.Message}, {err.StackTrace}.");
-            return(null, new List<Difficulty>(), null);
-        }
-    }
-
-
     public static async Task<(BeatmapInfo, List<Difficulty>, TempFile)> GetMapFromZipArchiveAsync(ZipArchive archive)
     {
         BeatmapInfo info = null;
@@ -31,6 +14,7 @@ public class ZipReader
         TempFile songFile = null;
 
         Stream infoData = null;
+        BeatmapLoader.LoadingMessage = "Loading Info.dat";
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
             if(entry.FullName.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
@@ -72,6 +56,7 @@ public class ZipReader
             List<Difficulty> newDifficulties = new List<Difficulty>();
             foreach(DifficultyBeatmap beatmap in set._difficultyBeatmaps)
             {
+                BeatmapLoader.LoadingMessage = $"Loading {beatmap._beatmapFilename}";
                 Debug.Log($"Loading {beatmap._beatmapFilename}");
                 Difficulty diff = await Task.Run(() => GetDiff(beatmap, archive));
                 if(diff == null)

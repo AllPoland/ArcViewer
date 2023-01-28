@@ -4,7 +4,8 @@ using TMPro;
 
 public class DialogueBox : MonoBehaviour
 {
-    public Action<int> Callback;
+    public Action<DialogueResponse> Callback;
+    public DialogueBoxType boxType { get; private set; }
 
     [SerializeField] private GameObject okButton;
     [SerializeField] private GameObject yesButton;
@@ -30,6 +31,8 @@ public class DialogueBox : MonoBehaviour
 
     public void SetType(DialogueBoxType type)
     {
+        boxType = type;
+
         int buttonCount = 0;
         switch(type)
         {
@@ -87,7 +90,7 @@ public class DialogueBox : MonoBehaviour
     {
         if(Callback != null)
         {
-            Callback(response);
+            Callback((DialogueResponse)response);
         }
 
         Close();

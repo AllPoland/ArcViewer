@@ -31,13 +31,13 @@ public class BeatmapLoader : MonoBehaviour
     private AudioManager audioManager;
 
 
-    public static Dictionary<string, Diff> DiffValueFromString = new Dictionary<string, Diff>
+    public static Dictionary<string, DifficultyRank> DiffValueFromString = new Dictionary<string, DifficultyRank>
     {
-        {"Easy", Diff.Easy},
-        {"Normal", Diff.Normal},
-        {"Hard", Diff.Hard},
-        {"Expert", Diff.Expert},
-        {"ExpertPlus", Diff.ExpertPlus}
+        {"Easy", DifficultyRank.Easy},
+        {"Normal", DifficultyRank.Normal},
+        {"Hard", DifficultyRank.Hard},
+        {"Expert", DifficultyRank.Expert},
+        {"ExpertPlus", DifficultyRank.ExpertPlus}
     };
 
 
@@ -60,7 +60,6 @@ public class BeatmapLoader : MonoBehaviour
         }
 
         Debug.Log("Loading difficulties.");
-        LoadingMessage = "Loading difficulty files";
         Task<List<Difficulty>> diffTask = Task.Run(() => LoadDiffsAsync(directory, info));
         
         yield return new WaitUntil(() => diffTask.IsCompleted);
@@ -92,20 +91,18 @@ public class BeatmapLoader : MonoBehaviour
     }
 
 
-    private IEnumerator LoadMapZipCoroutine(string directory)
+    private IEnumerator LoadMapZipArchiveCoroutine(ZipArchive archive)
     {
-        Loading = true;
-
         Debug.Log("Loading map zip.");
-        LoadingMessage = "Reading map zip";
-        var loadZipTask = Task.Run(() => ZipReader.GetMapFromZipPathAsync(directory));
+        var loadZipTask = Task.Run(() => ZipReader.GetMapFromZipArchiveAsync(archive));
 
         yield return new WaitUntil(() => loadZipTask.IsCompleted);
         var result = loadZipTask.Result;
-
         BeatmapInfo info = result.Item1;
         List<Difficulty> difficulties = result.Item2;
         TempFile audioFile = result.Item3;
+
+        archive.Dispose();
 
         LoadingMessage = "Loading song";
         AudioClip song = null;
@@ -121,6 +118,7 @@ public class BeatmapLoader : MonoBehaviour
         }
         else
         {
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
             Debug.LogWarning("Audio file doesn't exist!");
         }
 
@@ -128,6 +126,33 @@ public class BeatmapLoader : MonoBehaviour
         LoadingMessage = "Done";
 
         UpdateMapInfo(info, difficulties, song);
+    }
+
+
+    private IEnumerator LoadMapZipCoroutine(string directory)
+    {
+        Loading = true;
+
+        Debug.Log("Loading map zip.");
+        LoadingMessage = "Reading map zip";
+        yield return null; //Stupid hack to make sure the loading message actually appears
+
+        ZipArchive archive = null;
+        try
+        {
+            archive = ZipFile.OpenRead(directory);
+            StartCoroutine(LoadMapZipArchiveCoroutine(archive));
+        }
+        catch(Exception err)
+        {
+            if(archive != null)
+            {
+                archive.Dispose();
+            }
+
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to load the zip file!");
+            Debug.LogWarning($"Unhandled exception loading zip: {err.Message}, {err.StackTrace}.");
+        }
     }
 
 
@@ -154,43 +179,23 @@ public class BeatmapLoader : MonoBehaviour
             yield break;
         }
 
-        LoadingMessage = "Loading map zip";
-        BeatmapInfo info = null;
-        List<Difficulty> difficulties = new List<Difficulty>();
-        TempFile audioFile = null;
-        using(ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Read))
+        ZipArchive archive = null;
+        
+        try
         {
-            Debug.Log("Loading map zip.");
-            var loadZipTask = Task.Run(() => ZipReader.GetMapFromZipArchiveAsync(archive));
-
-            yield return new WaitUntil(() => loadZipTask.IsCompleted);
-            var result = loadZipTask.Result;
-            info = result.Item1;
-            difficulties = result.Item2;
-            audioFile = result.Item3;
+            archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
+            StartCoroutine(LoadMapZipArchiveCoroutine(archive));
         }
-
-        LoadingMessage = "Loading song";
-        AudioClip song = null;
-        if(audioFile != null && File.Exists(audioFile.Path))
+        catch(Exception err)
         {
-            AudioType type = FileUtil.GetAudioTypeByDirectory(info._songFilename);
-            Debug.Log($"Loading audio file with type of {type}.");
+            if(archive != null)
+            {
+                archive.Dispose();
+            }
 
-            Task<AudioClip> audioTask = FileUtil.GetAudioFromFile(audioFile.Path, type);
-            yield return new WaitUntil(() => audioTask.IsCompleted);
-
-            song = audioTask.Result;
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to download map file!");
+            Debug.LogWarning($"Unhandled exception loading zip URL: {err.Message}, {err.StackTrace}");
         }
-        else
-        {
-            Debug.LogWarning("Audio file doesn't exist!");
-        }
-
-        Debug.Log("Loading complete.");
-        LoadingMessage = "Done";
-
-        UpdateMapInfo(info, difficulties, song);
     }
 
 
@@ -269,6 +274,7 @@ public class BeatmapLoader : MonoBehaviour
             List<Difficulty> newDifficulties = new List<Difficulty>();
             foreach(DifficultyBeatmap beatmap in set._difficultyBeatmaps)
             {
+                LoadingMessage = $"Loading {beatmap._beatmapFilename}";
                 Debug.Log($"Loading {beatmap._beatmapFilename}");
                 Difficulty diff = await JsonReader.LoadDifficultyAsync(directory, beatmap);
                 if(diff == null)

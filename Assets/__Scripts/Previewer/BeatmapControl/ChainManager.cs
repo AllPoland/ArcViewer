@@ -22,9 +22,7 @@ public class ChainManager : MonoBehaviour
     public List<ChainLink> ChainLinks = new List<ChainLink>();
     public List<ChainLink> RenderedChainLinks = new List<ChainLink>();
 
-    public bool useSimpleNoteMaterial = false;
-    public bool doRotationAnimation = true;
-    public bool doMovementAnimation = true;
+    
 
     private ObjectManager objectManager;
 
@@ -49,8 +47,8 @@ public class ChainManager : MonoBehaviour
         ClearRenderedLinks();
         chainLinkPool.SetPoolSize(60);
 
-        Chains = new List<Chain>();
-        ChainLinks = new List<ChainLink>();
+        Chains.Clear();
+        ChainLinks.Clear();
 
         BeatmapDifficulty beatmap = difficulty.beatmapDifficulty;
         if(beatmap.burstSliders.Length > 0)
@@ -67,8 +65,8 @@ public class ChainManager : MonoBehaviour
         }
         else
         {
-            Chains = new List<Chain>();
-            ChainLinks = new List<ChainLink>();
+            Chains.Clear();
+            ChainLinks.Clear();
         }
 
         UpdateChainVisuals(TimeManager.CurrentBeat);
@@ -118,7 +116,11 @@ public class ChainManager : MonoBehaviour
 
         //The midpoint of the curve is 1/2 the distance between the start points, in the direction the chain faces
         float directDistance = Vector2.Distance(startPos, endPos);
-        Vector2 midOffset = (chainVectorFromDirection[c.Direction] * directDistance) / 2;
+
+        //This is just a failsafe in the case of mapping extensions chains
+        //Otherwise an error is thrown because of an out of range dictionary value
+        int direction = Mathf.Min(c.Direction, 8);
+        Vector2 midOffset = (chainVectorFromDirection[direction] * directDistance) / 2;
         Vector2 midPoint = startPos + midOffset;
 
         float duration = c.TailBeat - c.Beat;
@@ -160,7 +162,7 @@ public class ChainManager : MonoBehaviour
         float worldDist = objectManager.GetZPosition(linkTime);
         Vector3 worldPos = new Vector3(cl.x, cl.y, worldDist);
 
-        if(doMovementAnimation)
+        if(objectManager.doMovementAnimation)
         {
             float startY = objectManager.objectFloorOffset;
             worldPos.y = objectManager.GetObjectY(startY, worldPos.y, linkTime);
@@ -169,7 +171,7 @@ public class ChainManager : MonoBehaviour
         float angle = cl.Angle;
         float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
 
-        if(doRotationAnimation)
+        if(objectManager.doRotationAnimation)
         {
             if(linkTime > jumpTime)
             {
@@ -196,7 +198,7 @@ public class ChainManager : MonoBehaviour
 
             cl.chainLinkHandler.SetDotMaterial(cl.Color == 0 ? arrowMaterialRed : arrowMaterialBlue);
 
-            if(useSimpleNoteMaterial)
+            if(objectManager.useSimpleNoteMaterial)
             {
                 cl.chainLinkHandler.SetMaterial(cl.Color == 0 ? simpleMaterialRed : simpleMaterialBlue);
             }

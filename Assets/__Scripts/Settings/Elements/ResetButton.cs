@@ -8,9 +8,9 @@ public class ResetButton : MonoBehaviour
     }
 
 
-    public void ResetSettings(int response)
+    public void ResetSettings(DialogueResponse response)
     {
-        if(response == 1)
+        if(response == DialogueResponse.Yes)
         {
             SettingsManager.SetDefaults();
         }

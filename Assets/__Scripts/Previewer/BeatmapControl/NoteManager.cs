@@ -33,10 +33,6 @@ public class NoteManager : MonoBehaviour
     public List<Bomb> Bombs = new List<Bomb>();
     public List<Bomb> RenderedBombs = new List<Bomb>();
 
-    public bool useSimpleNoteMaterial = false;
-    public bool doRotationAnimation = true;
-    public bool doMovementAnimation = true;
-
     private ObjectManager objectManager;
 
     public static readonly Dictionary<int, float> DirectionAngles = new Dictionary<int, float>
@@ -72,10 +68,6 @@ public class NoteManager : MonoBehaviour
                 newNotes.Add(newNote);
             }
         }
-        else
-        {
-            newNotes = new List<Note>();
-        }
 
         if(beatmap.bombNotes.Length > 0)
         {
@@ -84,10 +76,6 @@ public class NoteManager : MonoBehaviour
                 Bomb newBomb = Bomb.BombFromBombNote(b);
                 newBombs.Add(newBomb);
             }
-        }
-        else
-        {
-            newBombs = new List<Bomb>();
         }
 
         //Precalculate startY and window snapping
@@ -101,8 +89,6 @@ public class NoteManager : MonoBehaviour
         newBombs.Clear();
 
         List<BeatmapObject> sameBeatObjects = new List<BeatmapObject>();
-        List<Note> notesOnBeat = new List<Note>();
-        List<Bomb> bombsOnBeat = new List<Bomb>();
         for(int i = 0; i < notesAndBombs.Count; i++)
         {
             BeatmapObject current = notesAndBombs[i];
@@ -124,10 +110,11 @@ public class NoteManager : MonoBehaviour
                     }
                     else break;
                 }
-
-                notesOnBeat = sameBeatObjects.OfType<Note>().ToList();
-                bombsOnBeat = sameBeatObjects.OfType<Bomb>().ToList();
             }
+
+            //Precalculate values for all objects on this beat
+            List<Note> notesOnBeat = sameBeatObjects.OfType<Note>().ToList();
+            List<Bomb> bombsOnBeat = sameBeatObjects.OfType<Bomb>().ToList();
 
             for(int x = 0; x < notesOnBeat.Count; x++)
             {
@@ -374,25 +361,25 @@ public class NoteManager : MonoBehaviour
         float noteTime = TimeManager.TimeFromBeat(n.Beat);
 
         float reactionTime = BeatmapManager.ReactionTime;
-        float jumpTime = TimeManager.CurrentTime + reactionTime;
 
         float worldDist = objectManager.GetZPosition(noteTime);
         Vector3 worldPos = new Vector3(gridPos.x, gridPos.y, worldDist);
 
-        if(doMovementAnimation)
+        if(objectManager.doMovementAnimation)
         {
             float startY = n.StartY * objectManager.rowHeight + objectManager.objectFloorOffset;
             worldPos.y = objectManager.GetObjectY(startY, worldPos.y, noteTime);
         }
 
         //Default to 0 in case of over-sized direction value
-        int directionIndex = n.Direction >= 0 && n.Direction < 9 ? n.Direction : 0;
+        int directionIndex = Mathf.Clamp(n.Direction, 0, 8);
         float angle = DirectionAngles[directionIndex] + n.WindowSnap;
 
-        float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
-
-        if(doRotationAnimation)
+        if(objectManager.doRotationAnimation)
         {
+            float jumpTime = TimeManager.CurrentTime + reactionTime;
+            float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
+
             if(noteTime > jumpTime)
             {
                 //Note is still jumping in
@@ -421,7 +408,7 @@ public class NoteManager : MonoBehaviour
             n.noteHandler.SetArrow(n.Direction != 8);
             n.noteHandler.SetArrowMaterial(n.Color == 0 ? arrowMaterialRed : arrowMaterialBlue);
 
-            if(useSimpleNoteMaterial)
+            if(objectManager.useSimpleNoteMaterial)
             {
                 n.noteHandler.SetMaterial(n.Color == 0 ? simpleMaterialRed : simpleMaterialBlue);
             }
@@ -458,7 +445,7 @@ public class NoteManager : MonoBehaviour
 
         Vector3 worldPos = new Vector3(gridPos.x, gridPos.y, worldDist);
 
-        if(doMovementAnimation)
+        if(objectManager.doMovementAnimation)
         {
             float startY = b.StartY * objectManager.rowHeight + objectManager.objectFloorOffset;
             worldPos.y = objectManager.GetObjectY(startY, worldPos.y, bombTime);

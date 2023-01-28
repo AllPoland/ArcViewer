@@ -92,7 +92,7 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
     }
 
 
-    public void UpdateDifficultyButtons(Diff selectedDifficulty)
+    public void UpdateDifficultyButtons(DifficultyRank selectedDifficulty)
     {
         bool sameCharacteristic = currentCharacteristic == currentDifficulty.characteristic;
 
@@ -192,7 +192,7 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
     }
 
 
-    public void ChangeDifficulty(Diff newDiff)
+    public void ChangeDifficulty(DifficultyRank newDiff)
     {
         List<Difficulty> diffs = BeatmapManager.GetDifficultiesByCharacteristic(currentCharacteristic);
         try

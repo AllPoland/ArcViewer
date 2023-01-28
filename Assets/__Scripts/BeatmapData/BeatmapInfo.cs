@@ -64,7 +64,7 @@ using UnityEngine;
 }
 
 
-[Serializable] public enum Diff
+[Serializable] public enum DifficultyRank
 {
     Easy,
     Normal,

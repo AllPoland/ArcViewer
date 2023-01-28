@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class DifficultyButton : MonoBehaviour, IPointerEnterHandler
 {
-    public Diff difficulty;
+    public DifficultyRank difficulty;
     public RectTransform rectTransform;
     public Button button;
 

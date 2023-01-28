@@ -26,7 +26,7 @@ public class WallManager : MonoBehaviour
         ClearRenderedWalls();
         wallPool.SetPoolSize(40);
 
-        Walls = new List<Wall>();
+        Walls.Clear();
 
         BeatmapDifficulty beatmap = difficulty.beatmapDifficulty;
         if(beatmap.obstacles.Length > 0)
@@ -36,10 +36,6 @@ public class WallManager : MonoBehaviour
                 Walls.Add( Wall.WallFromObstacle(o));
             }
             Walls = ObjectManager.SortObjectsByBeat<Wall>(Walls);
-        }
-        else
-        {
-            Walls = new List<Wall>();
         }
 
         UpdateWallVisuals(TimeManager.CurrentBeat);
@@ -67,8 +63,7 @@ public class WallManager : MonoBehaviour
         float wallY = Mathf.Clamp(w.y, 0, 2);
         float worldY = wallY * wallHScale;
 
-        float maxHeight = 5 - wallY;
-        float wallHeight = Mathf.Min(w.Height, maxHeight);
+        float wallHeight = Mathf.Min(w.Height, 5 - wallY);
         float worldHeight = wallHeight * wallHScale;
 
         worldY += worldHeight / 2;

@@ -18,6 +18,11 @@ public class ObjectManager : MonoBehaviour
     [SerializeField] public float behindCameraZ = -5f;
     [SerializeField] public float objectFloorOffset;
 
+    public bool useSimpleNoteMaterial = false;
+    public bool doRotationAnimation = true;
+    public bool doMovementAnimation = true;
+
+
     public float BehindCameraTime
     {
         get
