@@ -25,6 +25,9 @@ public class CharacteristicButton : MonoBehaviour, IPointerEnterHandler
 
     private void OnEnable()
     {
-        rectTransform = GetComponent<RectTransform>();
+        if(!rectTransform)
+        {
+            rectTransform = GetComponent<RectTransform>();
+        }
     }
 }

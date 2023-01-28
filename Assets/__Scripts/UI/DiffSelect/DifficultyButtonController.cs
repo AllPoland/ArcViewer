@@ -42,6 +42,7 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
                 button.gameObject.SetActive(false);
                 continue;
             }
+            button.gameObject.SetActive(true);
 
             bool isSelected = button.characteristic == selectedCharacteristic;
             bool isCurrent = button.characteristic == currentDifficulty.characteristic;
@@ -66,8 +67,6 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
                 currentY += height;
                 buttonIndex++;
             }
-
-            button.gameObject.SetActive(true);
         }
         //Set the height of this transform for raycast stuff
         float newHeight = Mathf.Max(currentY, rectTransform.sizeDelta.y);
@@ -114,6 +113,7 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
                 button.gameObject.SetActive(false);
                 continue;
             }
+            button.gameObject.SetActive(true);
 
             bool isSelected = button.difficulty == selectedDifficulty;
             bool isCurrent = sameCharacteristic && button.difficulty == currentDifficulty.difficultyRank;
@@ -135,8 +135,6 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
                 //Make the current diff uninteractable to avoid reloading the same diff
                 button.button.interactable = false;
             }
-
-            button.gameObject.SetActive(true);
         }
         float newHeight = Mathf.Max(currentY, rectTransform.sizeDelta.y);
         rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, newHeight);
@@ -161,7 +159,6 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
                 continue;
             }
 
-            //Just in case
             button.gameObject.SetActive(true);
 
             //Reset the height and position of this button
@@ -229,14 +226,13 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
     }
 
 
-    private void Awake()
+    private void OnEnable()
     {
-        rectTransform = GetComponent<RectTransform>();
-    }
+        if(!rectTransform)
+        {
+            rectTransform = GetComponent<RectTransform>();
+        }
 
-
-    private void Start()
-    {
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
 
         CollapseButtons();
