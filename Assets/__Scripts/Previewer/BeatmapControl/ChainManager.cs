@@ -49,6 +49,9 @@ public class ChainManager : MonoBehaviour
         ClearRenderedLinks();
         chainLinkPool.SetPoolSize(60);
 
+        Chains = new List<Chain>();
+        ChainLinks = new List<ChainLink>();
+
         BeatmapDifficulty beatmap = difficulty.beatmapDifficulty;
         if(beatmap.burstSliders.Length > 0)
         {
