@@ -107,7 +107,7 @@ public class ChainManager : MonoBehaviour
         Vector2 gridPos = objectManager.bottomLeft;
 
         Vector2 headPos = new Vector2(c.x * objectManager.laneWidth, c.y * objectManager.rowHeight);
-        Vector2 tailPos = new Vector2(c.TailX * objectManager.laneWidth, c.tailY * objectManager.rowHeight);
+        Vector2 tailPos = new Vector2(c.TailX * objectManager.laneWidth, c.TailY * objectManager.rowHeight);
 
         //These are the start and end points of the bezier curve
         Vector2 startPos = gridPos + headPos;

@@ -241,7 +241,7 @@ public class Chain : BeatmapObject
     public int Direction;
     public float TailBeat;
     public float TailX;
-    public float tailY;
+    public float TailY;
     public int SegmentCount;
     public float Squish;
 
@@ -257,7 +257,7 @@ public class Chain : BeatmapObject
             Direction = b.d,
             TailBeat = b.tb,
             TailX = b.tx,
-            tailY = b.ty,
+            TailY = b.ty,
             SegmentCount = b.sc,
             Squish = b.s
         };
