@@ -27,9 +27,6 @@ public class NoteManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private ChainManager chainManager;
 
-    [Header("Values")]
-    [SerializeField] private float floorOffset;
-
     public List<Note> Notes = new List<Note>();
     public List<Note> RenderedNotes = new List<Note>();
 
@@ -61,6 +58,7 @@ public class NoteManager : MonoBehaviour
         ClearRenderedNotes();
         notePool.SetPoolSize(40);
         bombPool.SetPoolSize(40);
+
         BeatmapDifficulty beatmap = difficulty.beatmapDifficulty;
 
         List<Note> newNotes = new List<Note>();
@@ -136,6 +134,7 @@ public class NoteManager : MonoBehaviour
                 Note n = notesOnBeat[x];
                 n.StartY = GetStartY(n, sameBeatObjects);
                 n.WindowSnap = GetAngleSnap(n, notesOnBeat);
+                n.IsHead = chainManager.CheckChainHead(n);
                 newNotes.Add(n);
             }
             for(int x = 0; x < bombsOnBeat.Count; x++)
@@ -346,17 +345,6 @@ public class NoteManager : MonoBehaviour
     }
 
 
-    private static float SpawnParabola(float targetHeight, float baseHeight, float halfJumpDistance, float t)
-    {
-        float dSquared = Mathf.Pow(halfJumpDistance, 2);
-        float tSquared = Mathf.Pow(t, 2);
-
-        float movementRange = targetHeight - baseHeight;
-
-        return -(movementRange / dSquared) * tSquared + targetHeight;
-    }
-
-
     private int GetStartY(BeatmapObject n, List<BeatmapObject>sameBeatObjects)
     {
         List<BeatmapObject> objectsOnBeat = new List<BeatmapObject>(sameBeatObjects);
@@ -371,23 +359,7 @@ public class NoteManager : MonoBehaviour
         if(objectsOnBeat.Count == 0) return 0;
 
         //Need to recursively calculate the startYs of each note underneath
-        int startY = objectsOnBeat.Max(x => GetStartY(x, objectsOnBeat)) + 1;
-        // Debug.Log($"{n.Beat}, {objectsOnBeat.Count}, {startY}");
-        return startY;
-    }
-
-
-    private float GetObjectY(float startY, float targetY, float objectTime)
-    {
-        float jumpTime = TimeManager.CurrentTime + BeatmapManager.ReactionTime;
-
-        if(objectTime > jumpTime)
-        {
-            return startY;
-        }
-        
-        float halfJumpDistance = BeatmapManager.JumpDistance / 2;
-        return SpawnParabola(targetY, startY, halfJumpDistance, objectManager.GetZPosition(objectTime));
+        return objectsOnBeat.Max(x => GetStartY(x, objectsOnBeat)) + 1;
     }
 
 
@@ -409,15 +381,14 @@ public class NoteManager : MonoBehaviour
 
         if(doMovementAnimation)
         {
-            float startY = n.StartY * objectManager.rowHeight + floorOffset;
-            worldPos.y = GetObjectY(startY, worldPos.y, noteTime);
+            float startY = n.StartY * objectManager.rowHeight + objectManager.objectFloorOffset;
+            worldPos.y = objectManager.GetObjectY(startY, worldPos.y, noteTime);
         }
 
         //Default to 0 in case of over-sized direction value
         int directionIndex = n.Direction >= 0 && n.Direction < 9 ? n.Direction : 0;
-        float targetAngle = DirectionAngles[directionIndex] + n.WindowSnap;
+        float angle = DirectionAngles[directionIndex] + n.WindowSnap;
 
-        float angle = targetAngle;
         float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
 
         if(doRotationAnimation)
@@ -433,7 +404,7 @@ public class NoteManager : MonoBehaviour
                 float rotationProgress = timeSinceJump / rotationAnimationLength;
                 float angleDist = Easings.Sine.Out(rotationProgress);
 
-                angle = targetAngle * angleDist;
+                angle *= angleDist;
             }
         }
 
@@ -444,6 +415,8 @@ public class NoteManager : MonoBehaviour
 
             n.noteHandler = n.Visual.GetComponent<NoteHandler>();
             n.source = n.noteHandler.audioSource;
+
+            n.noteHandler.SetMesh(n.IsHead ? chainHeadMesh : noteMesh);
 
             n.noteHandler.SetArrow(n.Direction != 8);
             n.noteHandler.SetArrowMaterial(n.Color == 0 ? arrowMaterialRed : arrowMaterialBlue);
@@ -487,8 +460,8 @@ public class NoteManager : MonoBehaviour
 
         if(doMovementAnimation)
         {
-            float startY = b.StartY * objectManager.rowHeight + floorOffset;
-            worldPos.y = GetObjectY(startY, worldPos.y, bombTime);
+            float startY = b.StartY * objectManager.rowHeight + objectManager.objectFloorOffset;
+            worldPos.y = objectManager.GetObjectY(startY, worldPos.y, bombTime);
         }
 
         if(b.Visual == null)

@@ -68,7 +68,8 @@ public class ObjectPool : MonoBehaviour
             //Create as many objects as needed to fill the pool
             for(int i = 0; i < Mathf.Abs(difference); i++)
             {
-                CreateNewObject();
+                GameObject newObject = CreateNewObject();
+                AvailableObjects.Add(newObject);
             }
         }
     }
@@ -83,7 +84,6 @@ public class ObjectPool : MonoBehaviour
         newObject.transform.SetParent(transform);
         newObject.SetActive(false);
 
-        AvailableObjects.Add(newObject);
         return newObject;
     }
 
@@ -105,7 +105,6 @@ public class ObjectPool : MonoBehaviour
         //This will indefinitely increase the size of the pool until it's cleared or otherwise modified
         GameObject newObject = CreateNewObject();
 
-        AvailableObjects.Remove(newObject);
         ActiveObjects.Add(newObject);
         PoolSize++;
 

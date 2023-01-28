@@ -22,11 +22,11 @@ public class SettingsSlider : MonoBehaviour
         }
         else SettingsManager.SetRule(rule, (int)value);
 
-        if(value == slider.maxValue && maxOverride != "")
+        if(value > slider.maxValue - 0.005 && maxOverride != "")
         {
             labelText.text = maxOverride;
         }
-        else if(value == slider.minValue && minOverride != "")
+        else if(value < slider.minValue + 0.005 && minOverride != "")
         {
             labelText.text = minOverride;
         }

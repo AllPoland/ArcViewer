@@ -8,12 +8,21 @@ public class NoteHandler : MonoBehaviour
     public bool Visible { get; private set; }
 
     [SerializeField] private MeshRenderer meshRenderer;
+    [SerializeField] private MeshFilter meshFilter;
     [SerializeField] private GameObject arrow;
     [SerializeField] private GameObject dot;
     [SerializeField] private MeshRenderer arrowMeshRenderer;
     [SerializeField] private MeshRenderer dotMeshRenderer;
 
     private bool isArrow;
+
+
+    public void SetMesh(Mesh newMesh)
+    {
+        if(newMesh == meshFilter.mesh) return;
+        
+        meshFilter.mesh = newMesh;
+    }
 
 
     public void SetMaterial(Material newMaterial)

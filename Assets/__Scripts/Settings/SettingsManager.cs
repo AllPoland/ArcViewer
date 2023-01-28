@@ -226,6 +226,7 @@ public class Settings
         {
             {"musicvolume", 1},
             {"hitsoundvolume", 1},
+            {"chainvolume", 0.8f},
             {"bloom", 1},
             {"backgroundbloom", 1},
             {"hitsoundbuffer", 0.2f}

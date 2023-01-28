@@ -16,6 +16,7 @@ public class ObjectManager : MonoBehaviour
     [SerializeField] public float moveTime = 0.25f;
     [SerializeField] public float rotationAnimationTime = 0.3f;
     [SerializeField] public float behindCameraZ = -5f;
+    [SerializeField] public float objectFloorOffset;
 
     public float BehindCameraTime
     {
@@ -62,6 +63,15 @@ public class ObjectManager : MonoBehaviour
     }
 
 
+    public static List<T> GetObjectsOnBeat<T>(List<T> search, float beat) where T: BeatmapObject
+    {
+        const float leeway = 0.001f;
+        float time = TimeManager.TimeFromBeat(beat);
+
+        return search.FindAll(x => Mathf.Abs(TimeManager.TimeFromBeat(x.Beat) - time) <= leeway);
+    }
+
+
     public float GetZPosition(float objectTime)
     {
         float reactionTime = BeatmapManager.ReactionTime;
@@ -95,6 +105,31 @@ public class ObjectManager : MonoBehaviour
         float NJS = BeatmapManager.CurrentMap.NoteJumpSpeed;
         return position / NJS;
     }
+    
+
+    public static float SpawnParabola(float targetHeight, float baseHeight, float halfJumpDistance, float t)
+    {
+        float dSquared = Mathf.Pow(halfJumpDistance, 2);
+        float tSquared = Mathf.Pow(t, 2);
+
+        float movementRange = targetHeight - baseHeight;
+
+        return -(movementRange / dSquared) * tSquared + targetHeight;
+    }
+
+
+    public float GetObjectY(float startY, float targetY, float objectTime)
+    {
+        float jumpTime = TimeManager.CurrentTime + BeatmapManager.ReactionTime;
+
+        if(objectTime > jumpTime)
+        {
+            return startY;
+        }
+        
+        float halfJumpDistance = BeatmapManager.JumpDistance / 2;
+        return SpawnParabola(targetY, startY, halfJumpDistance, GetZPosition(objectTime));
+    }
 
 
     private void OnEnable()
@@ -124,15 +159,6 @@ public class BeatmapObject
     public GameObject Visual;
     public float x;
     public float y;
-
-
-    public void ClearVisual()
-    {
-        if(Visual == null) return;
-
-        GameObject.Destroy(Visual);
-        Visual = null;
-    }
 }
 
 
@@ -149,7 +175,7 @@ public class Note : HitSoundEmitter
     public int AngleOffset;
     public float WindowSnap;
     public int StartY;
-    public bool isHead;
+    public bool IsHead;
     public NoteHandler noteHandler;
 
 
@@ -211,11 +237,37 @@ public class Wall : BeatmapObject
 
 public class Chain : BeatmapObject
 {
+    public int Color;
+    public int Direction;
+    public float TailBeat;
+    public float TailX;
+    public float tailY;
+    public int SegmentCount;
+    public float Squish;
 
+
+    public static Chain ChainFromBurstSlider(BurstSlider b)
+    {
+        return new Chain
+        {
+            Beat = b.b,
+            x = b.x,
+            y = b.y,
+            Color = b.c,
+            Direction = b.d,
+            TailBeat = b.tb,
+            TailX = b.tx,
+            tailY = b.ty,
+            SegmentCount = b.sc,
+            Squish = b.s
+        };
+    }
 }
 
 
 public class ChainLink : HitSoundEmitter
 {
-
+    public int Color;
+    public float Angle;
+    public ChainLinkHandler chainLinkHandler;
 }

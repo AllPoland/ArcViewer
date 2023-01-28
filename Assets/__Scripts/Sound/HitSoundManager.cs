@@ -32,6 +32,9 @@ public class HitSoundManager : MonoBehaviour
 
     public static void ScheduleHitsound(float noteTime, AudioSource noteSource)
     {
+        noteSource.enabled = true;
+        noteSource.Stop();
+        noteSource.clip = HitSound;
         noteSource.volume = 1f;
 
         if(RandomPitch)
@@ -42,20 +45,26 @@ public class HitSoundManager : MonoBehaviour
 
         if(Spatial)
         {
-            noteSource.spatialBlend = 1f;
+            //A bit less than full spacial blend because I think having the sounds way in one ear is weird
+            noteSource.spatialBlend = 0.8f;
         }
         else noteSource.spatialBlend = 0;
 
         if(Spatial)
         {
-            ScheduledSound existingSound = scheduledSounds.FirstOrDefault(x => Mathf.Abs(x.time - noteTime) <= 0.001);
-            if(existingSound != null)
+            //Findall my behated
+            List<ScheduledSound> existingSounds = scheduledSounds.FindAll(x => Mathf.Abs(x.time - noteTime) <= 0.001);
+            if(existingSounds.Count > 0)
             {
-                //This sound has already been scheduled, every source should have reduced volume
-                //This keeps the aggregate volume the same while making spatial audio sound correct
-                existingSound.source.volume *= 0.5f;
-                noteSource.volume *= 0.5f;
-                noteSource.pitch = existingSound.source.pitch;
+                //This sound has already been scheduled, every source should match pitch and have reduced volume
+                const float volumeFalloff = 0.6f;
+                foreach(ScheduledSound existingSound in existingSounds)
+                {
+                    existingSound.source.volume *= volumeFalloff;
+                }
+                noteSource.volume *= volumeFalloff;
+
+                noteSource.pitch = existingSounds[0].source.pitch;
             }
         }
         else if(scheduledSounds.Any(x => Mathf.Abs(x.time - noteTime) <= 0.001))
@@ -70,10 +79,6 @@ public class HitSoundManager : MonoBehaviour
             source = noteSource,
             time = noteTime
         };
-
-        sound.source.enabled = true;
-        sound.source.Stop();
-        sound.source.clip = HitSound;
 
         TimeManager.OnBeatChanged += sound.UpdateTime;
         scheduledSounds.Add(sound);
@@ -141,14 +146,8 @@ public class ScheduledSound
         }
 
         float currentTime = AudioManager.GetSongTime();
-        if(currentTime > time + (source.clip.length / source.pitch) + 0.05)
-        {
-            //The time to play the sound has already passed
-            Destroy();
-            return;
-        }
-
         float timeDifference = time - currentTime;
+
         if(HitSoundManager.DynamicPriority)
         {
             //Dynamically set sound priority so sounds don't get overridden by scheduled sounds
@@ -164,15 +163,13 @@ public class ScheduledSound
                 source.priority = Mathf.Clamp(1 + Mathf.RoundToInt((float)(time - currentTime) * priorityRampup), 1, 255);
             }
         }
+        else source.priority = 100;
 
-        if(currentTime > time - HitSoundManager.ScheduleBuffer && !source.isPlaying)
+        if(!scheduled && !source.isPlaying && currentTime > time - HitSoundManager.ScheduleBuffer)
         {
-            if(!scheduled)
-            {
-                //Audio hasn't been scheduled but it should be
-                source.PlayScheduled(AudioSettings.dspTime + timeDifference);
-                scheduled = true;
-            }
+            //Audio hasn't been scheduled but it should be
+            source.PlayScheduled(AudioSettings.dspTime + timeDifference);
+            scheduled = true;
         }
     }
 }

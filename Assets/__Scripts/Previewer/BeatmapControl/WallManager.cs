@@ -25,16 +25,15 @@ public class WallManager : MonoBehaviour
     {
         ClearRenderedWalls();
         wallPool.SetPoolSize(40);
-        BeatmapDifficulty beatmap = difficulty.beatmapDifficulty;
 
+        BeatmapDifficulty beatmap = difficulty.beatmapDifficulty;
         if(beatmap.obstacles.Length > 0)
         {
-            List<Wall> newWallList = new List<Wall>();
             foreach(Obstacle o in beatmap.obstacles)
             {
-                newWallList.Add( Wall.WallFromObstacle(o));
+                Walls.Add( Wall.WallFromObstacle(o));
             }
-            Walls = ObjectManager.SortObjectsByBeat<Wall>(newWallList);
+            Walls = ObjectManager.SortObjectsByBeat<Wall>(Walls);
         }
         else
         {
@@ -102,16 +101,18 @@ public class WallManager : MonoBehaviour
 
     public void ClearOutsideWalls()
     {
-        if(RenderedWalls.Count > 0)
+        if(RenderedWalls.Count <= 0)
         {
-            for(int i = RenderedWalls.Count - 1; i >= 0; i--)
+            return;
+        }
+
+        for(int i = RenderedWalls.Count - 1; i >= 0; i--)
+        {
+            Wall w = RenderedWalls[i];
+            if(!CheckWallInSpawnRange(w))
             {
-                Wall w = RenderedWalls[i];
-                if(!CheckWallInSpawnRange(w))
-                {
-                    ReleaseWall(w);
-                    RenderedWalls.Remove(w);
-                }
+                ReleaseWall(w);
+                RenderedWalls.Remove(w);
             }
         }
     }
@@ -119,14 +120,16 @@ public class WallManager : MonoBehaviour
 
     public void ClearRenderedWalls()
     {
-        if(RenderedWalls.Count > 0)
+        if(RenderedWalls.Count <= 0)
         {
-            foreach(Wall w in RenderedWalls)
-            {
-                ReleaseWall(w);
-            }
-            RenderedWalls.Clear();
+            return;
         }
+
+        foreach(Wall w in RenderedWalls)
+        {
+            ReleaseWall(w);
+        }
+        RenderedWalls.Clear();
     }
 
 
@@ -134,27 +137,29 @@ public class WallManager : MonoBehaviour
     {
         ClearOutsideWalls();
 
-        if(Walls.Count > 0)
+        if(Walls.Count <= 0)
         {
-            int firstWall = Walls.FindIndex(x => CheckWallInSpawnRange(x));
-            if(firstWall >= 0)
+            return;
+        }
+
+        int firstWall = Walls.FindIndex(x => CheckWallInSpawnRange(x));
+        if(firstWall >= 0)
+        {
+            float lastBeat = 0f;
+            for(int i = firstWall; i < Walls.Count; i++)
             {
-                float lastBeat = 0f;
-                for(int i = firstWall; i < Walls.Count; i++)
+                //Update each wall's position
+                Wall w = Walls[i];
+                if(CheckWallInSpawnRange(w))
                 {
-                    //Update each wall's position
-                    Wall w = Walls[i];
-                    if(CheckWallInSpawnRange(w))
-                    {
-                        UpdateWallVisual(w);
-                        lastBeat = w.Beat + w.Duration;
-                    }
-                    else if(w.Duration <= w.Beat - lastBeat)
-                    {
-                        //Continue looping if this wall overlaps in time with another
-                        //This avoids edge cases where two walls that are close, with one ending before the other causes later walls to not update
-                        break;
-                    }
+                    UpdateWallVisual(w);
+                    lastBeat = w.Beat + w.Duration;
+                }
+                else if(w.Duration <= w.Beat - lastBeat)
+                {
+                    //Continue looping if this wall overlaps in time with another
+                    //This avoids edge cases where two walls that are close, with one ending before the other causes later walls to not update
+                    break;
                 }
             }
         }

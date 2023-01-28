@@ -3,16 +3,28 @@ using UnityEngine;
 public class ObjectSettingsUpdater : MonoBehaviour
 {
     [SerializeField] private NoteManager noteManager;
+    [SerializeField] private ChainManager chainManager;
 
 
     public void UpdateObjectSettings()
     {
-        noteManager.useSimpleNoteMaterial = SettingsManager.GetBool("simplenotes");
-        noteManager.doMovementAnimation = SettingsManager.GetBool("moveanimations");
-        noteManager.doRotationAnimation = SettingsManager.GetBool("rotateanimations");
+        bool simpleNotes = SettingsManager.GetBool("simplenotes");
+        bool moveAnimations = SettingsManager.GetBool("moveanimations");
+        bool rotateAnimations = SettingsManager.GetBool("rotateanimations");
+
+        noteManager.useSimpleNoteMaterial = simpleNotes;
+        noteManager.doMovementAnimation = moveAnimations;
+        noteManager.doRotationAnimation = rotateAnimations;
+
+        chainManager.useSimpleNoteMaterial = simpleNotes;
+        chainManager.doMovementAnimation = moveAnimations;
+        chainManager.doRotationAnimation = rotateAnimations;
 
         noteManager.ClearRenderedNotes();
         noteManager.UpdateNoteVisuals(TimeManager.CurrentBeat);
+
+        chainManager.ClearRenderedLinks();
+        chainManager.UpdateChainVisuals(TimeManager.CurrentBeat);
     }
 
 
