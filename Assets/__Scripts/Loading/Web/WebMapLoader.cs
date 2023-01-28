@@ -17,7 +17,7 @@ public class WebMapLoader : MonoBehaviour
 
         if(!url.EndsWith(".zip"))
         {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "The url doesn't link to a zip!");
+            ErrorHandler.Instance?.QueuePopup(ErrorType.Error, "The url doesn't link to a zip!");
             Debug.Log("Attempted to load a map from a non-zip url.");
             return stream;
         }
