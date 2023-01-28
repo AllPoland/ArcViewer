@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -33,6 +34,13 @@ public class BeatmapManager : MonoBehaviour
         set
         {
             _info = value;
+
+            if(_info._beatsPerMinute == 0)
+            {
+                //Shrimply to avoid crashes
+                _info._beatsPerMinute = 120;
+            }
+
             OnBeatmapInfoChanged?.Invoke(value);
         }
     }
@@ -47,6 +55,14 @@ public class BeatmapManager : MonoBehaviour
         set
         {
             _currentMap = value;
+
+            if(_currentMap.NoteJumpSpeed == 0)
+            {
+                //Game defaults to 16 when njs is 0
+                _currentMap.NoteJumpSpeed = 16;
+            }
+
+            Debug.Log($"Current diff is {value.characteristic}, {value.difficultyRank}");
             OnBeatmapDifficultyChanged?.Invoke(value);
         }
     }
@@ -109,10 +125,16 @@ public class BeatmapManager : MonoBehaviour
     }
 
 
+    public static bool HasCharacteristic(DifficultyCharacteristic characteristic)
+    {
+        return Difficulties.Any(x => x.characteristic == characteristic);
+    }
+
+
     public static void SetDefaultDifficulty()
     {
         //Load the default difficulty
-        //Else if chains my behated (I don't know of a better way to do this)
+        //Else if chains my behated (I can't think of a better way to do this)
         if(Difficulties.Count == 0)
         {
             Debug.LogWarning("Map has no difficulties!");
