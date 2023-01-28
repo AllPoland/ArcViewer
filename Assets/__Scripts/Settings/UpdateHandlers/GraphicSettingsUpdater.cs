@@ -34,6 +34,13 @@ public class GraphicSettingsUpdater : MonoBehaviour
         }
         else Application.targetFrameRate = -1;
 
+        if(Application.isEditor)
+        {
+            //Stop here so that we don't permanently alter assets in the project
+            //Anything that doesn't modify an asset should go above this so it takes effect in editor
+            return;
+        }
+
         int antiAliasing = SettingsManager.GetInt("antialiasing");
         mainCamera.allowMSAA = antiAliasing > 0;
 

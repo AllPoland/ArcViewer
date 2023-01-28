@@ -26,6 +26,19 @@ public class HitSoundManager : MonoBehaviour
         }
     }
 
+    public float ChainVolume
+    {
+        set
+        {
+            if(value == 0)
+            {
+                value = 0.0001f;
+            }
+            //Logarithmic scaling makes volume slider feel more natural to the user
+            hitSoundMixer.SetFloat("ChainVolume", Mathf.Log10(value) * 20);
+        }
+    }
+
     [SerializeField] private AudioMixer hitSoundMixer;
     [SerializeField] private AudioClip defaultHitsound;
 
