@@ -179,6 +179,8 @@ public class ObjectManager : MonoBehaviour
 
     public void UpdateManagers(Difficulty difficulty)
     {
+        HitSoundManager.ClearScheduledSounds();
+
         //This exists to control the order in which each object type is created as opposed to whenever the event delegate wants it to
         //This shouldn't matter, but it does and I don't know how to fix it :smil:
         chainManager.LoadChainsFromDifficulty(difficulty);
@@ -346,7 +348,7 @@ public class Arc : BeatmapObject
     public int TailDirection;
     public float TailModifier;
     public int RotationDirection;
-    
+
     public ArcHandler arcHandler;
     public bool HasHeadAttachment;
     public bool HasTailAttachment;

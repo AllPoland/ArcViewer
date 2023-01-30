@@ -204,6 +204,7 @@ public class Difficulty
     public BeatmapDifficulty beatmapDifficulty;
     public float NoteJumpSpeed;
     public float SpawnOffset;
+    public string Label;
 
 
     public static Difficulty Empty = new Difficulty
@@ -212,6 +213,17 @@ public class Difficulty
         difficultyRank = DifficultyRank.ExpertPlus,
         beatmapDifficulty = BeatmapDifficulty.Empty,
         NoteJumpSpeed = 0,
-        SpawnOffset = 0
+        SpawnOffset = 0,
+        Label = "Expert+"
     };
+
+
+    public static string DiffLabelFromRank(DifficultyRank rank)
+    {
+        if(rank == DifficultyRank.ExpertPlus)
+        {
+            return "Expert+";
+        }
+        else return rank.ToString();
+    }
 }

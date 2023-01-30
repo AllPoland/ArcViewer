@@ -16,6 +16,12 @@ public class CharacteristicButton : MonoBehaviour, IPointerEnterHandler
     }
 
 
+    public void SelectCharcteristic()
+    {
+        controller.ChangeCharacteristic();
+    }
+
+
     public void SetHeight(float newHeight)
     {
         rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, newHeight);

@@ -22,7 +22,8 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
     private RectTransform rectTransform;
     private Difficulty currentDifficulty = Difficulty.Empty;
     private DifficultyCharacteristic currentCharacteristic = DifficultyCharacteristic.Standard;
-    private List<Difficulty> availableDifficulties = new List<Difficulty>();
+    public List<Difficulty> availableDifficulties = new List<Difficulty>();
+    private DifficultyRank selectedDifficulty;
     private int selectedCharacteristicIndex;
 
 
@@ -92,8 +93,10 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
     }
 
 
-    public void UpdateDifficultyButtons(DifficultyRank selectedDifficulty)
+    public void UpdateDifficultyButtons(DifficultyRank newDifficulty)
     {
+        selectedDifficulty = newDifficulty;
+
         bool sameCharacteristic = currentCharacteristic == currentDifficulty.characteristic;
 
         float currentY = GetDifficultyStartIndex() * unselectedButtonHeight;
@@ -125,6 +128,8 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
             float position = isCurrent ? 0 : currentY;
             button.rectTransform.anchoredPosition = new Vector2(button.rectTransform.anchoredPosition.x, position);
 
+            button.UpdateDiffLabel(availableDifficulties);
+
             if(!isCurrent)
             {
                 currentY += height;
@@ -150,6 +155,9 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
 
     public void CollapseButtons()
     {
+        currentCharacteristic = currentDifficulty.characteristic;
+        availableDifficulties = BeatmapManager.GetDifficultiesByCharacteristic(currentCharacteristic);
+
         foreach(CharacteristicButton button in characteristicButtons)
         {
             if(button.characteristic != currentDifficulty.characteristic)
@@ -178,6 +186,8 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
 
             button.gameObject.SetActive(true);
 
+            button.UpdateDiffLabel(availableDifficulties);
+
             button.rectTransform.sizeDelta = new Vector2(difficultyWidth, unselectedButtonHeight);
             button.rectTransform.anchoredPosition = Vector2.zero;
         }
@@ -204,6 +214,18 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
         {
             Debug.LogWarning("Trying to load a difficulty that doesn't exist!");
         }
+    }
+
+
+    public void ChangeCharacteristic()
+    {
+        if(currentCharacteristic == currentDifficulty.characteristic)
+        {
+            //We're already on this characteristic
+            return;
+        }
+
+        ChangeDifficulty(selectedDifficulty);
     }
 
 

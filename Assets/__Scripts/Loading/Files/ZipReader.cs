@@ -100,6 +100,7 @@ public class ZipReader
             NoteJumpSpeed = beatmap._noteJumpMovementSpeed,
             SpawnOffset = beatmap._noteJumpStartBeatOffset
         };
+        output.Label = beatmap._customData?._difficultyLabel ?? Difficulty.DiffLabelFromRank(output.difficultyRank);
 
         string filename = beatmap._beatmapFilename;
         Debug.Log($"Loading json from {filename}");
