@@ -147,7 +147,7 @@ public class ArcManager : MonoBehaviour
         a.HeadPos = headPos + ((Vector3)headFaceVector * halfCubeSize);
 
         int tailDirection = Mathf.Clamp(a.TailDirection, 0, 8);
-        Vector2 tailFaceVector = ChainManager.noteVectorFromDirection[tailDirection];
+        Vector2 tailFaceVector = tailDirection == 8 ? Vector2.zero : ChainManager.noteVectorFromDirection[tailDirection];
         a.TailPos = tailPos + ((Vector3)tailFaceVector * -halfCubeSize); //Tail should move in the opposite directon the arrow points
 
         a.CurrentHeadPos = a.HeadPos;
@@ -173,12 +173,23 @@ public class ArcManager : MonoBehaviour
         float endTime = TimeManager.TimeFromBeat(a.TailBeat);
         float duration = endTime - startTime;
 
+        Vector3 headModOffset = a.HeadPos - a.HeadModPos;
+        Vector3 tailModOffset = a.TailPos - a.TailModPos;
+
+        Vector3 headModPos = a.CurrentHeadPos - headModOffset;
+        Vector3 tailModPos = a.CurrentTailPos - tailModOffset;
+
         //Estimate the number of points we'll need to make this arc based on density option
-        int pointCount = (int)(ArcSegmentDensity * duration) + 1;
+        //A minimum value is given because very short arcs would otherwise potentially get no segments at all (very bad)
+        int pointCount = Mathf.Max(10, (int)(ArcSegmentDensity * duration) + 1);
         Vector3[] points = new Vector3[pointCount];
         for(int i = 0; i < pointCount; i++)
         {
             float t = (float)i / (pointCount - 1);
+
+            //Easing here dedicates more segments to the edges of the arc, where more curvature is present
+            t = Easings.Quad.InOut(t);
+
             points[i] = PointOnCubicBezier(a.CurrentHeadPos, a.HeadModPos, a.TailModPos, a.CurrentTailPos, t);
         }
 
@@ -199,15 +210,13 @@ public class ArcManager : MonoBehaviour
             //Control points to be updated if this arc is attached to a note
             if(a.HasHeadAttachment)
             {
-                float spawnMovement = (a.y - a.StartY) * objectManager.rowHeight;
-                float startY = a.HeadPos.y - spawnMovement + objectManager.objectFloorOffset;
+                float startY = (a.StartY * objectManager.rowHeight) + objectManager.objectFloorOffset;
 
                 a.CurrentHeadPos.y = objectManager.GetObjectY(startY, a.HeadPos.y, TimeManager.TimeFromBeat(a.Beat));
             }
             if(a.HasTailAttachment)
             {
-                float spawnMovement = (a.TailY - a.TailStartY) * objectManager.rowHeight;
-                float startY = a.TailPos.y - spawnMovement + objectManager.objectFloorOffset;
+                float startY = (a.TailStartY * objectManager.rowHeight) + objectManager.objectFloorOffset;
 
                 a.CurrentTailPos.y = objectManager.GetObjectY(startY, a.TailPos.y, TimeManager.TimeFromBeat(a.TailBeat));
             }

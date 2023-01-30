@@ -356,8 +356,8 @@ public class Arc : BeatmapObject
     public float TailStartY;
     public Vector3 HeadPos;
     public Vector3 HeadModPos;
-    public Vector3 TailModPos;
     public Vector3 TailPos;
+    public Vector3 TailModPos;
     public Vector3 CurrentHeadPos;
     public Vector3 CurrentTailPos;
 

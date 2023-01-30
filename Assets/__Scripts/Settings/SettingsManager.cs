@@ -218,7 +218,7 @@ public class Settings
         Ints = new Dictionary<string, int>
         {
             {"hitsound", 0},
-            {"arcdensity", 30},
+            {"arcdensity", 50},
             {"camerafov", 80},
             {"cameratilt", 0},
             {"framecap", 60},
@@ -227,8 +227,8 @@ public class Settings
 
         Floats = new Dictionary<string, float>
         {
-            {"musicvolume", 1},
-            {"hitsoundvolume", 1},
+            {"musicvolume", 0.5f},
+            {"hitsoundvolume", 0.5f},
             {"chainvolume", 0.8f},
             {"cameraposition", -2},
             {"bloom", 1},

@@ -58,8 +58,20 @@ public class BeatmapManager : MonoBehaviour
 
             if(_currentMap.NoteJumpSpeed == 0)
             {
-                //Game defaults to 16 on expert+ when njs is 0
-                _currentMap.NoteJumpSpeed = 12 + (int)_currentMap.difficultyRank;
+                switch(_currentMap.difficultyRank)
+                {
+                    case DifficultyRank.Easy:
+                    case DifficultyRank.Normal:
+                    case DifficultyRank.Hard:
+                        _currentMap.NoteJumpSpeed = 10;
+                        break;
+                    case DifficultyRank.Expert:
+                        _currentMap.NoteJumpSpeed = 12;
+                        break;
+                    case DifficultyRank.ExpertPlus:
+                        _currentMap.NoteJumpSpeed = 16;
+                        break;
+                }
             }
 
             Debug.Log($"Current diff is {value.characteristic}, {value.difficultyRank}");

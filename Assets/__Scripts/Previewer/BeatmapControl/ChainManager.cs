@@ -141,11 +141,11 @@ public class ChainManager : MonoBehaviour
             //Check if link isn't taking the shortest path and reverse rotation direction
             if(linkAngle > 180)
             {
-                linkAngle = -180 + (linkAngle - 180);
+                linkAngle -= 360;
             }
             else if(linkAngle < -180)
             {
-                linkAngle = 180 + (linkAngle + 180);
+                linkAngle += 360;
             }
 
             ChainLink newLink = new ChainLink
