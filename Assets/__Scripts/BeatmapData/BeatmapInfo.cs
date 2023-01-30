@@ -12,16 +12,14 @@ using UnityEngine;
     //Shuffle is depreciated and will be ignored.
     public float _shuffle;
     public float _shufflePeriod;
-    //Preview times aren't needed
+    //Preview times aren't needed either
     public float _previewStartTime;
     public float _previewDuration;
     public string _songFilename;
     public string _coverImageFilename;
-    //Environments won't be used for a while
     public string _environmentName;
     public string _allDirectionsEnvironmentName;
     public float _songTimeOffset;
-    //Custom data is unlikely to be pertinent. If it ends up being needed I might go through the pain of implementing it.
     public DifficultyBeatmapSet[] _difficultyBeatmapSets;
 
 
@@ -42,10 +40,31 @@ using UnityEngine;
                 return DifficultyCharacteristic.Unknown;
         }
     }
+
+
+    public static readonly BeatmapInfo Empty = new BeatmapInfo
+    {
+        _songName = "",
+        _songSubName = "",
+        _songAuthorName = "",
+        _levelAuthorName = "",
+        _beatsPerMinute = 120,
+        _shuffle = 0,
+        _shufflePeriod = 0,
+        _previewStartTime = 0,
+        _previewDuration = 0,
+        _songFilename = "",
+        _coverImageFilename = "",
+        _environmentName = "",
+        _allDirectionsEnvironmentName = "",
+        _songTimeOffset = 0,
+        _difficultyBeatmapSets = new DifficultyBeatmapSet[0]
+    };
 }
 
 
-[Serializable] public class DifficultyBeatmap
+[Serializable]
+public class DifficultyBeatmap
 {
     public string _difficulty;
     public int _difficultyRank;
@@ -53,18 +72,27 @@ using UnityEngine;
     public float _noteJumpMovementSpeed;
     public float _noteJumpStartBeatOffset;
 
-    //Custom data will be added at a later date.
+    public CustomDifficultyData _customData;
 }
 
 
-[Serializable] public class DifficultyBeatmapSet
+[Serializable]
+public class CustomDifficultyData
+{
+    public string _difficultyLabel;
+}
+
+
+[Serializable]
+public class DifficultyBeatmapSet
 {
     public string _beatmapCharacteristicName;
     public DifficultyBeatmap[] _difficultyBeatmaps;
 }
 
 
-[Serializable] public enum DifficultyRank
+[Serializable]
+public enum DifficultyRank
 {
     Easy,
     Normal,
@@ -74,7 +102,8 @@ using UnityEngine;
 }
 
 
-[Serializable] public enum DifficultyCharacteristic
+[Serializable]
+public enum DifficultyCharacteristic
 {
     Standard,
     OneSaber,

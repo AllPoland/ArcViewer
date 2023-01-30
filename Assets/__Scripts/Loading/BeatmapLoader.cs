@@ -94,6 +94,7 @@ public class BeatmapLoader : MonoBehaviour
     private IEnumerator LoadMapZipArchiveCoroutine(ZipArchive archive)
     {
         Debug.Log("Loading map zip.");
+        LoadingMessage = "Loading map zip";
         var loadZipTask = Task.Run(() => ZipReader.GetMapFromZipArchiveAsync(archive));
 
         yield return new WaitUntil(() => loadZipTask.IsCompleted);
@@ -129,13 +130,9 @@ public class BeatmapLoader : MonoBehaviour
     }
 
 
-    private IEnumerator LoadMapZipCoroutine(string directory)
+    private void LoadMapZip(string directory)
     {
         Loading = true;
-
-        Debug.Log("Loading map zip.");
-        LoadingMessage = "Reading map zip";
-        yield return null; //Stupid hack to make sure the loading message actually appears
 
         ZipArchive archive = null;
         try
@@ -324,7 +321,7 @@ public class BeatmapLoader : MonoBehaviour
                 return;
             }
 
-            StartCoroutine(LoadMapZipCoroutine(mapDirectory));
+            LoadMapZip(mapDirectory);
             return;
         }
 

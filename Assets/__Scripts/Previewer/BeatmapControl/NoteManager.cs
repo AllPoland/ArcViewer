@@ -119,7 +119,7 @@ public class NoteManager : MonoBehaviour
             for(int x = 0; x < notesOnBeat.Count; x++)
             {
                 Note n = notesOnBeat[x];
-                n.StartY = GetStartY(n, sameBeatObjects);
+                n.StartY = ObjectManager.GetStartY(n, sameBeatObjects);
                 n.WindowSnap = GetAngleSnap(n, notesOnBeat);
                 n.IsHead = chainManager.CheckChainHead(n);
                 newNotes.Add(n);
@@ -127,7 +127,7 @@ public class NoteManager : MonoBehaviour
             for(int x = 0; x < bombsOnBeat.Count; x++)
             {
                 Bomb b = bombsOnBeat[x];
-                b.StartY = GetStartY(b, sameBeatObjects);
+                b.StartY = ObjectManager.GetStartY(b, sameBeatObjects);
                 newBombs.Add(b);
             }
         }
@@ -329,24 +329,6 @@ public class NoteManager : MonoBehaviour
         }
 
         return angleOffset;
-    }
-
-
-    private int GetStartY(BeatmapObject n, List<BeatmapObject>sameBeatObjects)
-    {
-        List<BeatmapObject> objectsOnBeat = new List<BeatmapObject>(sameBeatObjects);
-
-        if(n.y <= 0) return 0;
-
-        if(objectsOnBeat.Count == 0) return 0;
-
-        //Remove all notes that aren't directly below this one
-        objectsOnBeat.RemoveAll(x => x.x != n.x || x.y >= n.y);
-
-        if(objectsOnBeat.Count == 0) return 0;
-
-        //Need to recursively calculate the startYs of each note underneath
-        return objectsOnBeat.Max(x => GetStartY(x, objectsOnBeat)) + 1;
     }
 
 
@@ -616,7 +598,6 @@ public class NoteManager : MonoBehaviour
     {
         objectManager = ObjectManager.Instance;
 
-        BeatmapManager.OnBeatmapDifficultyChanged += LoadNotesFromDifficulty;
         TimeManager.OnBeatChanged += UpdateNoteVisuals;
         TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }

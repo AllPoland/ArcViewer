@@ -18,6 +18,12 @@ public class ObjectManager : MonoBehaviour
     [SerializeField] public float behindCameraZ = -5f;
     [SerializeField] public float objectFloorOffset;
 
+    [Header("Managers")]
+    [SerializeField] private NoteManager noteManager;
+    [SerializeField] private WallManager wallManager;
+    [SerializeField] private ChainManager chainManager;
+    [SerializeField] private ArcManager arcManager;
+
     public bool useSimpleNoteMaterial = false;
     public bool doRotationAnimation = true;
     public bool doMovementAnimation = true;
@@ -65,6 +71,18 @@ public class ObjectManager : MonoBehaviour
             time > currentTime &&
             time <= currentTime + BeatmapManager.ReactionTime + Instance.moveTime
         );
+    }
+
+
+    public bool DurationObjectInSpawnRange(float startBeat, float endBeat)
+    {
+        float startTime = TimeManager.TimeFromBeat(startBeat);
+        float endTime = TimeManager.TimeFromBeat(endBeat) - BehindCameraTime;
+
+        bool timeInRange = TimeManager.CurrentTime > startTime && TimeManager.CurrentTime <= endTime;
+        bool jumpTime = CheckInSpawnRange(startBeat);
+
+        return jumpTime || timeInRange;
     }
 
 
@@ -131,13 +149,46 @@ public class ObjectManager : MonoBehaviour
         {
             return startY;
         }
+        else if(objectTime < TimeManager.CurrentTime)
+        {
+            return targetY;
+        }
         
         float halfJumpDistance = BeatmapManager.JumpDistance / 2;
         return SpawnParabola(targetY, startY, halfJumpDistance, GetZPosition(objectTime));
     }
 
 
-    private void OnEnable()
+    public static int GetStartY(BeatmapObject n, List<BeatmapObject>sameBeatObjects)
+    {
+        List<BeatmapObject> objectsOnBeat = new List<BeatmapObject>(sameBeatObjects);
+
+        if(n.y <= 0) return 0;
+
+        if(objectsOnBeat.Count == 0) return 0;
+
+        //Remove all notes that aren't directly below this one
+        objectsOnBeat.RemoveAll(x => x.x != n.x || x.y >= n.y);
+
+        if(objectsOnBeat.Count == 0) return 0;
+
+        //Need to recursively calculate the startYs of each note underneath
+        return objectsOnBeat.Max(x => GetStartY(x, objectsOnBeat)) + 1;
+    }
+
+
+    public void UpdateManagers(Difficulty difficulty)
+    {
+        //This exists to control the order in which each object type is created as opposed to whenever the event delegate wants it to
+        //This shouldn't matter, but it does and I don't know how to fix it :smil:
+        chainManager.LoadChainsFromDifficulty(difficulty);
+        noteManager.LoadNotesFromDifficulty(difficulty);
+        arcManager.LoadArcsFromDifficulty(difficulty);
+        wallManager.LoadWallsFromDifficulty(difficulty);
+    }
+
+
+    private void Awake()
     {
         if(Instance && Instance != this)
         {
@@ -145,6 +196,12 @@ public class ObjectManager : MonoBehaviour
             this.enabled = false;
         }
         else Instance = this;
+    }
+
+
+    private void Start()
+    {
+        BeatmapManager.OnBeatmapDifficultyChanged += UpdateManagers;
     }
 
 
@@ -275,4 +332,50 @@ public class ChainLink : HitSoundEmitter
     public int Color;
     public float Angle;
     public ChainLinkHandler chainLinkHandler;
+}
+
+
+public class Arc : BeatmapObject
+{
+    public int Color;
+    public int Direction;
+    public float Modifier;
+    public float TailBeat;
+    public float TailX;
+    public float TailY;
+    public int TailDirection;
+    public float TailModifier;
+    public int RotationDirection;
+    
+    public ArcHandler arcHandler;
+    public bool HasHeadAttachment;
+    public bool HasTailAttachment;
+    public float StartY;
+    public float TailStartY;
+    public Vector3 HeadPos;
+    public Vector3 HeadModPos;
+    public Vector3 TailModPos;
+    public Vector3 TailPos;
+    public Vector3 CurrentHeadPos;
+    public Vector3 CurrentTailPos;
+
+
+    public static Arc ArcFromArcSlider(ArcSlider a)
+    {
+        return new Arc
+        {
+            Beat = a.b,
+            x = a.x,
+            y = a.y,
+            Color = a.c,
+            Direction = a.d,
+            Modifier = a.mu,
+            TailBeat = a.tb,
+            TailX = a.tx,
+            TailY = a.ty,
+            TailDirection = a.tc,
+            TailModifier = a.tmu,
+            RotationDirection = a.m
+        };
+    }
 }

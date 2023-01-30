@@ -28,7 +28,7 @@ public class ChainManager : MonoBehaviour
 
     public const float Root2Over2 = 0.70711f;
 
-    private static Dictionary<int, Vector2> chainVectorFromDirection = new Dictionary<int, Vector2>
+    public static readonly Dictionary<int, Vector2> noteVectorFromDirection = new Dictionary<int, Vector2>
     {
         {0, Vector2.up},
         {1, Vector2.down},
@@ -120,7 +120,7 @@ public class ChainManager : MonoBehaviour
         //This is just a failsafe in the case of mapping extensions chains
         //Otherwise an error is thrown because of an out of range dictionary value
         int direction = Mathf.Min(c.Direction, 8);
-        Vector2 midOffset = (chainVectorFromDirection[direction] * directDistance) / 2;
+        Vector2 midOffset = (noteVectorFromDirection[direction] * directDistance) / 2;
         Vector2 midPoint = startPos + midOffset;
 
         float duration = c.TailBeat - c.Beat;
@@ -136,7 +136,17 @@ public class ChainManager : MonoBehaviour
             //Calculate position based on the chain's bezier curve
             float t = timeProgress * c.Squish;
             Vector2 linkPos = QuadBezierPoint(startPos, midPoint, endPos, t);
-            float linkAngle = AngleOnQuadBezier(startPos, midPoint, endPos, t);
+            float linkAngle = AngleOnQuadBezier(startPos, midPoint, endPos, t) % 360;
+
+            //Check if link isn't taking the shortest path and reverse rotation direction
+            if(linkAngle > 180)
+            {
+                linkAngle = -180 + (linkAngle - 180);
+            }
+            else if(linkAngle < -180)
+            {
+                linkAngle = 180 + (linkAngle + 180);
+            }
 
             ChainLink newLink = new ChainLink
             {
@@ -326,7 +336,6 @@ public class ChainManager : MonoBehaviour
     {
         objectManager = ObjectManager.Instance;
 
-        BeatmapManager.OnBeatmapDifficultyChanged += LoadChainsFromDifficulty;
         TimeManager.OnBeatChanged += UpdateChainVisuals;
         TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }

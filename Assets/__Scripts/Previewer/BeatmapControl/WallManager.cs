@@ -33,7 +33,7 @@ public class WallManager : MonoBehaviour
         {
             foreach(Obstacle o in beatmap.obstacles)
             {
-                Walls.Add( Wall.WallFromObstacle(o));
+                Walls.Add(Wall.WallFromObstacle(o));
             }
             Walls = ObjectManager.SortObjectsByBeat<Wall>(Walls);
         }
@@ -106,7 +106,7 @@ public class WallManager : MonoBehaviour
         for(int i = RenderedWalls.Count - 1; i >= 0; i--)
         {
             Wall w = RenderedWalls[i];
-            if(!CheckWallInSpawnRange(w))
+            if(!objectManager.DurationObjectInSpawnRange(w.Beat, w.Beat + w.Duration))
             {
                 ReleaseWall(w);
                 RenderedWalls.Remove(w);
@@ -139,15 +139,15 @@ public class WallManager : MonoBehaviour
             return;
         }
 
-        int firstWall = Walls.FindIndex(x => CheckWallInSpawnRange(x));
+        int firstWall = Walls.FindIndex(x => objectManager.DurationObjectInSpawnRange(x.Beat, x.Beat + x.Duration));
         if(firstWall >= 0)
         {
-            float lastBeat = 0f;
+            float lastBeat = 0;
             for(int i = firstWall; i < Walls.Count; i++)
             {
                 //Update each wall's position
                 Wall w = Walls[i];
-                if(CheckWallInSpawnRange(w))
+                if(objectManager.DurationObjectInSpawnRange(w.Beat, w.Beat + w.Duration))
                 {
                     UpdateWallVisual(w);
                     lastBeat = w.Beat + w.Duration;
@@ -163,24 +163,10 @@ public class WallManager : MonoBehaviour
     }
 
 
-    public bool CheckWallInSpawnRange(Wall w)
-    {
-        float wallStartTime = TimeManager.TimeFromBeat(w.Beat);
-        float wallEndBeat = w.Beat + w.Duration;
-        float wallEndTime = TimeManager.TimeFromBeat(wallEndBeat) - objectManager.BehindCameraTime;
-
-        bool timeInRange = TimeManager.CurrentTime > wallStartTime && TimeManager.CurrentTime <= wallEndTime;
-        bool jumpTime = objectManager.CheckInSpawnRange(w.Beat);
-
-        return jumpTime || timeInRange;
-    }
-
-
     private void Start()
     {
         objectManager = ObjectManager.Instance;
 
-        BeatmapManager.OnBeatmapDifficultyChanged += LoadWallsFromDifficulty;
         TimeManager.OnBeatChanged += UpdateWallVisuals;
     }
 }

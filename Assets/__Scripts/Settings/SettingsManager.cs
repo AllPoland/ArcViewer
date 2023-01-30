@@ -218,6 +218,9 @@ public class Settings
         Ints = new Dictionary<string, int>
         {
             {"hitsound", 0},
+            {"arcdensity", 30},
+            {"camerafov", 80},
+            {"cameratilt", 0},
             {"framecap", 60},
             {"antialiasing", 0}
         },
@@ -227,6 +230,7 @@ public class Settings
             {"musicvolume", 1},
             {"hitsoundvolume", 1},
             {"chainvolume", 0.8f},
+            {"cameraposition", -2},
             {"bloom", 1},
             {"backgroundbloom", 1},
             {"hitsoundbuffer", 0.2f}

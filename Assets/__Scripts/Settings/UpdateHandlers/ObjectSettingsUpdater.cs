@@ -4,6 +4,7 @@ public class ObjectSettingsUpdater : MonoBehaviour
 {
     [SerializeField] private NoteManager noteManager;
     [SerializeField] private ChainManager chainManager;
+    [SerializeField] private ArcManager arcManager;
 
     private ObjectManager objectManager;
 
@@ -23,10 +24,16 @@ public class ObjectSettingsUpdater : MonoBehaviour
 
         chainManager.ClearRenderedLinks();
         chainManager.UpdateChainVisuals(TimeManager.CurrentBeat);
+
+        ArcManager.ArcSegmentDensity = SettingsManager.GetInt("arcdensity");
+
+        arcManager.UpdateMaterials();
+        arcManager.ClearRenderedArcs();
+        arcManager.UpdateArcVisuals(TimeManager.CurrentBeat);
     }
 
 
-    private void OnEnable()
+    private void Awake()
     {
         objectManager = ObjectManager.Instance;
     }

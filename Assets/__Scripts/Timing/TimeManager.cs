@@ -27,11 +27,6 @@ public class TimeManager : MonoBehaviour
             float set = value;
             if(set >= SongLength)
             {
-                if(SongLength > 0)
-                {
-                    Debug.Log("Reached the end of the song.");
-                }
-                
                 SetPlaying(false);
                 set = SongLength;
             }
@@ -88,12 +83,14 @@ public class TimeManager : MonoBehaviour
 
     public static float RawTimeFromBeat(float beat, float bpm)
     {
+        if(beat == 0) return 0; //Fix for random fucking NaN value for some unknown reason
         return beat / bpm * 60;
     }
 
 
     public static float RawBeatFromTime(float time, float bpm)
     {
+        if(time == 0) return 0; //Fix for random fucking NaN value for some unknown reason
         return time / 60 * bpm;
     }
 

@@ -24,7 +24,7 @@ public class BeatmapManager : MonoBehaviour
     public static List<Difficulty> UnknownDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Unknown);
 
 
-    private static BeatmapInfo _info;
+    private static BeatmapInfo _info = BeatmapInfo.Empty;
     public static BeatmapInfo Info
     {
         get
@@ -38,14 +38,14 @@ public class BeatmapManager : MonoBehaviour
             if(_info._beatsPerMinute == 0)
             {
                 //Shrimply to avoid crashes
-                _info._beatsPerMinute = 120;
+                _info._beatsPerMinute = 0.0001f;
             }
 
             OnBeatmapInfoChanged?.Invoke(value);
         }
     }
 
-    private static Difficulty _currentMap;
+    private static Difficulty _currentMap = Difficulty.Empty;
     public static Difficulty CurrentMap
     {
         get
@@ -58,8 +58,8 @@ public class BeatmapManager : MonoBehaviour
 
             if(_currentMap.NoteJumpSpeed == 0)
             {
-                //Game defaults to 16 when njs is 0
-                _currentMap.NoteJumpSpeed = 16;
+                //Game defaults to 16 on expert+ when njs is 0
+                _currentMap.NoteJumpSpeed = 12 + (int)_currentMap.difficultyRank;
             }
 
             Debug.Log($"Current diff is {value.characteristic}, {value.difficultyRank}");

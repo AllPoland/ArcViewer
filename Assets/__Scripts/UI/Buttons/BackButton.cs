@@ -25,7 +25,13 @@ public class BackButton : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetButtonDown("Cancel") && UIStateManager.CurrentState == UIState.Previewer && !DialogueHandler.DialogueActive && !justClosed)
+        if(DialogueHandler.DialogueActive)
+        {
+            justClosed = true;
+            return;
+        }
+
+        if(Input.GetButtonDown("Cancel") && UIStateManager.CurrentState == UIState.Previewer && !justClosed)
         {
             ShowDialogue();
         }
