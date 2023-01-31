@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Net;
 using System.IO;
 using System.Threading.Tasks;
@@ -8,7 +6,10 @@ using UnityEngine;
 
 public class WebMapLoader : MonoBehaviour
 {
+    public static WebClient Client;
     public static int Progress;
+    public static Int64 DownloadSize;
+
     private static byte[] result;
 
     public static async Task<Stream> LoadMapURL(string url)
@@ -33,12 +34,17 @@ public class WebMapLoader : MonoBehaviour
         Progress = 0;
         result = null;
 
-        using(WebClient client = new WebClient())
-        {
-            client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(UpdateDownloadProgress);
-            client.DownloadDataCompleted += new DownloadDataCompletedEventHandler(CompleteDownload);
-            client.DownloadDataAsync(new Uri(url));
-        }
+        Client = new WebClient();
+
+        //Get the file size prior to starting the download
+        Stream sr = Client.OpenRead(url);
+        DownloadSize = Convert.ToInt64(Client.ResponseHeaders["Content-Length"]);
+        sr.Dispose();
+
+        Client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(UpdateDownloadProgress);
+        Client.DownloadDataCompleted += new DownloadDataCompletedEventHandler(CompleteDownload);
+        
+        Client.DownloadDataAsync(new Uri(url));
 
         while(result == null)
         {
@@ -58,6 +64,18 @@ public class WebMapLoader : MonoBehaviour
     }
 
 
+    public static void CancelDownload()
+    {
+        if(Client != null && Client.IsBusy)
+        {
+            Client.CancelAsync();
+
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Notification, "The download was cancelled!");
+            Debug.Log("Download task cancelled!");
+        }
+    }
+
+
     public static void UpdateDownloadProgress(object sender, DownloadProgressChangedEventArgs args)
     {
         Progress = args.ProgressPercentage;
@@ -66,22 +84,19 @@ public class WebMapLoader : MonoBehaviour
 
     public static void CompleteDownload(object sender, DownloadDataCompletedEventArgs args)
     {
+        result = new Byte[0];
+
         if(args.Error != null)
         {
             ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, $"Download failed! {args.Error.Message}");
             Debug.Log($"Download task failed with error:{args.Error.Message}, {args.Error.StackTrace}");
-            result = new byte[0];
-            return;
         }
-
-        if(args.Cancelled)
+        else if(!args.Cancelled)
         {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Notification, "The download was cancelled!");
-            Debug.LogWarning("Download task cancelled!");
-            result = new byte[0];
-            return;
+            result = args.Result;
         }
 
-        result = args.Result;
+        Client.Dispose();
+        Client = null;
     }
 }

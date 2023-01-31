@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using UnityEngine;
 
 public class BeatmapLoader : MonoBehaviour
@@ -171,7 +172,6 @@ public class BeatmapLoader : MonoBehaviour
 
         if(zipStream == null)
         {
-            Debug.LogWarning("Download failed!");
             UpdateMapInfo(null, new List<Difficulty>(), null);
             yield break;
         }
@@ -209,6 +209,8 @@ public class BeatmapLoader : MonoBehaviour
 
         if(mapURL == null || mapURL == "")
         {
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to get map URL from BeatSaver!");
+            Debug.Log("Empty or nonexistant URL!");
             UpdateMapInfo(null, new List<Difficulty>(), null);
             yield break;
         }
@@ -325,7 +327,9 @@ public class BeatmapLoader : MonoBehaviour
             return;
         }
 
-        if(!mapDirectory.Contains(Path.DirectorySeparatorChar) && !mapDirectory.Contains(Path.AltDirectorySeparatorChar))
+        const string IDchars = "0123456789abcdef";
+        //If the directory doesn't contain any characters that aren't hexadecimal, that means it's probably an ID
+        if(!mapDirectory.Any(x => !IDchars.Contains(x)))
         {
             StartCoroutine(LoadMapIDCoroutine(mapDirectory));
             return;
