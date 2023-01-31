@@ -1,8 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
-[Serializable] public class BeatmapDifficultyV2
+[Serializable]
+public class BeatmapDifficultyV2
 {
     public string _version;
     public NoteV2[] _notes;
@@ -159,17 +159,21 @@ using System.Collections.Generic;
 }
 
 
-[Serializable] public struct NoteV2
+[Serializable]
+public struct NoteV2
 {
     public float _time;
     public int _lineIndex;
     public int _lineLayer;
     public int _type;
     public int _cutDirection;
+
+    public CustomObjectDataV2 _customData;
 }
 
 
-[Serializable] public struct SliderV2
+[Serializable]
+public struct SliderV2
 {
     public int _colorType;
     public float _headTime;
@@ -186,20 +190,57 @@ using System.Collections.Generic;
 }
 
 
-[Serializable] public struct ObstacleV2
+[Serializable]
+public struct ObstacleV2
 {
     public float _time;
     public int _lineIndex;
     public int _type;
     public float _duration;
     public int _width;
+
+    public CustomObstacleDataV2 _customData;
 }
 
 
-[Serializable] public struct EventV2
+[Serializable]
+public struct EventV2
 {
     public float _time;
     public int _type;
     public int _value;
     public float _floatValue;
+}
+
+
+[Serializable]
+public class CustomObjectDataV2
+{
+    public float[] _position;
+
+
+    public static CustomObjectData ConvertToV3(CustomObstacleDataV2 cd)
+    {
+        return new CustomObjectData
+        {
+            coordinates = cd._position
+        };
+    }
+}
+
+
+[Serializable]
+public class CustomObstacleDataV2 : CustomObjectDataV2
+{
+    public float[] _scale;
+
+
+    public static new CustomObstacleData ConvertToV3(CustomObstacleDataV2 cd)
+    {
+        return new CustomObstacleData
+        {
+            coordinates = cd._position,
+            size = cd._scale
+        };
+    }
 }

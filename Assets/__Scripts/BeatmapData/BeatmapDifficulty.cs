@@ -1,6 +1,7 @@
 using System;
 
-[Serializable] public struct BeatmapDifficulty
+[Serializable]
+public struct BeatmapDifficulty
 {
     public string version;
     public BpmEvent[] bpmEvents;
@@ -33,14 +34,16 @@ using System;
 }
 
 
-[Serializable] public struct BpmEvent
+[Serializable]
+public struct BpmEvent
 {
     public float b;
     public float m;
 }
 
 
-[Serializable] public struct RotationEvent
+[Serializable]
+public struct RotationEvent
 {
     public float b;
     public int e;
@@ -48,7 +51,8 @@ using System;
 }
 
 
-[Serializable] public struct ColorNote
+[Serializable]
+public struct ColorNote
 {
     public float b;
     public int x;
@@ -56,18 +60,24 @@ using System;
     public int c;
     public int d;
     public int a;
+
+    public CustomObjectData customData;
 }
 
 
-[Serializable] public struct BombNote
+[Serializable]
+public struct BombNote
 {
     public float b;
     public int x;
     public int y;
+
+    public CustomObjectData customData;
 }
 
 
-[Serializable] public struct Obstacle
+[Serializable]
+public struct Obstacle
 {
     public float b;
     public int x;
@@ -75,10 +85,13 @@ using System;
     public float d;
     public int w;
     public int h;
+
+    public CustomObstacleData customData;
 }
 
 
-[Serializable] public struct ArcSlider
+[Serializable]
+public struct ArcSlider
 {
     public float b;
     public int c;
@@ -92,10 +105,13 @@ using System;
     public int tc;
     public float tmu;
     public int m;
+
+    public CustomSliderData customData;
 }
 
 
-[Serializable] public struct BurstSlider
+[Serializable]
+public struct BurstSlider
 {
     public float b;
     public int x;
@@ -110,7 +126,8 @@ using System;
 }
 
 
-[Serializable] public struct BasicBeatmapEvent
+[Serializable]
+public struct BasicBeatmapEvent
 {
     public float b;
     public int et;
@@ -119,10 +136,30 @@ using System;
 }
 
 
-[Serializable] public struct ColorBoostBeatmapEvent
+[Serializable]
+public struct ColorBoostBeatmapEvent
 {
     public float b;
     public bool o;
 }
 
-//Not touching event boxes with an 11 foot pole yet.
+
+[Serializable]
+public class CustomObjectData
+{
+    public float[] coordinates;
+}
+
+
+[Serializable]
+public class CustomObstacleData : CustomObjectData
+{
+    public float[] size;
+}
+
+
+[Serializable]
+public class CustomSliderData : CustomObjectData
+{
+    public float[] tailCoordinates;
+}
