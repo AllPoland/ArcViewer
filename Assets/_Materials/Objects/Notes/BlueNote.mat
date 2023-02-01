@@ -10,6 +10,7 @@ Material:
   m_Name: BlueNote
   m_Shader: {fileID: -6465566751694194690, guid: 80258e4e9b4a5264ba5ec405f90e8db1, type: 3}
   m_ValidKeywords:
+  - _ENVIRONMENTREFLECTIONS_OFF
   - _RECEIVE_SHADOWS_OFF
   - _SPECULARHIGHLIGHTS_OFF
   m_InvalidKeywords: []
@@ -19,7 +20,8 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap:
     RenderType: Opaque
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - SHADOWCASTER
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -33,6 +35,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _ClearCoatMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cubemap:
+        m_Texture: {fileID: 8900000, guid: 75129cf70d202274693290da8bd363ea, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -91,22 +97,24 @@ Material:
     - _Blend: 0
     - _BlendOp: 0
     - _BumpScale: 1
-    - _CastShadows: 1
+    - _CastShadows: 0
     - _ClearCoat: 0
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 1
+    - _CubemapBlur: 1.5
+    - _CubemapStrength: 0.7
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _ENVIRONMENTREFLECTIONS_OFF: 0
+    - _ENVIRONMENTREFLECTIONS_OFF: 1
     - _EnvironmentReflections: 1
-    - _Fresnel_Strength: 0.5
+    - _Fresnel_Strength: 0.2
     - _GlossMapScale: 1
     - _Glossiness: 0.65
     - _GlossyReflections: 1
-    - _Metallic: 0.5
+    - _Metallic: 0.2
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
@@ -129,7 +137,7 @@ Material:
     - _BaseColor: {r: 0.15686275, g: 0.5568628, b: 0.8235294, a: 1}
     - _Base_Color: {r: 0.15686275, g: 0.5568628, b: 0.8235294, a: 1}
     - _Color: {r: 0.15686275, g: 0.5568628, b: 0.8235294, a: 1}
-    - _Emission: {r: 0, g: 0.011091871, b: 0.022183742, a: 1}
+    - _Emission: {r: 0, g: 0.027729679, b: 0.055459358, a: 1}
     - _EmissionColor: {r: 0.051745407, g: 0.1836962, b: 0.27166337, a: 1}
     - _Normal_Rotation: {r: 0.19, g: -0.01, b: -3.18, a: 0}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
