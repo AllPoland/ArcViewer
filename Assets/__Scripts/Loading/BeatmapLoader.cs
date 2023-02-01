@@ -158,6 +158,14 @@ public class BeatmapLoader : MonoBehaviour
     {
         Loading = true;
 
+        string cachedMapPath = FileCache.GetCachedFile(url);
+        if(cachedMapPath != null && cachedMapPath != "")
+        {
+            Debug.Log("Found map in cache.");
+            LoadMapZip(cachedMapPath);
+            yield break;
+        }
+
         Debug.Log("Downloading map data.");
         LoadingMessage = "Downloading map";
         Task<Stream> downloadTask = Task.Run(() => WebMapLoader.LoadMapURL(url));
@@ -176,6 +184,7 @@ public class BeatmapLoader : MonoBehaviour
             yield break;
         }
 
+        FileCache.SaveFileToCache(zipStream, url);
         ZipArchive archive = null;
         
         try

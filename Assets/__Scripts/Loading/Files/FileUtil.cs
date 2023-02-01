@@ -17,10 +17,6 @@ public class FileUtil
         {
             type = AudioType.WAV;
         }
-        else if(directory.EndsWith(".mp3"))
-        {
-            type = AudioType.MPEG;
-        }
 
         return type;
     }
