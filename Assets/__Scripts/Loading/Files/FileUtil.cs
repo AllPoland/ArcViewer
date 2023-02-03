@@ -77,7 +77,15 @@ public class FileUtil
             return null;
         }
 
-        return Task.FromResult<Stream>(File.OpenRead(path));
+        try
+        {
+            return Task.FromResult<Stream>(File.OpenRead(path));
+        }
+        catch(Exception e)
+        {
+            Debug.LogWarning($"Unable to load file at {path} with error: {e.Message}, {e.StackTrace}");
+            return null;
+        }
     }
 }
 

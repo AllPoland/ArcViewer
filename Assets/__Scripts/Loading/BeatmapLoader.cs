@@ -235,7 +235,6 @@ public class BeatmapLoader : MonoBehaviour
 
         if(mapURL == null || mapURL == "")
         {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to get map URL from BeatSaver!");
             Debug.Log("Empty or nonexistant URL!");
             UpdateMapInfo(null, new List<Difficulty>(), null, null);
             yield break;

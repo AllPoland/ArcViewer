@@ -222,7 +222,8 @@ public class Settings
             {"camerafov", 80},
             {"cameratilt", 0},
             {"framecap", 60},
-            {"antialiasing", 0}
+            {"antialiasing", 0},
+            {"cachesize", 3}
         },
 
         Floats = new Dictionary<string, float>

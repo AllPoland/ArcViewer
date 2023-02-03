@@ -12,7 +12,23 @@ public class FileCache
     public static readonly string CachePath = Path.Combine(Application.persistentDataPath, CacheFolder);
     public static readonly string CacheDataFile = Path.Combine(CachePath, CacheJson);
 
-    public static int MaxCacheSize = 3;
+    private static int _maxCacheSize = 3;
+    public static int MaxCacheSize
+    {
+        get => _maxCacheSize;
+        set
+        {
+            _maxCacheSize = value;
+            if(CachedFiles != null)
+            {
+                while(CachedFiles.Count > value)
+                {
+                    RemoveLastFile();
+                }
+                SaveCacheData();
+            }
+        }
+    }
 
     private static List<CachedFile> CachedFiles;
 
@@ -47,7 +63,12 @@ public class FileCache
             return;
         }
 
-        while(CachedFiles.Count >= MaxCacheSize)
+        if(MaxCacheSize == 0)
+        {
+            return;
+        }
+
+        if(CachedFiles.Count >= MaxCacheSize)
         {
             RemoveLastFile();
         }
@@ -71,7 +92,12 @@ public class FileCache
 
     private static void RemoveLastFile()
     {
-        if(CachedFiles == null || CachedFiles.Count <= 0)
+        if(CachedFiles == null)
+        {
+            LoadCachedFiles();
+        }
+
+        if(CachedFiles.Count <= 0)
         {
             return;
         }
@@ -102,6 +128,11 @@ public class FileCache
 
         string json = File.ReadAllText(CacheDataFile);
         CachedFiles = JsonConvert.DeserializeObject<List<CachedFile>>(json);
+
+        while(CachedFiles.Count > MaxCacheSize)
+        {
+            RemoveLastFile();
+        }
     }
 
 
