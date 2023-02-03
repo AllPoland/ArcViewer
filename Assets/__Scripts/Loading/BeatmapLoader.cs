@@ -29,8 +29,6 @@ public class BeatmapLoader : MonoBehaviour
     public delegate void BoolDelegate(bool value);
     public static event BoolDelegate OnLoadingChanged;
 
-    private AudioManager audioManager;
-
 
     public static Dictionary<string, DifficultyRank> DiffValueFromString = new Dictionary<string, DifficultyRank>
     {
@@ -56,7 +54,7 @@ public class BeatmapLoader : MonoBehaviour
         if(info == null)
         {
             ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Unable to load Info.dat!");
-            UpdateMapInfo(null, new List<Difficulty>(), null);
+            UpdateMapInfo(null, new List<Difficulty>(), null, null);
             yield break;
         }
 
@@ -85,10 +83,28 @@ public class BeatmapLoader : MonoBehaviour
             Debug.LogWarning("Song file not found!");
         }
 
+        LoadingMessage = "Loading cover image";
+
+        Task<Stream> coverImageTask = FileUtil.ReadFileData(Path.Combine(directory, info._coverImageFilename));
+        yield return new WaitUntil(() => coverImageTask.IsCompleted);
+        Stream coverImageStream = coverImageTask.Result;
+
+        Byte[] coverImageData = new Byte[0];
+        if(coverImageStream == null)
+        {
+            ErrorHandler.Instance?.DisplayPopup(ErrorType.Warning, "Cover image not found!");
+            Debug.Log($"Didn't find image file {info._coverImageFilename}!");
+        }
+        else
+        {
+            coverImageData = FileUtil.StreamToBytes(coverImageStream);
+        }
+        coverImageStream.Dispose();
+
         Debug.Log("Loading complete.");
         LoadingMessage = "Done";
 
-        UpdateMapInfo(info, difficulties, song);
+        UpdateMapInfo(info, difficulties, song, coverImageData);
     }
 
 
@@ -103,6 +119,7 @@ public class BeatmapLoader : MonoBehaviour
         BeatmapInfo info = result.Item1;
         List<Difficulty> difficulties = result.Item2;
         TempFile audioFile = result.Item3;
+        Byte[] coverImageData = result.Item4;
 
         archive.Dispose();
 
@@ -127,7 +144,7 @@ public class BeatmapLoader : MonoBehaviour
         Debug.Log("Loading complete.");
         LoadingMessage = "Done";
 
-        UpdateMapInfo(info, difficulties, song);
+        UpdateMapInfo(info, difficulties, song, coverImageData);
     }
 
 
@@ -180,7 +197,7 @@ public class BeatmapLoader : MonoBehaviour
 
         if(zipStream == null)
         {
-            UpdateMapInfo(null, new List<Difficulty>(), null);
+            UpdateMapInfo(null, new List<Difficulty>(), null, null);
             yield break;
         }
 
@@ -220,7 +237,7 @@ public class BeatmapLoader : MonoBehaviour
         {
             ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to get map URL from BeatSaver!");
             Debug.Log("Empty or nonexistant URL!");
-            UpdateMapInfo(null, new List<Difficulty>(), null);
+            UpdateMapInfo(null, new List<Difficulty>(), null, null);
             yield break;
         }
 
@@ -228,7 +245,7 @@ public class BeatmapLoader : MonoBehaviour
     }
 
 
-    private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song)
+    private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song, Byte[] coverData)
     {
         StopAllCoroutines();
         Progress = 0;
@@ -244,7 +261,13 @@ public class BeatmapLoader : MonoBehaviour
         UIStateManager.CurrentState = UIState.Previewer;
         
         BeatmapManager.Info = info;
-        audioManager.MusicClip = song;
+        AudioManager.Instance.MusicClip = song;
+
+        if(coverData != null && coverData.Length > 0)
+        {
+            CoverImageHandler.Instance.SetImageFromData(coverData);
+        }
+        else CoverImageHandler.Instance.SetDefaultImage();
 
         BeatmapManager.Difficulties = difficulties;
         BeatmapManager.SetDefaultDifficulty();
@@ -352,11 +375,5 @@ public class BeatmapLoader : MonoBehaviour
         }
 
         StartCoroutine(LoadMapDirectoryCoroutine(mapDirectory));
-    }
-
-
-    private void Start()
-    {
-        audioManager = AudioManager.Instance;
     }
 }

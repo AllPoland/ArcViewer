@@ -58,6 +58,27 @@ public class FileUtil
 
         return song;
     }
+
+
+    public static byte[] StreamToBytes(Stream sourceStream)
+    {
+        using(var memoryStream = new MemoryStream())
+        {
+            sourceStream.CopyTo(memoryStream);
+            return memoryStream.ToArray();
+        }
+    }
+
+
+    public static Task<Stream> ReadFileData(string path)
+    {
+        if(!File.Exists(path))
+        {
+            return null;
+        }
+
+        return Task.FromResult<Stream>(File.OpenRead(path));
+    }
 }
 
 

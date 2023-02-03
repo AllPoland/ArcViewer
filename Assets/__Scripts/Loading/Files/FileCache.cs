@@ -60,7 +60,7 @@ public class FileCache
             FilePath = newFilePath
         };
 
-        File.WriteAllBytes(newFilePath, ZipReader.StreamToBytes(fileStream));
+        File.WriteAllBytes(newFilePath, FileUtil.StreamToBytes(fileStream));
         CachedFiles.Add(newFile);
 
         SaveCacheData();

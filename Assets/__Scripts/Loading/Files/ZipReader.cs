@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -7,11 +6,12 @@ using UnityEngine;
 
 public class ZipReader
 {
-    public static async Task<(BeatmapInfo, List<Difficulty>, TempFile)> GetMapFromZipArchiveAsync(ZipArchive archive)
+    public static async Task<(BeatmapInfo, List<Difficulty>, TempFile, byte[])> GetMapFromZipArchiveAsync(ZipArchive archive)
     {
         BeatmapInfo info = null;
         List<Difficulty> difficulties = new List<Difficulty>();
         TempFile songFile = null;
+        byte[] coverImageData = new byte[0];
 
         Stream infoData = null;
         BeatmapLoader.LoadingMessage = "Loading Info.dat";
@@ -28,10 +28,10 @@ public class ZipReader
         {
             ErrorHandler.Instance?.QueuePopup(ErrorType.Error, "Unable to load Info.dat!");
             Debug.LogWarning("Zip file has no Info.dat!");
-            return (info, difficulties, songFile);
+            return (info, difficulties, songFile, coverImageData);
         }
 
-        string infoJson = System.Text.Encoding.UTF8.GetString(StreamToBytes(infoData));
+        string infoJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
         info = JsonUtility.FromJson<BeatmapInfo>(infoJson);
 
         if(info._difficultyBeatmapSets.Length < 1)
@@ -73,7 +73,6 @@ public class ZipReader
         }
 
         string songFilename = info._songFilename;
-
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
             if(entry.FullName.Equals(songFilename))
@@ -81,14 +80,31 @@ public class ZipReader
                 songFile = await GetAudioFileFromEntryAsync(entry);
             }
         }
-
         if(songFile == null)
         {
             ErrorHandler.Instance?.QueuePopup(ErrorType.Error, "Song file not found!");
             Debug.LogWarning($"Didn't find audio file {songFilename}!");
         }
 
-        return (info, difficulties, songFile);
+        BeatmapLoader.LoadingMessage = "Loading cover image";
+        string coverFilename = info._coverImageFilename;
+        foreach(ZipArchiveEntry entry in archive.Entries)
+        {
+            if(entry.FullName.Equals(coverFilename))
+            {
+                using(Stream coverImageStream = entry.Open())
+                {
+                    coverImageData = FileUtil.StreamToBytes(coverImageStream);
+                }
+            }
+        }
+        if(coverImageData == null || coverImageData.Length <= 0)
+        {
+            ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, "Cover image not found!");
+            Debug.Log($"Didn't find image file {coverFilename}!");
+        }
+
+        return (info, difficulties, songFile, coverImageData);
     }
 
 
@@ -123,7 +139,7 @@ public class ZipReader
         }
 
         Debug.Log($"Parsing {filename}");
-        string diffJson = System.Text.Encoding.ASCII.GetString(StreamToBytes(diffData));
+        string diffJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(diffData));
         output.beatmapDifficulty = JsonReader.ParseBeatmapFromJson(diffJson);
 
         return output;
@@ -136,15 +152,5 @@ public class ZipReader
         await Task.Run(() => entry.ExtractToFile(tempFile.Path, true));
 
         return tempFile;
-    }
-
-
-    public static byte[] StreamToBytes(Stream sourceStream)
-    {
-        using(var memoryStream = new MemoryStream())
-        {
-            sourceStream.CopyTo(memoryStream);
-            return memoryStream.ToArray();
-        }
     }
 }
