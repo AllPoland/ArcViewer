@@ -23,6 +23,7 @@ Material:
   m_Name: Bomb
   m_Shader: {fileID: -6465566751694194690, guid: a4af4af1e37e0e1458b48051e4ec8856, type: 3}
   m_ValidKeywords:
+  - _ENVIRONMENTREFLECTIONS_OFF
   - _SPECULARHIGHLIGHTS_OFF
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -111,7 +112,7 @@ Material:
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _ENVIRONMENTREFLECTIONS_OFF: 0
+    - _ENVIRONMENTREFLECTIONS_OFF: 1
     - _EnvironmentReflections: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.7

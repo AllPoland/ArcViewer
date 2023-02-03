@@ -341,6 +341,14 @@ public class BeatmapLoader : MonoBehaviour
 
         if(mapDirectory.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
+            if(mapDirectory.Contains("beatsaver.com/maps"))
+            {
+                //Direct beatsaver link, should load based on ID instead
+                string ID = mapDirectory.Split("/").Last();
+                StartCoroutine(LoadMapIDCoroutine(ID));
+                return;
+            }
+
             StartCoroutine(LoadMapURLCoroutine(mapDirectory));
             return;
         }
