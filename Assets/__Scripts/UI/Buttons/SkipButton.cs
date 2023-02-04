@@ -1,11 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SkipButton : MonoBehaviour
 {
     [SerializeField] private float skipAmount = 5f;
-
+    [SerializeField] private float shortSkipBeats = 1f;
     
 
     public void Skip(float amount)
@@ -31,6 +29,19 @@ public class SkipButton : MonoBehaviour
         else if(Input.GetButtonDown("SkipBackward"))
         {
             Skip(skipAmount * -1f);
+        }
+        
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        if(!TimeManager.Playing && Mathf.Abs(scroll) > 0)
+        {
+            if(scroll > 0)
+            {
+                Skip(TimeManager.TimeFromBeat(shortSkipBeats));
+            }
+            else
+            {
+                Skip(TimeManager.TimeFromBeat(-shortSkipBeats));
+            }
         }
     }
 }

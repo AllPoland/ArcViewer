@@ -3,20 +3,22 @@ using UnityEngine.UI;
 
 public class OpenSettingsButton : MonoBehaviour
 {
-    private Button button;
+    [SerializeField] private Button button;
+
+    private SettingsMenu settingsMenu;
 
 
     private void Update()
     {
         if(Input.GetButtonDown("Toggle Options") && button.interactable && !DialogueHandler.DialogueActive)
         {
-            button.onClick?.Invoke();
+            settingsMenu.ToggleOpen();
         }
     }
 
 
     private void OnEnable()
     {
-        button = GetComponent<Button>();
+        settingsMenu = GetComponent<SettingsMenu>();
     }
 }

@@ -34,6 +34,7 @@ public class SettingsMenu : MonoBehaviour
     private RectTransform containerTransform;
     private RectTransform tabButtonTransform;
     private bool moving;
+    private IdleHide openButtonHider;
 
 
     private IEnumerator MovePanelCoroutine(Vector2 startPosition, Vector2 newPosition)
@@ -89,6 +90,7 @@ public class SettingsMenu : MonoBehaviour
         }
 
         Open = !Open;
+        openButtonHider.forceEnable = Open;
 
         if(Open)
         {
@@ -131,6 +133,8 @@ public class SettingsMenu : MonoBehaviour
 
         containerTransform = settingsContainer.GetComponent<RectTransform>();
         tabButtonTransform = tabButtons.GetComponent<RectTransform>();
+
+        openButtonHider = GetComponent<IdleHide>();
 
         closedPosition = containerTransform.anchoredPosition;
         tabButtonPositions = tabButtonTransform.anchoredPosition;
