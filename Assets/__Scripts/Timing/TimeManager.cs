@@ -115,22 +115,17 @@ public class TimeManager : MonoBehaviour
     public static bool Playing { get; private set; }
     public static void SetPlaying(bool newPlaying)
     {
-        if(newPlaying == Playing)
-        {
-            return;
-        }
         if(ForcePause)
         {
             newPlaying = false;
         }
-
-        if(CurrentTime >= SongLength)
+        if(newPlaying && Progress >= 1)
         {
             CurrentTime = 0;
         }
 
         OnPlayingChanged?.Invoke(newPlaying);
-        Playing = newPlaying;
+        Playing = newPlaying && !ForcePause;
     }
 
     public static void TogglePlaying()

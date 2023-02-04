@@ -19,7 +19,7 @@ public class PlayButton : MonoBehaviour
 
     public void UpdatePlaying(bool newPlaying)
     {
-        image.sprite = !newPlaying && !TimeManager.ForcePause ? PlaySprite : PauseSprite;
+        image.sprite = newPlaying || TimeManager.ForcePause ? PauseSprite : PlaySprite;
     }
 
 
