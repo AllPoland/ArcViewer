@@ -17,10 +17,16 @@ public class ZipReader
         BeatmapLoader.LoadingMessage = "Loading Info.dat";
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
-            if(entry.FullName.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
+            if(entry.Name.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
             {
                 infoData = entry.Open();
-                break;
+
+                if(!entry.FullName.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    //This means Info.dat was in a subfolder
+                    ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, "Map files aren't in the root!");
+                    Debug.LogWarning("Map files aren't in the root!");
+                }
             }
         }
 
@@ -90,7 +96,7 @@ public class ZipReader
         string songFilename = info._songFilename;
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
-            if(entry.FullName.Equals(songFilename))
+            if(entry.Name.Equals(songFilename))
             {
                 songFile = await GetAudioFileFromEntryAsync(entry);
             }
@@ -105,7 +111,7 @@ public class ZipReader
         string coverFilename = info._coverImageFilename;
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
-            if(entry.FullName.Equals(coverFilename))
+            if(entry.Name.Equals(coverFilename))
             {
                 using(Stream coverImageStream = entry.Open())
                 {
@@ -139,7 +145,7 @@ public class ZipReader
         Stream diffData = null;
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
-            if(entry.FullName.Equals(filename))
+            if(entry.Name.Equals(filename))
             {
                 diffData = entry.Open();
                 break;
