@@ -83,6 +83,7 @@ public class BeatmapLoader : MonoBehaviour
             Debug.LogWarning("Song file not found!");
         }
 
+        Debug.Log("Loading cover image.");
         LoadingMessage = "Loading cover image";
 
         Task<Stream> coverImageTask = FileUtil.ReadFileData(Path.Combine(directory, info._coverImageFilename));

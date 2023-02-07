@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -19,7 +20,16 @@ public class ZipReader
         {
             if(entry.Name.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
             {
-                infoData = entry.Open();
+                try
+                {
+                    infoData = entry.Open();
+                }
+                catch(Exception e)
+                {
+                    Debug.LogWarning($"Failed to read Info.dat with error: {e.Message}, {e.StackTrace}");
+                    infoData = null;
+                    break;
+                }
 
                 if(!entry.FullName.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
                 {
@@ -27,6 +37,7 @@ public class ZipReader
                     ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, "Map files aren't in the root!");
                     Debug.LogWarning("Map files aren't in the root!");
                 }
+                break;
             }
         }
 
@@ -42,7 +53,7 @@ public class ZipReader
         {
             info = JsonUtility.FromJson<BeatmapInfo>(infoJson);
         }
-        catch(System.Exception e)
+        catch(Exception e)
         {
             ErrorHandler.Instance?.QueuePopup(ErrorType.Error, "Unable to parse Info.dat!");
             Debug.LogWarning($"Failed to parse Info.dat with error: {e.Message}, {e.StackTrace}");
@@ -93,7 +104,7 @@ public class ZipReader
             }
         }
 
-        string songFilename = info._songFilename;
+        string songFilename = info?._songFilename ?? "";
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
             if(entry.Name.Equals(songFilename))
@@ -108,7 +119,8 @@ public class ZipReader
         }
 
         BeatmapLoader.LoadingMessage = "Loading cover image";
-        string coverFilename = info._coverImageFilename;
+        Debug.Log("Loading cover image.");
+        string coverFilename = info?._coverImageFilename ?? "";
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
             if(entry.Name.Equals(coverFilename))
