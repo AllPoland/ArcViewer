@@ -34,42 +34,46 @@ public class ZipReader
         string infoJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
         info = JsonUtility.FromJson<BeatmapInfo>(infoJson);
 
-        if(info._difficultyBeatmapSets.Length < 1)
+        Debug.Log($"Loaded info for {info._songAuthorName} - {info._songName}, mapped by {info._levelAuthorName}");
+
+        if(info._difficultyBeatmapSets == null || info._difficultyBeatmapSets.Length < 1)
         {
             ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, "The map lists no difficulty sets!");
             Debug.LogWarning("Info lists no difficulty sets!");
         }
-
-        foreach(DifficultyBeatmapSet set in info._difficultyBeatmapSets)
+        else
         {
-            string characteristicName = set._beatmapCharacteristicName;
-            
-            if(set._difficultyBeatmaps.Length == 0)
+            foreach(DifficultyBeatmapSet set in info._difficultyBeatmapSets)
             {
-                ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, $"Characteristic {characteristicName} lists no difficulties!");
-                Debug.LogWarning($"{characteristicName} lists no difficulties!");
-                continue;
-            }
-
-            DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
-
-            List<Difficulty> newDifficulties = new List<Difficulty>();
-            foreach(DifficultyBeatmap beatmap in set._difficultyBeatmaps)
-            {
-                BeatmapLoader.LoadingMessage = $"Loading {beatmap._beatmapFilename}";
-                Debug.Log($"Loading {beatmap._beatmapFilename}");
-                Difficulty diff = await Task.Run(() => GetDiff(beatmap, archive));
-                if(diff == null)
+                string characteristicName = set._beatmapCharacteristicName;
+                
+                if(set._difficultyBeatmaps.Length == 0)
                 {
+                    ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, $"Characteristic {characteristicName} lists no difficulties!");
+                    Debug.LogWarning($"{characteristicName} lists no difficulties!");
                     continue;
                 }
-                
-                diff.characteristic = setCharacteristic;
-                newDifficulties.Add(diff);
-            }
 
-            difficulties.AddRange(newDifficulties);
-            Debug.Log($"Finished loading {newDifficulties.Count} difficulties in characteristic {characteristicName}.");
+                DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
+
+                List<Difficulty> newDifficulties = new List<Difficulty>();
+                foreach(DifficultyBeatmap beatmap in set._difficultyBeatmaps)
+                {
+                    BeatmapLoader.LoadingMessage = $"Loading {beatmap._beatmapFilename}";
+                    Debug.Log($"Loading {beatmap._beatmapFilename}");
+                    Difficulty diff = await Task.Run(() => GetDiff(beatmap, archive));
+                    if(diff == null)
+                    {
+                        continue;
+                    }
+                    
+                    diff.characteristic = setCharacteristic;
+                    newDifficulties.Add(diff);
+                }
+
+                difficulties.AddRange(newDifficulties);
+                Debug.Log($"Finished loading {newDifficulties.Count} difficulties in characteristic {characteristicName}.");
+            }
         }
 
         string songFilename = info._songFilename;

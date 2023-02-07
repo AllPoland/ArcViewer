@@ -57,6 +57,21 @@ public class TimeManager : MonoBehaviour
     }
 
 
+    public static float CurrentBPM
+    {
+        get
+        {
+            if(BpmChanges.Count == 0)
+            {
+                return BPM;
+            }
+
+            BpmChange lastChange = BpmChanges.FindLast(x => x.Beat < CurrentBeat);
+            return lastChange.BPM;
+        }
+    }
+
+
     public static float TimeFromBeat(float beat)
     {
         if(BpmChanges.Count == 0)
