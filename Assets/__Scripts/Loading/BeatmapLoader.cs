@@ -123,6 +123,12 @@ public class BeatmapLoader : MonoBehaviour
 
         archive.Dispose();
 
+        if(info == null)
+        {
+            UpdateMapInfo(info, difficulties, null, coverImageData);
+            yield break;
+        }
+
         LoadingMessage = "Loading song";
         AudioClip song = null;
         if(audioFile != null && File.Exists(audioFile.Path))
@@ -171,11 +177,14 @@ public class BeatmapLoader : MonoBehaviour
     }
 
 
-    private IEnumerator LoadMapURLCoroutine(string url)
+    private IEnumerator LoadMapURLCoroutine(string url, string mapID)
     {
         Loading = true;
 
-        string cachedMapPath = FileCache.GetCachedFile(url);
+        //Use the map id as the map key to avoid making requests to beatsaver for cached maps
+        //This method of doing this is pretty yucky but it gets the job done so fuck it
+        string cacheKey = mapID != "" ? mapID : url;
+        string cachedMapPath = FileCache.GetCachedFile(cacheKey);
         if(cachedMapPath != null && cachedMapPath != "")
         {
             Debug.Log("Found map in cache.");
@@ -201,7 +210,7 @@ public class BeatmapLoader : MonoBehaviour
             yield break;
         }
 
-        FileCache.SaveFileToCache(zipStream, url);
+        FileCache.SaveFileToCache(zipStream, cacheKey);
         ZipArchive archive = null;
         
         try
@@ -226,6 +235,14 @@ public class BeatmapLoader : MonoBehaviour
     {
         Loading = true;
 
+        string cachedMapPath = FileCache.GetCachedFile(mapID);
+        if(cachedMapPath != null && cachedMapPath != "")
+        {
+            Debug.Log("Found map in cache.");
+            LoadMapZip(cachedMapPath);
+            yield break;
+        }
+
         Debug.Log("Getting beat saver response");
         LoadingMessage = "Fetching map from BeatSaver";
         Task<string> apiTask = Task.Run(() => BeatSaverHandler.GetBeatSaverMapURL(mapID));
@@ -240,7 +257,7 @@ public class BeatmapLoader : MonoBehaviour
             yield break;
         }
 
-        StartCoroutine(LoadMapURLCoroutine(mapURL));
+        StartCoroutine(LoadMapURLCoroutine(mapURL, mapID));
     }
 
 
@@ -349,7 +366,7 @@ public class BeatmapLoader : MonoBehaviour
                 return;
             }
 
-            StartCoroutine(LoadMapURLCoroutine(mapDirectory));
+            StartCoroutine(LoadMapURLCoroutine(mapDirectory, ""));
             return;
         }
 

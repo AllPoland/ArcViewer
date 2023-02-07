@@ -218,7 +218,7 @@ public class Settings
         Ints = new Dictionary<string, int>
         {
             {"hitsound", 0},
-            {"arcdensity", 50},
+            {"arcdensity", 60},
             {"camerafov", 80},
             {"cameratilt", 0},
             {"framecap", 60},
