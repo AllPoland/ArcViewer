@@ -32,11 +32,22 @@ public class ZipReader
         }
 
         string infoJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
-        info = JsonUtility.FromJson<BeatmapInfo>(infoJson);
+        try
+        {
+            info = JsonUtility.FromJson<BeatmapInfo>(infoJson);
+        }
+        catch(System.Exception e)
+        {
+            ErrorHandler.Instance?.QueuePopup(ErrorType.Error, "Unable to parse Info.dat!");
+            Debug.LogWarning($"Failed to parse Info.dat with error: {e.Message}, {e.StackTrace}");
+
+            info = null;
+            return (info, difficulties, songFile, coverImageData);
+        }
 
         Debug.Log($"Loaded info for {info._songAuthorName} - {info._songName}, mapped by {info._levelAuthorName}");
 
-        if(info._difficultyBeatmapSets == null || info._difficultyBeatmapSets.Length < 1)
+        if(info?._difficultyBeatmapSets == null || info._difficultyBeatmapSets.Length < 1)
         {
             ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, "The map lists no difficulty sets!");
             Debug.LogWarning("Info lists no difficulty sets!");
