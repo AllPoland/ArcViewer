@@ -13,39 +13,39 @@ public class BeatmapUtility
         }
         if(diff.bpmEvents == null)
         {
-            diff.bpmEvents = new BpmEvent[0];
+            diff.bpmEvents = new BeatmapBpmEvent[0];
         }
         if(diff.rotationEvents == null)
         {
-            diff.rotationEvents = new RotationEvent[0];
+            diff.rotationEvents = new BeatmapRotationEvent[0];
         }
         if(diff.colorNotes == null)
         {
-            diff.colorNotes = new ColorNote[0];
+            diff.colorNotes = new BeatmapColorNote[0];
         }
         if(diff.bombNotes == null)
         {
-            diff.bombNotes = new BombNote[0];
+            diff.bombNotes = new BeatmapBombNote[0];
         }
         if(diff.obstacles == null)
         {
-            diff.obstacles = new Obstacle[0];
+            diff.obstacles = new BeatmapObstacle[0];
         }
         if(diff.sliders == null)
         {
-            diff.sliders = new ArcSlider[0];
+            diff.sliders = new BeatmapSlider[0];
         }
         if(diff.burstSliders == null)
         {
-            diff.burstSliders = new BurstSlider[0];
+            diff.burstSliders = new BeatmapBurstSlider[0];
         }
         if(diff.basicBeatMapEvents == null)
         {
-            diff.basicBeatMapEvents = new BasicBeatmapEvent[0];
+            diff.basicBeatMapEvents = new BeatmapBasicBeatmapEvent[0];
         }
         if(diff.colorBoostBeatMapEvents == null)
         {
-            diff.colorBoostBeatMapEvents = new ColorBoostBeatmapEvent[0];
+            diff.colorBoostBeatMapEvents = new BeatmapColorBoostBeatmapEvent[0];
         }
 
         return diff;
@@ -120,19 +120,19 @@ public class BeatmapUtility
         }
         if(diff._notes == null)
         {
-            diff._notes = new NoteV2[0];
+            diff._notes = new BeatmapNoteV2[0];
         }
         if(diff._sliders == null)
         {
-            diff._sliders = new SliderV2[0];
+            diff._sliders = new BeatmapSliderV2[0];
         }
         if(diff._obstacles == null)
         {
-            diff._obstacles = new ObstacleV2[0];
+            diff._obstacles = new BeatmapObstacleV2[0];
         }
         if(diff._events == null)
         {
-            diff._events = new EventV2[0];
+            diff._events = new BeatmapEventV2[0];
         }
 
         return diff;

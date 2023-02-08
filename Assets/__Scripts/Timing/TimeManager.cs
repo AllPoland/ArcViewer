@@ -150,7 +150,7 @@ public class TimeManager : MonoBehaviour
     {
         BpmChanges.Clear();
 
-        List<BpmEvent> bpmEvents = new List<BpmEvent>();
+        List<BeatmapBpmEvent> bpmEvents = new List<BeatmapBpmEvent>();
         bpmEvents.AddRange(diff.beatmapDifficulty.bpmEvents);
         //Events must be ordered by beat for this to work (they almost always are but just gotta be safe)
         bpmEvents = bpmEvents.OrderBy(x => x.b).ToList();
@@ -159,7 +159,7 @@ public class TimeManager : MonoBehaviour
         float currentTime = 0;
         float lastBeat = 0;
         float lastBpm = BPM;
-        foreach(BpmEvent bpmEvent in bpmEvents)
+        foreach(BeatmapBpmEvent bpmEvent in bpmEvents)
         {
             currentTime += RawTimeFromBeat(bpmEvent.b - lastBeat, lastBpm);
 
