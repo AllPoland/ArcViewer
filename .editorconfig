@@ -120,3 +120,7 @@ dotnet_style_qualification_for_field = false:suggestion
 dotnet_style_qualification_for_method = false:suggestion
 #prefer properties not to be prefaced with this. or Me. in Visual Basic
 dotnet_style_qualification_for_property = false:suggestion
+
+csharp_style_implicit_object_creation_when_type_is_apparent = false:suggestion
+csharp_prefer_simple_using_statement = false:suggestion
+csharp_style_expression_bodied_accessors = true:suggestion

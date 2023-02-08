@@ -12,10 +12,8 @@ public class BeatmapLoader : MonoBehaviour
     private static bool _loading;
     public static bool Loading
     {
-        get
-        {
-            return _loading;
-        }
+        get => _loading;
+
         private set
         {
             _loading = value;
@@ -53,7 +51,7 @@ public class BeatmapLoader : MonoBehaviour
 
         if(info == null)
         {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Unable to load Info.dat!");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load Info.dat!");
             UpdateMapInfo(null, new List<Difficulty>(), null, null);
             yield break;
         }
@@ -79,7 +77,7 @@ public class BeatmapLoader : MonoBehaviour
         }
         else
         {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
             Debug.LogWarning("Song file not found!");
         }
 
@@ -90,10 +88,10 @@ public class BeatmapLoader : MonoBehaviour
         yield return new WaitUntil(() => coverImageTask.IsCompleted);
         Stream coverImageStream = coverImageTask.Result;
 
-        Byte[] coverImageData = new Byte[0];
+        byte[] coverImageData = new byte[0];
         if(coverImageStream == null)
         {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Warning, "Cover image not found!");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Cover image not found!");
             Debug.Log($"Didn't find image file {info._coverImageFilename}!");
         }
         else
@@ -120,7 +118,7 @@ public class BeatmapLoader : MonoBehaviour
         BeatmapInfo info = result.Item1;
         List<Difficulty> difficulties = result.Item2;
         TempFile audioFile = result.Item3;
-        Byte[] coverImageData = result.Item4;
+        byte[] coverImageData = result.Item4;
 
         archive.Dispose();
 
@@ -144,7 +142,7 @@ public class BeatmapLoader : MonoBehaviour
         }
         else
         {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
             Debug.LogWarning("Audio file doesn't exist!");
         }
 
@@ -172,7 +170,7 @@ public class BeatmapLoader : MonoBehaviour
                 archive.Dispose();
             }
 
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to load the zip file!");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load the zip file!");
             Debug.LogWarning($"Unhandled exception loading zip: {err.Message}, {err.StackTrace}.");
         }
     }
@@ -226,7 +224,7 @@ public class BeatmapLoader : MonoBehaviour
                 archive.Dispose();
             }
 
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to download map file!");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to download map file!");
             Debug.LogWarning($"Unhandled exception loading zip URL: {err.Message}, {err.StackTrace}");
         }
     }
@@ -262,7 +260,7 @@ public class BeatmapLoader : MonoBehaviour
     }
 
 
-    private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song, Byte[] coverData)
+    private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song, byte[] coverData)
     {
         StopAllCoroutines();
         Progress = 0;
@@ -352,7 +350,7 @@ public class BeatmapLoader : MonoBehaviour
 
         if(Loading)
         {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "You're already loading something!");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "You're already loading something!");
             Debug.LogWarning("Trying to load a map while already loading!");
             return;
         }
@@ -375,7 +373,7 @@ public class BeatmapLoader : MonoBehaviour
         {
             if(!File.Exists(mapDirectory))
             {
-                ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "That file doesn't exist!");
+                ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "That file doesn't exist!");
                 Debug.LogWarning("Trying to load a map from a file that doesn't exist!");
                 return;
             }
@@ -394,7 +392,7 @@ public class BeatmapLoader : MonoBehaviour
 
         if(!Directory.Exists(mapDirectory))
         {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "That directory doesn't exist!");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "That directory doesn't exist!");
             Debug.LogWarning("Trying to load a map from a directory that doesn't exist!");
             return;
         }

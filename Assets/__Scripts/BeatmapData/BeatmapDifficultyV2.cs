@@ -14,9 +14,10 @@ public class BeatmapDifficultyV2
 
     public BeatmapDifficulty ConvertToV3()
     {
-        BeatmapDifficulty converted = new BeatmapDifficulty();
-
-        converted.version = "3.0.0";
+        BeatmapDifficulty converted = new BeatmapDifficulty
+        {
+            version = "3.0.0"
+        };
 
         List<ColorNote> colorNotes = new List<ColorNote>();
         List<BombNote> bombNotes = new List<BombNote>();

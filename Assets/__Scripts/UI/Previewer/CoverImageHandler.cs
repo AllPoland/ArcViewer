@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,7 +9,7 @@ public class CoverImageHandler : MonoBehaviour
     [SerializeField] private Image image;
 
 
-    public void SetImageFromData(Byte[] data)
+    public void SetImageFromData(byte[] data)
     {
         Texture2D newTexture = new Texture2D(2, 2);
         bool loaded = newTexture.LoadImage(data);

@@ -8,7 +8,7 @@ public class WebMapLoader : MonoBehaviour
 {
     public static WebClient Client;
     public static int Progress;
-    public static Int64 DownloadSize;
+    public static long DownloadSize;
 
     private static byte[] result;
 
@@ -84,7 +84,7 @@ public class WebMapLoader : MonoBehaviour
 
     public static void CompleteDownload(object sender, DownloadDataCompletedEventArgs args)
     {
-        result = new Byte[0];
+        result = new byte[0];
 
         if(args.Error != null)
         {

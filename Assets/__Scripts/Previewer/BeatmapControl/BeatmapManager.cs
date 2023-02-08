@@ -27,10 +27,8 @@ public class BeatmapManager : MonoBehaviour
     private static BeatmapInfo _info = BeatmapInfo.Empty;
     public static BeatmapInfo Info
     {
-        get
-        {
-            return _info;
-        }
+        get => _info;
+
         set
         {
             _info = value;
@@ -48,10 +46,8 @@ public class BeatmapManager : MonoBehaviour
     private static Difficulty _currentMap = Difficulty.Empty;
     public static Difficulty CurrentMap
     {
-        get
-        {
-            return _currentMap;
-        }
+        get => _currentMap;
+        
         set
         {
             _currentMap = value;
@@ -101,27 +97,9 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public static float HJD
-    {
-        get
-        {
-            return DefaultHJD + CurrentMap.SpawnOffset;
-        }
-    }
-    public static float ReactionTime
-    {
-        get
-        {
-            return (60 / Info._beatsPerMinute) * HJD;
-        }
-    }
-    public static float JumpDistance
-    {
-        get
-        {
-            return GetJumpDistance(HJD, Info._beatsPerMinute, CurrentMap.NoteJumpSpeed);
-        }
-    }
+    public static float HJD => DefaultHJD + CurrentMap.SpawnOffset;
+    public static float ReactionTime => (60 / Info._beatsPerMinute) * HJD;
+    public static float JumpDistance => GetJumpDistance(HJD, Info._beatsPerMinute, CurrentMap.NoteJumpSpeed);
 
 
     public static float GetJumpDistance(float HJD, float BPM, float NJS)

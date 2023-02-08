@@ -62,7 +62,7 @@ public class FileUtil
 
     public static byte[] StreamToBytes(Stream sourceStream)
     {
-        using(var memoryStream = new MemoryStream())
+        using(MemoryStream memoryStream = new MemoryStream())
         {
             sourceStream.CopyTo(memoryStream);
             return memoryStream.ToArray();

@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -26,7 +24,7 @@ public class JsonReader
 
     public static BeatmapInfo ParseInfoFromJson(string json)
     {
-        BeatmapInfo info = null;
+        BeatmapInfo info;
 
         try
         {
@@ -64,7 +62,7 @@ public class JsonReader
 
         if(json == "")
         {
-            ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, $"Unable to load {filename}!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to load {filename}!");
             return null;
         }
 
@@ -78,11 +76,7 @@ public class JsonReader
     public static BeatmapDifficulty ParseBeatmapFromJson(string json)
     {
         BeatmapDifficulty difficulty = new BeatmapDifficulty();
-        BeatmapVersion beatmapVersion = new BeatmapVersion
-        {
-            version = "",
-            _version = ""
-        };
+        BeatmapVersion beatmapVersion;
 
         try
         {
@@ -136,7 +130,7 @@ public class JsonReader
                     }
                     else
                     {
-                        ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, "Unable to find difficulty version!");
+                        ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Unable to find difficulty version!");
                         Debug.LogWarning("Difficulty failed to load due to unsupported or missing version!");
                         return new BeatmapDifficulty();
                     }
@@ -145,7 +139,7 @@ public class JsonReader
         }
         catch(Exception err)
         {
-            ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, "Unable to parse difficulty!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Unable to parse difficulty!");
             Debug.LogWarning($"Unable to parse difficulty file with error: {err.Message}, {err.StackTrace}.");
             return new BeatmapDifficulty();
         }

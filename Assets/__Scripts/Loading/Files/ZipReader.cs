@@ -34,7 +34,7 @@ public class ZipReader
                 if(!entry.FullName.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
                 {
                     //This means Info.dat was in a subfolder
-                    ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, "Map files aren't in the root!");
+                    ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Map files aren't in the root!");
                     Debug.LogWarning("Map files aren't in the root!");
                 }
                 break;
@@ -43,7 +43,7 @@ public class ZipReader
 
         if(infoData == null)
         {
-            ErrorHandler.Instance?.QueuePopup(ErrorType.Error, "Unable to load Info.dat!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to load Info.dat!");
             Debug.LogWarning("Zip file has no Info.dat!");
             return (info, difficulties, songFile, coverImageData);
         }
@@ -55,7 +55,7 @@ public class ZipReader
         }
         catch(Exception e)
         {
-            ErrorHandler.Instance?.QueuePopup(ErrorType.Error, "Unable to parse Info.dat!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to parse Info.dat!");
             Debug.LogWarning($"Failed to parse Info.dat with error: {e.Message}, {e.StackTrace}");
 
             info = null;
@@ -66,7 +66,7 @@ public class ZipReader
 
         if(info?._difficultyBeatmapSets == null || info._difficultyBeatmapSets.Length < 1)
         {
-            ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, "The map lists no difficulty sets!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "The map lists no difficulty sets!");
             Debug.LogWarning("Info lists no difficulty sets!");
         }
         else
@@ -77,7 +77,7 @@ public class ZipReader
 
                 if(set._difficultyBeatmaps.Length == 0)
                 {
-                    ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, $"Characteristic {characteristicName} lists no difficulties!");
+                    ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Characteristic {characteristicName} lists no difficulties!");
                     Debug.LogWarning($"{characteristicName} lists no difficulties!");
                     continue;
                 }
@@ -114,7 +114,7 @@ public class ZipReader
         }
         if(songFile == null)
         {
-            ErrorHandler.Instance?.QueuePopup(ErrorType.Error, "Song file not found!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Song file not found!");
             Debug.LogWarning($"Didn't find audio file {songFilename}!");
         }
 
@@ -133,7 +133,7 @@ public class ZipReader
         }
         if(coverImageData == null || coverImageData.Length <= 0)
         {
-            ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, "Cover image not found!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Cover image not found!");
             Debug.Log($"Didn't find image file {coverFilename}!");
         }
 
@@ -166,7 +166,7 @@ public class ZipReader
 
         if(diffData == null)
         {
-            ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, $"Unable to load {filename}!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to load {filename}!");
             Debug.LogWarning("Difficulty file not found!");
             return null;
         }
