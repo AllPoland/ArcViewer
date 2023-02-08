@@ -74,7 +74,7 @@ public class ZipReader
             foreach(DifficultyBeatmapSet set in info._difficultyBeatmapSets)
             {
                 string characteristicName = set._beatmapCharacteristicName;
-                
+
                 if(set._difficultyBeatmaps.Length == 0)
                 {
                     ErrorHandler.Instance?.QueuePopup(ErrorType.Warning, $"Characteristic {characteristicName} lists no difficulties!");
@@ -94,7 +94,7 @@ public class ZipReader
                     {
                         continue;
                     }
-                    
+
                     diff.characteristic = setCharacteristic;
                     newDifficulties.Add(diff);
                 }

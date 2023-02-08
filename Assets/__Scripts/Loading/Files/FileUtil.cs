@@ -33,23 +33,23 @@ public class FileUtil
         AudioClip song = null;
         try
         {
-        using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(path, type))
-        {
-            Debug.Log("Loading audio file.");
-            audioUwr.SendWebRequest();
+            using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(path, type))
+            {
+                Debug.Log("Loading audio file.");
+                audioUwr.SendWebRequest();
 
-            while(!audioUwr.isDone) await Task.Delay(5);
-            
-            if(audioUwr.result == UnityWebRequest.Result.ConnectionError || audioUwr.result == UnityWebRequest.Result.ProtocolError)
-            {
-                Debug.LogWarning($"{audioUwr.error}");
-                return song;
+                while(!audioUwr.isDone) await Task.Delay(5);
+
+                if(audioUwr.result == UnityWebRequest.Result.ConnectionError || audioUwr.result == UnityWebRequest.Result.ProtocolError)
+                {
+                    Debug.LogWarning($"{audioUwr.error}");
+                    return song;
+                }
+                else
+                {
+                    song = DownloadHandlerAudioClip.GetContent(audioUwr);
+                }
             }
-            else
-            {
-                song = DownloadHandlerAudioClip.GetContent(audioUwr);
-            }
-        }
         }
         catch(Exception err)
         {
@@ -97,14 +97,14 @@ public sealed class TempFile : IDisposable
 
     public TempFile(string path)
     {
-        if (string.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
+        if(string.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
         this.path = path;
     }
     public string Path
     {
         get
         {
-            if (path == null) throw new ObjectDisposedException(GetType().Name);
+            if(path == null) throw new ObjectDisposedException(GetType().Name);
             return path;
         }
     }
@@ -112,11 +112,11 @@ public sealed class TempFile : IDisposable
     public void Dispose() { Dispose(true); }
     private void Dispose(bool disposing)
     {
-        if (disposing)
+        if(disposing)
         {
-            GC.SuppressFinalize(this);                
+            GC.SuppressFinalize(this);
         }
-        if (path != null)
+        if(path != null)
         {
             try { File.Delete(path); }
             catch { } // best effort
