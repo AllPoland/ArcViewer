@@ -54,7 +54,7 @@ public class ChainManager : MonoBehaviour
     public static float AngleOnQuadBezier(Vector2 p0, Vector2 p1, Vector2 p2, float t)
     {
         Vector2 derivative = (2 * (1 - t) * (p1 - p0)) + (2 * t * (p2 - p1));
-        return 90 + (Mathf.Rad2Deg * Mathf.Atan2(derivative.y, derivative.x));
+        return Mathf.Rad2Deg * Mathf.Atan2(derivative.x, -derivative.y);
     }
 
 
@@ -83,17 +83,7 @@ public class ChainManager : MonoBehaviour
             //Calculate position based on the chain's bezier curve
             float t = timeProgress * c.Squish;
             Vector2 linkPos = QuadBezierPoint(startPos, midPoint, endPos, t);
-            float linkAngle = AngleOnQuadBezier(startPos, midPoint, endPos, t) % 360;
-
-            //Check if link isn't taking the shortest path and reverse rotation direction
-            if(linkAngle > 180)
-            {
-                linkAngle -= 360;
-            }
-            else if(linkAngle < -180)
-            {
-                linkAngle += 360;
-            }
+            float linkAngle = AngleOnQuadBezier(startPos, midPoint, endPos, t);
 
             ChainLink newLink = new ChainLink
             {
