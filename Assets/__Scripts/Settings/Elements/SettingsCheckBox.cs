@@ -20,8 +20,15 @@ public class SettingsCheckBox : MonoBehaviour
 
         if(SettingsManager.CurrentSettings?.Bools != null)
         {
-            bool newValue = SettingsManager.GetBool(rule);
-            toggle.isOn = newValue;
+            toggle.isOn = SettingsManager.GetBool(rule);
         }
+
+        toggle.onValueChanged.AddListener(SetValue);
+    }
+
+
+    private void OnDisable()
+    {
+        toggle.onValueChanged.RemoveAllListeners();
     }
 }

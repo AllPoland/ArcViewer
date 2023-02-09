@@ -22,6 +22,12 @@ public class SettingsSlider : MonoBehaviour
         }
         else SettingsManager.SetRule(rule, (int)value);
 
+        UpdateText(value);
+    }
+
+
+    public void UpdateText(float value)
+    {
         if(value > slider.maxValue - 0.005 && maxOverride != "")
         {
             labelText.text = maxOverride;
@@ -30,7 +36,7 @@ public class SettingsSlider : MonoBehaviour
         {
             labelText.text = minOverride;
         }
-        else labelText.text = Math.Round(value, 2).ToString();   
+        else labelText.text = Math.Round(value, 2).ToString();  
     }
 
 
@@ -43,14 +49,22 @@ public class SettingsSlider : MonoBehaviour
             float newValue = SettingsManager.GetFloat(rule);
 
             slider.value = newValue;
-            UpdateValue(slider.value);
+            UpdateText(slider.value);
         }
         else if(integerValue && SettingsManager.CurrentSettings?.Ints != null)
         {
             int newValue = SettingsManager.GetInt(rule);
 
             slider.value = newValue;
-            UpdateValue(slider.value);
+            UpdateText(slider.value);
         }
+
+        slider.onValueChanged.AddListener(UpdateValue);
+    }
+
+
+    private void OnDisable()
+    {
+        slider.onValueChanged.RemoveAllListeners();
     }
 }

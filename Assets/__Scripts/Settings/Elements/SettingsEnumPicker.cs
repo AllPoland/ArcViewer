@@ -21,8 +21,7 @@ public class SettingsEnumPicker : MonoBehaviour
 
         if(SettingsManager.CurrentSettings?.Ints != null)
         {
-            int value = SettingsManager.GetInt(rule);
-            enumPicker.Value = value;
+            enumPicker.InitializeValue(SettingsManager.GetInt(rule));
         }
     }
 }

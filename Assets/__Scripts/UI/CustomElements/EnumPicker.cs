@@ -11,7 +11,7 @@ public class EnumPicker : MonoBehaviour
         get => _value;
         set
         {
-            _value = Mathf.Clamp(value, 0, ValueNames.Length -1);
+            _value = Mathf.Clamp(value, 0, maxValue);
             OnValueChanged?.Invoke(value);
             UpdateElements();
         }
@@ -25,10 +25,12 @@ public class EnumPicker : MonoBehaviour
     [SerializeField] private Button rightButton;
     [SerializeField] private TextMeshProUGUI valueText;
 
+    private int maxValue => ValueNames.Length - 1;
+
     
     public void IncreaseValue()
     {
-        if(Value >= ValueNames.Length - 1) return;
+        if(Value >= maxValue) return;
         Value++;
     }
 
@@ -40,11 +42,19 @@ public class EnumPicker : MonoBehaviour
     }
 
 
+    public void InitializeValue(int value)
+    {
+        //This bypasses the OnValueChanged call, which is desirable for optimization purposes
+        _value = Mathf.Clamp(value, 0, maxValue);
+        UpdateElements();
+    }
+
+
     private void UpdateElements()
     {
         valueText.text = ValueNames[Value];
 
         leftButton.interactable = Value > 0;
-        rightButton.interactable = Value < ValueNames.Length - 1;
+        rightButton.interactable = Value < maxValue;
     }
 }
