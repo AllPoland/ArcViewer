@@ -99,7 +99,7 @@ public class ObjectManager : MonoBehaviour
         float reactionTime = BeatmapManager.ReactionTime;
         float jumpTime = TimeManager.CurrentTime + reactionTime;
 
-        if (objectTime <= jumpTime)
+        if(objectTime <= jumpTime)
         {
             //Note has jumped in. Place based on Jump Setting stuff
             float timeDist = objectTime - TimeManager.CurrentTime;
@@ -144,11 +144,11 @@ public class ObjectManager : MonoBehaviour
     {
         float jumpTime = TimeManager.CurrentTime + BeatmapManager.ReactionTime;
 
-        if (objectTime > jumpTime)
+        if(objectTime > jumpTime)
         {
             return startY;
         }
-        else if (objectTime < TimeManager.CurrentTime)
+        else if(objectTime < TimeManager.CurrentTime)
         {
             return targetY;
         }
@@ -232,7 +232,7 @@ public class ObjectManager : MonoBehaviour
         // split arcs into heads and tails for easier processing
         List<BeatmapSliderHead> beatmapSliderHeads = new List<BeatmapSliderHead>();
         List<BeatmapSliderTail> beatmapSliderTails = new List<BeatmapSliderTail>();
-        for (int i = 0; i < beatmapDifficulty.sliders.Length; i++)
+        for(int i = 0; i < beatmapDifficulty.sliders.Length; i++)
         {
             BeatmapSlider a = beatmapDifficulty.sliders[i];
             BeatmapSliderHead head = new BeatmapSliderHead();
@@ -274,20 +274,20 @@ public class ObjectManager : MonoBehaviour
         walls = new List<Wall>();
 
         List<BeatmapObject> sameBeatObjects = new List<BeatmapObject>();
-        for (int i = 0; i < allObjects.Count; i++)
+        for(int i = 0; i < allObjects.Count; i++)
         {
             BeatmapObject current = allObjects[i];
 
-            if (sameBeatObjects.Count == 0 || !CheckSameBeat(current.b, sameBeatObjects[0].b))
+            if(sameBeatObjects.Count == 0 || !CheckSameBeat(current.b, sameBeatObjects[0].b))
             {
                 //This object doesn't share the same beat with the previous objects
                 sameBeatObjects.Clear();
 
-                for (int x = i; x < allObjects.Count; x++)
+                for(int x = i; x < allObjects.Count; x++)
                 {
                     //Gather all consecutive objects that share the same beat
                     BeatmapObject check = allObjects[x];
-                    if (CheckSameBeat(check.b, current.b))
+                    if(CheckSameBeat(check.b, current.b))
                     {
                         sameBeatObjects.Add(check);
                         //Skip to the first object that doesn't share this beat next loop
@@ -307,7 +307,7 @@ public class ObjectManager : MonoBehaviour
 
             List<BeatmapObject> notesAndBombs = sameBeatObjects.Where(x => (x is BeatmapColorNote) || (x is BeatmapBombNote)).ToList();
 
-            foreach (BeatmapColorNote n in notesOnBeat)
+            foreach(BeatmapColorNote n in notesOnBeat)
             {
                 Note newNote = Note.NoteFromBeatmapColorNote(n);
                 newNote.StartY = NoteManager.GetStartY(n, notesAndBombs);
@@ -317,18 +317,18 @@ public class ObjectManager : MonoBehaviour
                 newNote.Angle = NoteManager.GetAngleSnap(n, notesOnBeat) ?? newNote.Angle;
 
                 // check attachment to arcs
-                foreach (BeatmapSliderHead a in sliderHeadsOnBeat)
+                foreach(BeatmapSliderHead a in sliderHeadsOnBeat)
                 {
-                    if (!a.HasAttachment && a.x == n.x && n.y == a.y)
+                    if(!a.HasAttachment && a.x == n.x && n.y == a.y)
                     {
                         a.StartY = newNote.StartY;
                         a.HasAttachment = true;
                     }
                 }
 
-                foreach (BeatmapSliderTail a in sliderTailsOnBeat)
+                foreach(BeatmapSliderTail a in sliderTailsOnBeat)
                 {
-                    if (!a.HasAttachment && a.x == n.x && n.y == a.y)
+                    if(!a.HasAttachment && a.x == n.x && n.y == a.y)
                     {
                         a.StartY = newNote.StartY;
                         a.HasAttachment = true;
@@ -338,24 +338,24 @@ public class ObjectManager : MonoBehaviour
                 notes.Add(newNote);
             }
 
-            foreach (BeatmapBombNote b in bombsOnBeat)
+            foreach(BeatmapBombNote b in bombsOnBeat)
             {
                 Bomb newBomb = Bomb.BombFromBeatmapBombNote(b);
                 newBomb.StartY = NoteManager.GetStartY(b, notesAndBombs);
 
                 // check attachment to arcs
-                foreach (BeatmapSliderHead a in sliderHeadsOnBeat)
+                foreach(BeatmapSliderHead a in sliderHeadsOnBeat)
                 {
-                    if (!a.HasAttachment && a.x == b.x && b.y == a.y)
+                    if(!a.HasAttachment && a.x == b.x && b.y == a.y)
                     {
                         a.StartY = newBomb.StartY;
                         a.HasAttachment = true;
                     }
                 }
 
-                foreach (BeatmapSliderTail a in sliderTailsOnBeat)
+                foreach(BeatmapSliderTail a in sliderTailsOnBeat)
                 {
-                    if (!a.HasAttachment && a.x == b.x && b.y == a.y)
+                    if(!a.HasAttachment && a.x == b.x && b.y == a.y)
                     {
                         a.StartY = newBomb.StartY;
                         a.HasAttachment = true;
@@ -365,13 +365,13 @@ public class ObjectManager : MonoBehaviour
                 bombs.Add(newBomb);
             }
 
-            foreach (BeatmapBurstSlider b in burstSlidersOnBeat)
+            foreach(BeatmapBurstSlider b in burstSlidersOnBeat)
             {
                 Chain newChain = Chain.ChainFromBeatmapBurstSlider(b);
                 chains.Add(newChain);
             }
 
-            foreach (BeatmapObstacle o in obstaclesOnBeat)
+            foreach(BeatmapObstacle o in obstaclesOnBeat)
             {
                 Wall newWall = Wall.WallFromBeatmapObstacle(o);
                 walls.Add(newWall);
@@ -381,7 +381,7 @@ public class ObjectManager : MonoBehaviour
         // pair slider heads/tails back up and make final arcs
         beatmapSliderHeads = beatmapSliderHeads.OrderBy(a => a.id).ToList();
         beatmapSliderTails = beatmapSliderTails.OrderBy(a => a.id).ToList();
-        for (int i = 0; i < beatmapSliderHeads.Count; i++)
+        for(int i = 0; i < beatmapSliderHeads.Count; i++)
         {
             BeatmapSliderHead head = beatmapSliderHeads[i];
             BeatmapSliderTail tail = beatmapSliderTails[i];
@@ -389,7 +389,7 @@ public class ObjectManager : MonoBehaviour
             Arc newArc = Arc.ArcFromBeatmapSlider(beatmapDifficulty.sliders[i]);
 
             const float halfNoteOffset = 0.225f;
-            if (head.HasAttachment)
+            if(head.HasAttachment)
             {
                 Vector2 offset = DirectionVector(CalculateObjectAngle(head.d)) * halfNoteOffset;
                 newArc.Position += offset;
@@ -397,7 +397,7 @@ public class ObjectManager : MonoBehaviour
                 newArc.HeadStartY = head.StartY + offset.y;
             }
 
-            if (tail.HasAttachment)
+            if(tail.HasAttachment)
             {
                 Vector2 offset = DirectionVector(CalculateObjectAngle(tail.d)) * halfNoteOffset * -1;
                 newArc.TailPosition += offset;
@@ -412,7 +412,7 @@ public class ObjectManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance && Instance != this)
+        if(Instance && Instance != this)
         {
             Debug.Log("Duplicate ObjectManager in scene.");
             this.enabled = false;
@@ -429,7 +429,7 @@ public class ObjectManager : MonoBehaviour
 
     private void OnDisable()
     {
-        if (Instance == this)
+        if(Instance == this)
         {
             Instance = null;
         }

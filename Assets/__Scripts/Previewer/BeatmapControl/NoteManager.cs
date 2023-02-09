@@ -58,7 +58,7 @@ public class NoteManager : MonoBehaviour
         float worldDist = objectManager.GetZPosition(noteTime);
         Vector3 worldPos = new Vector3(n.Position.x, n.Position.y, worldDist);
 
-        if (objectManager.doMovementAnimation)
+        if(objectManager.doMovementAnimation)
         {
             float startY = n.StartY + objectManager.objectFloorOffset;
             worldPos.y = objectManager.GetObjectY(startY, worldPos.y, noteTime);
@@ -66,17 +66,17 @@ public class NoteManager : MonoBehaviour
 
         float angle = n.Angle;
 
-        if (objectManager.doRotationAnimation)
+        if(objectManager.doRotationAnimation)
         {
             float jumpTime = TimeManager.CurrentTime + reactionTime;
             float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
 
-            if (noteTime > jumpTime)
+            if(noteTime > jumpTime)
             {
                 //Note is still jumping in
                 angle = 0;
             }
-            else if (noteTime > jumpTime - rotationAnimationLength)
+            else if(noteTime > jumpTime - rotationAnimationLength)
             {
                 float timeSinceJump = reactionTime - (noteTime - TimeManager.CurrentTime);
                 float rotationProgress = timeSinceJump / rotationAnimationLength;
@@ -86,7 +86,7 @@ public class NoteManager : MonoBehaviour
             }
         }
 
-        if (n.Visual == null)
+        if(n.Visual == null)
         {
             n.Visual = notePool.GetObject();
             n.Visual.transform.SetParent(noteParent.transform);
@@ -99,7 +99,7 @@ public class NoteManager : MonoBehaviour
             n.noteHandler.SetArrow(!n.IsDot);
             n.noteHandler.SetArrowMaterial(n.Color == 0 ? arrowMaterialRed : arrowMaterialBlue);
 
-            if (objectManager.useSimpleNoteMaterial)
+            if(objectManager.useSimpleNoteMaterial)
             {
                 n.noteHandler.SetMaterial(n.Color == 0 ? simpleMaterialRed : simpleMaterialBlue);
             }
@@ -111,7 +111,7 @@ public class NoteManager : MonoBehaviour
             n.Visual.SetActive(true);
             n.noteHandler.EnableVisual();
 
-            if (TimeManager.Playing && SettingsManager.GetFloat("hitsoundvolume") > 0)
+            if(TimeManager.Playing && SettingsManager.GetFloat("hitsoundvolume") > 0)
             {
                 HitSoundManager.ScheduleHitsound(noteTime, n.source);
             }
@@ -131,13 +131,13 @@ public class NoteManager : MonoBehaviour
 
         Vector3 worldPos = new Vector3(b.Position.x, b.Position.y, worldDist);
 
-        if (objectManager.doMovementAnimation)
+        if(objectManager.doMovementAnimation)
         {
             float startY = b.StartY + objectManager.objectFloorOffset;
             worldPos.y = objectManager.GetObjectY(startY, worldPos.y, bombTime);
         }
 
-        if (b.Visual == null)
+        if(b.Visual == null)
         {
             b.Visual = bombPool.GetObject();
             b.Visual.transform.SetParent(bombParent.transform);
@@ -169,14 +169,14 @@ public class NoteManager : MonoBehaviour
 
     public void ClearOutsideNotes()
     {
-        if (RenderedNotes.Count > 0)
+        if(RenderedNotes.Count > 0)
         {
-            for (int i = RenderedNotes.Count - 1; i >= 0; i--)
+            for(int i = RenderedNotes.Count - 1; i >= 0; i--)
             {
                 Note n = RenderedNotes[i];
-                if (!objectManager.CheckInSpawnRange(n.Beat))
+                if(!objectManager.CheckInSpawnRange(n.Beat))
                 {
-                    if (n.source.isPlaying)
+                    if(n.source.isPlaying)
                     {
                         //Only clear the visual elements if the hitsound is still playing
                         n.noteHandler.DisableVisual();
@@ -186,19 +186,19 @@ public class NoteManager : MonoBehaviour
                     ReleaseNote(n);
                     RenderedNotes.Remove(n);
                 }
-                else if (!n.noteHandler.Visible)
+                else if(!n.noteHandler.Visible)
                 {
                     n.noteHandler.EnableVisual();
                 }
             }
         }
 
-        if (RenderedBombs.Count > 0)
+        if(RenderedBombs.Count > 0)
         {
-            for (int i = RenderedBombs.Count - 1; i >= 0; i--)
+            for(int i = RenderedBombs.Count - 1; i >= 0; i--)
             {
                 Bomb b = RenderedBombs[i];
-                if (!CheckBombInSpawnRange(b.Beat))
+                if(!CheckBombInSpawnRange(b.Beat))
                 {
                     ReleaseBomb(b);
                     RenderedBombs.Remove(b);
@@ -211,18 +211,18 @@ public class NoteManager : MonoBehaviour
     public void ClearRenderedNotes()
     {
         //Clear all rendered notes
-        if (RenderedNotes.Count > 0)
+        if(RenderedNotes.Count > 0)
         {
-            foreach (Note n in RenderedNotes)
+            foreach(Note n in RenderedNotes)
             {
                 ReleaseNote(n);
             }
             RenderedNotes.Clear();
         }
 
-        if (RenderedBombs.Count > 0)
+        if(RenderedBombs.Count > 0)
         {
-            foreach (Bomb b in RenderedBombs)
+            foreach(Bomb b in RenderedBombs)
             {
                 ReleaseBomb(b);
             }
@@ -235,16 +235,16 @@ public class NoteManager : MonoBehaviour
     {
         ClearOutsideNotes();
 
-        if (Notes.Count > 0)
+        if(Notes.Count > 0)
         {
             int firstNote = Notes.FindIndex(x => objectManager.CheckInSpawnRange(x.Beat));
-            if (firstNote >= 0)
+            if(firstNote >= 0)
             {
-                for (int i = firstNote; i < Notes.Count; i++)
+                for(int i = firstNote; i < Notes.Count; i++)
                 {
                     //Update each note's position
                     Note n = Notes[i];
-                    if (objectManager.CheckInSpawnRange(n.Beat))
+                    if(objectManager.CheckInSpawnRange(n.Beat))
                     {
                         UpdateNoteVisual(n);
                     }
@@ -253,15 +253,15 @@ public class NoteManager : MonoBehaviour
             }
         }
 
-        if (Bombs.Count > 0)
+        if(Bombs.Count > 0)
         {
             int firstBomb = Bombs.FindIndex(x => CheckBombInSpawnRange(x.Beat));
-            if (firstBomb >= 0)
+            if(firstBomb >= 0)
             {
-                for (int i = firstBomb; i < Bombs.Count; i++)
+                for(int i = firstBomb; i < Bombs.Count; i++)
                 {
                     Bomb b = Bombs[i];
-                    if (CheckBombInSpawnRange(b.Beat))
+                    if(CheckBombInSpawnRange(b.Beat))
                     {
                         UpdateBombVisual(b);
                     }
@@ -283,14 +283,14 @@ public class NoteManager : MonoBehaviour
 
     public void RescheduleHitsounds(bool playing)
     {
-        if (!playing)
+        if(!playing)
         {
             return;
         }
 
-        foreach (Note n in RenderedNotes)
+        foreach(Note n in RenderedNotes)
         {
-            if (n.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0)
+            if(n.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0)
             {
                 HitSoundManager.ScheduleHitsound(TimeManager.TimeFromBeat(n.Beat), n.source);
             }
@@ -302,14 +302,14 @@ public class NoteManager : MonoBehaviour
     {
         List<BeatmapObject> objectsOnBeat = new List<BeatmapObject>(sameBeatObjects);
 
-        if (n.y <= 0) return 0;
+        if(n.y <= 0) return 0;
 
-        if (objectsOnBeat.Count == 0) return 0;
+        if(objectsOnBeat.Count == 0) return 0;
 
         //Remove all notes that aren't directly below this one
         objectsOnBeat.RemoveAll(x => x.x != n.x || x.y >= n.y);
 
-        if (objectsOnBeat.Count == 0) return 0;
+        if(objectsOnBeat.Count == 0) return 0;
 
         //Need to recursively calculate the startYs of each note underneath
         return (objectsOnBeat.Max(x => GetStartY(x, objectsOnBeat)) + 1) * ObjectManager.rowHeight;
@@ -318,9 +318,9 @@ public class NoteManager : MonoBehaviour
 
     public static bool CheckChainHead(BeatmapColorNote n, List<BeatmapBurstSlider> sameBeatBurstSliders)
     {
-        foreach (BeatmapBurstSlider c in sameBeatBurstSliders)
+        foreach(BeatmapBurstSlider c in sameBeatBurstSliders)
         {
-            if (c.x == n.x && c.y == n.y && c.c == n.c)
+            if(c.x == n.x && c.y == n.y && c.c == n.c)
             {
                 return true;
             }
@@ -335,11 +335,11 @@ public class NoteManager : MonoBehaviour
         List<BeatmapColorNote> notesOnBeat = new List<BeatmapColorNote>(sameBeatNotes);
 
         //Returns the angle offset the note should use to snap, or 0 if it shouldn't
-        if (notesOnBeat.Count == 0) return null;
+        if(notesOnBeat.Count == 0) return null;
 
         notesOnBeat.RemoveAll(x => x.c != n.c);
 
-        if (notesOnBeat.Count != 2)
+        if(notesOnBeat.Count != 2)
         {
             //Angle snapping requires exactly 2 notes
             return null;
@@ -347,14 +347,14 @@ public class NoteManager : MonoBehaviour
 
         //Disregard notes that are on the same row or column
         notesOnBeat.RemoveAll(x => x.x == n.x || x.y == n.y);
-        if (notesOnBeat.Count == 0)
+        if(notesOnBeat.Count == 0)
         {
             return null;
         }
 
         BeatmapColorNote other = notesOnBeat[0];
 
-        if (!(n.d == other.d || n.d == 8 || other.d == 8))
+        if(!(n.d == other.d || n.d == 8 || other.d == 8))
         {
             //Notes must have the same direction
             return null;
@@ -366,17 +366,17 @@ public class NoteManager : MonoBehaviour
         float otherAngle = ObjectManager.CalculateObjectAngle(other.d);
         float desiredAngle = Mathf.Atan2(-deltaPos.x, deltaPos.y) * Mathf.Rad2Deg;
 
-        if (Mathf.Abs(Mathf.DeltaAngle(desiredAngle, noteAngle)) > 90)
+        if(Mathf.Abs(Mathf.DeltaAngle(desiredAngle, noteAngle)) > 90)
         {
             desiredAngle = Mathf.Atan2(deltaPos.x, -deltaPos.y) * Mathf.Rad2Deg;
         }
 
-        if (n.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, noteAngle)) > 40)
+        if(n.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, noteAngle)) > 40)
         {
             return null;
         }
 
-        if (n.d == 8 && other.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, otherAngle)) > 40)
+        if(n.d == 8 && other.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, otherAngle)) > 40)
         {
             return null;
         }

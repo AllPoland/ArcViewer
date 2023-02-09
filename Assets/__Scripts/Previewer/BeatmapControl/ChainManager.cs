@@ -34,7 +34,7 @@ public class ChainManager : MonoBehaviour
 
         ChainLinks.Clear();
 
-        foreach (Chain c in Chains)
+        foreach(Chain c in Chains)
         {
             CreateChainLinks(c);
         }

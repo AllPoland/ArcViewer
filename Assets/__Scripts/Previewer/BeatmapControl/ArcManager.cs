@@ -87,7 +87,7 @@ public class ArcManager : MonoBehaviour
         //A minimum value is given because very short arcs would otherwise potentially get no segments at all (very bad)
         int pointCount = Mathf.Max(10, (int)(ArcSegmentDensity * duration) + 1);
         Vector3[] points = new Vector3[pointCount];
-        for (int i = 0; i < pointCount; i++)
+        for(int i = 0; i < pointCount; i++)
         {
             float t = (float)i / (pointCount - 1);
 
@@ -107,7 +107,7 @@ public class ArcManager : MonoBehaviour
 
         float zDist = objectManager.GetZPosition(arcTime);
 
-        if (a.Visual == null)
+        if(a.Visual == null)
         {
             a.Visual = arcPool.GetObject();
             a.Visual.transform.SetParent(arcParent.transform);
@@ -121,7 +121,7 @@ public class ArcManager : MonoBehaviour
             RenderedArcs.Add(a);
         }
 
-        if (objectManager.doMovementAnimation)
+        if(objectManager.doMovementAnimation)
         {
             float headStartY = a.HeadStartY + objectManager.objectFloorOffset;
             float headOffsetY = objectManager.GetObjectY(headStartY, a.Position.y, TimeManager.TimeFromBeat(a.Beat)) - a.Position.y;
@@ -145,15 +145,15 @@ public class ArcManager : MonoBehaviour
 
     public void ClearOutsideArcs()
     {
-        if (RenderedArcs.Count <= 0)
+        if(RenderedArcs.Count <= 0)
         {
             return;
         }
 
-        for (int i = RenderedArcs.Count - 1; i >= 0; i--)
+        for(int i = RenderedArcs.Count - 1; i >= 0; i--)
         {
             Arc a = RenderedArcs[i];
-            if (!objectManager.DurationObjectInSpawnRange(a.Beat, a.TailBeat))
+            if(!objectManager.DurationObjectInSpawnRange(a.Beat, a.TailBeat))
             {
                 ReleaseArc(a);
                 RenderedArcs.Remove(a);
@@ -166,24 +166,24 @@ public class ArcManager : MonoBehaviour
     {
         ClearOutsideArcs();
 
-        if (Arcs.Count <= 0)
+        if(Arcs.Count <= 0)
         {
             return;
         }
 
         int firstArc = Arcs.FindIndex(x => objectManager.DurationObjectInSpawnRange(x.Beat, x.TailBeat));
-        if (firstArc >= 0)
+        if(firstArc >= 0)
         {
             float lastBeat = 0;
-            for (int i = firstArc; i < Arcs.Count; i++)
+            for(int i = firstArc; i < Arcs.Count; i++)
             {
                 Arc a = Arcs[i];
-                if (objectManager.DurationObjectInSpawnRange(a.Beat, a.TailBeat))
+                if(objectManager.DurationObjectInSpawnRange(a.Beat, a.TailBeat))
                 {
                     UpdateArcVisual(a);
                     lastBeat = a.TailBeat;
                 }
-                else if (a.TailBeat - a.Beat <= a.Beat - lastBeat)
+                else if(a.TailBeat - a.Beat <= a.Beat - lastBeat)
                 {
                     //Continue looping if this arc overlaps in time with another
                     //This avoids edge cases where two arcs that are close, with one ending before the other causes later arcs to not update
@@ -197,12 +197,12 @@ public class ArcManager : MonoBehaviour
 
     public void ClearRenderedArcs()
     {
-        if (RenderedArcs.Count <= 0)
+        if(RenderedArcs.Count <= 0)
         {
             return;
         }
 
-        foreach (Arc a in RenderedArcs)
+        foreach(Arc a in RenderedArcs)
         {
             ReleaseArc(a);
         }
