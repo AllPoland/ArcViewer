@@ -1,12 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 public class MapDirectoryInput : MonoBehaviour
 {
-    [SerializeField] private BeatmapLoader beatmapLoader;
+    [SerializeField] private MapLoader mapLoader;
     [SerializeField] private GameObject directoryField;
     [SerializeField] private Button openButton;
 
@@ -17,7 +15,7 @@ public class MapDirectoryInput : MonoBehaviour
     {
         if(MapDirectory != "")
         {
-            beatmapLoader.LoadMapDirectory(MapDirectory);
+            mapLoader.LoadMapDirectory(MapDirectory);
         }
     }
 

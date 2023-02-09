@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -150,7 +149,7 @@ public class ErrorHandler : MonoBehaviour
     }
     public void SendNotification()
     {
-        DisplayPopup(ErrorType.Notification, "Good evening my good sumaritan. I'd like to tell you a story of medium-to-long-length about a very odd situation I encountered in my youth. It all began with a pretzel, but not just any pretzel, mind you. This was a pretzel that would change the course of my entire life, and, by extension, the history of the universe as we know it.");
+        DisplayPopup(ErrorType.Notification, "Good evening my good samaritan. I'd like to tell you a story of medium-to-long-length about a very odd situation I encountered in my youth. It all began with a pretzel, but not just any pretzel, mind you. This was a pretzel that would change the course of my entire life, and, by extension, the history of the universe as we know it.");
     }
 
 

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class SettingsEnum : MonoBehaviour
+public class SettingsEnumPicker : MonoBehaviour
 {
     [SerializeField] private string rule;
 

@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class ExplorerManager : MonoBehaviour
 {
-    [SerializeField] private BeatmapLoader beatmapLoader;
+    [SerializeField] private MapLoader mapLoader;
 
     public void OpenFileExplorer()
     {
@@ -20,7 +20,7 @@ public class ExplorerManager : MonoBehaviour
         
         if(paths.Length > 0)
         {
-            beatmapLoader.LoadMapDirectory(paths[0]);
+            mapLoader.LoadMapDirectory(paths[0]);
         }
         else Debug.Log("No path selected!");
     }

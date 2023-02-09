@@ -15,7 +15,7 @@ public class ZipReader
         byte[] coverImageData = new byte[0];
 
         Stream infoData = null;
-        BeatmapLoader.LoadingMessage = "Loading Info.dat";
+        MapLoader.LoadingMessage = "Loading Info.dat";
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
             if(entry.Name.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
@@ -87,7 +87,7 @@ public class ZipReader
                 List<Difficulty> newDifficulties = new List<Difficulty>();
                 foreach(DifficultyBeatmap beatmap in set._difficultyBeatmaps)
                 {
-                    BeatmapLoader.LoadingMessage = $"Loading {beatmap._beatmapFilename}";
+                    MapLoader.LoadingMessage = $"Loading {beatmap._beatmapFilename}";
                     Debug.Log($"Loading {beatmap._beatmapFilename}");
                     Difficulty diff = await Task.Run(() => GetDiff(beatmap, archive));
                     if(diff == null)
@@ -118,7 +118,7 @@ public class ZipReader
             Debug.LogWarning($"Didn't find audio file {songFilename}!");
         }
 
-        BeatmapLoader.LoadingMessage = "Loading cover image";
+        MapLoader.LoadingMessage = "Loading cover image";
         Debug.Log("Loading cover image.");
         string coverFilename = info?._coverImageFilename ?? "";
         foreach(ZipArchiveEntry entry in archive.Entries)
@@ -145,7 +145,7 @@ public class ZipReader
     {
         Difficulty output = new Difficulty
         {
-            difficultyRank = BeatmapLoader.DiffValueFromString[beatmap._difficulty],
+            difficultyRank = MapLoader.DiffValueFromString[beatmap._difficulty],
             NoteJumpSpeed = beatmap._noteJumpMovementSpeed,
             SpawnOffset = beatmap._noteJumpStartBeatOffset
         };

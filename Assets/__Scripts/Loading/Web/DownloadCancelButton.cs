@@ -4,6 +4,6 @@ public class DownloadCancelButton : MonoBehaviour
 {
     public void CancelDownload()
     {
-        WebMapLoader.CancelDownload();
+        WebLoader.CancelDownload();
     }
 }

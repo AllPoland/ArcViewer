@@ -1,10 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class WallEdge : MonoBehaviour
 {
-    [SerializeField] private WallScaleHandler scaleHandler;
+    [SerializeField] private WallHandler scaleHandler;
     [SerializeField] private float thickness;
     [SerializeField] private ScaleDirection scaleDirection;
     [SerializeField] private YAnchor yAnchor;

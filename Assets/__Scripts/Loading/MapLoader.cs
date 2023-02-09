@@ -7,7 +7,7 @@ using System.IO.Compression;
 using System.Linq;
 using UnityEngine;
 
-public class BeatmapLoader : MonoBehaviour
+public class MapLoader : MonoBehaviour
 {
     private static bool _loading;
     public static bool Loading
@@ -193,11 +193,11 @@ public class BeatmapLoader : MonoBehaviour
 
         Debug.Log("Downloading map data.");
         LoadingMessage = "Downloading map";
-        Task<Stream> downloadTask = Task.Run(() => WebMapLoader.LoadMapURL(url));
+        Task<Stream> downloadTask = Task.Run(() => WebLoader.LoadMapURL(url));
 
         while(!downloadTask.IsCompleted)
         {
-            Progress = WebMapLoader.Progress;
+            Progress = WebLoader.Progress;
             yield return null;
         }
         Stream zipStream = downloadTask.Result;

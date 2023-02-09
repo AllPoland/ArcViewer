@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SettingsBool : MonoBehaviour
+public class SettingsCheckBox : MonoBehaviour
 {
     [SerializeField] private string rule;
 

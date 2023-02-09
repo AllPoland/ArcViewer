@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class WebMapLoader : MonoBehaviour
+public class WebLoader : MonoBehaviour
 {
     public static WebClient Client;
     public static int Progress;

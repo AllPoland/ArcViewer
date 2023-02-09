@@ -46,26 +46,26 @@ public class LoadingWidget : MonoBehaviour
         {
             loadingSpin.transform.Rotate(Vector3.forward * (rotationSpeed * Time.deltaTime));
 
-            if(BeatmapLoader.Progress > 0)
+            if(MapLoader.Progress > 0)
             {
                 loadingBar.gameObject.SetActive(true);
-                loadingBar.value = BeatmapLoader.Progress;
+                loadingBar.value = MapLoader.Progress;
             }
             else loadingBar.gameObject.SetActive(false);
 
-            if(BeatmapLoader.LoadingMessage != "")
+            if(MapLoader.LoadingMessage != "")
             {
                 loadingText.gameObject.SetActive(true);
-                loadingText.text = BeatmapLoader.LoadingMessage;
+                loadingText.text = MapLoader.LoadingMessage;
             }
             else loadingText.gameObject.SetActive(false);
 
-            if(WebMapLoader.Client != null && WebMapLoader.Client.IsBusy)
+            if(WebLoader.Client != null && WebLoader.Client.IsBusy)
             {
                 cancelButton.gameObject.SetActive(true);
 
-                float downloadSize = (float)WebMapLoader.DownloadSize / 1000000;
-                float downloadProgress = (float)WebMapLoader.Progress / 100;
+                float downloadSize = (float)WebLoader.DownloadSize / 1000000;
+                float downloadProgress = (float)WebLoader.Progress / 100;
                 float downloaded = downloadSize * downloadProgress;
 
                 downloadSizeText.text = $"{Math.Round(downloaded, 1)}MB / {Math.Round(downloadSize, 1)} MB";
@@ -82,14 +82,14 @@ public class LoadingWidget : MonoBehaviour
 
     private void OnEnable()
     {
-        BeatmapLoader.OnLoadingChanged += UpdateLoading;
+        MapLoader.OnLoadingChanged += UpdateLoading;
 
-        UpdateLoading(BeatmapLoader.Loading);
+        UpdateLoading(MapLoader.Loading);
     }
 
 
     private void OnDisable()
     {
-        BeatmapLoader.OnLoadingChanged -= UpdateLoading;
+        MapLoader.OnLoadingChanged -= UpdateLoading;
     }
 }

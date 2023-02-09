@@ -28,13 +28,7 @@ public class ObjectManager : MonoBehaviour
     public const float rowHeight = 0.55f;
     public const float wallHScale = 0.6f;
 
-    public float BehindCameraTime
-    {
-        get
-        {
-            return TimeFromWorldspace(behindCameraZ);
-        }
-    }
+    public float BehindCameraTime => TimeFromWorldspace(behindCameraZ);
 
 
     public static List<T> SortObjectsByBeat<T>(List<T> objects) where T : MapObject

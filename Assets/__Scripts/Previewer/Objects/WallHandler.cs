@@ -1,9 +1,7 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class WallScaleHandler : MonoBehaviour
+public class WallHandler : MonoBehaviour
 {
     [SerializeField] private GameObject wallBody;
 

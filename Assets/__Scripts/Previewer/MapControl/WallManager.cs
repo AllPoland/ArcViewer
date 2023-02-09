@@ -48,8 +48,8 @@ public class WallManager : MonoBehaviour
             w.Visual.SetActive(true);
 
             //Wall scale only needs to be set once when it's created
-            WallScaleHandler scaleHandler = w.Visual.GetComponent<WallScaleHandler>();
-            scaleHandler.SetScale(new Vector3(w.Width, w.Height, wallLength));
+            WallHandler handler = w.Visual.GetComponent<WallHandler>();
+            handler.SetScale(new Vector3(w.Width, w.Height, wallLength));
 
             RenderedWalls.Add(w);
         }
