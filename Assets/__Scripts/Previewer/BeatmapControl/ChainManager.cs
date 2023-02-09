@@ -26,68 +26,23 @@ public class ChainManager : MonoBehaviour
 
     private ObjectManager objectManager;
 
-    public const float Root2Over2 = 0.70711f;
 
-    public static readonly Dictionary<int, Vector2> noteVectorFromDirection = new Dictionary<int, Vector2>
-    {
-        {0, Vector2.up},
-        {1, Vector2.down},
-        {2, Vector2.left},
-        {3, Vector2.right},
-        {4, new Vector2(-Root2Over2, Root2Over2)},
-        {5, new Vector2(Root2Over2, Root2Over2)},
-        {6, new Vector2(-Root2Over2, -Root2Over2)},
-        {7, new Vector2(Root2Over2, -Root2Over2)},
-        {8, Vector2.down}
-    };
-
-
-    public void LoadChainsFromDifficulty(Difficulty difficulty)
+    public void ReloadChains()
     {
         ClearRenderedLinks();
         chainLinkPool.SetPoolSize(60);
 
-        Chains.Clear();
         ChainLinks.Clear();
 
-        BeatmapDifficulty beatmap = difficulty.beatmapDifficulty;
-        if(beatmap.burstSliders.Length > 0)
+        foreach(Chain c in Chains)
         {
-            foreach(BurstSlider b in beatmap.burstSliders)
-            {
-                Chain newChain = Chain.ChainFromBurstSlider(b);
-                Chains.Add(newChain);
-
-                CreateChainLinks(newChain);
-            }
-            Chains = ObjectManager.SortObjectsByBeat<Chain>(Chains);
-            ChainLinks = ObjectManager.SortObjectsByBeat<ChainLink>(ChainLinks);
+            CreateChainLinks(c);
         }
-        else
-        {
-            Chains.Clear();
-            ChainLinks.Clear();
-        }
+        ChainLinks = ObjectManager.SortObjectsByBeat(ChainLinks);
 
         UpdateChainVisuals(TimeManager.CurrentBeat);
     }
 
-
-    public bool CheckChainHead(Note n)
-    {
-        List<Chain> chainsOnBeat = ObjectManager.GetObjectsOnBeat<Chain>(Chains, n.Beat);
-
-        for(int i = 0; i < chainsOnBeat.Count; i++)
-        {
-            Chain c = chainsOnBeat[i];
-            if(c.x == n.x && c.y == n.y && c.Color == n.Color)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
 
 
     public static Vector2 QuadBezierPoint(Vector2 p0, Vector2 p1, Vector2 p2, float t)
@@ -99,28 +54,20 @@ public class ChainManager : MonoBehaviour
     public static float AngleOnQuadBezier(Vector2 p0, Vector2 p1, Vector2 p2, float t)
     {
         Vector2 derivative = (2 * (1 - t) * (p1 - p0)) + (2 * t * (p2 - p1));
-        return 90 + (Mathf.Rad2Deg * Mathf.Atan2(derivative.y, derivative.x));
+        return Mathf.Rad2Deg * Mathf.Atan2(derivative.x, -derivative.y);
     }
 
 
     private void CreateChainLinks(Chain c)
     {
-        Vector2 gridPos = objectManager.bottomLeft;
-
-        Vector2 headPos = new Vector2(c.x * objectManager.laneWidth, c.y * objectManager.rowHeight);
-        Vector2 tailPos = new Vector2(c.TailX * objectManager.laneWidth, c.TailY * objectManager.rowHeight);
-
         //These are the start and end points of the bezier curve
-        Vector2 startPos = gridPos + headPos;
-        Vector2 endPos = gridPos + tailPos;
+        Vector2 startPos = c.Position;
+        Vector2 endPos = c.TailPosition;
 
         //The midpoint of the curve is 1/2 the distance between the start points, in the direction the chain faces
         float directDistance = Vector2.Distance(startPos, endPos);
 
-        //This is just a failsafe in the case of mapping extensions chains
-        //Otherwise an error is thrown because of an out of range dictionary value
-        int direction = Mathf.Min(c.Direction, 8);
-        Vector2 midOffset = (noteVectorFromDirection[direction] * directDistance) / 2;
+        Vector2 midOffset = ObjectManager.DirectionVector(c.Angle) * directDistance / 2;
         Vector2 midPoint = startPos + midOffset;
 
         float duration = c.TailBeat - c.Beat;
@@ -136,23 +83,12 @@ public class ChainManager : MonoBehaviour
             //Calculate position based on the chain's bezier curve
             float t = timeProgress * c.Squish;
             Vector2 linkPos = QuadBezierPoint(startPos, midPoint, endPos, t);
-            float linkAngle = AngleOnQuadBezier(startPos, midPoint, endPos, t) % 360;
-
-            //Check if link isn't taking the shortest path and reverse rotation direction
-            if(linkAngle > 180)
-            {
-                linkAngle -= 360;
-            }
-            else if(linkAngle < -180)
-            {
-                linkAngle += 360;
-            }
+            float linkAngle = AngleOnQuadBezier(startPos, midPoint, endPos, t);
 
             ChainLink newLink = new ChainLink
             {
                 Beat = beat,
-                x = linkPos.x,
-                y = linkPos.y,
+                Position = linkPos,
                 Color = c.Color,
                 Angle = linkAngle
             };
@@ -170,7 +106,7 @@ public class ChainManager : MonoBehaviour
         float jumpTime = TimeManager.CurrentTime + reactionTime;
 
         float worldDist = objectManager.GetZPosition(linkTime);
-        Vector3 worldPos = new Vector3(cl.x, cl.y, worldDist);
+        Vector3 worldPos = new Vector3(cl.Position.x, cl.Position.y, worldDist);
 
         if(objectManager.doMovementAnimation)
         {
@@ -339,4 +275,40 @@ public class ChainManager : MonoBehaviour
         TimeManager.OnBeatChanged += UpdateChainVisuals;
         TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }
+}
+
+
+public class Chain : BaseSlider
+{
+    public float Angle;
+    public int SegmentCount;
+    public float Squish;
+
+
+    public static Chain ChainFromBeatmapBurstSlider(BeatmapBurstSlider b)
+    {
+        Vector2 headPosition = ObjectManager.CalculateObjectPosition(b.x, b.y);
+        Vector2 tailPosition = ObjectManager.CalculateObjectPosition(b.tx, b.ty);
+        float angle = ObjectManager.CalculateObjectAngle(b.d);
+
+        return new Chain
+        {
+            Beat = b.b,
+            Position = headPosition,
+            Color = b.c,
+            Angle = angle,
+            TailBeat = b.tb,
+            TailPosition = tailPosition,
+            SegmentCount = b.sc,
+            Squish = b.s
+        };
+    }
+}
+
+
+public class ChainLink : HitSoundEmitter
+{
+    public int Color;
+    public float Angle;
+    public ChainLinkHandler chainLinkHandler;
 }

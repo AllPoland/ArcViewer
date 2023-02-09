@@ -1,41 +1,44 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 [Serializable]
-public struct BeatmapDifficulty
+public class BeatmapDifficulty
 {
     public string version;
-    public BpmEvent[] bpmEvents;
-    public RotationEvent[] rotationEvents;
-    public ColorNote[] colorNotes;
-    public BombNote[] bombNotes;
-    public Obstacle[] obstacles;
-    public ArcSlider[] sliders;
-    public BurstSlider[] burstSliders;
+    public BeatmapBpmEvent[] bpmEvents;
+    public BeatmapRotationEvent[] rotationEvents;
+    public BeatmapColorNote[] colorNotes;
+    public BeatmapBombNote[] bombNotes;
+    public BeatmapObstacle[] obstacles;
+    public BeatmapSlider[] sliders;
+    public BeatmapBurstSlider[] burstSliders;
     //Waypoints ommitted
-    public BasicBeatmapEvent[] basicBeatMapEvents;
-    public ColorBoostBeatmapEvent[] colorBoostBeatMapEvents;
+    public BeatmapBasicBeatmapEvent[] basicBeatMapEvents;
+    public BeatmapColorBoostBeatmapEvent[] colorBoostBeatMapEvents;
     public bool useNormalEventsAsCompatibleEvents;
 
 
     public static BeatmapDifficulty Empty = new BeatmapDifficulty
     {
         version = "",
-        bpmEvents = new BpmEvent[0],
-        rotationEvents = new RotationEvent[0],
-        colorNotes = new ColorNote[0],
-        bombNotes = new BombNote[0],
-        obstacles = new Obstacle[0],
-        sliders = new ArcSlider[0],
-        burstSliders = new BurstSlider[0],
-        basicBeatMapEvents = new BasicBeatmapEvent[0],
-        colorBoostBeatMapEvents = new ColorBoostBeatmapEvent[0],
+        bpmEvents = new BeatmapBpmEvent[0],
+        rotationEvents = new BeatmapRotationEvent[0],
+        colorNotes = new BeatmapColorNote[0],
+        bombNotes = new BeatmapBombNote[0],
+        obstacles = new BeatmapObstacle[0],
+        sliders = new BeatmapSlider[0],
+        burstSliders = new BeatmapBurstSlider[0],
+        basicBeatMapEvents = new BeatmapBasicBeatmapEvent[0],
+        colorBoostBeatMapEvents = new BeatmapColorBoostBeatmapEvent[0],
         useNormalEventsAsCompatibleEvents = false
     };
 }
 
 
 [Serializable]
-public struct BpmEvent
+public class BeatmapBpmEvent
 {
     public float b;
     public float m;
@@ -43,60 +46,54 @@ public struct BpmEvent
 
 
 [Serializable]
-public struct RotationEvent
+public class BeatmapRotationEvent
 {
     public float b;
     public int e;
     public float r;
 }
 
-
-[Serializable]
-public struct ColorNote
+public class BeatmapObject
 {
     public float b;
     public int x;
     public int y;
+}
+
+
+[Serializable]
+public class BeatmapColorNote : BeatmapObject
+{
     public int c;
     public int d;
     public int a;
 
-    public CustomObjectData customData;
+    public BeatmapCustomObjectData customData;
 }
 
 
 [Serializable]
-public struct BombNote
+public class BeatmapBombNote : BeatmapObject
 {
-    public float b;
-    public int x;
-    public int y;
-
-    public CustomObjectData customData;
+    public BeatmapCustomObjectData customData;
 }
 
 
 [Serializable]
-public struct Obstacle
+public class BeatmapObstacle : BeatmapObject
 {
-    public float b;
-    public int x;
-    public int y;
     public float d;
     public int w;
     public int h;
 
-    public CustomObstacleData customData;
+    public BeatmapCustomObstacleData customData;
 }
 
 
 [Serializable]
-public struct ArcSlider
+public class BeatmapSlider : BeatmapObject
 {
-    public float b;
     public int c;
-    public int x;
-    public int y;
     public int d;
     public float mu;
     public float tb;
@@ -106,16 +103,13 @@ public struct ArcSlider
     public float tmu;
     public int m;
 
-    public CustomSliderData customData;
+    public BeatmapCustomSliderData customData;
 }
 
 
 [Serializable]
-public struct BurstSlider
+public class BeatmapBurstSlider : BeatmapObject
 {
-    public float b;
-    public int x;
-    public int y;
     public int c;
     public int d;
     public float tb;
@@ -127,7 +121,7 @@ public struct BurstSlider
 
 
 [Serializable]
-public struct BasicBeatmapEvent
+public class BeatmapBasicBeatmapEvent
 {
     public float b;
     public int et;
@@ -137,7 +131,7 @@ public struct BasicBeatmapEvent
 
 
 [Serializable]
-public struct ColorBoostBeatmapEvent
+public class BeatmapColorBoostBeatmapEvent
 {
     public float b;
     public bool o;
@@ -145,21 +139,21 @@ public struct ColorBoostBeatmapEvent
 
 
 [Serializable]
-public class CustomObjectData
+public class BeatmapCustomObjectData
 {
     public float[] coordinates;
 }
 
 
 [Serializable]
-public class CustomObstacleData : CustomObjectData
+public class BeatmapCustomObstacleData : BeatmapCustomObjectData
 {
     public float[] size;
 }
 
 
 [Serializable]
-public class CustomSliderData : CustomObjectData
+public class BeatmapCustomSliderData : BeatmapCustomObjectData
 {
     public float[] tailCoordinates;
 }

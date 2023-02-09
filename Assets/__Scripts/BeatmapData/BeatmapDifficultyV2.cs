@@ -5,10 +5,10 @@ using System.Collections.Generic;
 public class BeatmapDifficultyV2
 {
     public string _version;
-    public NoteV2[] _notes;
-    public SliderV2[] _sliders;
-    public ObstacleV2[] _obstacles;
-    public EventV2[] _events;
+    public BeatmapNoteV2[] _notes;
+    public BeatmapSliderV2[] _sliders;
+    public BeatmapObstacleV2[] _obstacles;
+    public BeatmapEventV2[] _events;
     //Waypoints ommitted
 
 
@@ -19,9 +19,9 @@ public class BeatmapDifficultyV2
             version = "3.0.0"
         };
 
-        List<ColorNote> colorNotes = new List<ColorNote>();
-        List<BombNote> bombNotes = new List<BombNote>();
-        foreach(NoteV2 n in _notes)
+        List<BeatmapColorNote> colorNotes = new List<BeatmapColorNote>();
+        List<BeatmapBombNote> bombNotes = new List<BeatmapBombNote>();
+        foreach(BeatmapNoteV2 n in _notes)
         {
             //Loop over each note and add it to our V3 difficulty
             if(n._type == 2)
@@ -33,7 +33,7 @@ public class BeatmapDifficultyV2
             {
                 //Color note
                 colorNotes.Add(
-                    new ColorNote
+                    new BeatmapColorNote
                     {
                         b = n._time,
                         x = n._lineIndex,
@@ -49,7 +49,7 @@ public class BeatmapDifficultyV2
                 //Bomb note
                 bombNotes.Add
                 (
-                    new BombNote
+                    new BeatmapBombNote
                     {
                         b = n._time,
                         x = n._lineIndex,
@@ -62,12 +62,12 @@ public class BeatmapDifficultyV2
         converted.bombNotes = bombNotes.ToArray();
 
 
-        List<Obstacle> obstacles = new List<Obstacle>();
-        foreach(ObstacleV2 o in _obstacles)
+        List<BeatmapObstacle> obstacles = new List<BeatmapObstacle>();
+        foreach(BeatmapObstacleV2 o in _obstacles)
         {
             obstacles.Add
             (
-                new Obstacle
+                new BeatmapObstacle
                 {
                     b = o._time,
                     x = o._lineIndex,
@@ -81,12 +81,12 @@ public class BeatmapDifficultyV2
         converted.obstacles = obstacles.ToArray();
 
 
-        List<ArcSlider> sliders = new List<ArcSlider>();
-        foreach(SliderV2 s in _sliders)
+        List<BeatmapSlider> sliders = new List<BeatmapSlider>();
+        foreach(BeatmapSliderV2 s in _sliders)
         {
             sliders.Add
             (
-                new ArcSlider
+                new BeatmapSlider
                 {
                     b = s._headTime,
                     c = s._colorType,
@@ -106,17 +106,17 @@ public class BeatmapDifficultyV2
         converted.sliders = sliders.ToArray();
 
 
-        List<RotationEvent> rotationEvents = new List<RotationEvent>();
-        List<BasicBeatmapEvent> basicBeatmapEvents = new List<BasicBeatmapEvent>();
-        List<ColorBoostBeatmapEvent> colorBoostBeatmapEvents = new List<ColorBoostBeatmapEvent>();
-        foreach(EventV2 e in _events)
+        List<BeatmapRotationEvent> rotationEvents = new List<BeatmapRotationEvent>();
+        List<BeatmapBasicBeatmapEvent> basicBeatmapEvents = new List<BeatmapBasicBeatmapEvent>();
+        List<BeatmapColorBoostBeatmapEvent> colorBoostBeatmapEvents = new List<BeatmapColorBoostBeatmapEvent>();
+        foreach(BeatmapEventV2 e in _events)
         {
             if(e._type == 14 || e._type == 15)
             {
                 //Rotation event
                 rotationEvents.Add
                 (
-                    new RotationEvent
+                    new BeatmapRotationEvent
                     {
                         b = e._time,
                         e = e._type - 14,  //subtracting 14 from the type makes it line up with the expected 0 and 1 in V3 format
@@ -129,7 +129,7 @@ public class BeatmapDifficultyV2
                 //Bost color event
                 colorBoostBeatmapEvents.Add
                 (
-                    new ColorBoostBeatmapEvent
+                    new BeatmapColorBoostBeatmapEvent
                     {
                         b = e._time,
                         o = e._value > 0
@@ -141,7 +141,7 @@ public class BeatmapDifficultyV2
                 //Other event
                 basicBeatmapEvents.Add
                 (
-                    new BasicBeatmapEvent
+                    new BeatmapBasicBeatmapEvent
                     {
                         b = e._time,
                         et = e._type,
@@ -161,7 +161,7 @@ public class BeatmapDifficultyV2
 
 
 [Serializable]
-public struct NoteV2
+public struct BeatmapNoteV2
 {
     public float _time;
     public int _lineIndex;
@@ -169,12 +169,12 @@ public struct NoteV2
     public int _type;
     public int _cutDirection;
 
-    public CustomObjectDataV2 _customData;
+    public BeatmapCustomObjectDataV2 _customData;
 }
 
 
 [Serializable]
-public struct SliderV2
+public struct BeatmapSliderV2
 {
     public int _colorType;
     public float _headTime;
@@ -192,7 +192,7 @@ public struct SliderV2
 
 
 [Serializable]
-public struct ObstacleV2
+public struct BeatmapObstacleV2
 {
     public float _time;
     public int _lineIndex;
@@ -200,12 +200,12 @@ public struct ObstacleV2
     public float _duration;
     public int _width;
 
-    public CustomObstacleDataV2 _customData;
+    public BeatmapCustomObstacleDataV2 _customData;
 }
 
 
 [Serializable]
-public struct EventV2
+public struct BeatmapEventV2
 {
     public float _time;
     public int _type;
@@ -215,14 +215,14 @@ public struct EventV2
 
 
 [Serializable]
-public class CustomObjectDataV2
+public class BeatmapCustomObjectDataV2
 {
     public float[] _position;
 
 
-    public static CustomObjectData ConvertToV3(CustomObstacleDataV2 cd)
+    public static BeatmapCustomObjectData ConvertToV3(BeatmapCustomObstacleDataV2 cd)
     {
-        return new CustomObjectData
+        return new BeatmapCustomObjectData
         {
             coordinates = cd._position
         };
@@ -231,14 +231,14 @@ public class CustomObjectDataV2
 
 
 [Serializable]
-public class CustomObstacleDataV2 : CustomObjectDataV2
+public class BeatmapCustomObstacleDataV2 : BeatmapCustomObjectDataV2
 {
     public float[] _scale;
 
 
-    public static new CustomObstacleData ConvertToV3(CustomObstacleDataV2 cd)
+    public static new BeatmapCustomObstacleData ConvertToV3(BeatmapCustomObstacleDataV2 cd)
     {
-        return new CustomObstacleData
+        return new BeatmapCustomObstacleData
         {
             coordinates = cd._position,
             size = cd._scale
