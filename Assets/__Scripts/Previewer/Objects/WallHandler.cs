@@ -4,6 +4,7 @@ using UnityEngine;
 public class WallHandler : MonoBehaviour
 {
     [SerializeField] private GameObject wallBody;
+    [SerializeField] private MeshRenderer bodyRenderer;
 
     public Action<Vector3> OnScaleUpdated;
 
@@ -12,5 +13,11 @@ public class WallHandler : MonoBehaviour
     {
         wallBody.transform.localScale = scale;
         OnScaleUpdated?.Invoke(scale);
+    }
+
+
+    public void SetMaterial(Material newMaterial)
+    {
+        bodyRenderer.sharedMaterial = newMaterial;
     }
 }

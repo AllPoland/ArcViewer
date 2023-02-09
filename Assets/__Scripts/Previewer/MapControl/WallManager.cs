@@ -6,6 +6,8 @@ public class WallManager : MonoBehaviour
     [SerializeField] private ObjectPool wallPool;
     [SerializeField] private GameObject wallParent;
 
+    [SerializeField] private Material wallMaterial;
+
     public List<Wall> Walls = new List<Wall>();
     public List<Wall> RenderedWalls = new List<Wall>();
 
@@ -25,6 +27,16 @@ public class WallManager : MonoBehaviour
         wallPool.SetPoolSize(40);
 
         UpdateWallVisuals(TimeManager.CurrentBeat);
+    }
+
+
+    public void UpdateMaterial(float opacity)
+    {
+        Color wallColor = wallMaterial.color;
+        if(wallColor.a == opacity) return;
+
+        wallColor.a = opacity;
+        wallMaterial.color = wallColor;
     }
 
 
@@ -50,6 +62,7 @@ public class WallManager : MonoBehaviour
             //Wall scale only needs to be set once when it's created
             WallHandler handler = w.Visual.GetComponent<WallHandler>();
             handler.SetScale(new Vector3(w.Width, w.Height, wallLength));
+            handler.SetMaterial(wallMaterial);
 
             RenderedWalls.Add(w);
         }

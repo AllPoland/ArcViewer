@@ -5,6 +5,7 @@ public class ObjectSettingsUpdater : MonoBehaviour
     [SerializeField] private NoteManager noteManager;
     [SerializeField] private ChainManager chainManager;
     [SerializeField] private ArcManager arcManager;
+    [SerializeField] private WallManager wallManager;
 
     private ObjectManager objectManager;
 
@@ -30,6 +31,12 @@ public class ObjectSettingsUpdater : MonoBehaviour
         arcManager.UpdateMaterials();
         arcManager.ClearRenderedArcs();
         arcManager.UpdateArcVisuals(TimeManager.CurrentBeat);
+
+        //Settings that modify assets should be placed below this,
+        //so that they don't get permanently altered by settings
+        if(Application.isEditor) return;
+
+        wallManager.UpdateMaterial(SettingsManager.GetFloat("wallopacity"));
     }
 
 

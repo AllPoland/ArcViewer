@@ -231,6 +231,7 @@ public class Settings
             {"musicvolume", 0.5f},
             {"hitsoundvolume", 0.5f},
             {"chainvolume", 0.8f},
+            {"wallopacity", 0.5f},
             {"cameraposition", -2},
             {"bloom", 1},
             {"backgroundbloom", 1},
