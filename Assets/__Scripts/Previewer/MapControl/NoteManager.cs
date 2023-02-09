@@ -60,8 +60,7 @@ public class NoteManager : MonoBehaviour
 
         if(objectManager.doMovementAnimation)
         {
-            float startY = n.StartY + objectManager.objectFloorOffset;
-            worldPos.y = objectManager.GetObjectY(startY, worldPos.y, noteTime);
+            worldPos.y = objectManager.GetObjectY(n.StartY, worldPos.y, noteTime);
         }
 
         float angle = n.Angle;
@@ -133,8 +132,7 @@ public class NoteManager : MonoBehaviour
 
         if(objectManager.doMovementAnimation)
         {
-            float startY = b.StartY + objectManager.objectFloorOffset;
-            worldPos.y = objectManager.GetObjectY(startY, worldPos.y, bombTime);
+            worldPos.y = objectManager.GetObjectY(b.StartY, worldPos.y, bombTime);
         }
 
         if(b.Visual == null)
@@ -298,7 +296,7 @@ public class NoteManager : MonoBehaviour
     }
 
 
-    public static float GetStartY(BeatmapObject n, List<BeatmapObject> sameBeatObjects)
+    public static int GetStartY(BeatmapObject n, List<BeatmapObject> sameBeatObjects)
     {
         List<BeatmapObject> objectsOnBeat = new List<BeatmapObject>(sameBeatObjects);
 
@@ -312,7 +310,7 @@ public class NoteManager : MonoBehaviour
         if(objectsOnBeat.Count == 0) return 0;
 
         //Need to recursively calculate the startYs of each note underneath
-        return (objectsOnBeat.Max(x => GetStartY(x, objectsOnBeat)) + 1) * ObjectManager.rowHeight;
+        return (objectsOnBeat.Max(x => GetStartY(x, objectsOnBeat)) + 1);
     }
 
 

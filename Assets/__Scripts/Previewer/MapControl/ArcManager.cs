@@ -123,11 +123,9 @@ public class ArcManager : MonoBehaviour
 
         if(objectManager.doMovementAnimation)
         {
-            float headStartY = a.HeadStartY + objectManager.objectFloorOffset;
-            float headOffsetY = objectManager.GetObjectY(headStartY, a.Position.y, TimeManager.TimeFromBeat(a.Beat)) - a.Position.y;
+            float headOffsetY = objectManager.GetObjectY(a.HeadStartY, a.Position.y, TimeManager.TimeFromBeat(a.Beat)) - a.Position.y;
 
-            float tailStartY = a.TailStartY + objectManager.objectFloorOffset;
-            float tailOffsetY = objectManager.GetObjectY(tailStartY, a.TailPosition.y, TimeManager.TimeFromBeat(a.TailBeat)) - a.TailPosition.y;
+            float tailOffsetY = objectManager.GetObjectY(a.TailStartY, a.TailPosition.y, TimeManager.TimeFromBeat(a.TailBeat)) - a.TailPosition.y;
 
             a.arcHandler.SetArcPoints(GetArcPoints(a, headOffsetY, tailOffsetY)); // arc visuals get reset on settings change, so fine to only update in here
         }

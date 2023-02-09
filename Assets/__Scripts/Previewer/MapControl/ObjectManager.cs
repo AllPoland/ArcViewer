@@ -23,10 +23,10 @@ public class ObjectManager : MonoBehaviour
     public bool doRotationAnimation = true;
     public bool doMovementAnimation = true;
 
-    public static readonly Vector2 gridBottomLeft = new Vector2(-0.9f, 0);
-    public const float laneWidth = 0.6f;
-    public const float rowHeight = 0.55f;
-    public const float wallHScale = 0.6f;
+    public static readonly Vector2 GridBottomLeft = new Vector2(-0.9f, 0);
+    public const float LaneWidth = 0.6f;
+    public const float RowHeight = 0.55f;
+    public const float WallHScale = 0.6f;
 
     public float BehindCameraTime => TimeFromWorldspace(behindCameraZ);
 
@@ -159,9 +159,9 @@ public class ObjectManager : MonoBehaviour
 
     public static Vector2 CalculateObjectPosition(int x, int y)
     {
-        Vector2 position = gridBottomLeft;
-        position.x += x * laneWidth;
-        position.y += y * rowHeight;
+        Vector2 position = GridBottomLeft;
+        position.x += x * LaneWidth;
+        position.y += y * RowHeight;
         return position;
     }
 
@@ -304,7 +304,7 @@ public class ObjectManager : MonoBehaviour
             foreach(BeatmapColorNote n in notesOnBeat)
             {
                 Note newNote = Note.NoteFromBeatmapColorNote(n);
-                newNote.StartY = NoteManager.GetStartY(n, notesAndBombs);
+                newNote.StartY = ((float)NoteManager.GetStartY(n, notesAndBombs) * RowHeight) + Instance.objectFloorOffset;
                 newNote.IsChainHead = NoteManager.CheckChainHead(n, burstSlidersOnBeat);
 
                 // set angle snapping here because angle offset is an int in ColorNote
@@ -335,7 +335,7 @@ public class ObjectManager : MonoBehaviour
             foreach(BeatmapBombNote b in bombsOnBeat)
             {
                 Bomb newBomb = Bomb.BombFromBeatmapBombNote(b);
-                newBomb.StartY = NoteManager.GetStartY(b, notesAndBombs);
+                newBomb.StartY = ((float)NoteManager.GetStartY(b, notesAndBombs) * RowHeight) + Instance.objectFloorOffset;
 
                 // check attachment to arcs
                 foreach(BeatmapSliderHead a in sliderHeadsOnBeat)

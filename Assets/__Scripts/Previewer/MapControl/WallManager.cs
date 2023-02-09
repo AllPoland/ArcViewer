@@ -133,21 +133,21 @@ public class WallManager : MonoBehaviour
 
     public static float CalculateWallWidth(int width)
     {
-        return width * ObjectManager.laneWidth;
+        return width * ObjectManager.LaneWidth;
     }
 
 
     public static float CalculateWallHeight(int height)
     {
-        return height * ObjectManager.wallHScale;
+        return height * ObjectManager.WallHScale;
     }
 
 
     public static Vector2 CalculateWallPosition(int x, int y)
     {
-        Vector2 position = ObjectManager.gridBottomLeft;
-        position.x += x * ObjectManager.laneWidth;
-        position.y += y * ObjectManager.wallHScale;
+        Vector2 position = ObjectManager.GridBottomLeft;
+        position.x += x * ObjectManager.LaneWidth;
+        position.y += y * ObjectManager.WallHScale;
         return position;
     }
 
@@ -174,7 +174,7 @@ public class Wall : MapObject
         float height = WallManager.CalculateWallHeight(o.h);
         Vector2 position = WallManager.CalculateWallPosition(o.x, o.y);
         height = Mathf.Min(height, 3f - position.y);
-        position.x += (width - ObjectManager.laneWidth) / 2;
+        position.x += (width - ObjectManager.LaneWidth) / 2;
         position.y += height / 2;
 
         return new Wall
