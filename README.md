@@ -1,5 +1,5 @@
 # ArcViewer
-An open source, 3D Beat Saber map previewer, designed to give users an accurate representation of Beat Saber maps in a quick, easy to use application
+An open source 3D Beat Saber map previewer, designed to give users an accurate representation of Beat Saber maps in a quick, easy to use application
 
 ## Features
 **- Quickly load maps** from local zips/directories, direct URLs, or BeatSaver IDs and links
