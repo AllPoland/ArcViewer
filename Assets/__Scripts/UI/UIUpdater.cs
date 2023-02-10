@@ -5,6 +5,7 @@ public class UIUpdater : MonoBehaviour
 {
     [SerializeField] private GameObject selectionScreen;
     [SerializeField] private GameObject previewScreen;
+    [SerializeField] private GameObject infoScreen;
     [SerializeField] private GameObject background;
     [SerializeField] private TMP_InputField directoryField;
 
@@ -19,6 +20,8 @@ public class UIUpdater : MonoBehaviour
         selectionScreen.SetActive(newState == UIState.MapSelection && !MapLoader.Loading);
         previewScreen.SetActive(newState == UIState.Previewer);
         background.SetActive(newState == UIState.MapSelection);
+        
+        infoScreen.SetActive(false);
     }
 
 
