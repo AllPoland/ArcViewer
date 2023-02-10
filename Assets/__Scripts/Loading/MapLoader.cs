@@ -84,9 +84,9 @@ public class MapLoader : MonoBehaviour
         Debug.Log("Loading cover image.");
         LoadingMessage = "Loading cover image";
 
-        Task<Stream> coverImageTask = FileUtil.ReadFileData(Path.Combine(directory, info._coverImageFilename));
+        Task<Stream> coverImageTask = Task.Run(() => FileUtil.ReadFileData(Path.Combine(directory, info._coverImageFilename)));
         yield return new WaitUntil(() => coverImageTask.IsCompleted);
-        Stream coverImageStream = coverImageTask.Result;
+        Stream coverImageStream = coverImageTask.IsCanceled ? null : coverImageTask.Result;
 
         byte[] coverImageData = new byte[0];
         if(coverImageStream == null)
@@ -97,8 +97,8 @@ public class MapLoader : MonoBehaviour
         else
         {
             coverImageData = FileUtil.StreamToBytes(coverImageStream);
+            coverImageStream.Dispose();
         }
-        coverImageStream.Dispose();
 
         Debug.Log("Loading complete.");
         LoadingMessage = "Done";

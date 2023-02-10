@@ -190,11 +190,21 @@ public class Wall : MapObject
         position.x += (width - ObjectManager.LaneWidth) / 2;
         position.y += height / 2;
 
+        float beat = o.b;
+        float duration = o.d;
+
+        if(duration < 0)
+        {
+            //Negative duration walls break stuff, flip the start and end so they act like regular walls
+            beat = beat + duration;
+            duration = -duration;
+        }
+
         return new Wall
         {
-            Beat = o.b,
+            Beat = beat,
             Position = position,
-            Duration = o.d,
+            Duration = duration,
             Width = width,
             Height = height
         };

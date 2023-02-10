@@ -234,12 +234,21 @@ public class Arc : BaseSlider
         Vector2 headControlPoint = headPosition + ObjectManager.DirectionVector(ObjectManager.CalculateObjectAngle(a.d)) * a.mu * 2.5f;
         Vector2 tailControlPoint = tailPosition - ObjectManager.DirectionVector(ObjectManager.CalculateObjectAngle(a.tc)) * a.tmu * 2.5f;
 
+        float headBeat = a.b;
+        float tailBeat = a.tb;
+
+        if(tailBeat < headBeat)
+        {
+            //Negative duration arcs breaks stuff, flip head and tail so they act like regular arcs
+            (headBeat, tailBeat) = (tailBeat, headBeat);
+        }
+
         return new Arc
         {
-            Beat = a.b,
+            Beat = headBeat,
             Position = headPosition,
             Color = a.c,
-            TailBeat = a.tb,
+            TailBeat = tailBeat,
             TailPosition = tailPosition,
             HeadControlPoint = a.d == 8 ? headPosition : headControlPoint,
             TailControlPoint = a.tc == 8 ? tailPosition : tailControlPoint,
