@@ -24,7 +24,7 @@ These features aren't included yet, but are very likely to be added in the futur
 - Basic chroma and custom color support (note and light colors, chroma color events)
 
 ## Unplanned Features
-These features aren't included, and most likely never will be unless someone else adds it themselves. If you ask for these I will unceremoniously tell you no.
+These features aren't included, and most likely never will be. If you ask for these I will unceremoniously tell you no.
 
 - Advanced heck support (this includes things like enviroment enhancements/removal, track animations, etc.)
 
