@@ -6,9 +6,9 @@ An open source 3D Beat Saber map previewer, designed to give users an accurate r
 
 - **Game-accurate visuals** with properly recreated proportions and spawn animations
 
-- **Highly customizable** with a range of settings to modify hitsounds, graphics, visuals, and camera settings
-
 - **V3 map support** including arcs, chains, angle offset (diagonal dots), V3 wall shenanigans, and official BPM changes
+
+- **Highly customizable** with a range of settings to modify hitsounds, graphics, visuals, and camera settings
 
 ## Planned Features
 These features aren't included yet, but are very likely to be added in the future.
@@ -35,6 +35,8 @@ These features aren't included, and most likely never will be. If you ask for th
 - Error checking beyond things that make maps unloadable (ArcViewer is a previewer, not map checking software)
 
 - Gameplay. This should be self explanatory
+
+- Removing start screen watermark (this costs money :fw_nofwoompdespair)
 
 ## Get Started
 ArcViewer is currently only available as a desktop application. A browser port is in-progress, but for now, simply download the latest release from the [Releases](https://github.com/AllPoland/ArcViewer/releases) page and unzip the contents to a new folder.
