@@ -89,6 +89,7 @@ public class ZipReader
                 {
                     MapLoader.LoadingMessage = $"Loading {beatmap._beatmapFilename}";
                     Debug.Log($"Loading {beatmap._beatmapFilename}");
+                    
                     Difficulty diff = await Task.Run(() => GetDiff(beatmap, archive));
                     if(diff == null)
                     {
@@ -96,6 +97,8 @@ public class ZipReader
                     }
 
                     diff.characteristic = setCharacteristic;
+                    diff.requirements = beatmap._customData?._requirements ?? new string[0];
+
                     newDifficulties.Add(diff);
                 }
 

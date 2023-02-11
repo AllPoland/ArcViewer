@@ -17,7 +17,11 @@ These features aren't included yet, but are very likely to be added in the futur
 
 - Support for precision placement/rotation through mapping/noodle extensions
 
-- 360/90 degree gamemode support (currently displays as a regular map)
+- Modifying playback speed
+
+- 360/90 degree gamemode support (currently just displays as a regular map without rotation events)
+
+- Overriding NJS and JD
 
 - Basic lighting support (V1 and V2 events on a single environment)
 

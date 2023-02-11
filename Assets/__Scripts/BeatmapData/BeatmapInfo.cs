@@ -80,6 +80,7 @@ public class DifficultyBeatmap
 public class CustomDifficultyData
 {
     public string _difficultyLabel;
+    public string[] _requirements;
 }
 
 

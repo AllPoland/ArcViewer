@@ -70,8 +70,17 @@ public class BeatmapManager : MonoBehaviour
                 }
             }
 
-            Debug.Log($"Current diff is {value.characteristic}, {value.difficultyRank}");
-            OnBeatmapDifficultyChanged?.Invoke(value);
+            if(_currentMap.requirements.Contains("Noodle Extensions"))
+            {
+                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Noodle Extensions is not yet supported! Things may not display correctly.");
+            }
+            else if(_currentMap.requirements.Contains("Mapping Extensions"))
+            {
+                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Mapping Extensions is not yet supported! Things may not display correctly.");
+            }
+
+            Debug.Log($"Current diff is {_currentMap.characteristic}, {_currentMap.difficultyRank}");
+            OnBeatmapDifficultyChanged?.Invoke(_currentMap);
         }
     }
 
@@ -195,6 +204,7 @@ public class Difficulty
     public float NoteJumpSpeed;
     public float SpawnOffset;
     public string Label;
+    public string[] requirements;
 
 
     public static Difficulty Empty = new Difficulty
@@ -204,7 +214,8 @@ public class Difficulty
         beatmapDifficulty = BeatmapDifficulty.Empty,
         NoteJumpSpeed = 0,
         SpawnOffset = 0,
-        Label = "Expert+"
+        Label = "Expert+",
+        requirements = new string[0]
     };
 
 

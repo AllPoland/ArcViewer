@@ -322,6 +322,7 @@ public class MapLoader : MonoBehaviour
             {
                 LoadingMessage = $"Loading {beatmap._beatmapFilename}";
                 Debug.Log($"Loading {beatmap._beatmapFilename}");
+
                 Difficulty diff = await JsonReader.LoadDifficultyAsync(directory, beatmap);
                 if(diff == null)
                 {
@@ -330,6 +331,8 @@ public class MapLoader : MonoBehaviour
                 }
 
                 diff.characteristic = setCharacteristic;
+                diff.requirements = beatmap._customData?._requirements ?? new string[0];
+
                 newDifficulties.Add(diff);
             }
 
