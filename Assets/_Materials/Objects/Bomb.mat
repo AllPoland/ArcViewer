@@ -24,6 +24,7 @@ Material:
   m_Shader: {fileID: -6465566751694194690, guid: a4af4af1e37e0e1458b48051e4ec8856, type: 3}
   m_ValidKeywords:
   - _ENVIRONMENTREFLECTIONS_OFF
+  - _SPECULARHIGHLIGHTS_OFF
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
@@ -123,7 +124,7 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _SPECULARHIGHLIGHTS_OFF: 0
+    - _SPECULARHIGHLIGHTS_OFF: 1
     - _Smoothness: 0.95
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 0
