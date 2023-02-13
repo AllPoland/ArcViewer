@@ -44,14 +44,14 @@ public class SettingsSlider : MonoBehaviour
     {
         slider = GetComponent<Slider>();
 
-        if(!integerValue && SettingsManager.CurrentSettings?.Floats != null)
+        if(!integerValue)
         {
             float newValue = SettingsManager.GetFloat(rule);
 
             slider.value = newValue;
             UpdateText(slider.value);
         }
-        else if(integerValue && SettingsManager.CurrentSettings?.Ints != null)
+        else if(integerValue)
         {
             int newValue = SettingsManager.GetInt(rule);
 

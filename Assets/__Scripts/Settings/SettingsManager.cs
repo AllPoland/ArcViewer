@@ -47,6 +47,12 @@ public class SettingsManager : MonoBehaviour
 
     public void SaveSettings()
     {
+        if(Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            //Don't try to save settings in WebGL - it won't work
+            return;
+        }
+
         if(saving)
         {
             Debug.Log("Trying to save settings when already saving!");
@@ -59,6 +65,11 @@ public class SettingsManager : MonoBehaviour
 
     private void LoadSettings()
     {
+        if(Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            return;
+        }
+
         string filePath = Path.Combine(Application.persistentDataPath, settingsFile);
         
         if(!File.Exists(filePath))
@@ -91,6 +102,19 @@ public class SettingsManager : MonoBehaviour
 
     public static bool GetBool(string name)
     {
+        if(Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            //Use player prefs for WebGL
+            //Use ints for bools since PlayerPrefs can't store them
+            int defaultValue = 0;
+            if(Settings.DefaultSettings.Bools.ContainsKey(name))
+            {
+                defaultValue = Settings.DefaultSettings.Bools[name] ? 1 : 0;
+            }
+
+            return PlayerPrefs.GetInt(name, defaultValue) > 0;
+        }
+
         if(CurrentSettings.Bools.ContainsKey(name))
         {
             return CurrentSettings.Bools[name];
@@ -105,6 +129,18 @@ public class SettingsManager : MonoBehaviour
 
     public static int GetInt(string name)
     {
+        if(Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            //Use player prefs for WebGL
+            int defaultValue = 0;
+            if(Settings.DefaultSettings.Ints.ContainsKey(name))
+            {
+                defaultValue = Settings.DefaultSettings.Ints[name];
+            }
+
+            return PlayerPrefs.GetInt(name, defaultValue);
+        }
+
         if(CurrentSettings.Ints.ContainsKey(name))
         {
             return CurrentSettings.Ints[name];
@@ -119,6 +155,18 @@ public class SettingsManager : MonoBehaviour
 
     public static float GetFloat(string name)
     {
+        if(Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            //Use player prefs for WebGL
+            float defaultValue = 0;
+            if(Settings.DefaultSettings.Floats.ContainsKey(name))
+            {
+                defaultValue = Settings.DefaultSettings.Floats[name];
+            }
+
+            return PlayerPrefs.GetFloat(name, defaultValue);
+        }
+
         if(CurrentSettings.Floats.ContainsKey(name))
         {
             return CurrentSettings.Floats[name];
@@ -133,14 +181,21 @@ public class SettingsManager : MonoBehaviour
 
     public static void SetRule(string name, bool value)
     {
-        Dictionary<string, bool> rules = CurrentSettings.Bools;
-        if(rules.ContainsKey(name))
+        if(Application.platform == RuntimePlatform.WebGLPlayer)
         {
-            rules[name] = value;
+            PlayerPrefs.SetInt(name, value ? 1 : 0);
         }
         else
         {
-            rules.Add(name, value);
+            Dictionary<string, bool> rules = CurrentSettings.Bools;
+            if(rules.ContainsKey(name))
+            {
+                rules[name] = value;
+            }
+            else
+            {
+                rules.Add(name, value);
+            }
         }
         OnSettingsUpdated?.Invoke();
     }
@@ -148,14 +203,21 @@ public class SettingsManager : MonoBehaviour
 
     public static void SetRule(string name, int value)
     {
-        Dictionary<string, int> rules = CurrentSettings.Ints;
-        if(rules.ContainsKey(name))
+        if(Application.platform == RuntimePlatform.WebGLPlayer)
         {
-            rules[name] = value;
+            PlayerPrefs.SetInt(name, value);
         }
         else
         {
-            rules.Add(name, value);
+            Dictionary<string, int> rules = CurrentSettings.Ints;
+            if(rules.ContainsKey(name))
+            {
+                rules[name] = value;
+            }
+            else
+            {
+                rules.Add(name, value);
+            }
         }
         OnSettingsUpdated?.Invoke();
     }
@@ -163,16 +225,23 @@ public class SettingsManager : MonoBehaviour
 
     public static void SetRule(string name, float value)
     {
-        value = (float)Math.Round(value, 3); //Why tf does the compiler read value as a double here?
-
-        Dictionary<string, float> rules = CurrentSettings.Floats;
-        if(rules.ContainsKey(name))
+        if(Application.platform == RuntimePlatform.WebGLPlayer)
         {
-            rules[name] = value;
+            PlayerPrefs.SetFloat(name, value);
         }
         else
         {
-            rules.Add(name, value);
+            value = (float)Math.Round(value, 3); //Why tf does the compiler read value as a double here?
+
+            Dictionary<string, float> rules = CurrentSettings.Floats;
+            if(rules.ContainsKey(name))
+            {
+                rules[name] = value;
+            }
+            else
+            {
+                rules.Add(name, value);
+            }
         }
         OnSettingsUpdated?.Invoke();
     }
@@ -180,7 +249,15 @@ public class SettingsManager : MonoBehaviour
 
     public static void SetDefaults()
     {
-        CurrentSettings = Settings.GetDefaultSettings();
+        if(Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            PlayerPrefs.DeleteAll();
+        }
+        else
+        {
+            CurrentSettings = Settings.GetDefaultSettings();
+        }
+        
         OnSettingsReset?.Invoke();
         OnSettingsUpdated?.Invoke();
     }
@@ -188,7 +265,16 @@ public class SettingsManager : MonoBehaviour
 
     private void Awake()
     {
-        LoadSettings();
+        if(Application.platform != RuntimePlatform.WebGLPlayer)
+        {
+            //Load settings from json if not running in WebGL
+            //Otherwise settings are handled through playerprefs instead
+            LoadSettings();
+        }
+        else
+        {
+            OnSettingsUpdated?.Invoke();
+        }
     }
 }
 
@@ -201,7 +287,7 @@ public class Settings
     public Dictionary<string, float> Floats;
 
 
-    private static readonly Settings DefaultSettings = new Settings
+    public static readonly Settings DefaultSettings = new Settings
     {
         Bools = new Dictionary<string, bool>
         {

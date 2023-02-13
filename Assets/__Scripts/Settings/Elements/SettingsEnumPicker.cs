@@ -18,10 +18,6 @@ public class SettingsEnumPicker : MonoBehaviour
         enumPicker = GetComponent<EnumPicker>();
 
         enumPicker.OnValueChanged += SetRule;
-
-        if(SettingsManager.CurrentSettings?.Ints != null)
-        {
-            enumPicker.InitializeValue(SettingsManager.GetInt(rule));
-        }
+        enumPicker.InitializeValue(SettingsManager.GetInt(rule));
     }
 }

@@ -17,12 +17,8 @@ public class SettingsCheckBox : MonoBehaviour
     private void OnEnable()
     {
         toggle = GetComponent<Toggle>();
-
-        if(SettingsManager.CurrentSettings?.Bools != null)
-        {
-            toggle.isOn = SettingsManager.GetBool(rule);
-        }
-
+        
+        toggle.isOn = SettingsManager.GetBool(rule);
         toggle.onValueChanged.AddListener(SetValue);
     }
 
