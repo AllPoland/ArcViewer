@@ -3,6 +3,7 @@ using UnityEngine;
 public class SettingsEnumPicker : MonoBehaviour
 {
     [SerializeField] private string rule;
+    [SerializeField] private bool hideInWebGL;
 
     private EnumPicker enumPicker;
 
@@ -15,6 +16,12 @@ public class SettingsEnumPicker : MonoBehaviour
 
     private void OnEnable()
     {
+        if(hideInWebGL && Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            gameObject.SetActive(false);
+            return;
+        }
+
         enumPicker = GetComponent<EnumPicker>();
 
         enumPicker.OnValueChanged += SetRule;

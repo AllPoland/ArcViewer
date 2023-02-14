@@ -4,6 +4,7 @@ using UnityEngine.UI;
 public class SettingsCheckBox : MonoBehaviour
 {
     [SerializeField] private string rule;
+    [SerializeField] private bool hideInWebGL;
 
     private Toggle toggle;
     
@@ -16,8 +17,14 @@ public class SettingsCheckBox : MonoBehaviour
 
     private void OnEnable()
     {
+        if(hideInWebGL && Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            gameObject.SetActive(false);
+            return;
+        }
+
         toggle = GetComponent<Toggle>();
-        
+
         toggle.isOn = SettingsManager.GetBool(rule);
         toggle.onValueChanged.AddListener(SetValue);
     }
@@ -25,6 +32,9 @@ public class SettingsCheckBox : MonoBehaviour
 
     private void OnDisable()
     {
-        toggle.onValueChanged.RemoveAllListeners();
+        if(toggle)
+        {
+            toggle.onValueChanged.RemoveAllListeners();
+        }
     }
 }
