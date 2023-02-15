@@ -7,11 +7,11 @@ using UnityEngine;
 
 public class ZipReader
 {
-    public static async Task<(BeatmapInfo, List<Difficulty>, TempFile, byte[])> GetMapFromZipArchiveAsync(ZipArchive archive)
+    public static async Task<(BeatmapInfo, List<Difficulty>, Stream, byte[])> GetMapFromZipArchiveAsync(ZipArchive archive)
     {
         BeatmapInfo info = null;
         List<Difficulty> difficulties = new List<Difficulty>();
-        TempFile songFile = null;
+        Stream songStream = null;
         byte[] coverImageData = new byte[0];
 
         Stream infoData = null;
@@ -45,7 +45,7 @@ public class ZipReader
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to load Info.dat!");
             Debug.LogWarning("Zip file has no Info.dat!");
-            return (info, difficulties, songFile, coverImageData);
+            return (info, difficulties, songStream, coverImageData);
         }
 
         string infoJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
@@ -59,7 +59,7 @@ public class ZipReader
             Debug.LogWarning($"Failed to parse Info.dat with error: {e.Message}, {e.StackTrace}");
 
             info = null;
-            return (info, difficulties, songFile, coverImageData);
+            return (info, difficulties, songStream, coverImageData);
         }
 
         Debug.Log($"Loaded info for {info._songAuthorName} - {info._songName}, mapped by {info._levelAuthorName}");
@@ -90,7 +90,7 @@ public class ZipReader
                     MapLoader.LoadingMessage = $"Loading {beatmap._beatmapFilename}";
                     Debug.Log($"Loading {beatmap._beatmapFilename}");
                     
-                    Difficulty diff = await Task.Run(() => GetDiff(beatmap, archive));
+                    Difficulty diff = await GetDiff(beatmap, archive);
                     if(diff == null)
                     {
                         continue;
@@ -112,13 +112,17 @@ public class ZipReader
         {
             if(entry.Name.Equals(songFilename))
             {
-                songFile = await GetAudioFileFromEntryAsync(entry);
+                //We need to convert the stream specifically to a Memory Stream to make it seekable
+                //This is required for audio processing to work
+                songStream = new MemoryStream(FileUtil.StreamToBytes(entry.Open()));
+                break;
             }
         }
-        if(songFile == null)
+        if(songStream == null)
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Song file not found!");
             Debug.LogWarning($"Didn't find audio file {songFilename}!");
+            return (info, difficulties, songStream, coverImageData);
         }
 
         MapLoader.LoadingMessage = "Loading cover image";
@@ -140,12 +144,14 @@ public class ZipReader
             Debug.Log($"Didn't find image file {coverFilename}!");
         }
 
-        return (info, difficulties, songFile, coverImageData);
+        return (info, difficulties, songStream, coverImageData);
     }
 
 
-    private static Difficulty GetDiff(DifficultyBeatmap beatmap, ZipArchive archive)
+    private static async Task<Difficulty> GetDiff(DifficultyBeatmap beatmap, ZipArchive archive)
     {
+        await Task.Yield();
+
         Difficulty output = new Difficulty
         {
             difficultyRank = MapLoader.DiffValueFromString[beatmap._difficulty],
@@ -179,14 +185,5 @@ public class ZipReader
         output.beatmapDifficulty = JsonReader.ParseBeatmapFromJson(diffJson);
 
         return output;
-    }
-
-
-    private static async Task<TempFile> GetAudioFileFromEntryAsync(ZipArchiveEntry entry)
-    {
-        TempFile tempFile = new TempFile();
-        await Task.Run(() => entry.ExtractToFile(tempFile.Path, true));
-
-        return tempFile;
     }
 }

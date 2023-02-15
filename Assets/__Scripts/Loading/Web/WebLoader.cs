@@ -1,19 +1,20 @@
 using System;
-using System.Net;
 using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class WebLoader : MonoBehaviour
 {
-    public static WebClient Client;
-    public static int Progress;
+    public static float Progress;
     public static long DownloadSize;
 
-    private static byte[] result;
+    public static UnityWebRequest uwr;
 
     public static async Task<Stream> LoadMapURL(string url)
     {
+        await Task.Yield();
+
         MemoryStream stream = null;
 
         if(!url.EndsWith(".zip"))
@@ -32,71 +33,82 @@ public class WebLoader : MonoBehaviour
     public static async Task<MemoryStream> StreamFromURL(string url)
     {
         Progress = 0;
-        result = null;
 
-        Client = new WebClient();
+        // url = "https://cors-anywhere.herokuapp.com/" + url;
 
-        //Get the file size prior to starting the download
-        Stream sr = Client.OpenRead(url);
-        DownloadSize = Convert.ToInt64(Client.ResponseHeaders["Content-Length"]);
-        sr.Dispose();
-
-        Client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(UpdateDownloadProgress);
-        Client.DownloadDataCompleted += new DownloadDataCompletedEventHandler(CompleteDownload);
-        
-        Client.DownloadDataAsync(new Uri(url));
-
-        while(result == null)
+        try
         {
-            await Task.Delay(10);
-        }
+            //Get the download size before starting the download properly
+            uwr = UnityWebRequest.Head(url);
 
-        if(result.Length == 0)
+            uwr.SendWebRequest();
+            while(!uwr.isDone) await Task.Yield();
+
+            if(uwr.result == UnityWebRequest.Result.Success)
+            {
+                DownloadSize = Convert.ToInt64(uwr.GetResponseHeader("Content-Length"));
+            }
+            else
+            {
+                Debug.LogWarning($"{uwr.error}");
+                DownloadSize = 0;
+            }
+
+            //Download request
+            uwr = UnityWebRequest.Get(url);
+
+            Debug.Log("Starting download.");
+            uwr.SendWebRequest();
+
+            while(!uwr.isDone)
+            {
+                Progress = uwr.downloadProgress;
+                await Task.Yield();
+            }
+
+            if(uwr.result != UnityWebRequest.Result.Success)
+            {
+                if(uwr.error == "Request aborted")
+                {
+                    Debug.Log("Download cancelled.");
+                    ErrorHandler.Instance.QueuePopup(ErrorType.Notification, "Download cancelled!");
+                }
+                else
+                {
+                    Debug.LogWarning($"{uwr.error}");
+                    ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Download failed! {uwr.error}");
+                }
+
+                return null;
+            }
+            else
+            {
+                return new MemoryStream(uwr.downloadHandler.data);
+            }
+        }
+        catch(Exception e)
         {
-            //Download failed
-            return null;
+            Debug.LogWarning($"Map download failed with exception: {e.Message}, {e.StackTrace}");
         }
-
-        MemoryStream stream = new MemoryStream(result);
-        result = null;
+        finally
+        {
+            if(uwr != null)
+            {
+                uwr.Dispose();
+                uwr = null;
+            }
+            Progress = 0;
+        }
         
-        return stream;
+        return null;
     }
 
 
     public static void CancelDownload()
     {
-        if(Client != null && Client.IsBusy)
+        if(uwr != null && !uwr.isDone)
         {
-            Client.CancelAsync();
-
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Notification, "The download was cancelled!");
-            Debug.Log("Download task cancelled!");
+            uwr.Abort();
         }
-    }
-
-
-    public static void UpdateDownloadProgress(object sender, DownloadProgressChangedEventArgs args)
-    {
-        Progress = args.ProgressPercentage;
-    }
-
-
-    public static void CompleteDownload(object sender, DownloadDataCompletedEventArgs args)
-    {
-        result = new byte[0];
-
-        if(args.Error != null)
-        {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, $"Download failed! {args.Error.Message}");
-            Debug.Log($"Download task failed with error:{args.Error.Message}, {args.Error.StackTrace}");
-        }
-        else if(!args.Cancelled)
-        {
-            result = args.Result;
-        }
-
-        Client.Dispose();
-        Client = null;
     }
 }

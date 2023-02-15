@@ -5,6 +5,8 @@ using UnityEngine.Audio;
 
 public class HitSoundManager : MonoBehaviour
 {
+    public const float SoundOffset = 0.185f;
+
     public static AudioClip HitSound;
     public static List<ScheduledSound> scheduledSounds = new List<ScheduledSound>();
 
@@ -56,12 +58,14 @@ public class HitSoundManager : MonoBehaviour
         }
         else noteSource.pitch = 1;
 
+#if !UNITY_WEBGL || UNITY_EDITOR
         if(Spatial)
         {
             //A bit less than full spacial blend because I think having the sounds way in one ear is weird
             noteSource.spatialBlend = 0.8f;
         }
         else noteSource.spatialBlend = 0;
+#endif
 
         if(Spatial)
         {
@@ -90,7 +94,7 @@ public class HitSoundManager : MonoBehaviour
         {
             parentList = scheduledSounds,
             source = noteSource,
-            time = noteTime
+            time = noteTime - SoundOffset
         };
 
         TimeManager.OnBeatChanged += sound.UpdateTime;
@@ -178,7 +182,7 @@ public class ScheduledSound
         }
         else source.priority = 100;
 
-        if(!scheduled && !source.isPlaying && currentTime > time - HitSoundManager.ScheduleBuffer)
+        if(!scheduled && !source.isPlaying && timeDifference <= HitSoundManager.ScheduleBuffer)
         {
             //Audio hasn't been scheduled but it should be
             source.PlayScheduled(AudioSettings.dspTime + timeDifference);

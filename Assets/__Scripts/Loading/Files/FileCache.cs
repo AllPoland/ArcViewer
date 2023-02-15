@@ -19,7 +19,7 @@ public class FileCache
         set
         {
             _maxCacheSize = value;
-            if(CachedFiles != null)
+            if(CachedFiles != null && CachedFiles.Count > value)
             {
                 while(CachedFiles.Count > value)
                 {
@@ -75,6 +75,14 @@ public class FileCache
 
         string randomString = RandomStuff.RandomString(10);
         string newFilePath = Path.Combine(CachePath, $"{randomString}.zip");
+        while(File.Exists(newFilePath))
+        {
+            //Regenerate a new name if a file with this name already exists
+            //The chances of this happening are astronomically low, but just to be safe smil
+            randomString = RandomStuff.RandomString(10);
+            newFilePath = Path.Combine(CachePath, $"{randomString}.zip");
+        }
+
         CachedFile newFile = new CachedFile
         {
             Key = key,
@@ -133,12 +141,13 @@ public class FileCache
         {
             RemoveLastFile();
         }
+        SaveCacheData();
     }
 
 
     private static void SaveCacheData()
     {
-        if(CachedFiles == null || CachedFiles.Count <= 0)
+        if(CachedFiles == null)
         {
             return;
         }

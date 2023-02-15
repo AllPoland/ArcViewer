@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class MapLoader : MonoBehaviour
 {
@@ -21,11 +22,9 @@ public class MapLoader : MonoBehaviour
         }
     }
 
-    public static int Progress = 0;
     public static string LoadingMessage = "";
 
-    public delegate void BoolDelegate(bool value);
-    public static event BoolDelegate OnLoadingChanged;
+    public static event Action<bool> OnLoadingChanged;
 
 
     public static Dictionary<string, DifficultyRank> DiffValueFromString = new Dictionary<string, DifficultyRank>
@@ -40,6 +39,14 @@ public class MapLoader : MonoBehaviour
 
     private IEnumerator LoadMapDirectoryCoroutine(string directory)
     {
+        //Loading maps from directories will never work in WebGL
+#if UNITY_WEBGL && !UNITY_EDITOR
+        Debug.LogWarning("Tried to load from directory in WebGL!");
+        ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Loading from directory doesn't work in WebGL!");
+
+        UpdateMapInfo(null, new List<Difficulty>(), null, null);
+        yield break;
+#else
         Loading = true;
 
         Debug.Log("Loading info.");
@@ -104,6 +111,7 @@ public class MapLoader : MonoBehaviour
         LoadingMessage = "Done";
 
         UpdateMapInfo(info, difficulties, song, coverImageData);
+#endif
     }
 
 
@@ -111,43 +119,69 @@ public class MapLoader : MonoBehaviour
     {
         Debug.Log("Loading map zip.");
         LoadingMessage = "Loading map zip";
-        var loadZipTask = Task.Run(() => ZipReader.GetMapFromZipArchiveAsync(archive));
+
+        Task<(BeatmapInfo, List<Difficulty>, Stream, byte[])> loadZipTask = null;
+#if !UNITY_WEBGL || UNITY_EDITOR
+        loadZipTask = Task.Run(() => ZipReader.GetMapFromZipArchiveAsync(archive));
+#else
+        loadZipTask = ZipReader.GetMapFromZipArchiveAsync(archive);
+#endif
 
         yield return new WaitUntil(() => loadZipTask.IsCompleted);
         var result = loadZipTask.Result;
         BeatmapInfo info = result.Item1;
         List<Difficulty> difficulties = result.Item2;
-        TempFile audioFile = result.Item3;
+        Stream songStream = result.Item3;
         byte[] coverImageData = result.Item4;
-
-        archive.Dispose();
 
         if(info == null)
         {
-            UpdateMapInfo(info, difficulties, null, coverImageData);
+            archive.Dispose();
+
+            UpdateMapInfo(null, new List<Difficulty>(), null, null);
             yield break;
         }
 
-        LoadingMessage = "Loading song";
-        AudioClip song = null;
-        if(audioFile != null && File.Exists(audioFile.Path))
+        if(songStream == null)
         {
-            AudioType type = FileUtil.GetAudioTypeByDirectory(info._songFilename);
-            Debug.Log($"Loading audio file with type of {type}.");
+            archive.Dispose();
 
-            Task<AudioClip> audioTask = FileUtil.GetAudioFromFile(audioFile.Path, type);
+            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            yield break;
+        }
+
+        Debug.Log("Loading audio file.");
+        LoadingMessage = "Loading song";
+
+        AudioClip song = null;
+        AudioType audioType = FileUtil.GetAudioTypeByDirectory(info._songFilename);
+        Debug.Log(songStream.CanRead);
+        if(audioType == AudioType.OGGVORBIS)
+        {
+            song = AudioFileHandler.ClipFromOGG(songStream);
+        }
+        else if(audioType == AudioType.WAV)
+        {
+            Task<AudioClip> audioTask = AudioFileHandler.ClipFromWavAsync(songStream);
             yield return new WaitUntil(() => audioTask.IsCompleted);
 
             song = audioTask.Result;
         }
         else
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
-            Debug.LogWarning("Audio file doesn't exist!");
+            Debug.LogWarning("Song file is in an unsupported type!");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Song file is in an unsupported type!");
+
+            archive.Dispose();
+
+            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            yield break;
         }
 
         Debug.Log("Loading complete.");
         LoadingMessage = "Done";
+
+        archive.Dispose();
 
         UpdateMapInfo(info, difficulties, song, coverImageData);
     }
@@ -176,45 +210,137 @@ public class MapLoader : MonoBehaviour
     }
 
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+    private IEnumerator LoadMapZipWebGLCoroutine(string directory)
+    {
+        Debug.Log("Loading zip in WebGL mode.");
+        Loading = true;
+        LoadingMessage = "Loading zip";
+
+        Stream zipStream = null;
+        ZipArchive archive = null;
+
+        using(UnityWebRequest uwr = UnityWebRequest.Get(directory))
+        {
+            Debug.Log("Starting web request.");
+            yield return uwr.SendWebRequest();
+
+            if(uwr.result == UnityWebRequest.Result.Success)
+            {
+                try
+                {
+                    zipStream = new MemoryStream(uwr.downloadHandler.data);
+                    archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
+
+                    StartCoroutine(LoadMapZipArchiveCoroutine(archive));
+                }
+                catch(Exception e)
+                {
+                    Debug.LogWarning($"Failed to read map data with error: {e.Message}, {e.StackTrace}");
+                    ErrorHandler.Instance.DisplayPopup(ErrorType.Error, $"Failed to read map data!");
+
+                    if(zipStream != null)
+                    {
+                        zipStream.Dispose();
+                    }
+                    if(archive != null)
+                    {
+                        archive.Dispose();
+                    }
+
+                    UpdateMapInfo(null, new List<Difficulty>(), null, null);
+                    yield break;
+                }
+            }
+            else
+            {
+                Debug.LogWarning(uwr.error);
+                ErrorHandler.Instance.DisplayPopup(ErrorType.Error, $"Failed to load map! {uwr.error}");
+
+                if(zipStream != null)
+                {
+                    zipStream.Dispose();
+                }
+                if(archive != null)
+                {
+                    archive.Dispose();
+                }
+
+                UpdateMapInfo(null, new List<Difficulty>(), null, null);
+                yield break;
+            }
+        }
+    }
+
+
+    public void LoadMapZipWebGL(string directory)
+    {
+        if(DialogueHandler.DialogueActive)
+        {
+            return;
+        }
+
+        if(Loading)
+        {
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "You're already loading something!");
+            Debug.LogWarning("Trying to load a map while already loading!");
+            return;
+        }
+
+        StartCoroutine(LoadMapZipWebGLCoroutine(directory));
+    }
+#endif
+
+
     private IEnumerator LoadMapURLCoroutine(string url, string mapID)
     {
         Loading = true;
 
+#if !UNITY_WEBGL || UNITY_EDITOR
         //Use the map id as the map key to avoid making requests to beatsaver for cached maps
         //This method of doing this is pretty yucky but it gets the job done so fuck it
         string cacheKey = mapID != "" ? mapID : url;
         string cachedMapPath = FileCache.GetCachedFile(cacheKey);
+
         if(cachedMapPath != null && cachedMapPath != "")
         {
             Debug.Log("Found map in cache.");
             LoadMapZip(cachedMapPath);
             yield break;
         }
+#endif
 
-        Debug.Log("Downloading map data.");
+        Debug.Log($"Downloading map data from: {url}");
         LoadingMessage = "Downloading map";
-        Task<Stream> downloadTask = Task.Run(() => WebLoader.LoadMapURL(url));
+
+        Task<Stream> downloadTask = WebLoader.LoadMapURL(url);
 
         while(!downloadTask.IsCompleted)
         {
-            Progress = WebLoader.Progress;
             yield return null;
         }
         Stream zipStream = downloadTask.Result;
-        Progress = 0;
 
         if(zipStream == null)
         {
+            Debug.LogWarning("Downloaded data is null!");
+
             UpdateMapInfo(null, new List<Difficulty>(), null, null);
             yield break;
         }
+#if !UNITY_WEBGL || UNITY_EDITOR
+        else
+        {
+            FileCache.SaveFileToCache(zipStream, cacheKey);
+        }
+#endif
 
-        FileCache.SaveFileToCache(zipStream, cacheKey);
         ZipArchive archive = null;
         
         try
         {
             archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
+
             StartCoroutine(LoadMapZipArchiveCoroutine(archive));
         }
         catch(Exception err)
@@ -223,8 +349,9 @@ public class MapLoader : MonoBehaviour
             {
                 archive.Dispose();
             }
+            zipStream.Dispose();
 
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to download map file!");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to read map zip!");
             Debug.LogWarning($"Unhandled exception loading zip URL: {err.Message}, {err.StackTrace}");
         }
     }
@@ -234,6 +361,7 @@ public class MapLoader : MonoBehaviour
     {
         Loading = true;
 
+#if !UNITY_WEBGL || UNITY_EDITOR
         string cachedMapPath = FileCache.GetCachedFile(mapID);
         if(cachedMapPath != null && cachedMapPath != "")
         {
@@ -241,10 +369,11 @@ public class MapLoader : MonoBehaviour
             LoadMapZip(cachedMapPath);
             yield break;
         }
+#endif
 
-        Debug.Log("Getting beat saver response");
+        Debug.Log($"Getting beat saver response for ID: {mapID}");
         LoadingMessage = "Fetching map from BeatSaver";
-        Task<string> apiTask = Task.Run(() => BeatSaverHandler.GetBeatSaverMapURL(mapID));
+        Task<string> apiTask = BeatSaverHandler.GetBeatSaverMapURL(mapID);
 
         yield return new WaitUntil(() => apiTask.IsCompleted);
         string mapURL = apiTask.Result;
@@ -263,7 +392,6 @@ public class MapLoader : MonoBehaviour
     private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song, byte[] coverData)
     {
         StopAllCoroutines();
-        Progress = 0;
         LoadingMessage = "";
         Loading = false;
         
@@ -372,6 +500,18 @@ public class MapLoader : MonoBehaviour
             return;
         }
 
+        const string IDchars = "0123456789abcdef";
+        //If the directory doesn't contain any characters that aren't hexadecimal, that means it's probably an ID
+        if(!mapDirectory.Any(x => !IDchars.Contains(x)))
+        {
+            StartCoroutine(LoadMapIDCoroutine(mapDirectory));
+            return;
+        }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        //Loading files from string directories doesn't work in WebGL
+        ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Invalid URL!");
+#else
         if(mapDirectory.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
         {
             if(!File.Exists(mapDirectory))
@@ -385,14 +525,6 @@ public class MapLoader : MonoBehaviour
             return;
         }
 
-        const string IDchars = "0123456789abcdef";
-        //If the directory doesn't contain any characters that aren't hexadecimal, that means it's probably an ID
-        if(!mapDirectory.Any(x => !IDchars.Contains(x)))
-        {
-            StartCoroutine(LoadMapIDCoroutine(mapDirectory));
-            return;
-        }
-
         if(!Directory.Exists(mapDirectory))
         {
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "That directory doesn't exist!");
@@ -401,5 +533,6 @@ public class MapLoader : MonoBehaviour
         }
 
         StartCoroutine(LoadMapDirectoryCoroutine(mapDirectory));
+#endif
     }
 }

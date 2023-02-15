@@ -1,12 +1,15 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro;
 
 public class MapDirectoryInput : MonoBehaviour
 {
     [SerializeField] private MapLoader mapLoader;
-    [SerializeField] private GameObject directoryField;
+    [SerializeField] private TMP_InputField directoryField;
     [SerializeField] private Button openButton;
+
+    [SerializeField] private string webGLPlaceholder;
 
     public string MapDirectory;
 
@@ -30,9 +33,18 @@ public class MapDirectoryInput : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetButtonDown("Submit") && EventSystem.current.currentSelectedGameObject == directoryField)
+        if(Input.GetButtonDown("Submit") && EventSystem.current.currentSelectedGameObject == directoryField.gameObject)
         {
             LoadMap();
+        }
+    }
+
+
+    private void Start()
+    {
+        if(Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            directoryField.placeholder.GetComponent<TextMeshProUGUI>().text = webGLPlaceholder;
         }
     }
 }

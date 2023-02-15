@@ -46,10 +46,10 @@ public class LoadingWidget : MonoBehaviour
         {
             loadingSpin.transform.Rotate(Vector3.forward * (rotationSpeed * Time.deltaTime));
 
-            if(MapLoader.Progress > 0)
+            if(WebLoader.Progress > 0)
             {
                 loadingBar.gameObject.SetActive(true);
-                loadingBar.value = MapLoader.Progress;
+                loadingBar.value = WebLoader.Progress;
             }
             else loadingBar.gameObject.SetActive(false);
 
@@ -60,16 +60,20 @@ public class LoadingWidget : MonoBehaviour
             }
             else loadingText.gameObject.SetActive(false);
 
-            if(WebLoader.Client != null && WebLoader.Client.IsBusy)
+            if(WebLoader.uwr != null && !WebLoader.uwr.isDone)
             {
                 cancelButton.gameObject.SetActive(true);
 
-                float downloadSize = (float)WebLoader.DownloadSize / 1000000;
-                float downloadProgress = (float)WebLoader.Progress / 100;
-                float downloaded = downloadSize * downloadProgress;
+                if(WebLoader.DownloadSize > 0)
+                {
+                    float downloadSize = (float)WebLoader.DownloadSize / 1000000;
+                    float downloadProgress = WebLoader.Progress;
+                    float downloaded = downloadSize * downloadProgress;
 
-                downloadSizeText.text = $"{Math.Round(downloaded, 1)}MB / {Math.Round(downloadSize, 1)} MB";
-                downloadSizeText.gameObject.SetActive(true);
+                    downloadSizeText.text = $"{Math.Round(downloaded, 1)}MB / {Math.Round(downloadSize, 1)} MB";
+                    downloadSizeText.gameObject.SetActive(true);
+                }
+                else downloadSizeText.gameObject.SetActive(false);
             }
             else
             {

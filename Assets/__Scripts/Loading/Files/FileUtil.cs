@@ -38,9 +38,9 @@ public class FileUtil
                 Debug.Log("Loading audio file.");
                 audioUwr.SendWebRequest();
 
-                while(!audioUwr.isDone) await Task.Delay(5);
+                while(!audioUwr.isDone) await Task.Yield();
 
-                if(audioUwr.result == UnityWebRequest.Result.ConnectionError || audioUwr.result == UnityWebRequest.Result.ProtocolError)
+                if(audioUwr.result != UnityWebRequest.Result.Success)
                 {
                     Debug.LogWarning($"{audioUwr.error}");
                     return song;
