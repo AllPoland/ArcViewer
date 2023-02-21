@@ -17,11 +17,13 @@ public class SettingsCheckBox : MonoBehaviour
 
     private void OnEnable()
     {
-        if(hideInWebGL && Application.platform == RuntimePlatform.WebGLPlayer)
+#if UNITY_WEBGL
+        if(hideInWebGL)
         {
             gameObject.SetActive(false);
             return;
         }
+#endif
 
         toggle = GetComponent<Toggle>();
 

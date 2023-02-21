@@ -185,7 +185,6 @@ public class BeatmapManager : MonoBehaviour
 
 
     public static event Action<BeatmapInfo> OnBeatmapInfoChanged;
-
     public static event Action<Difficulty> OnBeatmapDifficultyChanged;
 
 

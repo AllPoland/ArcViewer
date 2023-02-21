@@ -6,7 +6,6 @@ using UnityEngine.Networking;
 
 public class WebLoader : MonoBehaviour
 {
-    public static float Progress;
     public static long DownloadSize;
 
     public static UnityWebRequest uwr;
@@ -32,7 +31,7 @@ public class WebLoader : MonoBehaviour
 
     public static async Task<MemoryStream> StreamFromURL(string url)
     {
-        Progress = 0;
+        MapLoader.Progress = 0;
 
         // url = "https://cors-anywhere.herokuapp.com/" + url;
 
@@ -62,7 +61,7 @@ public class WebLoader : MonoBehaviour
 
             while(!uwr.isDone)
             {
-                Progress = uwr.downloadProgress;
+                MapLoader.Progress = uwr.downloadProgress;
                 await Task.Yield();
             }
 
@@ -97,7 +96,7 @@ public class WebLoader : MonoBehaviour
                 uwr.Dispose();
                 uwr = null;
             }
-            Progress = 0;
+            MapLoader.Progress = 0;
         }
         
         return null;

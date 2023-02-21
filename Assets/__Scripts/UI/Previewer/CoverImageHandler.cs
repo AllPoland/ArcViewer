@@ -11,6 +11,8 @@ public class CoverImageHandler : MonoBehaviour
 
     public void SetImageFromData(byte[] data)
     {
+        ClearImage();
+
         Texture2D newTexture = new Texture2D(2, 2);
         bool loaded = newTexture.LoadImage(data);
 
@@ -18,6 +20,8 @@ public class CoverImageHandler : MonoBehaviour
         {
             Debug.LogWarning("Unable to load cover image!");
             ErrorHandler.Instance?.DisplayPopup(ErrorType.Warning, "Unable to load cover image!");
+
+            Destroy(newTexture);
             UpdateImage(defaultCoverImage);
         }
         else
@@ -26,12 +30,6 @@ public class CoverImageHandler : MonoBehaviour
             UpdateImage(Sprite.Create(newTexture,
                 new Rect(0, 0, newTexture.width, newTexture.height), new Vector2(0.5f, 0.5f), 100));
         }
-    }
-
-
-    public void SetDefaultImage()
-    {
-        UpdateImage(defaultCoverImage);
     }
 
 
@@ -46,6 +44,20 @@ public class CoverImageHandler : MonoBehaviour
         }
 
         image.sprite = newImage;
+    }
+
+
+    public void ClearImage()
+    {
+        if(image.sprite == null || image.sprite == defaultCoverImage)
+        {
+            //Don't destroy the default cover image
+            return;
+        }
+
+        Destroy(image.sprite.texture);
+        Destroy(image.sprite);
+        UpdateImage(defaultCoverImage);
     }
 
 

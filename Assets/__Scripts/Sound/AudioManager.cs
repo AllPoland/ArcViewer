@@ -12,6 +12,8 @@ public class AudioManager : MonoBehaviour
         get => _musicClip;
         set
         {
+            DestroyClip();
+
             _musicClip = value;
             UpdateAudioClip(value);
         }
@@ -36,9 +38,29 @@ public class AudioManager : MonoBehaviour
     private AudioSource musicSource;
 
 
+    public void DestroyClip()
+    {
+        musicSource.Stop();
+        if(musicSource.clip != null)
+        {
+            musicSource.clip.UnloadAudioData();
+            Destroy(musicSource.clip);
+            musicSource.clip = null;
+        }
+
+        if(_musicClip != null)
+        {
+            //Free the memory from the previous song
+            Debug.Log(_musicClip.UnloadAudioData());
+            Destroy(_musicClip);
+            _musicClip = null;
+        }
+    }
+
+
     public static float GetSongTime()
     {
-        if(Instance?.MusicClip == null) return 0;
+        if(Instance.MusicClip == null) return 0;
 
         return (float)(Instance.musicSource.timeSamples) / Instance.MusicClip.frequency;
     }
@@ -46,7 +68,7 @@ public class AudioManager : MonoBehaviour
 
     public static float GetSongLength()
     {
-        if(Instance?.MusicClip == null) return 0;
+        if(Instance.MusicClip == null) return 0;
 
         return Instance.MusicClip.samples / Instance.MusicClip.frequency;
     }

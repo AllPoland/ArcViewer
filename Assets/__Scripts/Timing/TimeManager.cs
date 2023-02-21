@@ -18,10 +18,8 @@ public class TimeManager : MonoBehaviour
     private static float _time = 0;
     public static float CurrentTime
     {
-        get
-        {
-            return _time;
-        }
+        get => _time;
+        
         set
         {
             float set = value;
@@ -44,10 +42,8 @@ public class TimeManager : MonoBehaviour
     private static float _beat = 0;
     public static float CurrentBeat
     {
-        get
-        {
-            return _beat;
-        }
+        get => _beat;
+        
         private set
         {
             _time = TimeFromBeat(value);
@@ -112,10 +108,8 @@ public class TimeManager : MonoBehaviour
 
     public static float Progress
     {
-        get
-        {
-            return CurrentTime / SongLength;
-        }
+        get => SongLength <= 0 ? 0 : CurrentTime / SongLength;
+
         set
         {
             if(value > 1)

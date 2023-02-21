@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
 using UnityEngine;
 
 public class JsonReader
@@ -93,13 +94,13 @@ public class JsonReader
             string[] v3Versions = {"3.0.0", "3.1.0", "3.2.0"};
             string[] v2Versions = {"2.0.0", "2.2.0", "2.5.0", "2.6.0"};
 
-            if(Array.IndexOf(v3Versions, beatmapVersion.version) > -1)
+            if(v3Versions.Contains(beatmapVersion.version))
             {
                 //Parse the difficulty file
                 Debug.Log("Parsing map in V3 format.");
                 difficulty = JsonUtility.FromJson<BeatmapDifficulty>(json);
             }
-            else if(Array.IndexOf(v2Versions, beatmapVersion._version) > -1)
+            else if(v2Versions.Contains(beatmapVersion._version))
             {
                 Debug.Log("Parsing map in V2 format.");
 

@@ -30,10 +30,14 @@ public class FileUtil
             return null;
         }
 
+        Uri uri = new Uri("file://" + path);
+
         AudioClip song = null;
         try
         {
-            using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(path, type))
+            DownloadHandlerAudioClip downloadHandler = new DownloadHandlerAudioClip(uri, type);
+
+            using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(uri, type))
             {
                 Debug.Log("Loading audio file.");
                 audioUwr.SendWebRequest();

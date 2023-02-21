@@ -47,6 +47,8 @@ public class HitSoundManager : MonoBehaviour
 
     public static void ScheduleHitsound(float noteTime, AudioSource noteSource)
     {
+        noteTime -= SoundOffset;
+
         noteSource.enabled = true;
         noteSource.Stop();
         noteSource.clip = HitSound;
@@ -94,7 +96,7 @@ public class HitSoundManager : MonoBehaviour
         {
             parentList = scheduledSounds,
             source = noteSource,
-            time = noteTime - SoundOffset
+            time = noteTime
         };
 
         TimeManager.OnBeatChanged += sound.UpdateTime;
@@ -163,7 +165,14 @@ public class ScheduledSound
         }
 
         float currentTime = AudioManager.GetSongTime();
-        float timeDifference = time - currentTime;
+
+        if(!scheduled && currentTime > time)
+        {
+            //The sound should already be playing by this point
+            //Trying to schedule now would just make it off-time and wouldn't be worth it
+            Destroy();
+            return;
+        }
 
         if(HitSoundManager.DynamicPriority)
         {
@@ -182,6 +191,7 @@ public class ScheduledSound
         }
         else source.priority = 100;
 
+        float timeDifference = time - currentTime;
         if(!scheduled && !source.isPlaying && timeDifference <= HitSoundManager.ScheduleBuffer)
         {
             //Audio hasn't been scheduled but it should be

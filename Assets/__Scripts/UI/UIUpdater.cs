@@ -15,6 +15,14 @@ public class UIUpdater : MonoBehaviour
         if(newState == UIState.MapSelection)
         {
             directoryField.text = "";
+
+            AudioManager.Instance.DestroyClip();
+            if(CoverImageHandler.Instance != null)
+            {
+                CoverImageHandler.Instance.ClearImage();
+            }
+
+            Resources.UnloadUnusedAssets();
         }
 
         selectionScreen.SetActive(newState == UIState.MapSelection && !MapLoader.Loading);

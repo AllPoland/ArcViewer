@@ -7,15 +7,25 @@ using UnityEngine;
 
 public class ZipReader
 {
+#if !UNITY_WEBGL
+    public static async Task<(BeatmapInfo, List<Difficulty>, TempFile, byte[])> GetMapFromZipArchiveAsync(ZipArchive archive)
+#else
     public static async Task<(BeatmapInfo, List<Difficulty>, Stream, byte[])> GetMapFromZipArchiveAsync(ZipArchive archive)
+#endif
     {
         BeatmapInfo info = null;
         List<Difficulty> difficulties = new List<Difficulty>();
-        Stream songStream = null;
+#if !UNITY_WEBGL
+        TempFile song = null;
+#else
+        Stream song = null;
+#endif
         byte[] coverImageData = new byte[0];
 
         Stream infoData = null;
         MapLoader.LoadingMessage = "Loading Info.dat";
+        await Task.Yield();
+
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
             if(entry.Name.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
@@ -45,13 +55,14 @@ public class ZipReader
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to load Info.dat!");
             Debug.LogWarning("Zip file has no Info.dat!");
-            return (info, difficulties, songStream, coverImageData);
+            return (info, difficulties, song, coverImageData);
         }
 
         string infoJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
         try
         {
             info = JsonUtility.FromJson<BeatmapInfo>(infoJson);
+            infoData.Dispose();
         }
         catch(Exception e)
         {
@@ -59,7 +70,9 @@ public class ZipReader
             Debug.LogWarning($"Failed to parse Info.dat with error: {e.Message}, {e.StackTrace}");
 
             info = null;
-            return (info, difficulties, songStream, coverImageData);
+            infoData.Dispose();
+
+            return (info, difficulties, song, coverImageData);
         }
 
         Debug.Log($"Loaded info for {info._songAuthorName} - {info._songName}, mapped by {info._levelAuthorName}");
@@ -112,21 +125,30 @@ public class ZipReader
         {
             if(entry.Name.Equals(songFilename))
             {
+#if !UNITY_WEBGL
+                song = GetSongFile(entry);
+#else
                 //We need to convert the stream specifically to a Memory Stream to make it seekable
                 //This is required for audio processing to work
-                songStream = new MemoryStream(FileUtil.StreamToBytes(entry.Open()));
+                using(Stream songStream = entry.Open())
+                {
+                    song = new MemoryStream(FileUtil.StreamToBytes(songStream));
+                }
+#endif
                 break;
             }
         }
-        if(songStream == null)
+        if(song == null)
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Song file not found!");
             Debug.LogWarning($"Didn't find audio file {songFilename}!");
-            return (info, difficulties, songStream, coverImageData);
+            return (info, difficulties, song, coverImageData);
         }
 
         MapLoader.LoadingMessage = "Loading cover image";
         Debug.Log("Loading cover image.");
+        await Task.Yield();
+
         string coverFilename = info?._coverImageFilename ?? "";
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
@@ -144,7 +166,7 @@ public class ZipReader
             Debug.Log($"Didn't find image file {coverFilename}!");
         }
 
-        return (info, difficulties, songStream, coverImageData);
+        return (info, difficulties, song, coverImageData);
     }
 
 
@@ -183,7 +205,27 @@ public class ZipReader
         Debug.Log($"Parsing {filename}");
         string diffJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(diffData));
         output.beatmapDifficulty = JsonReader.ParseBeatmapFromJson(diffJson);
+        diffData.Dispose();
 
         return output;
+    }
+
+
+    public static TempFile GetSongFile(ZipArchiveEntry entry)
+    {
+        string path = Path.Combine(MapLoader.persistentDataPath, "temp");
+
+        int i = 1;
+        while(File.Exists(path))
+        {
+            //Change the target name if the file already exists
+            //This shouldn't happen, but it should be avoided anyway
+            path = Path.Combine(MapLoader.persistentDataPath, $"temp{i}");
+        }
+
+        //Create the temp file and write the song data to it
+        TempFile temp = new TempFile(path);
+        File.WriteAllBytes(temp.Path, FileUtil.StreamToBytes(entry.Open()));
+        return temp;
     }
 }

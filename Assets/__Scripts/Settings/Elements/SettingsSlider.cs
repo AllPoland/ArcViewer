@@ -43,11 +43,13 @@ public class SettingsSlider : MonoBehaviour
 
     private void OnEnable()
     {
-        if(hideInWebGL && Application.platform == RuntimePlatform.WebGLPlayer)
+#if UNITY_WEBGL
+        if(hideInWebGL)
         {
             gameObject.SetActive(false);
             return;
         }
+#endif
 
         slider = GetComponent<Slider>();
 
