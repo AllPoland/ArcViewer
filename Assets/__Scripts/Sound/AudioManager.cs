@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -6,16 +5,24 @@ public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
 
+#if !UNITY_WEBGL
     private AudioClip _musicClip;
     public AudioClip MusicClip
+#else
+    private WebAudioClip _musicClip;
+    public WebAudioClip MusicClip
+#endif
     {
         get => _musicClip;
         set
         {
             DestroyClip();
-
             _musicClip = value;
+
+#if !UNITY_WEBGL
+            //All processing is handled beforehand on WebGL
             UpdateAudioClip(value);
+#endif
         }
     }
 
@@ -23,6 +30,7 @@ public class AudioManager : MonoBehaviour
     {
         set
         {
+#if !UNITY_WEBGL || UNITY_EDITOR
             if(value == 0)
             {
                 //Can't set this to 0 because Log breaks
@@ -30,16 +38,22 @@ public class AudioManager : MonoBehaviour
             }
             //Logarithmic scaling makes volume slider feel more natural to the user
             musicMixer.SetFloat("Volume", Mathf.Log10(value) * 20);
+#else
+            WebAudioController.SetVolume(value);
+#endif
         }
     }
 
     [SerializeField] private AudioMixer musicMixer;
 
+#if !UNITY_WEBGL
     private AudioSource musicSource;
+#endif
 
 
     public void DestroyClip()
     {
+#if !UNITY_WEBGL
         musicSource.Stop();
         if(musicSource.clip != null)
         {
@@ -55,22 +69,31 @@ public class AudioManager : MonoBehaviour
             Destroy(_musicClip);
             _musicClip = null;
         }
+#else
+        _musicClip?.Dispose();
+#endif
     }
 
 
     public static float GetSongTime()
     {
         if(Instance.MusicClip == null) return 0;
-
+#if !UNITY_WEBGL
         return (float)(Instance.musicSource.timeSamples) / Instance.MusicClip.frequency;
+#else
+        return Instance.MusicClip.Time;
+#endif
     }
 
 
     public static float GetSongLength()
     {
         if(Instance.MusicClip == null) return 0;
-
+#if !UNITY_WEBGL
         return Instance.MusicClip.samples / Instance.MusicClip.frequency;
+#else
+        return Instance.MusicClip.Length;
+#endif
     }
 
 
@@ -84,16 +107,24 @@ public class AudioManager : MonoBehaviour
                 return;
             }
 
+#if !UNITY_WEBGL
             musicSource.time = mapTime;
             musicSource.Play();
+#else
+            MusicClip?.Play(mapTime);
+#endif
         }
         else
         {
+#if !UNITY_WEBGL
             musicSource.Stop();
+#else
+            MusicClip?.Stop();
+#endif
         }
     }
 
-
+#if !UNITY_WEBGL
     private void UpdateAudioClip(AudioClip newClip)
     {
         if(newClip == null)
@@ -162,6 +193,7 @@ public class AudioManager : MonoBehaviour
     {
         musicSource = GetComponent<AudioSource>();
     }
+#endif
 
 
     private void OnEnable()

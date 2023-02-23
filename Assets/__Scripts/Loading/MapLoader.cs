@@ -44,7 +44,7 @@ public class MapLoader : MonoBehaviour
     private IEnumerator LoadMapDirectoryCoroutine(string directory)
     {
         //Loading maps from directories will never work in WebGL
-#if UNITY_WEBGL && !UNITY_EDITOR
+#if UNITY_WEBGL
         Debug.LogWarning("Tried to load from directory in WebGL!");
         ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Loading from directory doesn't work in WebGL!");
 
@@ -178,8 +178,8 @@ public class MapLoader : MonoBehaviour
         }
 
         LoadingMessage = "Loading song";
-        AudioClip song = null;
 #if !UNITY_WEBGL
+        AudioClip song = null;
         if(File.Exists(songData.Path))
         {
             AudioType type = FileUtil.GetAudioTypeByDirectory(info._songFilename);
@@ -203,11 +203,13 @@ public class MapLoader : MonoBehaviour
         }
 #else
         Debug.Log("Loading audio file.");
+        WebAudioClip song = null;
+
         AudioType audioType = FileUtil.GetAudioTypeByDirectory(info._songFilename);
 
         if(audioType == AudioType.OGGVORBIS)
         {
-            Task<AudioClip> audioTask = AudioFileHandler.ClipFromOGGAsync(songData);
+            Task<WebAudioClip> audioTask = AudioFileHandler.ClipFromOGGAsync(songData);
             yield return new WaitUntil(() => audioTask.IsCompleted);
 
             song = audioTask.Result;
@@ -215,7 +217,7 @@ public class MapLoader : MonoBehaviour
         }
         else if(audioType == AudioType.WAV)
         {
-            Task<AudioClip> audioTask = AudioFileHandler.ClipFromWavAsync(songData);
+            Task<WebAudioClip> audioTask = AudioFileHandler.ClipFromWavAsync(songData);
             yield return new WaitUntil(() => audioTask.IsCompleted);
 
             song = audioTask.Result;
@@ -478,8 +480,11 @@ public class MapLoader : MonoBehaviour
         StartCoroutine(LoadMapURLCoroutine(mapURL, mapID));
     }
 
-
+#if !UNITY_WEBGL
     private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song, byte[] coverData)
+#else
+    private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, WebAudioClip song, byte[] coverData)
+#endif
     {
         StopAllCoroutines();
         LoadingMessage = "";
@@ -491,8 +496,12 @@ public class MapLoader : MonoBehaviour
 
             if(song != null)
             {
+#if!UNITY_WEBGL
                 song.UnloadAudioData();
                 Destroy(song);
+#else
+                song.Dispose();
+#endif
             }
             UIStateManager.CurrentState = UIState.MapSelection;
 
