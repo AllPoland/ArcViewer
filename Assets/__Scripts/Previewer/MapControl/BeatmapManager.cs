@@ -130,46 +130,48 @@ public class BeatmapManager : MonoBehaviour
     }
 
 
-    public static void SetDefaultDifficulty()
+    public static Difficulty GetDefaultDifficulty()
     {
-        //Load the default difficulty
         //Else if chains my behated (I can't think of a better way to do this)
         if(Difficulties.Count == 0)
         {
             Debug.LogWarning("Map has no difficulties!");
+            return Difficulty.Empty;
         }
         else if(StandardDifficulties.Count > 0)
         {
-            CurrentMap = StandardDifficulties[StandardDifficulties.Count - 1];
+            return StandardDifficulties.Last();
         }
         else if(OneSaberDifficulties.Count > 0)
         {
-            CurrentMap = OneSaberDifficulties[OneSaberDifficulties.Count - 1];
+            return OneSaberDifficulties.Last();
         }
         else if(NoArrowsDifficulties.Count > 0)
         {
-            CurrentMap = NoArrowsDifficulties[NoArrowsDifficulties.Count - 1];
+            return NoArrowsDifficulties.Last();
         }
         else if(ThreeSixtyDifficulties.Count > 0)
         {
-            CurrentMap = ThreeSixtyDifficulties[ThreeSixtyDifficulties.Count - 1];
+            return ThreeSixtyDifficulties.Last();
         }
         else if(NinetyDifficulties.Count > 0)
         {
-            CurrentMap = NinetyDifficulties[NinetyDifficulties.Count - 1];
+            return NinetyDifficulties[NinetyDifficulties.Count - 1];
         }
         else if(LightshowDifficulties.Count > 0)
         {
-            CurrentMap = LightshowDifficulties[LightshowDifficulties.Count - 1];
+            return LightshowDifficulties.Last();
         }
         else if(LawlessDifficulties.Count > 0)
         {
-            CurrentMap = LawlessDifficulties[LawlessDifficulties.Count - 1];
+            return LawlessDifficulties.Last();
         }
         else if(UnknownDifficulties.Count > 0)
         {
-            CurrentMap = UnknownDifficulties[UnknownDifficulties.Count - 1];
+            return UnknownDifficulties.Last();
         }
+
+        return Difficulty.Empty;
     }
 
 

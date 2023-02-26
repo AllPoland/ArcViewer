@@ -16549,6 +16549,7 @@ GameObject:
   - component: {fileID: 776929604}
   - component: {fileID: 776929608}
   - component: {fileID: 776929609}
+  - component: {fileID: 776929610}
   m_Layer: 0
   m_Name: Objects
   m_TagString: Untagged
@@ -16654,6 +16655,19 @@ MonoBehaviour:
   chainManager: {fileID: 395449319}
   arcManager: {fileID: 716710649}
   wallManager: {fileID: 1101988759}
+--- !u!114 &776929610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 776929600}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6544f241e4802c49a851b5de8b59737, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapLoader: {fileID: 776929608}
 --- !u!1 &778404757
 GameObject:
   m_ObjectHideFlags: 0

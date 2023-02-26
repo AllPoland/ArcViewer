@@ -15,7 +15,7 @@ mergeInto(LibraryManager.library, {
     this.gainNode.connect(this.audioCtx.destination);
   },
 
-  CreateClip: function (id, channels, length, frequency) {
+  CreateClip: function(id, channels, length, frequency) {
     const clip = this.audioCtx.createBufferSource();
     const buffer = this.audioCtx.createBuffer(channels, length, frequency);
 

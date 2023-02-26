@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 
 public class MapLoader : MonoBehaviour
 {
-    private static bool _loading;
+    private static bool _loading = false;
     public static bool Loading
     {
         get => _loading;
@@ -26,6 +26,7 @@ public class MapLoader : MonoBehaviour
     public static float Progress;
 
     public static event Action<bool> OnLoadingChanged;
+    public static event Action OnMapLoaded;
 
     //Used by ZipReader since you can't get Application.persistentDataPath on a secondary thread
     public static string persistentDataPath;
@@ -384,14 +385,14 @@ public class MapLoader : MonoBehaviour
 #endif
 
 
-    private IEnumerator LoadMapURLCoroutine(string url, string mapID)
+    public IEnumerator LoadMapURLCoroutine(string url, string mapID = null)
     {
         Loading = true;
 
 #if !UNITY_WEBGL || UNITY_EDITOR
         //Use the map id as the map key to avoid making requests to beatsaver for cached maps
         //This method of doing this is pretty yucky but it gets the job done so fuck it
-        string cacheKey = mapID != "" ? mapID : url;
+        string cacheKey = string.IsNullOrEmpty(mapID) ? url : mapID;
         string cachedMapPath = FileCache.GetCachedFile(cacheKey);
 
         if(cachedMapPath != null && cachedMapPath != "")
@@ -450,7 +451,7 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    private IEnumerator LoadMapIDCoroutine(string mapID)
+    public IEnumerator LoadMapIDCoroutine(string mapID)
     {
         Loading = true;
 
@@ -523,7 +524,9 @@ public class MapLoader : MonoBehaviour
         else CoverImageHandler.Instance.ClearImage();
 
         BeatmapManager.Difficulties = difficulties;
-        BeatmapManager.SetDefaultDifficulty();
+        BeatmapManager.CurrentMap = BeatmapManager.GetDefaultDifficulty();
+
+        OnMapLoaded?.Invoke();
     }
 
 
@@ -606,7 +609,7 @@ public class MapLoader : MonoBehaviour
                 return;
             }
 
-            StartCoroutine(LoadMapURLCoroutine(mapDirectory, ""));
+            StartCoroutine(LoadMapURLCoroutine(mapDirectory));
             return;
         }
 

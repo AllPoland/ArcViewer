@@ -45,7 +45,10 @@ public class AudioFileHandler
                 //Read only a few samples per loop before yielding
                 //This is such a yucky and slow method but it's the best I can come up with for now
                 vorbis.ReadSamples(buffer, 0, readSamples);
-                newClip.SetData(buffer, i / vorbis.Channels);
+                if(buffer.Length > 0)
+                {
+                    newClip.SetData(buffer, i / vorbis.Channels);
+                }
 
                 MapLoader.Progress = (float)i / totalSamples;
                 i += readSamples;
@@ -163,7 +166,11 @@ public class AudioFileHandler
                         Debug.LogWarning("Unable to read bit depth from wav!");
                         return null;
                 }
-                newClip.SetData(buffer, i / channels);
+
+                if(buffer.Length > 0)
+                {
+                    newClip.SetData(buffer, i / channels);
+                }
 
                 MapLoader.Progress = (float)i / sampleCount;
                 i += readSamples;
@@ -176,6 +183,11 @@ public class AudioFileHandler
                 int targetSamples = (int)((double)readSamples * timeRatio);
                 //Avoid trying to read samples past the end of the song
                 readSamples = Mathf.Min(targetSamples, sampleCount - i);
+
+                if(readSamples < 0)
+                {
+                    readSamples = 0;
+                }
 
                 await Task.Yield();
             }

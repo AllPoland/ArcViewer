@@ -80,7 +80,7 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
     }
 
 
-    private void Start()
+    private void OnEnable()
     {
         TimeManager.OnBeatChanged += UpdateSlider;
         TimeManager.OnPlayingChanged += UpdatePlaying;
