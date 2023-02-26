@@ -5,7 +5,7 @@ using UnityEngine.Audio;
 
 public class HitSoundManager : MonoBehaviour
 {
-    public const float SoundOffset = 0.185f;
+    public const float SoundOffset = -0.185f;
 
     public static AudioClip HitSound;
     public static List<ScheduledSound> scheduledSounds = new List<ScheduledSound>();
@@ -47,8 +47,6 @@ public class HitSoundManager : MonoBehaviour
 
     public static void ScheduleHitsound(float noteTime, AudioSource noteSource)
     {
-        noteTime -= SoundOffset;
-
         noteSource.enabled = true;
         noteSource.Stop();
         noteSource.clip = HitSound;
@@ -98,8 +96,6 @@ public class HitSoundManager : MonoBehaviour
             source = noteSource,
             time = noteTime
         };
-
-        TimeManager.OnBeatChanged += sound.UpdateTime;
         scheduledSounds.Add(sound);
     }
 
@@ -122,9 +118,38 @@ public class HitSoundManager : MonoBehaviour
     }
 
 
+    public void UpdateTimeScale(float newScale)
+    {
+        for(int i = scheduledSounds.Count - 1; i >= 0; i--)
+        {
+            ScheduledSound sound = scheduledSounds[i];
+
+            //If the sound is already scheduled, try to reschedule it with the correct timing
+            if(sound.scheduled)
+            {
+                sound.source.Stop();
+                sound.scheduled = false;
+
+                sound.UpdateTime();
+            }
+        }
+    }
+
+
+    private void Update()
+    {
+        for(int i = scheduledSounds.Count - 1; i >= 0; i--)
+        {
+            //Update each sound's priority and queue and such
+            scheduledSounds[i].UpdateTime();
+        }
+    }
+
+
     private void Start()
     {
         TimeManager.OnPlayingChanged += UpdatePlaying;
+        TimeSyncHandler.OnTimeScaleChanged += UpdateTimeScale;
     }
 
 
@@ -140,8 +165,7 @@ public class ScheduledSound
     public List<ScheduledSound> parentList;
     public AudioSource source;
     public float time;
-
-    private bool scheduled;
+    public bool scheduled;
 
 
     public void Destroy()
@@ -151,12 +175,11 @@ public class ScheduledSound
             source.Stop();
         }
 
-        TimeManager.OnBeatChanged -= UpdateTime;
         parentList.Remove(this);
     }
 
 
-    public void UpdateTime(float currentBeat)
+    public void UpdateTime()
     {
         if(source == null || !source.isActiveAndEnabled)
         {
@@ -166,7 +189,11 @@ public class ScheduledSound
 
         float currentTime = AudioManager.GetSongTime();
 
-        if(!scheduled && currentTime > time)
+        //Account for time scale and sound offset
+        float timeDifference = (time - currentTime) / TimeSyncHandler.TimeScale;
+        float scheduleIn = timeDifference + HitSoundManager.SoundOffset;
+
+        if(!scheduled && scheduleIn <= 0)
         {
             //The sound should already be playing by this point
             //Trying to schedule now would just make it off-time and wouldn't be worth it
@@ -176,7 +203,7 @@ public class ScheduledSound
 
         if(HitSoundManager.DynamicPriority)
         {
-            //Dynamically set sound priority so sounds don't get overridden by scheduled sounds
+            //Dynamically set sound priority so playing sounds don't get overridden by scheduled sounds
             //Thanks galx for making this code
             if(currentTime - time > 0)
             {
@@ -191,11 +218,10 @@ public class ScheduledSound
         }
         else source.priority = 100;
 
-        float timeDifference = time - currentTime;
-        if(!scheduled && !source.isPlaying && timeDifference <= HitSoundManager.ScheduleBuffer)
+        if(!scheduled && !source.isPlaying && scheduleIn <= HitSoundManager.ScheduleBuffer)
         {
             //Audio hasn't been scheduled but it should be
-            source.PlayScheduled(AudioSettings.dspTime + timeDifference);
+            source.PlayScheduled(AudioSettings.dspTime + scheduleIn);
             scheduled = true;
         }
     }

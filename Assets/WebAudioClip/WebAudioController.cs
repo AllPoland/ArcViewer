@@ -20,6 +20,9 @@ public class WebAudioController : MonoBehaviour
 
     [DllImport("__Internal")]
     public static extern void SetVolume(float volume);
+
+    [DllImport("__Internal")]
+    public static extern void SetPlaybackSpeed(int id, float speed);
     
     [DllImport("__Internal")]
     private static extern void Start(int id, float time);

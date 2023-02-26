@@ -19,6 +19,9 @@ public class AudioManager : MonoBehaviour
             DestroyClip();
             _musicClip = value;
 
+            //Make sure the clip has the correct speed
+            UpdateSpeed(TimeSyncHandler.TimeScale);
+
 #if !UNITY_WEBGL
             //All processing is handled beforehand on WebGL
             UpdateAudioClip(value);
@@ -124,6 +127,20 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+
+    public void UpdateSpeed(float speed)
+    {
+#if !UNITY_WEBGL
+        if(musicSource.clip != null)
+        {
+            musicSource.pitch = speed;
+        }
+#else
+        MusicClip?.SetSpeed(speed);
+#endif
+    }
+
+
 #if !UNITY_WEBGL
     private void UpdateAudioClip(AudioClip newClip)
     {
@@ -210,5 +227,6 @@ public class AudioManager : MonoBehaviour
     private void Start()
     {
         TimeManager.OnPlayingChanged += UpdatePlaying;
+        TimeSyncHandler.OnTimeScaleChanged += UpdateSpeed;
     }
 }

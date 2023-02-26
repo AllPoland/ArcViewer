@@ -14,7 +14,7 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
 
     public void UpdateSlider(float beat)
     {
-        slider.value = TimeManager.Progress;
+        slider.SetValueWithoutNotify(TimeManager.Progress);
     }
 
 

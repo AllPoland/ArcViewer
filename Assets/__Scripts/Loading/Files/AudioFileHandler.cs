@@ -38,8 +38,7 @@ public class AudioFileHandler
             int i = 0;
             while(i < totalSamples)
             {
-                stopwatch.Reset();
-                stopwatch.Start();
+                stopwatch.Restart();
 
                 float[] buffer = new float[readSamples];
 
@@ -60,10 +59,17 @@ public class AudioFileHandler
                 //Avoid trying to read samples past the end of the song
                 readSamples = Mathf.Min(targetSamples, totalSamples - i);
 
+                if(readSamples < 0)
+                {
+                    readSamples = 0;
+                }
+
                 await Task.Yield();
             }
             MapLoader.Progress = 0;
+            
             vorbis.Dispose();
+            stopwatch.Reset();
 
             return newClip;
         }
@@ -128,8 +134,7 @@ public class AudioFileHandler
             int i = 0;
             while(i < sampleCount)
             {
-                stopwatch.Reset();
-                stopwatch.Start();
+                stopwatch.Restart();
 
                 float[] buffer = new float[readSamples];
 
@@ -177,6 +182,7 @@ public class AudioFileHandler
             MapLoader.Progress = 0;
 
             reader.Dispose();
+            stopwatch.Reset();
 
             return newClip;
         }

@@ -3,10 +3,12 @@ mergeInto(LibraryManager.library, {
   Initcontroller: function() {
     this.audioCtx = new AudioContext();
     this.clips = {};
-    this.soundTimes = {};
+    this.soundStartTimes = {};
 
     this.playing = false;
     this.volume = 0.5;
+    this.playbackSpeed = 1;
+    this.lastPlayed = this.audioCtx.currentTime;
 
     this.gainNode = this.audioCtx.createGain();
     this.gainNode.gain.setValueAtTime(0.001, this.audioCtx.currentTime);
@@ -23,7 +25,7 @@ mergeInto(LibraryManager.library, {
 
   DisposeClip: function(id) {
     delete(this.clips[id]);
-    delete(this.soundTimes[id]);
+    delete(this.soundStartTimes[id]);
   },
 
   UploadData: function(id, samples, size, offset, channels, frequency) {
@@ -37,7 +39,7 @@ mergeInto(LibraryManager.library, {
       var buffer = clip.buffer;
     }
 
-    for(var channel = 0; channel < channels; ++channel) {
+    for(var channel = 0; channel < channels; channel++) {
       const channelSamples = [];
 
       for(var i = channel; i < size; i += channels) {
@@ -70,12 +72,14 @@ mergeInto(LibraryManager.library, {
     const newClip = this.audioCtx.createBufferSource();
 
     newClip.buffer = clip.buffer;
+    newClip.playbackRate.value = this.playbackSpeed;
 
     newClip.start(0, time);
     newClip.connect(this.gainNode);
 
     this.clips[id] = newClip;
-    this.soundTimes[id] = this.audioCtx.currentTime - time;
+    this.soundStartTimes[id] = time;
+    this.lastPlayed = this.audioCtx.currentTime;
 
     this.audioCtx.resume();
     this.playing = true;
@@ -104,7 +108,8 @@ mergeInto(LibraryManager.library, {
   },
 
   GetSoundTime: function(id) {
-    return this.audioCtx.currentTime - this.soundTimes[id];
+    const passedTime = this.audioCtx.currentTime - this.lastPlayed;
+    return this.soundStartTimes[id] + (passedTime * this.playbackSpeed);
   },
 
   SetVolume: function(volume) {
@@ -113,5 +118,16 @@ mergeInto(LibraryManager.library, {
     if(this.playing) {
       this.gainNode.gain.setValueAtTime(volume, this.audioCtx.currentTime);
     }
+  },
+
+  SetPlaybackSpeed: function(id, speed) {
+    if(this.playing) {
+      this.clips[id].playbackRate.value = speed;
+
+      const passedTime = this.audioCtx.currentTime - this.lastPlayed;
+      this.soundStartTimes[id] += passedTime * this.playbackSpeed;
+    }
+    this.playbackSpeed = speed;
+    this.lastPlayed = this.audioCtx.currentTime;
   }
 });

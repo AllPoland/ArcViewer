@@ -290,8 +290,10 @@ public class MapLoader : MonoBehaviour
                 archive.Dispose();
             }
 
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load the zip file!");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load zip file!");
             Debug.LogWarning($"Unhandled exception loading zip: {err.Message}, {err.StackTrace}.");
+
+            UpdateMapInfo(null, new List<Difficulty>(), null, null);
         }
     }
 
@@ -299,7 +301,6 @@ public class MapLoader : MonoBehaviour
 #if UNITY_WEBGL && !UNITY_EDITOR
     private IEnumerator LoadMapZipWebGLCoroutine(string directory)
     {
-        Debug.Log("Loading zip in WebGL mode.");
         Loading = true;
         LoadingMessage = "Loading zip";
 
@@ -443,6 +444,8 @@ public class MapLoader : MonoBehaviour
 
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to read map zip!");
             Debug.LogWarning($"Unhandled exception loading zip URL: {err.Message}, {err.StackTrace}");
+
+            UpdateMapInfo(null, new List<Difficulty>(), null, null);
         }
     }
 

@@ -68,6 +68,19 @@ public class WebAudioClip : IDisposable
     }
 
 
+    public void SetSpeed(float speed)
+    {
+#if UNITY_EDITOR
+        if(unitySource != null)
+        {
+            unitySource.pitch = speed;
+        }
+#else
+        WebAudioController.SetPlaybackSpeed(clipId, speed);
+#endif
+    }
+
+
     public void Play(float time = 0f)
     {
         if(isPlaying) return;

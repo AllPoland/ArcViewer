@@ -30,9 +30,10 @@ public class TimeSliderTooltip : MonoBehaviour
         //Need to get the exact width in pixels for mouse position to work properly
         Rect sliderRect = sliderRectTransform.rect;
         float sliderPixelWidth = sliderRect.width * parentCanvas.scaleFactor;
+        float offset = sliderRectTransform.anchoredPosition.x * parentCanvas.scaleFactor;
 
         float midPoint = Camera.main.pixelWidth / 2;
-        float leftX = midPoint - sliderPixelWidth / 2;
+        float leftX = midPoint - (sliderPixelWidth / 2) + offset;
 
         //Get mouse position relative to the slider
         float targetPos = Mathf.Clamp(Input.mousePosition.x - leftX, 0, sliderPixelWidth);
@@ -45,7 +46,7 @@ public class TimeSliderTooltip : MonoBehaviour
         UpdateText(targetTime, targetBeat);
 
         //Scale back to canvas scale to set position
-        rectTransform.anchoredPosition = new Vector2(sliderProgress * sliderRect.width, rectTransform.anchoredPosition.y);
+        rectTransform.anchoredPosition = new Vector2(targetPos / parentCanvas.scaleFactor, rectTransform.anchoredPosition.y);
     }
 
 
