@@ -2,34 +2,17 @@ using UnityEngine;
 
 public class AppInfoPanel : MonoBehaviour
 {
-    [SerializeField] private GameObject infoPanel;
-    [SerializeField] private GameObject mapSelect;
+    [SerializeField] private GameObject openInfoButton;
 
 
-    public void SetMapSelect()
+    private void OnEnable()
     {
-        mapSelect.SetActive(true);
-        infoPanel.SetActive(false);
+        openInfoButton.SetActive(false);
     }
 
 
-    public void SetInfoScreen()
+    private void OnDisable()
     {
-        if(MapLoader.Loading || UIStateManager.CurrentState != UIState.MapSelection)
-        {
-            return;
-        }
-
-        infoPanel.SetActive(true);
-        mapSelect.SetActive(false);
-    }
-
-
-    private void Update()
-    {
-        if(Input.GetButtonDown("Cancel") && infoPanel.activeInHierarchy)
-        {
-            SetMapSelect();
-        }
+        openInfoButton.SetActive(true);
     }
 }

@@ -7,9 +7,10 @@ public class DialogueHandler : MonoBehaviour
     public static DialogueHandler Instance { get; private set; }
 
     public static List<DialogueBox> OpenBoxes = new List<DialogueBox>();
-    public static bool DialogueActive => OpenBoxes.Count > 0;
+    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy;
 
     [SerializeField] private GameObject dialogueBoxPrefab;
+    [SerializeField] private GameObject infoPanel;
 
 
     public static void ShowDialogueBox(string text, Action<DialogueResponse> callback, DialogueBoxType type)
@@ -27,17 +28,35 @@ public class DialogueHandler : MonoBehaviour
     }
 
 
+    public void SetInfoPanelActive(bool active)
+    {
+        Instance.infoPanel.SetActive(active);
+    }
+
+
     public static void ClearDialogueBoxes()
     {
         for(int i = OpenBoxes.Count - 1; i >= 0; i--)
         {
             OpenBoxes[i].Close();
         }
+
+        Instance.SetInfoPanelActive(false);
     }
 
 
     private void DialogueKeybinds()
     {
+        if(OpenBoxes.Count <= 0)
+        {
+            //No generic dialogue boxes, check for special dialogues
+            if(Instance.infoPanel.activeInHierarchy && Input.GetButtonDown("Cancel"))
+            {
+                SetInfoPanelActive(false);
+            }
+            return;
+        }
+
         DialogueBox currentBox = OpenBoxes[OpenBoxes.Count - 1];
 
         if(Input.GetButtonDown("Cancel"))

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -131,10 +132,7 @@ public class AudioManager : MonoBehaviour
     public void UpdateSpeed(float speed)
     {
 #if !UNITY_WEBGL
-        if(musicSource.clip != null)
-        {
-            musicSource.pitch = speed;
-        }
+        musicSource.pitch = speed;
 #else
         MusicClip?.SetSpeed(speed);
 #endif
