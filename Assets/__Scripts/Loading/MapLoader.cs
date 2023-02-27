@@ -392,7 +392,6 @@ public class MapLoader : MonoBehaviour
 
 #if !UNITY_WEBGL || UNITY_EDITOR
         //Use the map id as the map key to avoid making requests to beatsaver for cached maps
-        //This method of doing this is pretty yucky but it gets the job done so fuck it
         string cacheKey = string.IsNullOrEmpty(mapID) ? url : mapID;
         string cachedMapPath = FileCache.GetCachedFile(cacheKey);
 

@@ -13,11 +13,7 @@ An open source 3D Beat Saber map previewer, designed to give users an accurate r
 ## Planned Features
 These features aren't included yet, but are very likely to be added in the future.
 
-- Browser port through WebGL
-
 - Support for precision placement/rotation through mapping/noodle extensions
-
-- Modifying playback speed
 
 - 360/90 degree gamemode support (currently just displays as a regular map without rotation events)
 

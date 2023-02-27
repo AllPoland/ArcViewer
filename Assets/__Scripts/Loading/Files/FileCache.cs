@@ -46,6 +46,13 @@ public class FileCache
         }
 
         CachedFile match = CachedFiles.FirstOrDefault(x => x.Key == key);
+        if(match != null)
+        {
+            //Move this file to the end of the list
+            CachedFiles.Remove(match);
+            CachedFiles.Add(match);
+        }
+
         return match?.FilePath ?? "";
     }
 

@@ -40,6 +40,9 @@ public class AudioFileHandler
             {
                 stopwatch.Restart();
 
+                //Negative readSamples would be very bad
+                readSamples = Mathf.Max(readSamples, 0);
+
                 float[] buffer = new float[readSamples];
 
                 //Read only a few samples per loop before yielding
@@ -56,16 +59,13 @@ public class AudioFileHandler
                 stopwatch.Stop();
 
                 //Adjust how many samples to read based on time to run
+                readSamples = Mathf.Max(readSamples, 1);
+
                 double elapsedTime = (double)stopwatch.ElapsedMilliseconds / 1000;
                 double timeRatio = targetTime / elapsedTime;
                 int targetSamples = (int)((double)readSamples * timeRatio);
                 //Avoid trying to read samples past the end of the song
                 readSamples = Mathf.Min(targetSamples, totalSamples - i);
-
-                if(readSamples < 0)
-                {
-                    readSamples = 0;
-                }
 
                 await Task.Yield();
             }
@@ -139,6 +139,9 @@ public class AudioFileHandler
             {
                 stopwatch.Restart();
 
+                //Negative readSamples would be very bad
+                readSamples = Mathf.Max(readSamples, 0);
+
                 float[] buffer = new float[readSamples];
 
                 //Read the audio data
@@ -178,16 +181,13 @@ public class AudioFileHandler
                 stopwatch.Stop();
 
                 //Adjust how many samples to read based on time to run
+                readSamples = Mathf.Max(readSamples, 1);
+
                 double elapsedTime = (double)stopwatch.ElapsedMilliseconds / 1000;
                 double timeRatio = targetTime / elapsedTime;
                 int targetSamples = (int)((double)readSamples * timeRatio);
                 //Avoid trying to read samples past the end of the song
                 readSamples = Mathf.Min(targetSamples, sampleCount - i);
-
-                if(readSamples < 0)
-                {
-                    readSamples = 0;
-                }
 
                 await Task.Yield();
             }

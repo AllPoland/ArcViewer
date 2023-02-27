@@ -52,6 +52,7 @@ public class WebLoader : MonoBehaviour
                 Debug.LogWarning($"{uwr.error}");
                 DownloadSize = 0;
             }
+            uwr.Dispose();
 
             //Download request
             uwr = UnityWebRequest.Get(url);
