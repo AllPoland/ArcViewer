@@ -135,7 +135,6 @@ public class BeatmapManager : MonoBehaviour
         //Else if chains my behated (I can't think of a better way to do this)
         if(Difficulties.Count == 0)
         {
-            Debug.LogWarning("Map has no difficulties!");
             return Difficulty.Empty;
         }
         else if(StandardDifficulties.Count > 0)

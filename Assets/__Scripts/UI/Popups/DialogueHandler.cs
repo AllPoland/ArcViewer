@@ -7,10 +7,11 @@ public class DialogueHandler : MonoBehaviour
     public static DialogueHandler Instance { get; private set; }
 
     public static List<DialogueBox> OpenBoxes = new List<DialogueBox>();
-    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy;
+    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy || Instance.sharePanel.activeInHierarchy;
 
     [SerializeField] private GameObject dialogueBoxPrefab;
     [SerializeField] private GameObject infoPanel;
+    [SerializeField] private GameObject sharePanel;
 
 
     public static void ShowDialogueBox(string text, Action<DialogueResponse> callback, DialogueBoxType type)
@@ -34,6 +35,12 @@ public class DialogueHandler : MonoBehaviour
     }
 
 
+    public void SetSharePanelActive(bool active)
+    {
+        Instance.sharePanel.SetActive(active);
+    }
+
+
     public static void ClearDialogueBoxes()
     {
         for(int i = OpenBoxes.Count - 1; i >= 0; i--)
@@ -42,6 +49,7 @@ public class DialogueHandler : MonoBehaviour
         }
 
         Instance.SetInfoPanelActive(false);
+        Instance.SetSharePanelActive(false);
     }
 
 
@@ -50,9 +58,19 @@ public class DialogueHandler : MonoBehaviour
         if(OpenBoxes.Count <= 0)
         {
             //No generic dialogue boxes, check for special dialogues
-            if(Instance.infoPanel.activeInHierarchy && Input.GetButtonDown("Cancel"))
+            if(Input.GetButtonDown("Cancel"))
             {
-                SetInfoPanelActive(false);
+                if(Instance.sharePanel.activeInHierarchy)
+                {
+                    SetSharePanelActive(false);
+                    return;
+                }
+
+                if(Instance.infoPanel.activeInHierarchy)
+                {
+                    SetInfoPanelActive(false);
+                    return;
+                }
             }
             return;
         }

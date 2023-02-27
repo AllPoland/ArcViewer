@@ -6,25 +6,54 @@ using UnityEngine;
 
 public class UrlArgHandler : MonoBehaviour
 {
+    public const string ArcViewerURL = "https://this.is.a.url/";
+
     [DllImport("__Internal")]
     public static extern string GetParameters();
 
-    public static string MapID;
-    public static string MapURL;
-    public static float StartTime;
-    public static DifficultyCharacteristic? Mode;
-    public static DifficultyRank? DiffRank;
+    private static string _loadedMapID;
+    public static string LoadedMapID
+    {
+        get => _loadedMapID;
+
+        set
+        {
+            _loadedMapID = value;
+            _loadedMapURL = null;
+        }
+    }
+
+    private static string _loadedMapURL;
+    public static string LoadedMapURL
+    {
+        get => _loadedMapURL;
+
+        set
+        {
+            _loadedMapURL = value;
+            _loadedMapID = null;
+        }
+    }
+
+    public static DifficultyCharacteristic? LoadedCharacteristic;
+    public static DifficultyRank? LoadedDiffRank;
+
+    private static string mapID;
+    private static string mapURL;
+    private static float startTime;
+    private static DifficultyCharacteristic? mode;
+    private static DifficultyRank? diffRank;
 
     [SerializeField] private MapLoader mapLoader;
 
 
     public void LoadMapFromParameters(string parameters)
     {
-        MapID = "";
-        MapURL = "";
-        StartTime = 0;
-        Mode = null;
-        DiffRank = null;
+        mapID = "";
+        mapURL = "";
+        startTime = 0;
+        mode = null;
+        diffRank = null;
 
         if(MapLoader.Loading) return;
 
@@ -54,86 +83,99 @@ public class UrlArgHandler : MonoBehaviour
             switch(name)
             {
                 case "id":
-                    MapID = value;
+                    mapID = value;
                     break;
                 case "url":
-                    MapURL = value;
+                    mapURL = value;
                     break;
                 case "t":
-                    success = float.TryParse(value, out StartTime);
-                    if(!success) StartTime = 0;
+                    success = float.TryParse(value, out startTime);
+                    if(!success) startTime = 0;
                     break;
                 case "mode":
                     DifficultyCharacteristic parsedMode;
                     success = Enum.TryParse(value, true, out parsedMode);
-                    Mode = success ? parsedMode : null;
+                    mode = success ? parsedMode : null;
                     break;
                 case "difficulty":
                     DifficultyRank parsedRank;
                     success = Enum.TryParse(value, true, out parsedRank);
-                    DiffRank = success ? parsedRank : null;
+                    diffRank = success ? parsedRank : null;
                     break;
             }
         }
 
-        if(StartTime > 0)
+        if(startTime > 0)
         {
             MapLoader.OnMapLoaded += SetTime;
         }
 
-        if(Mode != null || DiffRank != null)
+        if(mode != null || diffRank != null)
         {
             MapLoader.OnMapLoaded += SetDifficulty;
         }
 
-        if(!string.IsNullOrEmpty(MapID))
+        if(!string.IsNullOrEmpty(mapID))
         {
-            StartCoroutine(mapLoader.LoadMapIDCoroutine(MapID));
+            StartCoroutine(mapLoader.LoadMapIDCoroutine(mapID));
+            LoadedMapID = mapID;
         }
-        else if(!string.IsNullOrEmpty(MapURL))
+        else if(!string.IsNullOrEmpty(mapURL))
         {
-            StartCoroutine(mapLoader.LoadMapURLCoroutine(MapURL));
+            StartCoroutine(mapLoader.LoadMapURLCoroutine(mapURL));
+            LoadedMapURL = mapURL;
         }
     }
 
 
     public void SetTime()
     {
-        TimeManager.CurrentTime = StartTime;
-
-        StartTime = 0;
+        TimeManager.CurrentTime = startTime;
         MapLoader.OnMapLoaded -= SetTime;
     }
 
 
     public void SetDifficulty()
     {
-        if(Mode != null)
+        if(mode != null)
         {
-            //Since Mode is nullable I have to cast it (cringe)
-            DifficultyCharacteristic characteristic = (DifficultyCharacteristic)Mode;
+            //Since mode is nullable I have to cast it (cringe)
+            DifficultyCharacteristic characteristic = (DifficultyCharacteristic)mode;
 
             List<Difficulty> difficulties = BeatmapManager.GetDifficultiesByCharacteristic(characteristic);
             Difficulty difficulty = null;
 
-            if(DiffRank != null)
+            if(diffRank != null)
             {
-                difficulty = difficulties.FirstOrDefault(x => x.difficultyRank == DiffRank);
+                difficulty = difficulties.FirstOrDefault(x => x.difficultyRank == diffRank);
             }
             BeatmapManager.CurrentMap = difficulty ?? difficulties.Last();
         }
-        else if(DiffRank != null)
+        else if(diffRank != null)
         {
             DifficultyCharacteristic defaultCharacteristic = BeatmapManager.GetDefaultDifficulty().characteristic;
             List<Difficulty> difficulties = BeatmapManager.GetDifficultiesByCharacteristic(defaultCharacteristic);
 
-            Difficulty difficulty = difficulties.FirstOrDefault(x => x.difficultyRank == DiffRank);
+            Difficulty difficulty = difficulties.FirstOrDefault(x => x.difficultyRank == diffRank);
             BeatmapManager.CurrentMap = difficulty ?? difficulties.Last();
         }
-
-        Mode = null;
-        DiffRank = null;
         MapLoader.OnMapLoaded -= SetDifficulty;
+    }
+
+
+    public void UpdateLoadedDifficulty(Difficulty newDifficulty)
+    {
+        Difficulty defaultDifficulty = BeatmapManager.GetDefaultDifficulty();
+        if(newDifficulty == defaultDifficulty)
+        {
+            //No need to specify for the default difficulty
+            LoadedCharacteristic = null;
+            LoadedDiffRank = null;
+            return;
+        }
+
+        LoadedCharacteristic = newDifficulty.characteristic;
+        LoadedDiffRank = newDifficulty.difficultyRank;
     }
 
 
@@ -148,5 +190,6 @@ public class UrlArgHandler : MonoBehaviour
             LoadMapFromParameters(parameters);
         }
 #endif
+        BeatmapManager.OnBeatmapDifficultyChanged += UpdateLoadedDifficulty;
     }
 }

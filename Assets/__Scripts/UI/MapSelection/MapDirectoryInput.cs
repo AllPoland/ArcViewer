@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -6,6 +7,7 @@ using TMPro;
 public class MapDirectoryInput : MonoBehaviour
 {
     [SerializeField] private MapLoader mapLoader;
+    [SerializeField] private UrlArgHandler urlArgHandler;
     [SerializeField] private TMP_InputField directoryField;
     [SerializeField] private Button openButton;
 
@@ -16,10 +18,21 @@ public class MapDirectoryInput : MonoBehaviour
 
     public void LoadMap()
     {
-        if(MapDirectory != "")
+        if(MapDirectory == "") return;
+
+        if(MapDirectory.Contains(UrlArgHandler.ArcViewerURL))
         {
-            mapLoader.LoadMapDirectory(MapDirectory);
+            //Input a shared link
+            if(MapDirectory.Count(x => x == '?') == 1)
+            {
+                //URL contains one question mark, which means it has parameters
+                string parameters = MapDirectory.Split('?').Last();
+                urlArgHandler.LoadMapFromParameters(parameters);
+                return;
+            }
         }
+
+        mapLoader.LoadMapDirectory(MapDirectory);
     }
 
 
@@ -39,12 +52,10 @@ public class MapDirectoryInput : MonoBehaviour
         }
     }
 
-
+#if UNITY_WEBGL
     private void Start()
     {
-        if(Application.platform == RuntimePlatform.WebGLPlayer)
-        {
-            directoryField.placeholder.GetComponent<TextMeshProUGUI>().text = webGLPlaceholder;
-        }
+        directoryField.placeholder.GetComponent<TextMeshProUGUI>().text = webGLPlaceholder;
     }
+#endif
 }

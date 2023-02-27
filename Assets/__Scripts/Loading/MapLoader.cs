@@ -381,6 +381,7 @@ public class MapLoader : MonoBehaviour
         }
 
         StartCoroutine(LoadMapZipWebGLCoroutine(directory));
+        UrlArgHandler.LoadedMapURL = null;
     }
 #endif
 
@@ -606,10 +607,13 @@ public class MapLoader : MonoBehaviour
                 //Direct beatsaver link, should load based on ID instead
                 string ID = mapDirectory.Split("/").Last();
                 StartCoroutine(LoadMapIDCoroutine(ID));
+
+                UrlArgHandler.LoadedMapID = ID;
                 return;
             }
 
             StartCoroutine(LoadMapURLCoroutine(mapDirectory));
+            UrlArgHandler.LoadedMapURL = mapDirectory;
             return;
         }
 
@@ -618,6 +622,7 @@ public class MapLoader : MonoBehaviour
         if(!mapDirectory.Any(x => !IDchars.Contains(x)))
         {
             StartCoroutine(LoadMapIDCoroutine(mapDirectory));
+            UrlArgHandler.LoadedMapID = mapDirectory;
             return;
         }
 
@@ -625,6 +630,8 @@ public class MapLoader : MonoBehaviour
         //Loading files from string directories doesn't work in WebGL
         ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Invalid URL!");
 #else
+        UrlArgHandler.LoadedMapURL = null;
+
         if(mapDirectory.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
         {
             if(!File.Exists(mapDirectory))
