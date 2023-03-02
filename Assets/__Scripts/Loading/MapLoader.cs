@@ -47,7 +47,7 @@ public class MapLoader : MonoBehaviour
         //Loading maps from directories will never work in WebGL
 #if UNITY_WEBGL
         Debug.LogWarning("Tried to load from directory in WebGL!");
-        ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Loading from directory doesn't work in WebGL!");
+        ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Loading from directory doesn't work in browser!");
 
         UpdateMapInfo(null, new List<Difficulty>(), null, null);
         yield break;

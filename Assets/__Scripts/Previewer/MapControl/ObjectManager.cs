@@ -151,14 +151,64 @@ public class ObjectManager : MonoBehaviour
         return SpawnParabola(targetY, startY, halfJumpDistance, GetZPosition(objectTime));
     }
 
+
+    public static float MappingExtensionsPrecision(float value)
+    {
+        //When position values are further than 1000 away, they're on the "precision placement" grid
+        if(Mathf.Abs(value) >= 1000)
+        {
+            value -= 1000 * Mathf.Sign(value);
+            value /= 1000;
+        }
+        return value;
+    }
+
+
+    public static Vector2 MappingExtensionsPosition(Vector2 position)
+    {
+        position.x = MappingExtensionsPrecision(position.x);
+        position.y = MappingExtensionsPrecision(position.y);
+        return position;
+    }
+
+
+    public static float? MappingExtensionsAngle(int cutDirection)
+    {
+        //When the cut direction is above 1000, it's in the "precision angle" space
+        if(cutDirection >= 1000)
+        {
+            float angle = (cutDirection - 1000) % 360;
+            if(angle > 180)
+            {
+                angle -= 360;
+            }
+            return angle * -1;
+        }
+        return null;
+    }
+
+
     public static Vector2 DirectionVector(float angle)
     {
         return new Vector2(Mathf.Sin(angle * Mathf.Deg2Rad), -Mathf.Cos(angle * Mathf.Deg2Rad));
     }
 
 
-    public static Vector2 CalculateObjectPosition(int x, int y)
+    public static Vector2 CalculateObjectPosition(float x, float y, float[] coordinates = null)
     {
+        if(coordinates != null && coordinates.Length == 2)
+        {
+            //Noodle coordinates treat x differently for some reason
+            x = coordinates[0] + 2;
+            y = coordinates[1];
+        }
+        else if(BeatmapManager.MappingExtensions)
+        {
+            Vector2 adjustedPosition = MappingExtensionsPosition(new Vector2(x, y));
+            x = adjustedPosition.x;
+            y = adjustedPosition.y;
+        }
+
         Vector2 position = GridBottomLeft;
         position.x += x * LaneWidth;
         position.y += y * RowHeight;
@@ -168,6 +218,16 @@ public class ObjectManager : MonoBehaviour
 
     public static float CalculateObjectAngle(int cutDirection, float angleOffset = 0)
     {
+        if(BeatmapManager.MappingExtensions)
+        {
+            float? angle = MappingExtensionsAngle(cutDirection);
+            if(angle != null)
+            {
+                //Mapping extensions angle applies
+                return (float)angle;
+            }
+        }
+
         Dictionary<int, float> DirectionAngles = new Dictionary<int, float>
         {
             {0, 180},

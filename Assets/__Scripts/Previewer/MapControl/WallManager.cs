@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class WallManager : MonoBehaviour
@@ -144,20 +145,43 @@ public class WallManager : MonoBehaviour
     }
 
 
-    public static float CalculateWallWidth(int width)
+    public static float CalculateWallWidth(float width)
     {
+        if(BeatmapManager.MappingExtensions)
+        {
+            width = ObjectManager.MappingExtensionsPrecision(width);
+        }
+
         return width * ObjectManager.LaneWidth;
     }
 
 
-    public static float CalculateWallHeight(int height)
+    public static float CalculateWallHeight(float height)
     {
+        if(BeatmapManager.MappingExtensions)
+        {
+            height = ObjectManager.MappingExtensionsPrecision(height);
+        }
+
         return height * ObjectManager.WallHScale;
     }
 
 
-    public static Vector2 CalculateWallPosition(int x, int y)
+    public static Vector2 CalculateWallPosition(float x, float y, float[] coordinates = null)
     {
+        if(coordinates != null && coordinates.Length == 2)
+        {
+            //Noodle coordinates treat x differently for some reason
+            x = coordinates[0] + 2;
+            y = coordinates[1];
+        }
+        else if(BeatmapManager.MappingExtensions)
+        {
+            Vector2 adjustedPosition = ObjectManager.MappingExtensionsPosition(new Vector2(x, y));
+            x = adjustedPosition.x;
+            y = adjustedPosition.y;
+        }
+
         Vector2 position = ObjectManager.GridBottomLeft;
         position.x += x * ObjectManager.LaneWidth;
         position.y += y * ObjectManager.WallHScale;
@@ -183,16 +207,35 @@ public class Wall : MapObject
 
     public static Wall WallFromBeatmapObstacle(BeatmapObstacle o)
     {
-        float width = WallManager.CalculateWallWidth(o.w);
-        float height = WallManager.CalculateWallHeight(o.h);
-        Vector2 position = WallManager.CalculateWallPosition(o.x, o.y);
-        height = Mathf.Min(height, 3f - position.y);
-        position.x += (width - ObjectManager.LaneWidth) / 2;
-        position.y += height / 2;
+        float width = o.w;
+        float height = o.h;
+        if(o.customData?.size != null && o.customData.size.Length > 0)
+        {
+            float[] size = o.customData.size;
+            width = size[0];
+            if(size.Length > 1)
+            {
+                height = size[1];
+            }
+        }
+
+        int y = o.y;
+        if(!BeatmapManager.MappingExtensions && !BeatmapManager.NoodleExtensions)
+        {
+            //Height and y are capped in vanilla
+            y = Mathf.Clamp(y, 0, 2);
+            height = Mathf.Min(height, 5f - y);
+        }
+
+        float worldWidth = WallManager.CalculateWallWidth(width);
+        float worldHeight = WallManager.CalculateWallHeight(height);
+
+        Vector2 position = WallManager.CalculateWallPosition(o.x, y, o.customData?.coordinates);
+        position.x += (worldWidth - ObjectManager.LaneWidth) / 2;
+        position.y += worldHeight / 2;
 
         float beat = o.b;
         float duration = o.d;
-
         if(duration < 0)
         {
             //Negative duration walls break stuff, flip the start and end so they act like regular walls
@@ -205,8 +248,8 @@ public class Wall : MapObject
             Beat = beat,
             Position = position,
             Duration = duration,
-            Width = width,
-            Height = height
+            Width = worldWidth,
+            Height = worldHeight
         };
     }
 }

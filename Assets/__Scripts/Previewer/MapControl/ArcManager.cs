@@ -229,8 +229,8 @@ public class Arc : BaseSlider
 
     public static Arc ArcFromBeatmapSlider(BeatmapSlider a)
     {
-        Vector2 headPosition = ObjectManager.CalculateObjectPosition(a.x, a.y);
-        Vector2 tailPosition = ObjectManager.CalculateObjectPosition(a.tx, a.ty);
+        Vector2 headPosition = ObjectManager.CalculateObjectPosition(a.x, a.y, a.customData?.coordinates);
+        Vector2 tailPosition = ObjectManager.CalculateObjectPosition(a.tx, a.ty, a.customData?.tailCoordinates);
         Vector2 headControlPoint = headPosition + ObjectManager.DirectionVector(ObjectManager.CalculateObjectAngle(a.d)) * a.mu * 2.5f;
         Vector2 tailControlPoint = tailPosition - ObjectManager.DirectionVector(ObjectManager.CalculateObjectAngle(a.tc)) * a.tmu * 2.5f;
 

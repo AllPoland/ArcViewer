@@ -7,14 +7,13 @@ public class GraphicSettingsUpdater : MonoBehaviour
     [SerializeField] private VolumeProfile mainBloomVolume;
     [SerializeField] private VolumeProfile backgroundBloomVolume;
     [SerializeField] private UniversalRenderPipelineAsset urpAsset;
-    [SerializeField] private UniversalRendererData rendererData;
+    [SerializeField] private ScriptableRendererFeature ssaoFeature;
 
     private Camera mainCamera;
     private Bloom mainBloom;
     private float defaultBloomStrength;
     private Bloom backgroundBloom;
     private float defaultBackgroundBloomStrength;
-    private ScriptableRendererFeature ssaoFeature;
 
 
     public void UpdateGraphicsSettings()
@@ -28,7 +27,7 @@ public class GraphicSettingsUpdater : MonoBehaviour
             int framecap = SettingsManager.GetInt("framecap");
 
             //Value of -1 uncaps the framerate
-            if(framecap == 0 || framecap > 240) framecap = -1;
+            if(framecap == 0 || framecap > 200) framecap = -1;
 
             Application.targetFrameRate = framecap;
         }
@@ -78,8 +77,6 @@ public class GraphicSettingsUpdater : MonoBehaviour
         SettingsManager.OnSettingsUpdated += UpdateGraphicsSettings;
         
         mainCamera = Camera.main;
-
-        ssaoFeature = rendererData.rendererFeatures.Find(x => x.name == "ScreenSpaceAmbientOcclusion");
 
         bool foundMainBloom = mainBloomVolume.TryGet<Bloom>(out mainBloom);
         bool foundBackgroundBloom = backgroundBloomVolume.TryGet<Bloom>(out backgroundBloom);

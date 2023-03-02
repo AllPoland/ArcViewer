@@ -39,8 +39,6 @@ public class CoverImageHandler : MonoBehaviour
         {
             Debug.LogWarning("Cover image isn't a square!");
             ErrorHandler.Instance?.DisplayPopup(ErrorType.Warning, "The cover image isn't a square!");
-            
-            newImage = defaultCoverImage;
         }
 
         image.sprite = newImage;

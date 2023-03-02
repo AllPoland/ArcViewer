@@ -405,7 +405,7 @@ public class Note : HitSoundEmitter
 
     public static Note NoteFromBeatmapColorNote(BeatmapColorNote n)
     {
-        Vector2 position = ObjectManager.CalculateObjectPosition(n.x, n.y);
+        Vector2 position = ObjectManager.CalculateObjectPosition(n.x, n.y, n.customData?.coordinates);
         float angle = ObjectManager.CalculateObjectAngle(n.d, n.a);
 
         return new Note
@@ -413,7 +413,7 @@ public class Note : HitSoundEmitter
             Beat = n.b,
             Position = position,
             Color = n.c,
-            Angle = angle,
+            Angle = n.customData?.angle ?? angle,
             IsDot = n.d == 8
         };
     }
@@ -426,7 +426,7 @@ public class Bomb : MapObject
 
     public static Bomb BombFromBeatmapBombNote(BeatmapBombNote b)
     {
-        Vector2 position = ObjectManager.CalculateObjectPosition(b.x, b.y);
+        Vector2 position = ObjectManager.CalculateObjectPosition(b.x, b.y, b.customData?.coordinates);
 
         return new Bomb
         {

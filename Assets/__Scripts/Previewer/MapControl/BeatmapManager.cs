@@ -70,19 +70,25 @@ public class BeatmapManager : MonoBehaviour
                 }
             }
 
-            if(_currentMap.requirements.Contains("Noodle Extensions"))
+            MappingExtensions = _currentMap.requirements.Contains("Mapping Extensions");
+            NoodleExtensions = _currentMap.requirements.Contains("Noodle Extensions");
+
+            if(NoodleExtensions)
             {
-                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Noodle Extensions is not yet supported! Things may not display correctly.");
+                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Noodle Extensions is not fully supported! Things may not display correctly.");
             }
-            else if(_currentMap.requirements.Contains("Mapping Extensions"))
+            else if(MappingExtensions)
             {
-                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Mapping Extensions is not yet supported! Things may not display correctly.");
+                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Mapping Extensions support is incomplete! Things may not display correctly.");
             }
 
             Debug.Log($"Current diff is {_currentMap.characteristic}, {_currentMap.difficultyRank}");
             OnBeatmapDifficultyChanged?.Invoke(_currentMap);
         }
     }
+
+    public static bool MappingExtensions { get; private set; }
+    public static bool NoodleExtensions { get; private set; }
 
     public static float DefaultHJD
     {

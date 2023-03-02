@@ -62,7 +62,7 @@ public class AudioFileHandler
                 readSamples = Mathf.Max(readSamples, 1);
 
                 double elapsedTime = (double)stopwatch.ElapsedMilliseconds / 1000;
-                double timeRatio = targetTime / elapsedTime;
+                double timeRatio = targetTime / Math.Max(elapsedTime, 0.001);
                 int targetSamples = (int)((double)readSamples * timeRatio);
                 //Avoid trying to read samples past the end of the song
                 readSamples = Mathf.Min(targetSamples, totalSamples - i);
@@ -70,7 +70,7 @@ public class AudioFileHandler
                 await Task.Yield();
             }
             MapLoader.Progress = 0;
-            
+
             vorbis.Dispose();
             stopwatch.Reset();
 
@@ -184,7 +184,7 @@ public class AudioFileHandler
                 readSamples = Mathf.Max(readSamples, 1);
 
                 double elapsedTime = (double)stopwatch.ElapsedMilliseconds / 1000;
-                double timeRatio = targetTime / elapsedTime;
+                double timeRatio = targetTime / Math.Max(elapsedTime, 0.001);
                 int targetSamples = (int)((double)readSamples * timeRatio);
                 //Avoid trying to read samples past the end of the song
                 readSamples = Mathf.Min(targetSamples, sampleCount - i);
