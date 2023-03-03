@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 
 public class WebLoader : MonoBehaviour
 {
-    public static long DownloadSize;
+    public static ulong DownloadSize;
 
     public static UnityWebRequest uwr;
 
@@ -37,23 +37,6 @@ public class WebLoader : MonoBehaviour
 
         try
         {
-            //Get the download size before starting the download properly
-            uwr = UnityWebRequest.Head(url);
-
-            uwr.SendWebRequest();
-            while(!uwr.isDone) await Task.Yield();
-
-            if(uwr.result == UnityWebRequest.Result.Success)
-            {
-                DownloadSize = Convert.ToInt64(uwr.GetResponseHeader("Content-Length"));
-            }
-            else
-            {
-                Debug.LogWarning($"{uwr.error}");
-                DownloadSize = 0;
-            }
-            uwr.Dispose();
-
             //Download request
             uwr = UnityWebRequest.Get(url);
 
@@ -62,7 +45,15 @@ public class WebLoader : MonoBehaviour
 
             while(!uwr.isDone)
             {
+                if(uwr.downloadProgress > 0 && uwr.downloadedBytes > 0)
+                {
+                    //Calculate total size of the download based on how it's gone so far
+                    //For some reason HEAD requests to BeatSaver cdn return 404, making this workaround necessary
+                    DownloadSize = (ulong)(uwr.downloadedBytes / uwr.downloadProgress);
+                }
+                else DownloadSize = 0;
                 MapLoader.Progress = uwr.downloadProgress;
+
                 await Task.Yield();
             }
 
