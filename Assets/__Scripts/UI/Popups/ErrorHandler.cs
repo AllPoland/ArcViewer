@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ErrorHandler : MonoBehaviour
@@ -20,6 +21,12 @@ public class ErrorHandler : MonoBehaviour
 
     public void DisplayPopup(ErrorType errorType, string message)
     {
+        if(activePopups.Any(x => x.message == message))
+        {
+            //Don't display duplicate popups
+            return;
+        }
+
         GameObject popupObject = Instantiate(errorPopup, topPosition, Quaternion.identity, transform);
         popupObject.SetActive(false);
 
