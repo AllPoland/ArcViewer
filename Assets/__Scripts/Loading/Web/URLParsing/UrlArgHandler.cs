@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class UrlArgHandler : MonoBehaviour
 {
-    public const string ArcViewerURL = "http://AllPoland.github.io/ArcViewer/";
+    public const string ArcViewerURL = "https://allpoland.github.io/ArcViewer/";
 
     [DllImport("__Internal")]
     public static extern string GetParameters();
