@@ -7,11 +7,13 @@ public class DialogueHandler : MonoBehaviour
     public static DialogueHandler Instance { get; private set; }
 
     public static List<DialogueBox> OpenBoxes = new List<DialogueBox>();
-    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy || Instance.sharePanel.activeInHierarchy;
+    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy;
+    public static bool PopupActive => DialogueActive || Instance.sharePanel.activeInHierarchy || Instance.jumpSettingsPanel.activeInHierarchy;
 
     [SerializeField] private GameObject dialogueBoxPrefab;
     [SerializeField] private GameObject infoPanel;
     [SerializeField] private GameObject sharePanel;
+    [SerializeField] private GameObject jumpSettingsPanel;
 
 
     public static void ShowDialogueBox(string text, Action<DialogueResponse> callback, DialogueBoxType type)
@@ -31,13 +33,19 @@ public class DialogueHandler : MonoBehaviour
 
     public void SetInfoPanelActive(bool active)
     {
-        Instance.infoPanel.SetActive(active);
+        infoPanel.SetActive(active);
     }
 
 
     public void SetSharePanelActive(bool active)
     {
-        Instance.sharePanel.SetActive(active);
+        sharePanel.SetActive(active);
+    }
+
+
+    public void SetJumpSettingsPanelActive(bool active)
+    {
+        jumpSettingsPanel.SetActive(active);
     }
 
 
@@ -60,15 +68,21 @@ public class DialogueHandler : MonoBehaviour
             //No generic dialogue boxes, check for special dialogues
             if(Input.GetButtonDown("Cancel"))
             {
-                if(Instance.sharePanel.activeInHierarchy)
+                if(infoPanel.activeInHierarchy)
+                {
+                    SetInfoPanelActive(false);
+                    return;
+                }
+
+                if(sharePanel.activeInHierarchy)
                 {
                     SetSharePanelActive(false);
                     return;
                 }
 
-                if(Instance.infoPanel.activeInHierarchy)
+                if(jumpSettingsPanel.activeInHierarchy)
                 {
-                    SetInfoPanelActive(false);
+                    SetJumpSettingsPanelActive(false);
                     return;
                 }
             }
@@ -113,7 +127,7 @@ public class DialogueHandler : MonoBehaviour
 
     private void Update()
     {
-        if(DialogueActive)
+        if(PopupActive)
         {
             DialogueKeybinds();
         }

@@ -25,7 +25,7 @@ public class BackButton : MonoBehaviour
 
     private void Update()
     {
-        if(DialogueHandler.DialogueActive)
+        if(DialogueHandler.PopupActive)
         {
             justClosed = true;
             return;

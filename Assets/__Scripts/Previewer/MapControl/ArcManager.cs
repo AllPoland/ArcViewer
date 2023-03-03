@@ -34,12 +34,13 @@ public class ArcManager : MonoBehaviour
         arcPool.SetPoolSize(20);
 
         UpdateMaterials();
-        UpdateArcVisuals(TimeManager.CurrentBeat);
     }
 
 
     public void UpdateMaterials()
     {
+        ClearRenderedArcs();
+
         //Sets the distance that arcs should fade out
         float fadeDist = BeatmapManager.JumpDistance / 2;
         float closeFadeDist = SettingsManager.GetFloat("cameraposition") + arcCloseFadeDist;
@@ -60,6 +61,8 @@ public class ArcManager : MonoBehaviour
         currentArcCenterMaterial.SetFloat("_FadeStartPoint", closeFadeDist);
         currentArcCenterMaterial.SetFloat("_FadeEndPoint", fadeDist);
         currentArcCenterMaterial.SetFloat("_FadeTransitionLength", arcCenterFadeTransitionLength);
+
+        UpdateArcVisuals(TimeManager.CurrentBeat);
     }
 
 
@@ -210,8 +213,6 @@ public class ArcManager : MonoBehaviour
     private void Start()
     {
         objectManager = ObjectManager.Instance;
-
-        TimeManager.OnBeatChanged += UpdateArcVisuals;
     }
 }
 

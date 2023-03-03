@@ -31,6 +31,7 @@ public class UIUpdater : MonoBehaviour
         
         DialogueHandler.Instance.SetInfoPanelActive(false);
         DialogueHandler.Instance.SetSharePanelActive(false);
+        DialogueHandler.Instance.SetJumpSettingsPanelActive(false);
     }
 
 

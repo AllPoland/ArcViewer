@@ -387,7 +387,6 @@ public class NoteManager : MonoBehaviour
     {
         objectManager = ObjectManager.Instance;
 
-        TimeManager.OnBeatChanged += UpdateNoteVisuals;
         TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }
 }

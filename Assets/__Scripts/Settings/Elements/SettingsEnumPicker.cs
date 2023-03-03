@@ -27,6 +27,6 @@ public class SettingsEnumPicker : MonoBehaviour
         enumPicker = GetComponent<EnumPicker>();
 
         enumPicker.OnValueChanged += SetRule;
-        enumPicker.InitializeValue(SettingsManager.GetInt(rule));
+        enumPicker.SetValueWithoutNotify(SettingsManager.GetInt(rule));
     }
 }

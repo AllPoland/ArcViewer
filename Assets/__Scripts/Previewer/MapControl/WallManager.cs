@@ -192,8 +192,6 @@ public class WallManager : MonoBehaviour
     private void Start()
     {
         objectManager = ObjectManager.Instance;
-
-        TimeManager.OnBeatChanged += UpdateWallVisuals;
     }
 }
 

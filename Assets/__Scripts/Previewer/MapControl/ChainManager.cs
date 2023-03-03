@@ -271,7 +271,6 @@ public class ChainManager : MonoBehaviour
     {
         objectManager = ObjectManager.Instance;
 
-        TimeManager.OnBeatChanged += UpdateChainVisuals;
         TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }
 }

@@ -42,9 +42,8 @@ public class EnumPicker : MonoBehaviour
     }
 
 
-    public void InitializeValue(int value)
+    public void SetValueWithoutNotify(int value)
     {
-        //This bypasses the OnValueChanged call, which is desirable for optimization purposes
         _value = Mathf.Clamp(value, 0, maxValue);
         UpdateElements();
     }

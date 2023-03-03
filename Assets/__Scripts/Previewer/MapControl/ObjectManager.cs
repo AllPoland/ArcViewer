@@ -14,10 +14,10 @@ public class ObjectManager : MonoBehaviour
     [SerializeField] public float objectFloorOffset;
 
     [Header("Managers")]
-    [SerializeField] private NoteManager noteManager;
-    [SerializeField] private WallManager wallManager;
-    [SerializeField] private ChainManager chainManager;
-    [SerializeField] private ArcManager arcManager;
+    public NoteManager noteManager;
+    public WallManager wallManager;
+    public ChainManager chainManager;
+    public ArcManager arcManager;
 
     public bool useSimpleNoteMaterial = false;
     public bool doRotationAnimation = true;
@@ -110,15 +110,13 @@ public class ObjectManager : MonoBehaviour
 
     public float WorldSpaceFromTime(float time)
     {
-        float NJS = BeatmapManager.CurrentMap.NoteJumpSpeed;
-        return time * NJS;
+        return time * BeatmapManager.NJS;
     }
 
 
     public float TimeFromWorldspace(float position)
     {
-        float NJS = BeatmapManager.CurrentMap.NoteJumpSpeed;
-        return position / NJS;
+        return position / BeatmapManager.NJS;
     }
 
 
@@ -243,7 +241,7 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public void UpdateManagers(Difficulty difficulty)
+    public void UpdateDifficulty(Difficulty difficulty)
     {
         HitSoundManager.ClearScheduledSounds();
 
@@ -253,6 +251,15 @@ public class ObjectManager : MonoBehaviour
         noteManager.ReloadNotes();
         arcManager.ReloadArcs();
         wallManager.ReloadWalls();
+    }
+
+
+    public void UpdateBeat(float currentBeat)
+    {
+        noteManager.UpdateNoteVisuals(currentBeat);
+        wallManager.UpdateWallVisuals(currentBeat);
+        chainManager.UpdateChainVisuals(currentBeat);
+        arcManager.UpdateArcVisuals(currentBeat);
     }
 
 
@@ -476,7 +483,8 @@ public class ObjectManager : MonoBehaviour
 
     private void Start()
     {
-        BeatmapManager.OnBeatmapDifficultyChanged += UpdateManagers;
+        BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
+        TimeManager.OnBeatChanged += UpdateBeat;
     }
 
 

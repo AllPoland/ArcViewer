@@ -52,20 +52,22 @@ public class BeatmapManager : MonoBehaviour
         {
             _currentMap = value;
 
-            if(_currentMap.NoteJumpSpeed == 0)
+            SpawnOffset = _currentMap.SpawnOffset;
+            NJS = _currentMap.NoteJumpSpeed;
+            if(NJS == 0)
             {
                 switch(_currentMap.difficultyRank)
                 {
                     case DifficultyRank.Easy:
                     case DifficultyRank.Normal:
                     case DifficultyRank.Hard:
-                        _currentMap.NoteJumpSpeed = 10;
+                        NJS = 10;
                         break;
                     case DifficultyRank.Expert:
-                        _currentMap.NoteJumpSpeed = 12;
+                        NJS = 12;
                         break;
                     case DifficultyRank.ExpertPlus:
-                        _currentMap.NoteJumpSpeed = 16;
+                        NJS = 16;
                         break;
                 }
             }
@@ -90,17 +92,19 @@ public class BeatmapManager : MonoBehaviour
     public static bool MappingExtensions { get; private set; }
     public static bool NoodleExtensions { get; private set; }
 
+    public static float NJS;
+    public static float SpawnOffset;
     public static float DefaultHJD
     {
         get
         {
             float value = 4;
 
-            float JD = GetJumpDistance(value, Info._beatsPerMinute, CurrentMap.NoteJumpSpeed);
+            float JD = GetJumpDistance(value, Info._beatsPerMinute, NJS);
             while(JD > 35.998f && value > 0.25f)
             {
                 value /= 2;
-                JD = GetJumpDistance(value, Info._beatsPerMinute, CurrentMap.NoteJumpSpeed);
+                JD = GetJumpDistance(value, Info._beatsPerMinute, NJS);
             }
 
             if(value < 0.25f)
@@ -112,9 +116,9 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public static float HJD => DefaultHJD + CurrentMap.SpawnOffset;
+    public static float HJD => DefaultHJD + SpawnOffset;
     public static float ReactionTime => (60 / Info._beatsPerMinute) * HJD;
-    public static float JumpDistance => GetJumpDistance(HJD, Info._beatsPerMinute, CurrentMap.NoteJumpSpeed);
+    public static float JumpDistance => GetJumpDistance(HJD, Info._beatsPerMinute, NJS);
 
 
     public static float GetJumpDistance(float HJD, float BPM, float NJS)
