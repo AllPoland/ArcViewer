@@ -6,5 +6,10 @@ mergeInto(LibraryManager.library, {
     var buffer = _malloc(bufferSize);
     stringToUTF8(str, buffer, bufferSize);
     return buffer;
+  },
+
+  SetPageTitle: function(title) {
+    title = UTF8ToString(title);
+    document.title = title;
   }
 });

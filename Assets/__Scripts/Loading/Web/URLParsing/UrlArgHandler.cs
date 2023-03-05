@@ -6,10 +6,14 @@ using UnityEngine;
 
 public class UrlArgHandler : MonoBehaviour
 {
+    public const string ArcViewerName = "ArcViewer";
     public const string ArcViewerURL = "https://allpoland.github.io/ArcViewer/";
 
     [DllImport("__Internal")]
     public static extern string GetParameters();
+
+    [DllImport("__Internal")]
+    public static extern void SetPageTitle(string title);
 
     private static string _loadedMapID;
     public static string LoadedMapID
@@ -179,6 +183,38 @@ public class UrlArgHandler : MonoBehaviour
     }
 
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+    public void UpdateMapTitle(BeatmapInfo info)
+    {
+        string mapTitle = "";
+        if(info != BeatmapInfo.Empty)
+        {
+            string authorName = info._songAuthorName;
+            string songName = info._songName;
+            if(!string.IsNullOrEmpty(authorName))
+            {
+                mapTitle += authorName;
+                if(!string.IsNullOrEmpty(songName))
+                {
+                    //Add a separator when there's an author and and song name
+                    //(This will be the case 99% of the time)
+                    mapTitle += " - ";
+                }
+            }
+            mapTitle += songName;
+
+            if(!string.IsNullOrEmpty(mapTitle))
+            {
+                //Add a separator between the webpage title and map title
+                mapTitle = " | " + mapTitle;
+            }
+        }
+
+        SetPageTitle($"{ArcViewerName}{mapTitle}");
+    }
+#endif
+
+
     private void Start()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -189,6 +225,8 @@ public class UrlArgHandler : MonoBehaviour
         {
             LoadMapFromParameters(parameters);
         }
+
+        BeatmapManager.OnBeatmapInfoChanged += UpdateMapTitle;
 #endif
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateLoadedDifficulty;
     }
