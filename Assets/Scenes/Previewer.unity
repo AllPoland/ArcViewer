@@ -6745,7 +6745,6 @@ MonoBehaviour:
   mainBloomVolume: {fileID: 11400000, guid: 6016bf45fe9abe345a1d4d0c10cd513c, type: 2}
   backgroundBloomVolume: {fileID: 11400000, guid: 506d9f16f8fb25c48b1d4559e310a0e7, type: 2}
   urpAsset: {fileID: 11400000, guid: c36b488ba5a463442ac014cb1880b3cb, type: 2}
-  ssaoFeature: {fileID: 0}
 --- !u!114 &288421085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14543,11 +14542,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3555422495655511079, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
       propertyPath: minValue
-      value: -9999999
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3555422495655511079, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
       propertyPath: increment
-      value: 0.1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3555422495655511079, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
       propertyPath: roundDigits
@@ -14571,7 +14570,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3555422495655511079, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
       propertyPath: OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: SetSpawnOffset
+      value: SetJumpDistance
       objectReference: {fileID: 0}
     - target: {fileID: 3555422495655511079, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
       propertyPath: OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -14580,6 +14579,10 @@ PrefabInstance:
     - target: {fileID: 3555422495655511079, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
       propertyPath: OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 3817621898986586643, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
+      propertyPath: m_CharacterLimit
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 8784582283506440616, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -14591,11 +14594,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8784582284246713476, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
       propertyPath: m_text
-      value: Spawn Offset
+      value: Jump Distance
       objectReference: {fileID: 0}
     - target: {fileID: 8784582284307683101, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
       propertyPath: m_Name
-      value: OffsetPicker
+      value: JumpDistancePicker
       objectReference: {fileID: 0}
     - target: {fileID: 8784582284307683102, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
       propertyPath: m_Pivot.x
@@ -19768,7 +19771,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &868110371
 RectTransform:
   m_ObjectHideFlags: 0
@@ -19845,7 +19848,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   NJSPicker: {fileID: 1952112212}
-  SpawnOffsetPicker: {fileID: 665787303}
+  JumpDistancePicker: {fileID: 665787303}
 --- !u!1 &872342809
 GameObject:
   m_ObjectHideFlags: 0
@@ -45865,6 +45868,10 @@ PrefabInstance:
     - target: {fileID: 3555422495655511079, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
       propertyPath: OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 3817621898986586643, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
+      propertyPath: m_CharacterLimit
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 8784582283506440616, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
       propertyPath: m_AnchoredPosition.x

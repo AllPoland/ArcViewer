@@ -87,7 +87,7 @@ public class ArcManager : MonoBehaviour
 
         //Estimate the number of points we'll need to make this arc based on density option
         //A minimum value is given because very short arcs would otherwise potentially get no segments at all (very bad)
-        int pointCount = Mathf.Max(10, (int)(ArcSegmentDensity * duration) + 1);
+        int pointCount = Mathf.Max((int)ArcSegmentDensity / 2, (int)(ArcSegmentDensity * duration) + 1);
         Vector3[] points = new Vector3[pointCount];
         for(int i = 0; i < pointCount; i++)
         {

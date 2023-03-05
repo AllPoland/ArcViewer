@@ -22,6 +22,12 @@ public class SkipButton : MonoBehaviour
 
     private void Update()
     {
+        if(DialogueHandler.PopupActive)
+        {
+            //Since skip binds are used a lot in UI, avoid accidentally skipping around while UI is open
+            return;
+        }
+        
         if(Input.GetButtonDown("SkipForward"))
         {
             Skip(skipAmount);
@@ -30,7 +36,7 @@ public class SkipButton : MonoBehaviour
         {
             Skip(skipAmount * -1f);
         }
-        
+
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if(!TimeManager.Playing && Mathf.Abs(scroll) > 0)
         {

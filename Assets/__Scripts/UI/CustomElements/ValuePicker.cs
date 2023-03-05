@@ -12,8 +12,8 @@ public class ValuePicker : MonoBehaviour
         get => _value;
         set
         {
-            _value = (float)Math.Round(Mathf.Clamp(value, minValue, maxValue), roundDigits);
-            OnValueChanged?.Invoke(value);
+            _value = Mathf.Clamp(value, minValue, maxValue);
+            OnValueChanged?.Invoke(_value);
             UpdateElements();
         }
     }
@@ -27,7 +27,7 @@ public class ValuePicker : MonoBehaviour
     [Header("Elements")]
     [SerializeField] private Button leftButton;
     [SerializeField] private Button rightButton;
-    [SerializeField] private TextMeshProUGUI valueText;
+    [SerializeField] private TMP_InputField inputField;
 
     public UnityEvent<float> OnValueChanged;
 
@@ -35,27 +35,44 @@ public class ValuePicker : MonoBehaviour
     public void IncreaseValue()
     {
         if(Value >= maxValue) return;
-        Value += increment;
+        float newValue = Value + increment;
+        Value = (float)Math.Round(newValue, roundDigits);
     }
 
 
     public void DecreaseValue()
     {
         if(Value <= minValue) return;
-        Value -= increment;
+        float newValue = Value - increment;
+        Value = (float)Math.Round(newValue, roundDigits);
+    }
+
+
+    public void SetValueString(string newValue)
+    {
+        if(float.TryParse(newValue, out float parsedValue))
+        {
+            Value = parsedValue;
+        }
+        else
+        {
+            UpdateElements();
+        }
     }
 
 
     public void SetValueWithoutNotify(float value)
     {
-        _value = (float)Math.Round(Mathf.Clamp(value, minValue, maxValue), roundDigits);
+        _value = value;
         UpdateElements();
     }
 
 
     private void UpdateElements()
     {
-        valueText.text = Value.ToString();
+        //Round text to 3 digits to avoid it getting weird
+        float textValue = (float)Math.Round(Value, 3);
+        inputField.SetTextWithoutNotify(textValue.ToString());
 
         leftButton.interactable = Value > minValue;
         rightButton.interactable = Value < maxValue;

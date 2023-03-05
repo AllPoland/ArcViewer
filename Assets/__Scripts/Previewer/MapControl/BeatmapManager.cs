@@ -71,6 +71,7 @@ public class BeatmapManager : MonoBehaviour
                         break;
                 }
             }
+            JumpDistance = GetJumpDistance(HJD, Info._beatsPerMinute, NJS);
 
             MappingExtensions = _currentMap.requirements.Contains("Mapping Extensions");
             NoodleExtensions = _currentMap.requirements.Contains("Noodle Extensions");
@@ -94,7 +95,12 @@ public class BeatmapManager : MonoBehaviour
 
     public static float NJS;
     public static float SpawnOffset;
-    public static float DefaultHJD
+    public static float JumpDistance;
+
+    public static float HJD => DefaultHJD + SpawnOffset;
+    public static float ReactionTime => JumpDistance / 2 / NJS;
+
+    private static float DefaultHJD
     {
         get
         {
@@ -115,10 +121,6 @@ public class BeatmapManager : MonoBehaviour
             return value;
         }
     }
-
-    public static float HJD => DefaultHJD + SpawnOffset;
-    public static float ReactionTime => (60 / Info._beatsPerMinute) * HJD;
-    public static float JumpDistance => GetJumpDistance(HJD, Info._beatsPerMinute, NJS);
 
 
     public static float GetJumpDistance(float HJD, float BPM, float NJS)

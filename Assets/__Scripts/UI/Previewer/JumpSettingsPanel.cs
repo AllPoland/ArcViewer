@@ -3,7 +3,7 @@ using UnityEngine;
 public class JumpSettingsPanel : MonoBehaviour
 {
     [SerializeField] private ValuePicker NJSPicker;
-    [SerializeField] private ValuePicker SpawnOffsetPicker;
+    [SerializeField] private ValuePicker JumpDistancePicker;
 
 
     public void SetNJS(float NJS)
@@ -13,9 +13,9 @@ public class JumpSettingsPanel : MonoBehaviour
     }
 
 
-    public void SetSpawnOffset(float offset)
+    public void SetJumpDistance(float distance)
     {
-        BeatmapManager.SpawnOffset = offset;
+        BeatmapManager.JumpDistance = distance;
         UpdateMap();
     }
 
@@ -25,7 +25,7 @@ public class JumpSettingsPanel : MonoBehaviour
         Difficulty currentDifficulty = BeatmapManager.CurrentMap;
 
         BeatmapManager.NJS = currentDifficulty.NoteJumpSpeed;
-        BeatmapManager.SpawnOffset = currentDifficulty.SpawnOffset;
+        BeatmapManager.JumpDistance = BeatmapManager.GetJumpDistance(BeatmapManager.HJD, BeatmapManager.Info._beatsPerMinute, BeatmapManager.NJS);
 
         UpdateValues(currentDifficulty);
     }
@@ -34,7 +34,7 @@ public class JumpSettingsPanel : MonoBehaviour
     public void UpdateValues(Difficulty newDifficulty)
     {
         NJSPicker.SetValueWithoutNotify(newDifficulty.NoteJumpSpeed);
-        SpawnOffsetPicker.SetValueWithoutNotify(newDifficulty.SpawnOffset);
+        JumpDistancePicker.SetValueWithoutNotify(BeatmapManager.JumpDistance);
         
         UpdateMap();
     }
@@ -59,7 +59,7 @@ public class JumpSettingsPanel : MonoBehaviour
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateValues;
 
         NJSPicker.SetValueWithoutNotify(BeatmapManager.NJS);
-        SpawnOffsetPicker.SetValueWithoutNotify(BeatmapManager.SpawnOffset);
+        JumpDistancePicker.SetValueWithoutNotify(BeatmapManager.JumpDistance);
     }
 
 
