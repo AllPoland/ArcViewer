@@ -22,19 +22,22 @@ public class TimeManager : MonoBehaviour
         
         set
         {
-            float set = value;
-            if(set >= SongLength)
+            if(value >= SongLength)
             {
+                _time = SongLength;
+                _beat = BeatFromTime(_time);
+
                 SetPlaying(false);
-                set = SongLength;
+                OnBeatChanged?.Invoke(CurrentBeat);
+                return;
             }
-            else if(set < 0)
+            else if(value < 0)
             {
-                set = 0;
+                value = 0;
             }
 
-            _beat = BeatFromTime(set);
-            _time = set;
+            _beat = BeatFromTime(value);
+            _time = value;
             OnBeatChanged?.Invoke(CurrentBeat);
         }
     }

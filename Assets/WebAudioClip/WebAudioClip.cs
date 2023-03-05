@@ -26,7 +26,7 @@ public class WebAudioClip : IDisposable
 
         // Creates clip in the browser via JS
         clipId = WebAudioController.NewClip(channels, lengthSamples, frequency);
-        Length = lengthSamples / sampleRate;
+        Length = (float)lengthSamples / sampleRate;
 #endif
     }
 

@@ -94,7 +94,7 @@ public class AudioManager : MonoBehaviour
     {
         if(Instance.MusicClip == null) return 0;
 #if !UNITY_WEBGL || UNITY_EDITOR
-        return Instance.MusicClip.samples / Instance.MusicClip.frequency;
+        return (float)Instance.MusicClip.samples / Instance.MusicClip.frequency;
 #else
         return Instance.MusicClip.Length;
 #endif
