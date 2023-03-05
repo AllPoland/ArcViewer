@@ -6,73 +6,37 @@ using NVorbis;
 
 public class AudioFileHandler
 {
-    public const int baseBufferSize = 100000;
-
-#if !UNITY_WEBGL || UNITY_EDITOR
-    //Target using 1/60th of a second when loading
-    public const double targetTime = 0.01666f;
-#else
-    //Target 1/30th on webgl (targetting a lower framerate theoretically reduces load times (not really))
-    public const double targetTime = 0.03333f;
-#endif
-
-    private static System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+    private static AudioUploadState uploadState;
 
 
-    public static async Task<WebAudioClip> ClipFromOGGAsync(Stream oggStream)
+    public static async Task<WebAudioClip> ClipFromOGGAsync(MemoryStream oggStream)
     {
-        VorbisReader vorbis = new VorbisReader(oggStream);
+        VorbisReader vorbis = new VorbisReader(oggStream, false);
         WebAudioClip newClip = null;
 
         try
         {
             //Create the audio clip where we'll write the audio data
             newClip = new WebAudioClip((int)vorbis.TotalSamples, vorbis.Channels, vorbis.SampleRate);
-            int totalSamples = (int)vorbis.TotalSamples * vorbis.Channels;
+            int sampleRate = vorbis.SampleRate;
 
-            vorbis.SamplePosition = 0;
-            MapLoader.Progress = 0;
+            byte[] data = oggStream.ToArray();
+            Debug.Log(data.Length);
+            newClip.SetData(data, sampleRate, ClipUploadResultCallback);
+            uploadState = AudioUploadState.uploading;
 
-            int readSamples = Mathf.Min(baseBufferSize, totalSamples);
-
-            int i = 0;
-            while(i < totalSamples)
+            while(uploadState == AudioUploadState.uploading)
             {
-                stopwatch.Restart();
-
-                //Negative readSamples would be very bad
-                readSamples = Mathf.Max(readSamples, 0);
-
-                float[] buffer = new float[readSamples];
-
-                //Read only a few samples per loop before yielding
-                //This is such a yucky and slow method but it's the best I can come up with for now
-                vorbis.ReadSamples(buffer, 0, readSamples);
-                if(buffer.Length > 0)
-                {
-                    newClip.SetData(buffer, i / vorbis.Channels);
-                }
-
-                MapLoader.Progress = (float)i / totalSamples;
-                i += readSamples;
-
-                stopwatch.Stop();
-
-                //Adjust how many samples to read based on time to run
-                readSamples = Mathf.Max(readSamples, 1);
-
-                double elapsedTime = (double)stopwatch.ElapsedMilliseconds / 1000;
-                double timeRatio = targetTime / Math.Max(elapsedTime, 0.001);
-                int targetSamples = (int)((double)readSamples * timeRatio);
-                //Avoid trying to read samples past the end of the song
-                readSamples = Mathf.Min(targetSamples, totalSamples - i);
-
                 await Task.Yield();
             }
-            MapLoader.Progress = 0;
-
             vorbis.Dispose();
-            stopwatch.Reset();
+
+            if(uploadState == AudioUploadState.error)
+            {
+                //An error occurred in the upload
+                newClip.Dispose();
+                return null;
+            }
 
             return newClip;
         }
@@ -91,7 +55,7 @@ public class AudioFileHandler
     }
 
 
-    public static async Task<WebAudioClip> ClipFromWavAsync(Stream wavStream)
+    public static async Task<WebAudioClip> ClipFromWavAsync(MemoryStream wavStream)
     {
         //Read all wav data using a binary reader
         BinaryReader reader = new BinaryReader(wavStream);
@@ -131,70 +95,22 @@ public class AudioFileHandler
             //Create the new audio clip
             WebAudioClip newClip = new WebAudioClip(sampleCount / channels, channels, sampleRate);
 
-            MapLoader.Progress = 0;
-            int readSamples = Mathf.Min(baseBufferSize, sampleCount);
+            byte[] data = wavStream.ToArray();
+            newClip.SetData(data, sampleRate, ClipUploadResultCallback);
+            uploadState = AudioUploadState.uploading;
 
-            int i = 0;
-            while(i < sampleCount)
+            while(uploadState == AudioUploadState.uploading)
             {
-                stopwatch.Restart();
-
-                //Negative readSamples would be very bad
-                readSamples = Mathf.Max(readSamples, 0);
-
-                float[] buffer = new float[readSamples];
-
-                //Read the audio data
-                int readBytes = buffer.Length * bytesPerSample;
-                byte[] audioData = reader.ReadBytes(readBytes);
-
-                //Convert audio data to floats
-                switch(bitDepth)
-                {
-                    case 64:
-                        double[] doubleSamples = new double[readBytes];
-                        Buffer.BlockCopy(audioData, 0, doubleSamples, 0, readBytes);
-                        buffer = Array.ConvertAll(doubleSamples, e => (float)e);
-                        break;
-                    case 32:
-                        buffer = new float[readBytes];
-                        Buffer.BlockCopy(audioData, 0, buffer, 0, readBytes);
-                        break;
-                    case 16:
-                        short[] shortSamples = new short[readBytes];
-                        Buffer.BlockCopy(audioData, 0, shortSamples, 0, readBytes);
-                        buffer = Array.ConvertAll(shortSamples, e => e / (float)(short.MaxValue + 1));
-                        break;
-                    default:
-                        Debug.LogWarning("Unable to read bit depth from wav!");
-                        return null;
-                }
-
-                if(buffer.Length > 0)
-                {
-                    newClip.SetData(buffer, i / channels);
-                }
-
-                MapLoader.Progress = (float)i / sampleCount;
-                i += readSamples;
-
-                stopwatch.Stop();
-
-                //Adjust how many samples to read based on time to run
-                readSamples = Mathf.Max(readSamples, 1);
-
-                double elapsedTime = (double)stopwatch.ElapsedMilliseconds / 1000;
-                double timeRatio = targetTime / Math.Max(elapsedTime, 0.001);
-                int targetSamples = (int)((double)readSamples * timeRatio);
-                //Avoid trying to read samples past the end of the song
-                readSamples = Mathf.Min(targetSamples, sampleCount - i);
-
                 await Task.Yield();
             }
-            MapLoader.Progress = 0;
-
             reader.Dispose();
-            stopwatch.Reset();
+
+            if(uploadState == AudioUploadState.error)
+            {
+                //An error occurred in the upload
+                newClip.Dispose();
+                return null;
+            }
 
             return newClip;
         }
@@ -205,5 +121,29 @@ public class AudioFileHandler
 
             return null;
         }
+    }
+
+
+    public static void ClipUploadResultCallback(int result)
+    {
+        if(result < 1)
+        {
+            //A result below 1 means setting data failed
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load audio file!");
+            uploadState = AudioUploadState.error;
+        }
+        else
+        {
+            uploadState = AudioUploadState.success;
+        }
+    }
+
+
+    public enum AudioUploadState
+    {
+        inactive,
+        uploading,
+        success,
+        error
     }
 }

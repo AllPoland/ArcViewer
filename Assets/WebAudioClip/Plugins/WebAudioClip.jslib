@@ -1,18 +1,23 @@
 mergeInto(LibraryManager.library, {
 
-  Initcontroller: function() {
+  Initcontroller: function(volume) {
     this.audioCtx = new AudioContext();
     this.clips = {};
     this.soundStartTimes = {};
 
     this.playing = false;
-    this.volume = 0.5;
+    this.volume = volume;
     this.playbackSpeed = 1;
     this.lastPlayed = this.audioCtx.currentTime;
 
     this.gainNode = this.audioCtx.createGain();
-    this.gainNode.gain.setValueAtTime(0.001, this.audioCtx.currentTime);
+    this.gainNode.gain.setValueAtTime(0.0001, this.audioCtx.currentTime);
     this.gainNode.connect(this.audioCtx.destination);
+
+    if(this.volume < 0.0001)
+    {
+      this.volume = 0.0001;
+    }
   },
 
   CreateClip: function(id, channels, length, frequency) {
@@ -28,34 +33,32 @@ mergeInto(LibraryManager.library, {
     delete(this.soundStartTimes[id]);
   },
 
-  UploadData: function(id, samples, size, offset, channels, frequency) {
+  UploadData: function(id, data, dataLength, frequency, gameObjectName, methodName) {
+    //Convert the C# byte[] to an arraybuffer for audio decoding
+    const byteArray = new Uint8Array(dataLength);
+    for(var i = 0; i < dataLength; i++) {
+      byteArray[i] = HEAPU8[data + i];
+    }
+
+    gameObjectName = UTF8ToString(gameObjectName);
+    methodName = UTF8ToString(methodName);
+
     this.audioCtx.sampleRate = frequency;
+    this.audioCtx.decodeAudioData(byteArray.buffer,
+      (decodedData) => {
+        const newClip = this.audioCtx.createBufferSource();
+        newClip.buffer = decodedData;
+        this.clips[id] = newClip;
 
-    const clip = this.clips[id];
-    if(!clip.buffer) {
-      var buffer = this.audioCtx.createBuffer(channels, size, frequency);
-    }
-    else {
-      var buffer = clip.buffer;
-    }
+        //Callback to C# says that decoding succeeded
+        SendMessage(gameObjectName, methodName, 1);
+      },
+      (err) => {
+        console.error("Error decoding audio data: " + err.err);
 
-    for(var channel = 0; channel < channels; channel++) {
-      const channelSamples = [];
-
-      for(var i = channel; i < size; i += channels) {
-        channelSamples.push(
-          HEAPF32[(samples >> 2) + i]
-        );
-      }
-
-      var bufferData = Float32Array.from(channelSamples);
-      buffer.copyToChannel(bufferData, channel, offset);
-    }
-
-    //Create a new clip because you can't set the buffer of an old one
-    const newClip = this.audioCtx.createBufferSource();
-    newClip.buffer = buffer;
-    this.clips[id] = newClip;
+        //Callback to C# says that decoding failed
+        SendMessage(gameObjectName, methodName, 0);
+      });
   },
 
   Start: function(id, time) {
@@ -64,7 +67,9 @@ mergeInto(LibraryManager.library, {
     }
 
     this.gainNode.gain.setValueAtTime(0.0001, this.audioCtx.currentTime);
-    this.gainNode.gain.exponentialRampToValueAtTime(this.volume, this.audioCtx.currentTime + 0.1);
+    if(this.volume > 0.0001) {
+      this.gainNode.gain.exponentialRampToValueAtTime(this.volume, this.audioCtx.currentTime + 0.1);
+    }
 
     const clip = this.clips[id];
 
@@ -114,6 +119,10 @@ mergeInto(LibraryManager.library, {
 
   SetVolume: function(volume) {
     this.volume = volume;
+    if(this.volume < 0.0001)
+    {
+      this.volume = 0.0001;
+    }
 
     if(this.playing) {
       this.gainNode.gain.setValueAtTime(volume, this.audioCtx.currentTime);

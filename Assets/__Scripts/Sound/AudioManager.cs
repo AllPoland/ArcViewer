@@ -6,7 +6,7 @@ public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
 
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
     private AudioClip _musicClip;
     public AudioClip MusicClip
 #else
@@ -23,7 +23,7 @@ public class AudioManager : MonoBehaviour
             //Make sure the clip has the correct speed
             UpdateSpeed(TimeSyncHandler.TimeScale);
 
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
             //All processing is handled beforehand on WebGL
             UpdateAudioClip(value);
 #endif
@@ -50,14 +50,14 @@ public class AudioManager : MonoBehaviour
 
     [SerializeField] private AudioMixer musicMixer;
 
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
     private AudioSource musicSource;
 #endif
 
 
     public void DestroyClip()
     {
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
         musicSource.Stop();
         if(musicSource.clip != null)
         {
@@ -82,7 +82,7 @@ public class AudioManager : MonoBehaviour
     public static float GetSongTime()
     {
         if(Instance.MusicClip == null) return 0;
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
         return (float)(Instance.musicSource.timeSamples) / Instance.MusicClip.frequency;
 #else
         return Instance.MusicClip.Time;
@@ -93,7 +93,7 @@ public class AudioManager : MonoBehaviour
     public static float GetSongLength()
     {
         if(Instance.MusicClip == null) return 0;
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
         return Instance.MusicClip.samples / Instance.MusicClip.frequency;
 #else
         return Instance.MusicClip.Length;
@@ -111,7 +111,7 @@ public class AudioManager : MonoBehaviour
                 return;
             }
 
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
             musicSource.time = mapTime;
             musicSource.Play();
 #else
@@ -120,7 +120,7 @@ public class AudioManager : MonoBehaviour
         }
         else
         {
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
             musicSource.Stop();
 #else
             MusicClip?.Stop();
@@ -131,7 +131,7 @@ public class AudioManager : MonoBehaviour
 
     public void UpdateSpeed(float speed)
     {
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
         musicSource.pitch = speed;
 #else
         MusicClip?.SetSpeed(speed);
@@ -139,7 +139,7 @@ public class AudioManager : MonoBehaviour
     }
 
 
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
     private void UpdateAudioClip(AudioClip newClip)
     {
         if(newClip == null)

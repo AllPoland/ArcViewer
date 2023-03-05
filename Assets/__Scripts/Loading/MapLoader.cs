@@ -142,21 +142,21 @@ public class MapLoader : MonoBehaviour
         Debug.Log("Loading map zip.");
         LoadingMessage = "Loading map zip";
 
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
         Task<(BeatmapInfo, List<Difficulty>, TempFile, byte[])> loadZipTask = Task.Run(() => ZipReader.GetMapFromZipArchiveAsync(archive));
 #else
-        Task<(BeatmapInfo, List<Difficulty>, Stream, byte[])> loadZipTask = ZipReader.GetMapFromZipArchiveAsync(archive);
+        Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> loadZipTask = ZipReader.GetMapFromZipArchiveAsync(archive);
 #endif
 
         yield return new WaitUntil(() => loadZipTask.IsCompleted);
         var result = loadZipTask.Result;
         BeatmapInfo info = result.Item1;
         List<Difficulty> difficulties = result.Item2;
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
         TempFile songData = result.Item3;
 #else
         //Webgl reads song directly from zip
-        Stream songData = result.Item3;
+        MemoryStream songData = result.Item3;
 #endif
         byte[] coverImageData = result.Item4;
 
@@ -179,7 +179,7 @@ public class MapLoader : MonoBehaviour
         }
 
         LoadingMessage = "Loading song";
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
         AudioClip song = null;
         if(File.Exists(songData.Path))
         {
@@ -227,7 +227,7 @@ public class MapLoader : MonoBehaviour
         else
         {
             Debug.LogWarning("Song file is in an unsupported type!");
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Song file is in an unsupported type!");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Song file is in an unsupported type! Must be OGG or Wav.");
 
             DisposeZip();
 
@@ -484,7 +484,7 @@ public class MapLoader : MonoBehaviour
         StartCoroutine(LoadMapURLCoroutine(mapURL, mapID));
     }
 
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
     private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song, byte[] coverData)
 #else
     private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, WebAudioClip song, byte[] coverData)
@@ -500,7 +500,7 @@ public class MapLoader : MonoBehaviour
 
             if(song != null)
             {
-#if!UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
                 song.UnloadAudioData();
                 Destroy(song);
 #else

@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 
 public class WebAudioClip : IDisposable
 {
@@ -11,85 +10,51 @@ public class WebAudioClip : IDisposable
     private int clipId;
     private bool isPlaying = false;
 
-#if UNITY_EDITOR
-    private AudioSource unitySource;
-    private AudioClip unityClip;
-
-    public float Time => (float)(unitySource.timeSamples) / unityClip.frequency;
-#else
     public float Time => WebAudioController.GetSoundTime(clipId);
-#endif
 
     public WebAudioClip(int lengthSamples, int channels, int sampleRate)
     {
+#if !UNITY_WEBGL || UNITY_EDITOR
+        throw new InvalidOperationException("WebAudioClip should only be used in WEBGL!");
+#else
+
         // Make sure the audio controller was created
         WebAudioController.Init();
 
         frequency = sampleRate;
         channelCount = channels;
 
-#if UNITY_EDITOR
-        unitySource = WebAudioController.AllocateAudioSource();
-        unityClip = AudioClip.Create("TMP", lengthSamples, channels, frequency, false);
-        unitySource.clip = unityClip;
-#else
         // Creates clip in the browser via JS
         clipId = WebAudioController.NewClip(channels, lengthSamples, frequency);
-#endif
-
         Length = lengthSamples / sampleRate;
+#endif
     }
 
 
+#if UNITY_WEBGL
     public void Dispose()
     {
-#if UNITY_EDITOR
-        WebAudioController.FreeAudioSource(unitySource);
-
-        if(unityClip != null)
-        {
-            unityClip.UnloadAudioData();
-            GameObject.Destroy(unityClip);
-        }
-#else
-        // Clean up memory
         WebAudioController.DisposeClip(clipId);
-#endif
     }
 
 
-    public void SetData(float[] data, int offsetSamples = 0)
+    public void SetData(byte[] data, int frequency, Action<int> callback)
     {
-#if UNITY_EDITOR
-        unityClip.SetData(data, offsetSamples);
-#else
-        WebAudioController.SetDataClip(clipId, data, offsetSamples, channelCount, frequency);
-#endif
+        WebAudioController.SetDataClip(clipId, data, frequency, callback);
     }
 
 
     public void SetSpeed(float speed)
     {
-#if UNITY_EDITOR
-        if(unitySource != null)
-        {
-            unitySource.pitch = speed;
-        }
-#else
         WebAudioController.SetPlaybackSpeed(clipId, speed);
-#endif
     }
 
 
     public void Play(float time = 0f)
     {
         if(isPlaying) return;
-#if UNITY_EDITOR
-        unitySource.Play();
-        unitySource.time = time;
-#else
+
         WebAudioController.StartClip(clipId, time);
-#endif
         isPlaying = true;
     }
 
@@ -97,11 +62,9 @@ public class WebAudioClip : IDisposable
     public void Stop()
     {
         if(!isPlaying) return;
-#if UNITY_EDITOR
-        unitySource.Stop();
-#else
+
         WebAudioController.StopClip(clipId);
-#endif
         isPlaying = false;
     }
+#endif
 }

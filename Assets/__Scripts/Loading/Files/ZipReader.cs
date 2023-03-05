@@ -7,18 +7,18 @@ using UnityEngine;
 
 public class ZipReader
 {
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
     public static async Task<(BeatmapInfo, List<Difficulty>, TempFile, byte[])> GetMapFromZipArchiveAsync(ZipArchive archive)
 #else
-    public static async Task<(BeatmapInfo, List<Difficulty>, Stream, byte[])> GetMapFromZipArchiveAsync(ZipArchive archive)
+    public static async Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> GetMapFromZipArchiveAsync(ZipArchive archive)
 #endif
     {
         BeatmapInfo info = null;
         List<Difficulty> difficulties = new List<Difficulty>();
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
         TempFile song = null;
 #else
-        Stream song = null;
+        MemoryStream song = null;
 #endif
         byte[] coverImageData = new byte[0];
 
@@ -125,7 +125,7 @@ public class ZipReader
         {
             if(entry.Name.Equals(songFilename))
             {
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
                 song = GetSongFile(entry);
 #else
                 //We need to convert the stream specifically to a Memory Stream to make it seekable
