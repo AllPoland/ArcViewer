@@ -6745,7 +6745,7 @@ MonoBehaviour:
   mainBloomVolume: {fileID: 11400000, guid: 6016bf45fe9abe345a1d4d0c10cd513c, type: 2}
   backgroundBloomVolume: {fileID: 11400000, guid: 506d9f16f8fb25c48b1d4559e310a0e7, type: 2}
   urpAsset: {fileID: 11400000, guid: c36b488ba5a463442ac014cb1880b3cb, type: 2}
-  ssaoFeature: {fileID: -2176604861369437253, guid: 2f34be7fbff640846892b62769572640, type: 2}
+  ssaoFeature: {fileID: 0}
 --- !u!114 &288421085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20908,6 +20908,7 @@ GameObject:
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
   - component: {fileID: 963194230}
+  - component: {fileID: 963194231}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -21018,6 +21019,15 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+--- !u!45 &963194231
+Skybox:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_CustomSkybox: {fileID: 2100000, guid: b50075975eb8fca4187e7693909d76f2, type: 2}
 --- !u!1 &964545056
 GameObject:
   m_ObjectHideFlags: 0
@@ -28532,7 +28542,7 @@ Camera:
   m_AllowMSAA: 1
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
+  m_OcclusionCulling: 0
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
 --- !u!4 &1345980109
@@ -34951,6 +34961,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SSAOToggle
       objectReference: {fileID: 0}
+    - target: {fileID: 9087878822117837791, guid: a7f0a55a68792b5458628d0091c80d18, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a7f0a55a68792b5458628d0091c80d18, type: 3}
 --- !u!224 &1694414948 stripped
@@ -39837,7 +39851,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rule: antialiasing
-  hideInWebGL: 0
+  hideInWebGL: 1
 --- !u!1001 &1924333559
 PrefabInstance:
   m_ObjectHideFlags: 0

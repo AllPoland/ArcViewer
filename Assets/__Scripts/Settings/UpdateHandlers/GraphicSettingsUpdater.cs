@@ -7,7 +7,7 @@ public class GraphicSettingsUpdater : MonoBehaviour
     [SerializeField] private VolumeProfile mainBloomVolume;
     [SerializeField] private VolumeProfile backgroundBloomVolume;
     [SerializeField] private UniversalRenderPipelineAsset urpAsset;
-    [SerializeField] private ScriptableRendererFeature ssaoFeature;
+    // [SerializeField] private ScriptableRendererFeature ssaoFeature;
 
     private Camera mainCamera;
     private Bloom mainBloom;
@@ -33,13 +33,7 @@ public class GraphicSettingsUpdater : MonoBehaviour
         }
         else Application.targetFrameRate = -1;
 
-        if(Application.isEditor)
-        {
-            //Stop here so that we don't permanently alter assets in the project
-            //Anything that doesn't modify an asset should go above this so it takes effect in editor
-            return;
-        }
-
+#if !UNITY_WEBGL
         int antiAliasing = SettingsManager.GetInt("antialiasing");
         mainCamera.allowMSAA = antiAliasing > 0;
 
@@ -58,9 +52,13 @@ public class GraphicSettingsUpdater : MonoBehaviour
                 urpAsset.msaaSampleCount = 8;
                 break;
         }
+#else
+        mainCamera.allowMSAA = false;
+#endif
 
-        ssaoFeature.SetActive(SettingsManager.GetBool("ssao"));
+        // ssaoFeature.SetActive(SettingsManager.GetBool("ssao"));
 
+#if !UNITY_EDITOR
         float mainBloomStrength = SettingsManager.GetFloat("bloom");
         float backgroundBloomStrength = SettingsManager.GetFloat("backgroundbloom");
 
@@ -69,6 +67,7 @@ public class GraphicSettingsUpdater : MonoBehaviour
 
         mainBloom.intensity.value = mainBloomStrength * defaultBloomStrength;
         backgroundBloom.intensity.value = backgroundBloomStrength * defaultBackgroundBloomStrength;
+#endif
     }
 
 

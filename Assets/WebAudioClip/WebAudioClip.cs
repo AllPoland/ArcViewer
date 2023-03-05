@@ -31,13 +31,13 @@ public class WebAudioClip : IDisposable
     }
 
 
-#if UNITY_WEBGL
     public void Dispose()
     {
         WebAudioController.DisposeClip(clipId);
     }
 
 
+#if UNITY_WEBGL
     public void SetData(byte[] data, int frequency, Action<int> callback)
     {
         WebAudioController.SetDataClip(clipId, data, frequency, callback);
