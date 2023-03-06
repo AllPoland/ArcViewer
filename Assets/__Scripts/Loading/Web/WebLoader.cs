@@ -13,8 +13,8 @@ public class WebLoader : MonoBehaviour
     //Map sources that include CORS headers should be added here for faster downloads
     public static readonly string[] WhitelistURLs = new string[]
     {
-        "https://beatsaver.com",
-        "https://r2cdn.beatsaver.com"
+        "https://r2cdn.beatsaver.com",
+        "https://cdn.beatsaver.com"
     };
 
     public static ulong DownloadSize;
@@ -56,7 +56,9 @@ public class WebLoader : MonoBehaviour
     {
         MapLoader.Progress = 0;
 
+#if UNITY_WEBGL && !UNITY_EDITOR
         url = GetCorsURL(url);
+#endif
 
         try
         {

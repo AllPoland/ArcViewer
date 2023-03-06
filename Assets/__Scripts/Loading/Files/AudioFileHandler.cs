@@ -29,7 +29,6 @@ public class AudioFileHandler
             int sampleRate = vorbis.SampleRate;
 
             byte[] data = oggStream.ToArray();
-            Debug.Log(data.Length);
             newClip.SetData(data, sampleRate, ClipUploadResultCallback);
             uploadState = AudioUploadState.uploading;
 
