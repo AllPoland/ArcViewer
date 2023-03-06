@@ -1,14 +1,37 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
 public class WebLoader : MonoBehaviour
 {
-    public static ulong DownloadSize;
+    public const string CorsProxy = "https://cors.bsmg.dev/";
 
+    //Domains listed in this array will bypass the CORS proxy
+    //Map sources that include CORS headers should be added here for faster downloads
+    public static readonly string[] WhitelistURLs = new string[]
+    {
+        "https://beatsaver.com",
+        "https://r2cdn.beatsaver.com"
+    };
+
+    public static ulong DownloadSize;
     public static UnityWebRequest uwr;
+
+
+    public static string GetCorsURL(string url)
+    {
+        if(WhitelistURLs.Any(x => url.StartsWith(x)))
+        {
+            //The requested domain has CORS headers, so no need for a proxy
+            return url;
+        }
+
+        return CorsProxy + url;
+    }
+
 
     public static async Task<Stream> LoadMapURL(string url)
     {
@@ -33,7 +56,7 @@ public class WebLoader : MonoBehaviour
     {
         MapLoader.Progress = 0;
 
-        // url = "https://cors-anywhere.herokuapp.com/" + url;
+        url = GetCorsURL(url);
 
         try
         {
