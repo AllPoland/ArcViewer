@@ -29,8 +29,6 @@ public class ObjectSettingsUpdater : MonoBehaviour
         ArcManager.ArcSegmentDensity = SettingsManager.GetInt("arcdensity");
 
         arcManager.UpdateMaterials();
-        arcManager.ClearRenderedArcs();
-        arcManager.UpdateArcVisuals(TimeManager.CurrentBeat);
 
         //Settings that modify assets should be placed below this,
         //so that they don't get permanently altered by settings

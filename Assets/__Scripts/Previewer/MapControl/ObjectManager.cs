@@ -81,7 +81,7 @@ public class ObjectManager : MonoBehaviour
         float startTime = TimeManager.TimeFromBeat(startBeat);
         float endTime = TimeManager.TimeFromBeat(endBeat) - BehindCameraTime;
 
-        bool timeInRange = TimeManager.CurrentTime > startTime && TimeManager.CurrentTime <= endTime;
+        bool timeInRange = TimeManager.CurrentTime >= startTime && TimeManager.CurrentTime <= endTime;
         bool jumpTime = CheckInSpawnRange(startBeat);
 
         return jumpTime || timeInRange;

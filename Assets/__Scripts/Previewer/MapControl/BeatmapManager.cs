@@ -113,9 +113,9 @@ public class BeatmapManager : MonoBehaviour
                 JD = GetJumpDistance(value, Info._beatsPerMinute, NJS);
             }
 
-            if(value < 0.25f)
+            if(value + SpawnOffset < 0.25f)
             {
-                value = 0.25f;
+                value = 0.25f - SpawnOffset;
             }
             
             return value;

@@ -27,6 +27,7 @@ public class MapLoader : MonoBehaviour
 
     public static event Action<bool> OnLoadingChanged;
     public static event Action OnMapLoaded;
+    public static event Action OnLoadingFailed;
 
     //Used by ZipReader since you can't get Application.persistentDataPath on a secondary thread
     public static string persistentDataPath;
@@ -508,6 +509,7 @@ public class MapLoader : MonoBehaviour
 #endif
             }
             UIStateManager.CurrentState = UIState.MapSelection;
+            OnLoadingFailed?.Invoke();
 
             return;
         }

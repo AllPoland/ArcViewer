@@ -109,25 +109,34 @@ public class UrlArgHandler : MonoBehaviour
             }
         }
 
-        if(startTime > 0)
-        {
-            MapLoader.OnMapLoaded += SetTime;
-        }
-
-        if(mode != null || diffRank != null)
-        {
-            MapLoader.OnMapLoaded += SetDifficulty;
-        }
-
+        bool autoLoad = false;
         if(!string.IsNullOrEmpty(mapID))
         {
             StartCoroutine(mapLoader.LoadMapIDCoroutine(mapID));
             LoadedMapID = mapID;
+
+            autoLoad = true;
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
             StartCoroutine(mapLoader.LoadMapURLCoroutine(mapURL));
             LoadedMapURL = mapURL;
+
+            autoLoad = true;
+        }
+
+        if(autoLoad)
+        {
+            //Only apply start time and diff when a map is also included in the arguments
+            if(startTime > 0)
+            {
+                MapLoader.OnMapLoaded += SetTime;
+            }
+
+            if(mode != null || diffRank != null)
+            {
+                MapLoader.OnMapLoaded += SetDifficulty;
+            }
         }
     }
 
@@ -163,6 +172,13 @@ public class UrlArgHandler : MonoBehaviour
             Difficulty difficulty = difficulties.FirstOrDefault(x => x.difficultyRank == diffRank);
             BeatmapManager.CurrentMap = difficulty ?? difficulties.Last();
         }
+        MapLoader.OnMapLoaded -= SetDifficulty;
+    }
+
+
+    public void ClearSubscriptions()
+    {
+        MapLoader.OnMapLoaded -= SetTime;
         MapLoader.OnMapLoaded -= SetDifficulty;
     }
 
@@ -227,6 +243,7 @@ public class UrlArgHandler : MonoBehaviour
         }
 
         BeatmapManager.OnBeatmapInfoChanged += UpdateMapTitle;
+        MapLoader.OnLoadingFailed += ClearSubscriptions;
 #endif
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateLoadedDifficulty;
     }
