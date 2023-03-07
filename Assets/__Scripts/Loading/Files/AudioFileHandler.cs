@@ -1,24 +1,17 @@
+#if UNITY_WEBGL && !UNITY_EDITOR
 using System;
 using System.IO;
 using System.Threading.Tasks;
-#if UNITY_WEBGL && !UNITY_EDITOR
 using UnityEngine;
 using NVorbis;
-#endif
 
 public class AudioFileHandler
 {
-#if UNITY_WEBGL && !UNITY_EDITOR
     private static AudioUploadState uploadState;
-#endif
 
 
     public static async Task<WebAudioClip> ClipFromOGGAsync(MemoryStream oggStream)
     {
-#if !UNITY_WEBGL || UNITY_EDITOR
-        await Task.Yield();
-        throw new InvalidOperationException("ClipFromOGGAsync should only be used in WEBGL!");
-#else
         VorbisReader vorbis = new VorbisReader(oggStream, false);
         WebAudioClip newClip = null;
 
@@ -59,17 +52,12 @@ public class AudioFileHandler
 
             return null;
         }
-#endif
     }
 
 
     public static async Task<WebAudioClip> ClipFromWavAsync(MemoryStream wavStream)
     {
-#if !UNITY_WEBGL || UNITY_EDITOR
-        await Task.Yield();
-        throw new InvalidOperationException("ClipFromWavAsync should only be used in WEBGL!");
-#else
-        //Read all wav data using a binary reader
+        //Read wav details using a binary reader
         BinaryReader reader = new BinaryReader(wavStream);
 
         try
@@ -133,11 +121,10 @@ public class AudioFileHandler
 
             return null;
         }
-#endif
     }
 
 
-#if UNITY_WEBGL && !UNITY_EDITOR
+
     public static void ClipUploadResultCallback(int result)
     {
         if(result < 1)
@@ -160,5 +147,5 @@ public class AudioFileHandler
         success,
         error
     }
-#endif
 }
+#endif

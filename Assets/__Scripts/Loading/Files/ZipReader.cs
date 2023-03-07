@@ -7,19 +7,11 @@ using UnityEngine;
 
 public class ZipReader
 {
-#if !UNITY_WEBGL || UNITY_EDITOR
-    public static async Task<(BeatmapInfo, List<Difficulty>, TempFile, byte[])> GetMapFromZipArchiveAsync(ZipArchive archive)
-#else
     public static async Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> GetMapFromZipArchiveAsync(ZipArchive archive)
-#endif
     {
         BeatmapInfo info = null;
         List<Difficulty> difficulties = new List<Difficulty>();
-#if !UNITY_WEBGL || UNITY_EDITOR
-        TempFile song = null;
-#else
         MemoryStream song = null;
-#endif
         byte[] coverImageData = new byte[0];
 
         Stream infoData = null;
@@ -125,16 +117,12 @@ public class ZipReader
         {
             if(entry.Name.Equals(songFilename))
             {
-#if !UNITY_WEBGL || UNITY_EDITOR
-                song = GetSongFile(entry);
-#else
                 //We need to convert the stream specifically to a Memory Stream to make it seekable
                 //This is required for audio processing to work
                 using(Stream songStream = entry.Open())
                 {
                     song = new MemoryStream(FileUtil.StreamToBytes(songStream));
                 }
-#endif
                 break;
             }
         }
@@ -208,24 +196,5 @@ public class ZipReader
         diffData.Dispose();
 
         return output;
-    }
-
-
-    public static TempFile GetSongFile(ZipArchiveEntry entry)
-    {
-        string path = Path.Combine(MapLoader.persistentDataPath, "temp");
-
-        int i = 1;
-        while(File.Exists(path))
-        {
-            //Change the target name if the file already exists
-            //This shouldn't happen, but it should be avoided anyway
-            path = Path.Combine(MapLoader.persistentDataPath, $"temp{i}");
-        }
-
-        //Create the temp file and write the song data to it
-        TempFile temp = new TempFile(path);
-        File.WriteAllBytes(temp.Path, FileUtil.StreamToBytes(entry.Open()));
-        return temp;
     }
 }
