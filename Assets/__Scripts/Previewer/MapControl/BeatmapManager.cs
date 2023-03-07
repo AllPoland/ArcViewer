@@ -97,7 +97,7 @@ public class BeatmapManager : MonoBehaviour
     public static float SpawnOffset;
     public static float JumpDistance;
 
-    public static float HJD => DefaultHJD + SpawnOffset;
+    public static float HJD => Mathf.Max(DefaultHJD + SpawnOffset, 0.25f);
     public static float ReactionTime => JumpDistance / 2 / NJS;
 
     private static float DefaultHJD
@@ -107,15 +107,10 @@ public class BeatmapManager : MonoBehaviour
             float value = 4;
 
             float JD = GetJumpDistance(value, Info._beatsPerMinute, NJS);
-            while(JD > 35.998f && value > 0.25f)
+            while(JD > 35.998f)
             {
                 value /= 2;
                 JD = GetJumpDistance(value, Info._beatsPerMinute, NJS);
-            }
-
-            if(value + SpawnOffset < 0.25f)
-            {
-                value = 0.25f - SpawnOffset;
             }
             
             return value;

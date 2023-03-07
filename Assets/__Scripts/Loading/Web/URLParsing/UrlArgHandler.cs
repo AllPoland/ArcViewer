@@ -235,7 +235,6 @@ public class UrlArgHandler : MonoBehaviour
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
         string parameters = GetParameters();
-        Debug.Log(parameters);
 
         if(!string.IsNullOrEmpty(parameters))
         {
@@ -243,8 +242,8 @@ public class UrlArgHandler : MonoBehaviour
         }
 
         BeatmapManager.OnBeatmapInfoChanged += UpdateMapTitle;
-        MapLoader.OnLoadingFailed += ClearSubscriptions;
 #endif
+        MapLoader.OnLoadingFailed += ClearSubscriptions;
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateLoadedDifficulty;
     }
 }
