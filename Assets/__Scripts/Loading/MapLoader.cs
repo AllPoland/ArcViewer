@@ -43,7 +43,7 @@ public class MapLoader : MonoBehaviour
     private IEnumerator LoadMapDirectoryCoroutine(string directory)
     {
         //Loading maps from directories will never work in WebGL
-#if UNITY_WEBGL
+#if UNITY_WEBGL && !UNITY_EDITOR
         Debug.LogWarning("Tried to load from directory in WebGL!");
         ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Loading from directory doesn't work in browser!");
 
@@ -624,6 +624,13 @@ public class MapLoader : MonoBehaviour
 
             LoadMapZip(mapDirectory);
             return;
+        }
+
+        if(mapDirectory.EndsWith(".dat", StringComparison.OrdinalIgnoreCase))
+        {
+            //User is trying to load an unzipped map, remove the file from the path
+            DirectoryInfo parentDir = Directory.GetParent(mapDirectory);
+            mapDirectory = parentDir.FullName;
         }
 
         if(!Directory.Exists(mapDirectory))
