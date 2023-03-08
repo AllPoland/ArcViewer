@@ -4,6 +4,7 @@ mergeInto(LibraryManager.library, {
     this.audioCtx = new AudioContext();
     this.clips = {};
     this.soundStartTimes = {};
+    this.soundOffsets = {};
 
     this.playing = false;
     this.volume = volume;
@@ -26,11 +27,13 @@ mergeInto(LibraryManager.library, {
 
     clip.buffer = buffer;
     this.clips[id] = clip;
+    this.soundOffsets[id] = 0;
   },
 
   DisposeClip: function(id) {
     delete(this.clips[id]);
     delete(this.soundStartTimes[id]);
+    delete(this.soundOffsets[id]);
   },
 
   UploadData: function(id, data, dataLength, frequency, gameObjectName, methodName) {
@@ -48,6 +51,8 @@ mergeInto(LibraryManager.library, {
       (decodedData) => {
         const newClip = this.audioCtx.createBufferSource();
         newClip.buffer = decodedData;
+
+        delete(this.clips[id]);
         this.clips[id] = newClip;
 
         //Callback to C# says that decoding succeeded
@@ -59,6 +64,10 @@ mergeInto(LibraryManager.library, {
         //Callback to C# says that decoding failed
         SendMessage(gameObjectName, methodName, 0);
       });
+  },
+
+  SetOffset: function(id, offset) {
+    this.soundOffsets[id] = offset;
   },
 
   Start: function(id, time) {
@@ -79,9 +88,25 @@ mergeInto(LibraryManager.library, {
     newClip.buffer = clip.buffer;
     newClip.playbackRate.value = this.playbackSpeed;
 
-    newClip.start(0, time);
+    let startTime = time + this.soundOffsets[id];
+    if(startTime >= 0) {
+      newClip.start(0, startTime);
+    }
+    else {
+      //Schedule the sound to be played ahead of time if playing at negative time
+      //NOTE: there's a niche bug where changing playback speed before the song actually starts
+      //causes the song to desync. Fixing this would make speed adjustment awful so I'm not going to
+      if(this.playbackSpeed > 0) {
+        //Account for playback speed, but don't divide by 0
+        startTime /= this.playbackSpeed;
+      }
+      else startTime = 0;
+
+      newClip.start(this.audioCtx.currentTime - startTime, 0);
+    }
     newClip.connect(this.gainNode);
 
+    delete(this.clips[id]);
     this.clips[id] = newClip;
     this.soundStartTimes[id] = time;
     this.lastPlayed = this.audioCtx.currentTime;

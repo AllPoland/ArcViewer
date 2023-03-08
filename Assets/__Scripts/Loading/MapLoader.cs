@@ -628,7 +628,7 @@ public class MapLoader : MonoBehaviour
 
         if(mapDirectory.EndsWith(".dat", StringComparison.OrdinalIgnoreCase))
         {
-            //User is trying to load an unzipped map, remove the file from the path
+            //User is trying to load an unzipped map, get the parent directory
             DirectoryInfo parentDir = Directory.GetParent(mapDirectory);
             mapDirectory = parentDir.FullName;
         }

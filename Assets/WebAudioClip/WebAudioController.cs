@@ -17,6 +17,9 @@ public class WebAudioController : MonoBehaviour
     public static extern void UploadData(int id, byte[] data, int dataLength, int frequency, string gameObjectName, string methodName);
 
     [DllImport("__Internal")]
+    public static extern void SetOffset(int id, float offset);
+
+    [DllImport("__Internal")]
     public static extern float GetSoundTime(int id);
 
     [DllImport("__Internal")]
@@ -26,10 +29,10 @@ public class WebAudioController : MonoBehaviour
     public static extern void SetPlaybackSpeed(int id, float speed);
     
     [DllImport("__Internal")]
-    private static extern void Start(int id, float time);
+    public static extern void Start(int id, float time);
 
     [DllImport("__Internal")]
-    private static extern void Stop(int id);
+    public static extern void Stop(int id);
 
     private static WebAudioController instance;
     private static int clipId = 0;
@@ -102,17 +105,5 @@ public class WebAudioController : MonoBehaviour
             callback(response);
             callback = null;
         }
-    }
-
-
-    public static void StartClip(int id, float time)
-    {
-        Start(id, time);
-    }
-
-
-    public static void StopClip(int id)
-    {
-        Stop(id);
     }
 }

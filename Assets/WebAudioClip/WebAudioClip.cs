@@ -6,6 +6,7 @@ public class WebAudioClip : IDisposable
     public float Length {get; private set;} = 0;
 
     private int frequency;
+    private int sampleCount;
     private int channelCount;
     private int clipId;
     private bool isPlaying = false;
@@ -22,6 +23,7 @@ public class WebAudioClip : IDisposable
         WebAudioController.Init();
 
         frequency = sampleRate;
+        sampleCount = lengthSamples;
         channelCount = channels;
 
         // Creates clip in the browser via JS
@@ -44,6 +46,13 @@ public class WebAudioClip : IDisposable
     }
 
 
+    public void SetOffset(float offset)
+    {
+        WebAudioController.SetOffset(clipId, offset);
+        Length = ((float)sampleCount / frequency) - offset;
+    }
+
+
     public void SetSpeed(float speed)
     {
         WebAudioController.SetPlaybackSpeed(clipId, speed);
@@ -54,7 +63,7 @@ public class WebAudioClip : IDisposable
     {
         if(isPlaying) return;
 
-        WebAudioController.StartClip(clipId, time);
+        WebAudioController.Start(clipId, time);
         isPlaying = true;
     }
 
@@ -63,7 +72,7 @@ public class WebAudioClip : IDisposable
     {
         if(!isPlaying) return;
 
-        WebAudioController.StopClip(clipId);
+        WebAudioController.Stop(clipId);
         isPlaying = false;
     }
 #endif

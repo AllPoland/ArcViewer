@@ -23,9 +23,18 @@ public class AudioManager : MonoBehaviour
             //Make sure the clip has the correct speed
             UpdateSpeed(TimeSyncHandler.TimeScale);
 
+            float songTimeOffset = BeatmapManager.Info._songTimeOffset;
 #if !UNITY_WEBGL || UNITY_EDITOR
-            //All processing is handled beforehand on WebGL
-            UpdateAudioClip(value);
+            if(songTimeOffset != 0)
+            {
+                ApplySongTimeOffset(ref _musicClip);
+            }
+            Instance.musicSource.clip = _musicClip;
+#else
+            if(songTimeOffset != 0)
+            {
+                _musicClip.SetOffset(songTimeOffset);
+            }
 #endif
         }
     }
@@ -140,24 +149,6 @@ public class AudioManager : MonoBehaviour
 
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-    private void UpdateAudioClip(AudioClip newClip)
-    {
-        if(newClip == null)
-        {
-            return;
-        }
-
-        float songTimeOffset = BeatmapManager.Info._songTimeOffset;
-
-        if(songTimeOffset != 0)
-        {
-            ApplySongTimeOffset(ref newClip);
-        }
-
-        musicSource.clip = newClip;
-    }
-
-
     private void ApplySongTimeOffset(ref AudioClip clip)
     {
         //Take songTimeOffset into account by adjusting newClip data forward/backward
