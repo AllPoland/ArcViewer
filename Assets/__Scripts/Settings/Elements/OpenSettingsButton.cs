@@ -4,8 +4,15 @@ using UnityEngine.UI;
 public class OpenSettingsButton : MonoBehaviour
 {
     [SerializeField] private Button button;
+    [SerializeField] private Tooltip tooltip;
 
     private SettingsMenu settingsMenu;
+
+
+    public void UpdateTooltip()
+    {
+        tooltip.Text = settingsMenu.Open ? "Close settings" : "Settings";
+    }
 
 
     private void Update()
@@ -13,6 +20,7 @@ public class OpenSettingsButton : MonoBehaviour
         if(Input.GetButtonDown("Toggle Options") && button.interactable && !DialogueHandler.DialogueActive)
         {
             settingsMenu.ToggleOpen();
+            UpdateTooltip();
         }
     }
 
