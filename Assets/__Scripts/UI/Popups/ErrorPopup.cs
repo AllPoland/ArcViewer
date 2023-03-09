@@ -9,6 +9,7 @@ public class ErrorPopup : MonoBehaviour
 
     public Color backgroundColor;
     public string message;
+    public float lifeTime;
 
     private Image backgroundImage;
     private Coroutine moveCoroutine;
@@ -64,5 +65,17 @@ public class ErrorPopup : MonoBehaviour
 
         backgroundImage.color = backgroundColor;
         messageText.text = message;
+    }
+
+
+    private void Update()
+    {
+        if(lifeTime <= 0)
+        {
+            Close();
+            return;
+        }
+
+        lifeTime -= Time.deltaTime;
     }
 }

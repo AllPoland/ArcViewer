@@ -14,6 +14,7 @@ public class ErrorHandler : MonoBehaviour
     [SerializeField] private Color warningColor;
     [SerializeField] private Color notificationColor;
     [SerializeField] private int maxPopups;
+    [SerializeField] private float messageLifeSpan;
 
     private List<ErrorPopup> activePopups = new List<ErrorPopup>();
     private List<QueuedPopup> queuedPopups = new List<QueuedPopup>();
@@ -50,6 +51,7 @@ public class ErrorHandler : MonoBehaviour
         ErrorPopup newPopup = popupObject.GetComponent<ErrorPopup>();
         newPopup.message = message;
         newPopup.backgroundColor = color;
+        newPopup.lifeTime = messageLifeSpan;
 
         popupObject.SetActive(true);
         activePopups.Add(newPopup);
