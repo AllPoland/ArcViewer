@@ -21,7 +21,7 @@
   <script>
     document.querySelector("#unity-loading-bar").style.display = "block";
 
-    createUnityInstance(document.querySelector("#unity-canvas"), {
+    var gameInstance = createUnityInstance(document.querySelector("#unity-canvas"), {
       dataUrl: "Build/ArcViewer.data",
       frameworkUrl: "Build/ArcViewer.framework.js",
       codeUrl: "Build/ArcViewer.wasm",

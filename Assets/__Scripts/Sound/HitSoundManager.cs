@@ -193,7 +193,7 @@ public class ScheduledSound
         float timeDifference = (time - currentTime) / TimeSyncHandler.TimeScale;
         float scheduleIn = timeDifference + HitSoundManager.SoundOffset;
 
-        if(!scheduled && scheduleIn <= 0)
+        if(!scheduled && timeDifference <= 0)
         {
             //The sound should already be playing by this point
             //Trying to schedule now would just make it off-time and wouldn't be worth it
@@ -220,8 +220,19 @@ public class ScheduledSound
 
         if(!scheduled && !source.isPlaying && scheduleIn <= HitSoundManager.ScheduleBuffer)
         {
-            //Audio hasn't been scheduled but it should be
-            source.PlayScheduled(AudioSettings.dspTime + scheduleIn);
+            if(scheduleIn <= 0)
+            {
+                //The sound should already be playing the windup
+                //Instead, schedule the sound exactly on beat with no offset
+                source.time = -HitSoundManager.SoundOffset;
+                source.PlayScheduled(AudioSettings.dspTime + timeDifference);
+            }
+            else
+            {
+                source.time = 0;
+                source.PlayScheduled(AudioSettings.dspTime + scheduleIn);
+            }
+
             scheduled = true;
         }
     }
