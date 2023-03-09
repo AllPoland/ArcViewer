@@ -20,6 +20,18 @@ public class InfoPanel : MonoBehaviour
     }
 
 
+    public void ToggleSharePanel()
+    {
+        DialogueHandler.Instance.SetSharePanelActive(!DialogueHandler.Instance.sharePanel.activeInHierarchy);
+    }
+
+
+    public void ToggleJumpSettingsPanel()
+    {
+        DialogueHandler.Instance.SetJumpSettingsPanelActive(!DialogueHandler.Instance.jumpSettingsPanel.activeInHierarchy);
+    }
+
+
     private void OnEnable()
     {
 

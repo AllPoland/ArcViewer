@@ -10,10 +10,11 @@ public class DialogueHandler : MonoBehaviour
     public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy;
     public static bool PopupActive => DialogueActive || Instance.sharePanel.activeInHierarchy || Instance.jumpSettingsPanel.activeInHierarchy;
 
+    public GameObject infoPanel;
+    public GameObject sharePanel;
+    public GameObject jumpSettingsPanel;
+
     [SerializeField] private GameObject dialogueBoxPrefab;
-    [SerializeField] private GameObject infoPanel;
-    [SerializeField] private GameObject sharePanel;
-    [SerializeField] private GameObject jumpSettingsPanel;
 
 
     public static void ShowDialogueBox(string text, Action<DialogueResponse> callback, DialogueBoxType type)
