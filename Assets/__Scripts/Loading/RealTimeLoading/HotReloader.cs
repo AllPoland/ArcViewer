@@ -148,13 +148,6 @@ public class HotReloader : MonoBehaviour
     }
 
 
-    private void DisposeZip()
-    {
-        mapZipArchive?.Dispose();
-        mapZipStream?.Dispose();
-    }
-
-
     private void UpdateMap(BeatmapInfo info, List<Difficulty> difficulties)
     {
         Difficulty currentDiff = BeatmapManager.CurrentMap;
@@ -209,6 +202,13 @@ public class HotReloader : MonoBehaviour
             loadingCoroutine = StartCoroutine(ReloadMapDirectoryCoroutine());
         }
 #endif
+    }
+
+
+    private void DisposeZip()
+    {
+        mapZipArchive?.Dispose();
+        mapZipStream?.Dispose();
     }
 
 

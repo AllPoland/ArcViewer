@@ -38,7 +38,7 @@ These features aren't included, and most likely never will be. If you ask for th
 ArcViewer is currently only available as a desktop application. A browser port is in-progress, but for now, simply download the latest release from the [Releases](https://github.com/AllPoland/ArcViewer/releases) page and unzip the contents to a new folder.
 
 ## For Developers
-ArcViewer is developed in Unity version 2021.3.12
+ArcViewer is developed in Unity version 2021.3.20
 
 Development and build guides will be written to help contributors ~~when I feel like it~~ soon:tm:.
 
