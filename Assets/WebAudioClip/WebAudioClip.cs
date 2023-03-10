@@ -3,17 +3,15 @@ using System;
 public class WebAudioClip : IDisposable
 {
     public bool IsPlaying => isPlaying;
-    public float Length {get; private set;} = 0;
 
-    private int frequency;
-    private int sampleCount;
-    private int channelCount;
+    public float Length => WebAudioController.GetSoundLength(clipId);
+
     private int clipId;
     private bool isPlaying = false;
 
     public float Time => WebAudioController.GetSoundTime(clipId);
 
-    public WebAudioClip(int lengthSamples, int channels, int sampleRate)
+    public WebAudioClip()
     {
 #if !UNITY_WEBGL || UNITY_EDITOR
         throw new InvalidOperationException("WebAudioClip should only be used in WEBGL!");
@@ -22,13 +20,8 @@ public class WebAudioClip : IDisposable
         // Make sure the audio controller was created
         WebAudioController.Init();
 
-        frequency = sampleRate;
-        sampleCount = lengthSamples;
-        channelCount = channels;
-
         // Creates clip in the browser via JS
-        clipId = WebAudioController.NewClip(channels, lengthSamples, frequency);
-        Length = (float)lengthSamples / sampleRate;
+        clipId = WebAudioController.NewClip();
 #endif
     }
 
@@ -39,17 +32,16 @@ public class WebAudioClip : IDisposable
     }
 
 
-#if UNITY_WEBGL
-    public void SetData(byte[] data, int frequency, Action<int> callback)
+#if UNITY_WEBGL && !UNITY_EDITOR
+    public void SetData(byte[] data, Action<int> callback)
     {
-        WebAudioController.SetDataClip(clipId, data, frequency, callback);
+        WebAudioController.SetDataClip(clipId, data, callback);
     }
 
 
     public void SetOffset(float offset)
     {
         WebAudioController.SetOffset(clipId, offset);
-        Length = ((float)sampleCount / frequency) - offset;
     }
 
 

@@ -21,11 +21,9 @@ mergeInto(LibraryManager.library, {
     }
   },
 
-  CreateClip: function(id, channels, length, frequency) {
+  CreateClip: function(id) {
     const clip = this.audioCtx.createBufferSource();
-    const buffer = this.audioCtx.createBuffer(channels, length, frequency);
 
-    clip.buffer = buffer;
     this.clips[id] = clip;
     this.soundOffsets[id] = 0;
   },
@@ -36,7 +34,7 @@ mergeInto(LibraryManager.library, {
     delete(this.soundOffsets[id]);
   },
 
-  UploadData: function(id, data, dataLength, frequency, gameObjectName, methodName) {
+  UploadData: function(id, data, dataLength, gameObjectName, methodName) {
     //Convert the C# byte[] to an arraybuffer for audio decoding
     const byteArray = new Uint8Array(dataLength);
     for(var i = 0; i < dataLength; i++) {
@@ -46,7 +44,6 @@ mergeInto(LibraryManager.library, {
     gameObjectName = UTF8ToString(gameObjectName);
     methodName = UTF8ToString(methodName);
 
-    this.audioCtx.sampleRate = frequency;
     this.audioCtx.decodeAudioData(byteArray.buffer,
       (decodedData) => {
         const newClip = this.audioCtx.createBufferSource();
@@ -140,6 +137,19 @@ mergeInto(LibraryManager.library, {
   GetSoundTime: function(id) {
     const passedTime = this.audioCtx.currentTime - this.lastPlayed;
     return this.soundStartTimes[id] + (passedTime * this.playbackSpeed);
+  },
+
+  GetSoundLength: function(id) {
+    if(!this.clips[id]) {
+      return 0;
+    }
+
+    const buffer = this.clips[id].buffer;
+    if(!buffer) {
+      return 0;
+    }
+
+    return buffer.duration - this.soundOffsets[id];
   },
 
   SetVolume: function(volume) {
