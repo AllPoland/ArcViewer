@@ -10,7 +10,6 @@ public class LoadingWidget : MonoBehaviour
     [SerializeField] private TextMeshProUGUI loadingText;
     [SerializeField] private TextMeshProUGUI downloadSizeText;
     [SerializeField] private Button cancelButton;
-    [SerializeField] private float rotationSpeed;
 
     private bool loading;
 
@@ -44,8 +43,6 @@ public class LoadingWidget : MonoBehaviour
     {
         if(loading)
         {
-            loadingSpin.transform.Rotate(Vector3.forward * (rotationSpeed * Time.deltaTime));
-
             if(MapLoader.Progress > 0)
             {
                 loadingBar.gameObject.SetActive(true);

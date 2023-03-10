@@ -97,14 +97,14 @@ public class TimeManager : MonoBehaviour
 
     public static float RawTimeFromBeat(float beat, float bpm)
     {
-        if(beat == 0) return 0; //Fix for random fucking NaN value for some unknown reason
+        if(bpm <= 0) return 0;
         return beat / bpm * 60;
     }
 
 
     public static float RawBeatFromTime(float time, float bpm)
     {
-        if(time == 0) return 0; //Fix for random fucking NaN value for some unknown reason
+        if(bpm <= 0) return 0;
         return time / 60 * bpm;
     }
 

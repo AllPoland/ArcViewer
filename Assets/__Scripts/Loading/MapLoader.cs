@@ -113,7 +113,7 @@ public class MapLoader : MonoBehaviour
 
         Task<Stream> coverImageTask = Task.Run(() => FileUtil.ReadFileData(Path.Combine(directory, info._coverImageFilename)));
         yield return new WaitUntil(() => coverImageTask.IsCompleted);
-        Stream coverImageStream = coverImageTask.Result;
+        Stream coverImageStream = coverImageTask.IsCompletedSuccessfully ? coverImageTask.Result : null;
         coverImageTask.Dispose();
 
         byte[] coverImageData = new byte[0];
@@ -512,7 +512,7 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    public async Task<BeatmapInfo> LoadInfoAsync(string directory)
+    public static async Task<BeatmapInfo> LoadInfoAsync(string directory)
     {
         string infoPath = Path.Combine(directory, "Info.dat");
 
@@ -524,7 +524,7 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    public async Task<List<Difficulty>> LoadDiffsAsync(string directory, BeatmapInfo info)
+    public static async Task<List<Difficulty>> LoadDiffsAsync(string directory, BeatmapInfo info)
     {
         List<Difficulty> difficulties = new List<Difficulty>();
 
@@ -581,6 +581,8 @@ public class MapLoader : MonoBehaviour
             return;
         }
 
+        HotReloader.loadedMapPath = null;
+
         if(mapDirectory.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
             if(mapDirectory.Contains("beatsaver.com/maps"))
@@ -623,6 +625,7 @@ public class MapLoader : MonoBehaviour
             }
 
             LoadMapZip(mapDirectory);
+            HotReloader.loadedMapPath = mapDirectory;
             return;
         }
 
@@ -641,6 +644,7 @@ public class MapLoader : MonoBehaviour
         }
 
         StartCoroutine(LoadMapDirectoryCoroutine(mapDirectory));
+        HotReloader.loadedMapPath = mapDirectory;
 #endif
     }
 }

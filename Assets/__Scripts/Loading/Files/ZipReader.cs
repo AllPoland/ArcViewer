@@ -14,56 +14,13 @@ public class ZipReader
         MemoryStream song = null;
         byte[] coverImageData = new byte[0];
 
-        Stream infoData = null;
         MapLoader.LoadingMessage = "Loading Info.dat";
         await Task.Yield();
+        info = GetInfoData(archive);
 
-        foreach(ZipArchiveEntry entry in archive.Entries)
+        if(info == null)
         {
-            if(entry.Name.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
-            {
-                try
-                {
-                    infoData = entry.Open();
-                }
-                catch(Exception e)
-                {
-                    Debug.LogWarning($"Failed to read Info.dat with error: {e.Message}, {e.StackTrace}");
-                    infoData = null;
-                    break;
-                }
-
-                if(!entry.FullName.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
-                {
-                    //This means Info.dat was in a subfolder
-                    ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Map files aren't in the root!");
-                    Debug.LogWarning("Map files aren't in the root!");
-                }
-                break;
-            }
-        }
-
-        if(infoData == null)
-        {
-            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to load Info.dat!");
-            Debug.LogWarning("Zip file has no Info.dat!");
-            return (info, difficulties, song, coverImageData);
-        }
-
-        string infoJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
-        try
-        {
-            info = JsonUtility.FromJson<BeatmapInfo>(infoJson);
-            infoData.Dispose();
-        }
-        catch(Exception e)
-        {
-            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to parse Info.dat!");
-            Debug.LogWarning($"Failed to parse Info.dat with error: {e.Message}, {e.StackTrace}");
-
-            info = null;
-            infoData.Dispose();
-
+            //Failed to load info (errors are handled in GetInfoData)
             return (info, difficulties, song, coverImageData);
         }
 
@@ -76,40 +33,7 @@ public class ZipReader
         }
         else
         {
-            foreach(DifficultyBeatmapSet set in info._difficultyBeatmapSets)
-            {
-                string characteristicName = set._beatmapCharacteristicName;
-
-                if(set._difficultyBeatmaps.Length == 0)
-                {
-                    ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Characteristic {characteristicName} lists no difficulties!");
-                    Debug.LogWarning($"{characteristicName} lists no difficulties!");
-                    continue;
-                }
-
-                DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
-
-                List<Difficulty> newDifficulties = new List<Difficulty>();
-                foreach(DifficultyBeatmap beatmap in set._difficultyBeatmaps)
-                {
-                    MapLoader.LoadingMessage = $"Loading {beatmap._beatmapFilename}";
-                    Debug.Log($"Loading {beatmap._beatmapFilename}");
-                    
-                    Difficulty diff = await GetDiff(beatmap, archive);
-                    if(diff == null)
-                    {
-                        continue;
-                    }
-
-                    diff.characteristic = setCharacteristic;
-                    diff.requirements = beatmap._customData?._requirements ?? new string[0];
-
-                    newDifficulties.Add(diff);
-                }
-
-                difficulties.AddRange(newDifficulties);
-                Debug.Log($"Finished loading {newDifficulties.Count} difficulties in characteristic {characteristicName}.");
-            }
+            difficulties = await GetDifficultiesAsync(info._difficultyBeatmapSets, archive);
         }
 
         string songFilename = info?._songFilename ?? "";
@@ -158,7 +82,103 @@ public class ZipReader
     }
 
 
-    private static async Task<Difficulty> GetDiff(DifficultyBeatmap beatmap, ZipArchive archive)
+    public static BeatmapInfo GetInfoData(ZipArchive archive)
+    {
+        Stream infoData = null;
+
+        foreach(ZipArchiveEntry entry in archive.Entries)
+        {
+            if(!entry.Name.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            try
+            {
+                infoData = entry.Open();
+            }
+            catch(Exception e)
+            {
+                Debug.LogWarning($"Failed to read Info.dat with error: {e.Message}, {e.StackTrace}");
+                return null;
+            }
+
+            if(!entry.FullName.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
+            {
+                //This means Info.dat was in a subfolder
+                ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Map files aren't in the root!");
+                Debug.LogWarning("Map files aren't in the root!");
+            }
+            break;
+        }
+
+        if(infoData == null)
+        {
+            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to load Info.dat!");
+            Debug.LogWarning("Unable to load Info.dat!");
+
+            return null;
+        }
+
+        string infoJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
+        try
+        {
+            return JsonUtility.FromJson<BeatmapInfo>(infoJson);
+        }
+        catch(Exception e)
+        {
+            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to parse Info.dat!");
+            Debug.LogWarning($"Failed to parse Info.dat with error: {e.Message}, {e.StackTrace}");
+
+            return null;
+        }
+    }
+
+
+    public static async Task<List<Difficulty>> GetDifficultiesAsync(DifficultyBeatmapSet[] beatmapSets, ZipArchive archive)
+    {
+        List<Difficulty> difficulties = new List<Difficulty>();
+
+        foreach(DifficultyBeatmapSet set in beatmapSets)
+        {
+            string characteristicName = set._beatmapCharacteristicName;
+
+            if(set._difficultyBeatmaps.Length == 0)
+            {
+                ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Characteristic {characteristicName} lists no difficulties!");
+                Debug.LogWarning($"{characteristicName} lists no difficulties!");
+                continue;
+            }
+
+            DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
+
+            List<Difficulty> newDifficulties = new List<Difficulty>();
+            foreach(DifficultyBeatmap beatmap in set._difficultyBeatmaps)
+            {
+                MapLoader.LoadingMessage = $"Loading {beatmap._beatmapFilename}";
+                Debug.Log($"Loading {beatmap._beatmapFilename}");
+                
+                Difficulty diff = await GetDiffAsync(beatmap, archive);
+                if(diff == null)
+                {
+                    continue;
+                }
+
+                diff.characteristic = setCharacteristic;
+                diff.requirements = beatmap._customData?._requirements ?? new string[0];
+
+                newDifficulties.Add(diff);
+            }
+
+            difficulties.AddRange(newDifficulties);
+            Debug.Log($"Finished loading {newDifficulties.Count} difficulties in characteristic {characteristicName}.");
+        }
+
+        return difficulties;
+    }
+
+
+    private static async Task<Difficulty> GetDiffAsync(DifficultyBeatmap beatmap, ZipArchive archive)
     {
         await Task.Yield();
 
