@@ -189,6 +189,8 @@ public class AudioManager : MonoBehaviour
             Array.Resize(ref samples, Math.Max(samples.Length - songTimeOffsetSamples, clip.channels * 4096));
         }
 
+        Destroy(clip);
+
         // Create a new AudioClip because apparently you can't change the length of an existing one
         clip = AudioClip.Create(clip.name, samples.Length / clip.channels, clip.channels, clip.frequency, false);
         clip.SetData(samples, 0);

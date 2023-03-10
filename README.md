@@ -10,10 +10,12 @@ An open source 3D Beat Saber map previewer, designed to give users an accurate r
 
 - **Highly customizable** with a range of settings to modify hitsounds, graphics, visuals, and camera settings
 
+- **Adjustable playback** including options to change playback speed and jump settings
+
+- **Basic modded map support** displaying precision placement through Mapping Extensions and Noodle Extensions
+
 ## Planned Features
 These features aren't included yet, but are very likely to be added in the future.
-
-- Support for precision placement/rotation through mapping/noodle extensions
 
 - 360/90 degree gamemode support (currently just displays as a regular map without rotation events)
 
@@ -35,12 +37,18 @@ These features aren't included, and most likely never will be. If you ask for th
 - Removing start screen watermark (this costs money :fw_nofwoompdespair)
 
 ## Get Started
-ArcViewer is currently only available as a desktop application. A browser port is in-progress, but for now, simply download the latest release from the [Releases](https://github.com/AllPoland/ArcViewer/releases) page and unzip the contents to a new folder.
+ArcViewer is available both in the browser, and as a desktop app.
+
+To use ArcViewer in your browser, simply visit [the github.io page](https://allpoland.github.io/ArcViewer/).
+
+To use ArcViewer as a desktop app, download the latest release from the [the releases page](https://github.com/AllPoland/ArcViewer/releases) and extract the contents to a new folder.
+
+**Don't know which one to use?** Check out an explanation of both versons [here](https://github.com/AllPoland/ArcViewer/wiki/Which-Version-Should-I-Use).
 
 ## For Developers
 ArcViewer is developed in Unity version 2021.3.20
 
-Development and build guides will be written to help contributors ~~when I feel like it~~ soon:tm:.
+For more info on setting up your environment, contributing, and reporting bugs, check out the [Developer Guide](DEVELOPERS.md).
 
 ### License
 Bear in mind that ArcViewer is licensed under the [GNU General Public License v3.0](LICENSE).
