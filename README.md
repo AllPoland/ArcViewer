@@ -43,7 +43,7 @@ To use ArcViewer in your browser, simply visit [the github.io page](https://allp
 
 To use ArcViewer as a desktop app, download the latest release from the [the releases page](https://github.com/AllPoland/ArcViewer/releases) and extract the contents to a new folder.
 
-**Don't know which one to use?** Check out an explanation of both versons [here](https://github.com/AllPoland/ArcViewer/wiki/Which-Version-Should-I-Use).
+**Don't know which one to use?** Check out an explanation of both versons [here](https://github.com/AllPoland/ArcViewer/wiki/Which-Version-Should-I-Use%3f).
 
 ## For Developers
 ArcViewer is developed in Unity version 2021.3.20
