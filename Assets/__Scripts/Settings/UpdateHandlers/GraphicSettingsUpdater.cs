@@ -7,14 +7,13 @@ public class GraphicSettingsUpdater : MonoBehaviour
     [SerializeField] private VolumeProfile mainBloomVolume;
     [SerializeField] private VolumeProfile backgroundBloomVolume;
     [SerializeField] private UniversalRenderPipelineAsset urpAsset;
-    [SerializeField] private UniversalRendererData rendererData;
+    // [SerializeField] private ScriptableRendererFeature ssaoFeature;
 
     private Camera mainCamera;
     private Bloom mainBloom;
     private float defaultBloomStrength;
     private Bloom backgroundBloom;
     private float defaultBackgroundBloomStrength;
-    private ScriptableRendererFeature ssaoFeature;
 
 
     public void UpdateGraphicsSettings()
@@ -28,19 +27,13 @@ public class GraphicSettingsUpdater : MonoBehaviour
             int framecap = SettingsManager.GetInt("framecap");
 
             //Value of -1 uncaps the framerate
-            if(framecap == 0 || framecap > 240) framecap = -1;
+            if(framecap == 0 || framecap > 200) framecap = -1;
 
             Application.targetFrameRate = framecap;
         }
         else Application.targetFrameRate = -1;
 
-        if(Application.isEditor)
-        {
-            //Stop here so that we don't permanently alter assets in the project
-            //Anything that doesn't modify an asset should go above this so it takes effect in editor
-            return;
-        }
-
+#if !UNITY_WEBGL
         int antiAliasing = SettingsManager.GetInt("antialiasing");
         mainCamera.allowMSAA = antiAliasing > 0;
 
@@ -59,9 +52,13 @@ public class GraphicSettingsUpdater : MonoBehaviour
                 urpAsset.msaaSampleCount = 8;
                 break;
         }
+#else
+        mainCamera.allowMSAA = false;
+#endif
 
-        ssaoFeature.SetActive(SettingsManager.GetBool("ssao"));
+        // ssaoFeature.SetActive(SettingsManager.GetBool("ssao"));
 
+#if !UNITY_EDITOR
         float mainBloomStrength = SettingsManager.GetFloat("bloom");
         float backgroundBloomStrength = SettingsManager.GetFloat("backgroundbloom");
 
@@ -70,6 +67,7 @@ public class GraphicSettingsUpdater : MonoBehaviour
 
         mainBloom.intensity.value = mainBloomStrength * defaultBloomStrength;
         backgroundBloom.intensity.value = backgroundBloomStrength * defaultBackgroundBloomStrength;
+#endif
     }
 
 
@@ -78,8 +76,6 @@ public class GraphicSettingsUpdater : MonoBehaviour
         SettingsManager.OnSettingsUpdated += UpdateGraphicsSettings;
         
         mainCamera = Camera.main;
-
-        ssaoFeature = rendererData.rendererFeatures.Find(x => x.name == "ScreenSpaceAmbientOcclusion");
 
         bool foundMainBloom = mainBloomVolume.TryGet<Bloom>(out mainBloom);
         bool foundBackgroundBloom = backgroundBloomVolume.TryGet<Bloom>(out backgroundBloom);

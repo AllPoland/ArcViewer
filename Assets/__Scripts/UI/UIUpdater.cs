@@ -15,13 +15,23 @@ public class UIUpdater : MonoBehaviour
         if(newState == UIState.MapSelection)
         {
             directoryField.text = "";
+
+            AudioManager.Instance.DestroyClip();
+            if(CoverImageHandler.Instance != null)
+            {
+                CoverImageHandler.Instance.ClearImage();
+            }
+
+            Resources.UnloadUnusedAssets();
         }
 
         selectionScreen.SetActive(newState == UIState.MapSelection && !MapLoader.Loading);
         previewScreen.SetActive(newState == UIState.Previewer);
         background.SetActive(newState == UIState.MapSelection);
         
-        infoScreen.SetActive(false);
+        DialogueHandler.Instance.SetInfoPanelActive(false);
+        DialogueHandler.Instance.SetSharePanelActive(false);
+        DialogueHandler.Instance.SetJumpSettingsPanelActive(false);
     }
 
 

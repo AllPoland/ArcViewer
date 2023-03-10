@@ -34,12 +34,13 @@ public class ArcManager : MonoBehaviour
         arcPool.SetPoolSize(20);
 
         UpdateMaterials();
-        UpdateArcVisuals(TimeManager.CurrentBeat);
     }
 
 
     public void UpdateMaterials()
     {
+        ClearRenderedArcs();
+
         //Sets the distance that arcs should fade out
         float fadeDist = BeatmapManager.JumpDistance / 2;
         float closeFadeDist = SettingsManager.GetFloat("cameraposition") + arcCloseFadeDist;
@@ -60,6 +61,8 @@ public class ArcManager : MonoBehaviour
         currentArcCenterMaterial.SetFloat("_FadeStartPoint", closeFadeDist);
         currentArcCenterMaterial.SetFloat("_FadeEndPoint", fadeDist);
         currentArcCenterMaterial.SetFloat("_FadeTransitionLength", arcCenterFadeTransitionLength);
+
+        UpdateArcVisuals(TimeManager.CurrentBeat);
     }
 
 
@@ -84,7 +87,7 @@ public class ArcManager : MonoBehaviour
 
         //Estimate the number of points we'll need to make this arc based on density option
         //A minimum value is given because very short arcs would otherwise potentially get no segments at all (very bad)
-        int pointCount = Mathf.Max(10, (int)(ArcSegmentDensity * duration) + 1);
+        int pointCount = Mathf.Max((int)ArcSegmentDensity / 2, (int)(ArcSegmentDensity * duration) + 1);
         Vector3[] points = new Vector3[pointCount];
         for(int i = 0; i < pointCount; i++)
         {
@@ -210,8 +213,6 @@ public class ArcManager : MonoBehaviour
     private void Start()
     {
         objectManager = ObjectManager.Instance;
-
-        TimeManager.OnBeatChanged += UpdateArcVisuals;
     }
 }
 
@@ -229,8 +230,8 @@ public class Arc : BaseSlider
 
     public static Arc ArcFromBeatmapSlider(BeatmapSlider a)
     {
-        Vector2 headPosition = ObjectManager.CalculateObjectPosition(a.x, a.y);
-        Vector2 tailPosition = ObjectManager.CalculateObjectPosition(a.tx, a.ty);
+        Vector2 headPosition = ObjectManager.CalculateObjectPosition(a.x, a.y, a.customData?.coordinates);
+        Vector2 tailPosition = ObjectManager.CalculateObjectPosition(a.tx, a.ty, a.customData?.tailCoordinates);
         Vector2 headControlPoint = headPosition + ObjectManager.DirectionVector(ObjectManager.CalculateObjectAngle(a.d)) * a.mu * 2.5f;
         Vector2 tailControlPoint = tailPosition - ObjectManager.DirectionVector(ObjectManager.CalculateObjectAngle(a.tc)) * a.tmu * 2.5f;
 

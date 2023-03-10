@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using System.Net;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class BeatSaverHandler
 {
@@ -30,12 +30,24 @@ public class BeatSaverHandler
     {
         string url = string.Concat(BeatSaverURL, MapDirect, mapID);
 
-        string json = "";
         try
         {
-            using(WebClient client = new WebClient())
+            using(UnityWebRequest uwr = UnityWebRequest.Get(url))
             {
-                json = await client.DownloadStringTaskAsync(url);
+                uwr.SendWebRequest();
+
+                while(!uwr.isDone) await Task.Yield();
+
+                if(uwr.result == UnityWebRequest.Result.Success)
+                {
+                    return uwr.downloadHandler.text;
+                }
+                else
+                {
+                    Debug.Log(uwr.error);
+                    ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find beatsaver map {mapID}! {uwr.error}");
+                    return "";
+                }
             }
         }
         catch(Exception err)
@@ -44,8 +56,6 @@ public class BeatSaverHandler
             Debug.Log($"Failed to get BeatSaver api response with error: {err.Message}, {err.StackTrace}");
             return "";
         }
-
-        return json;
     }
 }
 

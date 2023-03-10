@@ -1,3 +1,5 @@
+using System;
+
 public class UIStateManager
 {
     private static UIState _currentState;
@@ -12,8 +14,7 @@ public class UIStateManager
         }
     }
 
-    public delegate void UIStateDelegate(UIState state);
-    public static event UIStateDelegate OnUIStateChanged;
+    public static event Action<UIState> OnUIStateChanged;
 }
 
 

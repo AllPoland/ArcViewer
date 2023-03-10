@@ -14,10 +14,10 @@ public class ObjectManager : MonoBehaviour
     [SerializeField] public float objectFloorOffset;
 
     [Header("Managers")]
-    [SerializeField] private NoteManager noteManager;
-    [SerializeField] private WallManager wallManager;
-    [SerializeField] private ChainManager chainManager;
-    [SerializeField] private ArcManager arcManager;
+    public NoteManager noteManager;
+    public WallManager wallManager;
+    public ChainManager chainManager;
+    public ArcManager arcManager;
 
     public bool useSimpleNoteMaterial = false;
     public bool doRotationAnimation = true;
@@ -81,7 +81,7 @@ public class ObjectManager : MonoBehaviour
         float startTime = TimeManager.TimeFromBeat(startBeat);
         float endTime = TimeManager.TimeFromBeat(endBeat) - BehindCameraTime;
 
-        bool timeInRange = TimeManager.CurrentTime > startTime && TimeManager.CurrentTime <= endTime;
+        bool timeInRange = TimeManager.CurrentTime >= startTime && TimeManager.CurrentTime <= endTime;
         bool jumpTime = CheckInSpawnRange(startBeat);
 
         return jumpTime || timeInRange;
@@ -103,7 +103,6 @@ public class ObjectManager : MonoBehaviour
         {
             //Note hasn't jumped in yet. Place based on the jump-in stuff
             float timeDist = (objectTime - jumpTime) / moveTime;
-            timeDist = Easings.Quad.Out(timeDist);
             return (BeatmapManager.JumpDistance / 2) + (moveZ * timeDist);
         }
     }
@@ -111,15 +110,13 @@ public class ObjectManager : MonoBehaviour
 
     public float WorldSpaceFromTime(float time)
     {
-        float NJS = BeatmapManager.CurrentMap.NoteJumpSpeed;
-        return time * NJS;
+        return time * BeatmapManager.NJS;
     }
 
 
     public float TimeFromWorldspace(float position)
     {
-        float NJS = BeatmapManager.CurrentMap.NoteJumpSpeed;
-        return position / NJS;
+        return position / BeatmapManager.NJS;
     }
 
 
@@ -151,14 +148,64 @@ public class ObjectManager : MonoBehaviour
         return SpawnParabola(targetY, startY, halfJumpDistance, GetZPosition(objectTime));
     }
 
+
+    public static float MappingExtensionsPrecision(float value)
+    {
+        //When position values are further than 1000 away, they're on the "precision placement" grid
+        if(Mathf.Abs(value) >= 1000)
+        {
+            value -= 1000 * Mathf.Sign(value);
+            value /= 1000;
+        }
+        return value;
+    }
+
+
+    public static Vector2 MappingExtensionsPosition(Vector2 position)
+    {
+        position.x = MappingExtensionsPrecision(position.x);
+        position.y = MappingExtensionsPrecision(position.y);
+        return position;
+    }
+
+
+    public static float? MappingExtensionsAngle(int cutDirection)
+    {
+        //When the cut direction is above 1000, it's in the "precision angle" space
+        if(cutDirection >= 1000)
+        {
+            float angle = (cutDirection - 1000) % 360;
+            if(angle > 180)
+            {
+                angle -= 360;
+            }
+            return angle * -1;
+        }
+        return null;
+    }
+
+
     public static Vector2 DirectionVector(float angle)
     {
         return new Vector2(Mathf.Sin(angle * Mathf.Deg2Rad), -Mathf.Cos(angle * Mathf.Deg2Rad));
     }
 
 
-    public static Vector2 CalculateObjectPosition(int x, int y)
+    public static Vector2 CalculateObjectPosition(float x, float y, float[] coordinates = null)
     {
+        if(coordinates != null && coordinates.Length == 2)
+        {
+            //Noodle coordinates treat x differently for some reason
+            x = coordinates[0] + 2;
+            y = coordinates[1];
+        }
+        else if(BeatmapManager.MappingExtensions)
+        {
+            Vector2 adjustedPosition = MappingExtensionsPosition(new Vector2(x, y));
+            x = adjustedPosition.x;
+            y = adjustedPosition.y;
+        }
+
         Vector2 position = GridBottomLeft;
         position.x += x * LaneWidth;
         position.y += y * RowHeight;
@@ -168,6 +215,16 @@ public class ObjectManager : MonoBehaviour
 
     public static float CalculateObjectAngle(int cutDirection, float angleOffset = 0)
     {
+        if(BeatmapManager.MappingExtensions)
+        {
+            float? angle = MappingExtensionsAngle(cutDirection);
+            if(angle != null)
+            {
+                //Mapping extensions angle applies
+                return (float)angle;
+            }
+        }
+
         Dictionary<int, float> DirectionAngles = new Dictionary<int, float>
         {
             {0, 180},
@@ -184,7 +241,7 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public void UpdateManagers(Difficulty difficulty)
+    public void UpdateDifficulty(Difficulty difficulty)
     {
         HitSoundManager.ClearScheduledSounds();
 
@@ -194,6 +251,15 @@ public class ObjectManager : MonoBehaviour
         noteManager.ReloadNotes();
         arcManager.ReloadArcs();
         wallManager.ReloadWalls();
+    }
+
+
+    public void UpdateBeat(float currentBeat)
+    {
+        noteManager.UpdateNoteVisuals(currentBeat);
+        wallManager.UpdateWallVisuals(currentBeat);
+        chainManager.UpdateChainVisuals(currentBeat);
+        arcManager.UpdateArcVisuals(currentBeat);
     }
 
 
@@ -417,7 +483,8 @@ public class ObjectManager : MonoBehaviour
 
     private void Start()
     {
-        BeatmapManager.OnBeatmapDifficultyChanged += UpdateManagers;
+        BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
+        TimeManager.OnBeatChanged += UpdateBeat;
     }
 
 

@@ -18,25 +18,26 @@ public class TimeManager : MonoBehaviour
     private static float _time = 0;
     public static float CurrentTime
     {
-        get
-        {
-            return _time;
-        }
+        get => _time;
+        
         set
         {
-            float set = value;
-            if(set >= SongLength)
+            if(value >= SongLength)
             {
+                _time = SongLength;
+                _beat = BeatFromTime(_time);
+
                 SetPlaying(false);
-                set = SongLength;
+                OnBeatChanged?.Invoke(CurrentBeat);
+                return;
             }
-            else if(set < 0)
+            else if(value < 0)
             {
-                set = 0;
+                value = 0;
             }
 
-            _beat = BeatFromTime(set);
-            _time = set;
+            _beat = BeatFromTime(value);
+            _time = value;
             OnBeatChanged?.Invoke(CurrentBeat);
         }
     }
@@ -44,10 +45,8 @@ public class TimeManager : MonoBehaviour
     private static float _beat = 0;
     public static float CurrentBeat
     {
-        get
-        {
-            return _beat;
-        }
+        get => _beat;
+        
         private set
         {
             _time = TimeFromBeat(value);
@@ -98,24 +97,22 @@ public class TimeManager : MonoBehaviour
 
     public static float RawTimeFromBeat(float beat, float bpm)
     {
-        if(beat == 0) return 0; //Fix for random fucking NaN value for some unknown reason
+        if(bpm <= 0) return 0;
         return beat / bpm * 60;
     }
 
 
     public static float RawBeatFromTime(float time, float bpm)
     {
-        if(time == 0) return 0; //Fix for random fucking NaN value for some unknown reason
+        if(bpm <= 0) return 0;
         return time / 60 * bpm;
     }
 
 
     public static float Progress
     {
-        get
-        {
-            return CurrentTime / SongLength;
-        }
+        get => SongLength <= 0 ? 0 : CurrentTime / SongLength;
+
         set
         {
             if(value > 1)

@@ -72,7 +72,7 @@ public class UserIdleDetector : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     private void Update()
     {
-        if(UIStateManager.CurrentState == UIState.Previewer && !DialogueHandler.DialogueActive)
+        if(UIStateManager.CurrentState == UIState.Previewer && !DialogueHandler.PopupActive)
         {
             if(MouseOnScreen())
             {

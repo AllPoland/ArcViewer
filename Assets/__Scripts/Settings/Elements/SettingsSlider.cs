@@ -10,6 +10,7 @@ public class SettingsSlider : MonoBehaviour
     [SerializeField] private string maxOverride;
     [SerializeField] private string rule;
     [SerializeField] private bool integerValue;
+    [SerializeField] private bool hideInWebGL;
 
     private Slider slider;
 
@@ -42,16 +43,24 @@ public class SettingsSlider : MonoBehaviour
 
     private void OnEnable()
     {
+#if UNITY_WEBGL
+        if(hideInWebGL)
+        {
+            gameObject.SetActive(false);
+            return;
+        }
+#endif
+
         slider = GetComponent<Slider>();
 
-        if(!integerValue && SettingsManager.CurrentSettings?.Floats != null)
+        if(!integerValue)
         {
             float newValue = SettingsManager.GetFloat(rule);
 
             slider.value = newValue;
             UpdateText(slider.value);
         }
-        else if(integerValue && SettingsManager.CurrentSettings?.Ints != null)
+        else if(integerValue)
         {
             int newValue = SettingsManager.GetInt(rule);
 
@@ -65,6 +74,9 @@ public class SettingsSlider : MonoBehaviour
 
     private void OnDisable()
     {
-        slider.onValueChanged.RemoveAllListeners();
+        if(slider)
+        {
+            slider.onValueChanged.RemoveAllListeners();
+        }
     }
 }

@@ -271,7 +271,6 @@ public class ChainManager : MonoBehaviour
     {
         objectManager = ObjectManager.Instance;
 
-        TimeManager.OnBeatChanged += UpdateChainVisuals;
         TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }
 }
@@ -286,7 +285,7 @@ public class Chain : BaseSlider
 
     public static Chain ChainFromBeatmapBurstSlider(BeatmapBurstSlider b)
     {
-        Vector2 headPosition = ObjectManager.CalculateObjectPosition(b.x, b.y);
+        Vector2 headPosition = ObjectManager.CalculateObjectPosition(b.x, b.y, b.customData?.coordinates);
         Vector2 tailPosition = ObjectManager.CalculateObjectPosition(b.tx, b.ty);
         float angle = ObjectManager.CalculateObjectAngle(b.d);
 

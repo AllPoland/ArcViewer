@@ -5,6 +5,8 @@ using UnityEngine.Audio;
 
 public class HitSoundManager : MonoBehaviour
 {
+    public const float SoundOffset = -0.185f;
+
     public static AudioClip HitSound;
     public static List<ScheduledSound> scheduledSounds = new List<ScheduledSound>();
 
@@ -56,12 +58,14 @@ public class HitSoundManager : MonoBehaviour
         }
         else noteSource.pitch = 1;
 
+#if !UNITY_WEBGL || UNITY_EDITOR
         if(Spatial)
         {
             //A bit less than full spacial blend because I think having the sounds way in one ear is weird
             noteSource.spatialBlend = 0.8f;
         }
         else noteSource.spatialBlend = 0;
+#endif
 
         if(Spatial)
         {
@@ -92,8 +96,6 @@ public class HitSoundManager : MonoBehaviour
             source = noteSource,
             time = noteTime
         };
-
-        TimeManager.OnBeatChanged += sound.UpdateTime;
         scheduledSounds.Add(sound);
     }
 
@@ -116,9 +118,38 @@ public class HitSoundManager : MonoBehaviour
     }
 
 
+    public void UpdateTimeScale(float newScale)
+    {
+        for(int i = scheduledSounds.Count - 1; i >= 0; i--)
+        {
+            ScheduledSound sound = scheduledSounds[i];
+
+            //If the sound is already scheduled, try to reschedule it with the correct timing
+            if(sound.scheduled)
+            {
+                sound.source.Stop();
+                sound.scheduled = false;
+
+                sound.UpdateTime();
+            }
+        }
+    }
+
+
+    private void Update()
+    {
+        for(int i = scheduledSounds.Count - 1; i >= 0; i--)
+        {
+            //Update each sound's priority and queue and such
+            scheduledSounds[i].UpdateTime();
+        }
+    }
+
+
     private void Start()
     {
         TimeManager.OnPlayingChanged += UpdatePlaying;
+        TimeSyncHandler.OnTimeScaleChanged += UpdateTimeScale;
     }
 
 
@@ -134,8 +165,7 @@ public class ScheduledSound
     public List<ScheduledSound> parentList;
     public AudioSource source;
     public float time;
-
-    private bool scheduled;
+    public bool scheduled;
 
 
     public void Destroy()
@@ -145,12 +175,11 @@ public class ScheduledSound
             source.Stop();
         }
 
-        TimeManager.OnBeatChanged -= UpdateTime;
         parentList.Remove(this);
     }
 
 
-    public void UpdateTime(float currentBeat)
+    public void UpdateTime()
     {
         if(source == null || !source.isActiveAndEnabled)
         {
@@ -159,11 +188,22 @@ public class ScheduledSound
         }
 
         float currentTime = AudioManager.GetSongTime();
-        float timeDifference = time - currentTime;
+
+        //Account for time scale and sound offset
+        float timeDifference = (time - currentTime) / TimeSyncHandler.TimeScale;
+        float scheduleIn = timeDifference + HitSoundManager.SoundOffset;
+
+        if(!scheduled && timeDifference <= 0)
+        {
+            //The sound should already be playing by this point
+            //Trying to schedule now would just make it off-time and wouldn't be worth it
+            Destroy();
+            return;
+        }
 
         if(HitSoundManager.DynamicPriority)
         {
-            //Dynamically set sound priority so sounds don't get overridden by scheduled sounds
+            //Dynamically set sound priority so playing sounds don't get overridden by scheduled sounds
             //Thanks galx for making this code
             if(currentTime - time > 0)
             {
@@ -178,10 +218,21 @@ public class ScheduledSound
         }
         else source.priority = 100;
 
-        if(!scheduled && !source.isPlaying && currentTime > time - HitSoundManager.ScheduleBuffer)
+        if(!scheduled && !source.isPlaying && scheduleIn <= HitSoundManager.ScheduleBuffer)
         {
-            //Audio hasn't been scheduled but it should be
-            source.PlayScheduled(AudioSettings.dspTime + timeDifference);
+            if(scheduleIn <= 0)
+            {
+                //The sound should already be playing the windup
+                //Instead, schedule the sound exactly on beat with no offset
+                source.time = -HitSoundManager.SoundOffset;
+                source.PlayScheduled(AudioSettings.dspTime + timeDifference);
+            }
+            else
+            {
+                source.time = 0;
+                source.PlayScheduled(AudioSettings.dspTime + scheduleIn);
+            }
+
             scheduled = true;
         }
     }

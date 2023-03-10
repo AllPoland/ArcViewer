@@ -24,6 +24,7 @@ public class SettingsManager : MonoBehaviour
     }
 
 
+#if !UNITY_WEBGL || UNITY_EDITOR
     private IEnumerator SaveSettingsCoroutine()
     {
         saving = true;
@@ -87,10 +88,22 @@ public class SettingsManager : MonoBehaviour
 
         OnSettingsUpdated?.Invoke();
     }
+#endif
 
 
     public static bool GetBool(string name)
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        //Use player prefs for WebGL
+        //Use ints for bools since PlayerPrefs can't store them
+        int defaultValue = 0;
+        if(Settings.DefaultSettings.Bools.ContainsKey(name))
+        {
+            defaultValue = Settings.DefaultSettings.Bools[name] ? 1 : 0;
+        }
+
+        return PlayerPrefs.GetInt(name, defaultValue) > 0;
+#else
         if(CurrentSettings.Bools.ContainsKey(name))
         {
             return CurrentSettings.Bools[name];
@@ -100,11 +113,22 @@ public class SettingsManager : MonoBehaviour
             return Settings.GetDefaultSettings().Bools[name];
         }
         else return false;
+#endif
     }
 
 
     public static int GetInt(string name)
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        //Use player prefs for WebGL
+        int defaultValue = 0;
+        if(Settings.DefaultSettings.Ints.ContainsKey(name))
+        {
+            defaultValue = Settings.DefaultSettings.Ints[name];
+        }
+
+        return PlayerPrefs.GetInt(name, defaultValue);
+#else
         if(CurrentSettings.Ints.ContainsKey(name))
         {
             return CurrentSettings.Ints[name];
@@ -114,11 +138,22 @@ public class SettingsManager : MonoBehaviour
             return Settings.GetDefaultSettings().Ints[name];
         }
         else return 0;
+#endif
     }
 
 
     public static float GetFloat(string name)
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        //Use player prefs for WebGL
+        float defaultValue = 0;
+        if(Settings.DefaultSettings.Floats.ContainsKey(name))
+        {
+            defaultValue = Settings.DefaultSettings.Floats[name];
+        }
+
+        return PlayerPrefs.GetFloat(name, defaultValue);
+#else
         if(CurrentSettings.Floats.ContainsKey(name))
         {
             return CurrentSettings.Floats[name];
@@ -128,11 +163,15 @@ public class SettingsManager : MonoBehaviour
             return Settings.GetDefaultSettings().Floats[name];
         }
         else return 0;
+#endif
     }
 
 
     public static void SetRule(string name, bool value)
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        PlayerPrefs.SetInt(name, value ? 1 : 0);
+#else
         Dictionary<string, bool> rules = CurrentSettings.Bools;
         if(rules.ContainsKey(name))
         {
@@ -142,12 +181,16 @@ public class SettingsManager : MonoBehaviour
         {
             rules.Add(name, value);
         }
+#endif
         OnSettingsUpdated?.Invoke();
     }
 
 
     public static void SetRule(string name, int value)
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        PlayerPrefs.SetInt(name, value);
+#else
         Dictionary<string, int> rules = CurrentSettings.Ints;
         if(rules.ContainsKey(name))
         {
@@ -157,12 +200,16 @@ public class SettingsManager : MonoBehaviour
         {
             rules.Add(name, value);
         }
+#endif
         OnSettingsUpdated?.Invoke();
     }
 
 
     public static void SetRule(string name, float value)
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        PlayerPrefs.SetFloat(name, value);
+#else
         value = (float)Math.Round(value, 3); //Why tf does the compiler read value as a double here?
 
         Dictionary<string, float> rules = CurrentSettings.Floats;
@@ -174,13 +221,19 @@ public class SettingsManager : MonoBehaviour
         {
             rules.Add(name, value);
         }
+#endif
         OnSettingsUpdated?.Invoke();
     }
 
 
     public static void SetDefaults()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        PlayerPrefs.DeleteAll();
+#else
         CurrentSettings = Settings.GetDefaultSettings();
+#endif
+        
         OnSettingsReset?.Invoke();
         OnSettingsUpdated?.Invoke();
     }
@@ -188,7 +241,13 @@ public class SettingsManager : MonoBehaviour
 
     private void Awake()
     {
+#if !UNITY_WEBGL || UNITY_EDITOR
+        //Load settings from json if not running in WebGL
+        //Otherwise settings are handled through playerprefs instead
         LoadSettings();
+#else
+        OnSettingsUpdated?.Invoke();
+#endif
     }
 }
 
@@ -201,7 +260,7 @@ public class Settings
     public Dictionary<string, float> Floats;
 
 
-    private static readonly Settings DefaultSettings = new Settings
+    public static readonly Settings DefaultSettings = new Settings
     {
         Bools = new Dictionary<string, bool>
         {

@@ -52,31 +52,37 @@ public class BeatmapManager : MonoBehaviour
         {
             _currentMap = value;
 
-            if(_currentMap.NoteJumpSpeed == 0)
+            SpawnOffset = _currentMap.SpawnOffset;
+            NJS = _currentMap.NoteJumpSpeed;
+            if(NJS == 0)
             {
                 switch(_currentMap.difficultyRank)
                 {
                     case DifficultyRank.Easy:
                     case DifficultyRank.Normal:
                     case DifficultyRank.Hard:
-                        _currentMap.NoteJumpSpeed = 10;
+                        NJS = 10;
                         break;
                     case DifficultyRank.Expert:
-                        _currentMap.NoteJumpSpeed = 12;
+                        NJS = 12;
                         break;
                     case DifficultyRank.ExpertPlus:
-                        _currentMap.NoteJumpSpeed = 16;
+                        NJS = 16;
                         break;
                 }
             }
+            JumpDistance = GetJumpDistance(HJD, Info._beatsPerMinute, NJS);
 
-            if(_currentMap.requirements.Contains("Noodle Extensions"))
+            MappingExtensions = _currentMap.requirements.Contains("Mapping Extensions");
+            NoodleExtensions = _currentMap.requirements.Contains("Noodle Extensions");
+
+            if(NoodleExtensions)
             {
-                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Noodle Extensions is not yet supported! Things may not display correctly.");
+                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Noodle Extensions is not fully supported! Things may not display correctly.");
             }
-            else if(_currentMap.requirements.Contains("Mapping Extensions"))
+            else if(MappingExtensions)
             {
-                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Mapping Extensions is not yet supported! Things may not display correctly.");
+                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Mapping Extensions support is incomplete! Things may not display correctly.");
             }
 
             Debug.Log($"Current diff is {_currentMap.characteristic}, {_currentMap.difficultyRank}");
@@ -84,31 +90,32 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public static float DefaultHJD
+    public static bool MappingExtensions { get; private set; }
+    public static bool NoodleExtensions { get; private set; }
+
+    public static float NJS;
+    public static float SpawnOffset;
+    public static float JumpDistance;
+
+    public static float HJD => Mathf.Max(DefaultHJD + SpawnOffset, 0.25f);
+    public static float ReactionTime => JumpDistance / 2 / NJS;
+
+    private static float DefaultHJD
     {
         get
         {
             float value = 4;
 
-            float JD = GetJumpDistance(value, Info._beatsPerMinute, CurrentMap.NoteJumpSpeed);
-            while(JD > 35.998f && value > 0.25f)
+            float JD = GetJumpDistance(value, Info._beatsPerMinute, NJS);
+            while(JD > 35.998f)
             {
                 value /= 2;
-                JD = GetJumpDistance(value, Info._beatsPerMinute, CurrentMap.NoteJumpSpeed);
-            }
-
-            if(value < 0.25f)
-            {
-                value = 0.25f;
+                JD = GetJumpDistance(value, Info._beatsPerMinute, NJS);
             }
             
             return value;
         }
     }
-
-    public static float HJD => DefaultHJD + CurrentMap.SpawnOffset;
-    public static float ReactionTime => (60 / Info._beatsPerMinute) * HJD;
-    public static float JumpDistance => GetJumpDistance(HJD, Info._beatsPerMinute, CurrentMap.NoteJumpSpeed);
 
 
     public static float GetJumpDistance(float HJD, float BPM, float NJS)
@@ -130,46 +137,47 @@ public class BeatmapManager : MonoBehaviour
     }
 
 
-    public static void SetDefaultDifficulty()
+    public static Difficulty GetDefaultDifficulty()
     {
-        //Load the default difficulty
         //Else if chains my behated (I can't think of a better way to do this)
         if(Difficulties.Count == 0)
         {
-            Debug.LogWarning("Map has no difficulties!");
+            return Difficulty.Empty;
         }
         else if(StandardDifficulties.Count > 0)
         {
-            CurrentMap = StandardDifficulties[StandardDifficulties.Count - 1];
+            return StandardDifficulties.Last();
         }
         else if(OneSaberDifficulties.Count > 0)
         {
-            CurrentMap = OneSaberDifficulties[OneSaberDifficulties.Count - 1];
+            return OneSaberDifficulties.Last();
         }
         else if(NoArrowsDifficulties.Count > 0)
         {
-            CurrentMap = NoArrowsDifficulties[NoArrowsDifficulties.Count - 1];
+            return NoArrowsDifficulties.Last();
         }
         else if(ThreeSixtyDifficulties.Count > 0)
         {
-            CurrentMap = ThreeSixtyDifficulties[ThreeSixtyDifficulties.Count - 1];
+            return ThreeSixtyDifficulties.Last();
         }
         else if(NinetyDifficulties.Count > 0)
         {
-            CurrentMap = NinetyDifficulties[NinetyDifficulties.Count - 1];
+            return NinetyDifficulties[NinetyDifficulties.Count - 1];
         }
         else if(LightshowDifficulties.Count > 0)
         {
-            CurrentMap = LightshowDifficulties[LightshowDifficulties.Count - 1];
+            return LightshowDifficulties.Last();
         }
         else if(LawlessDifficulties.Count > 0)
         {
-            CurrentMap = LawlessDifficulties[LawlessDifficulties.Count - 1];
+            return LawlessDifficulties.Last();
         }
         else if(UnknownDifficulties.Count > 0)
         {
-            CurrentMap = UnknownDifficulties[UnknownDifficulties.Count - 1];
+            return UnknownDifficulties.Last();
         }
+
+        return Difficulty.Empty;
     }
 
 
@@ -185,7 +193,6 @@ public class BeatmapManager : MonoBehaviour
 
 
     public static event Action<BeatmapInfo> OnBeatmapInfoChanged;
-
     public static event Action<Difficulty> OnBeatmapDifficultyChanged;
 
 

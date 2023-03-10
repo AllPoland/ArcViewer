@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 
 [Serializable]
 public class BeatmapDifficulty
@@ -68,7 +65,7 @@ public class BeatmapColorNote : BeatmapObject
     public int d;
     public int a;
 
-    public BeatmapCustomObjectData customData;
+    public BeatmapCustomNoteData customData;
 }
 
 
@@ -117,6 +114,8 @@ public class BeatmapBurstSlider : BeatmapObject
     public int ty;
     public int sc;
     public float s;
+
+    public BeatmapCustomObjectData customData;
 }
 
 
@@ -142,6 +141,14 @@ public class BeatmapColorBoostBeatmapEvent
 public class BeatmapCustomObjectData
 {
     public float[] coordinates;
+}
+
+
+[Serializable]
+public class BeatmapCustomNoteData : BeatmapCustomObjectData
+{
+    //Angle isn't a thing in V3 noodle. This just makes it easier to carry custom _cutDirection into V3
+    public float? angle;
 }
 
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ErrorHandler : MonoBehaviour
@@ -13,6 +14,7 @@ public class ErrorHandler : MonoBehaviour
     [SerializeField] private Color warningColor;
     [SerializeField] private Color notificationColor;
     [SerializeField] private int maxPopups;
+    [SerializeField] private float messageLifeSpan;
 
     private List<ErrorPopup> activePopups = new List<ErrorPopup>();
     private List<QueuedPopup> queuedPopups = new List<QueuedPopup>();
@@ -20,6 +22,12 @@ public class ErrorHandler : MonoBehaviour
 
     public void DisplayPopup(ErrorType errorType, string message)
     {
+        if(activePopups.Any(x => x.message == message))
+        {
+            //Don't display duplicate popups
+            return;
+        }
+
         GameObject popupObject = Instantiate(errorPopup, topPosition, Quaternion.identity, transform);
         popupObject.SetActive(false);
 
@@ -43,6 +51,7 @@ public class ErrorHandler : MonoBehaviour
         ErrorPopup newPopup = popupObject.GetComponent<ErrorPopup>();
         newPopup.message = message;
         newPopup.backgroundColor = color;
+        newPopup.lifeTime = messageLifeSpan;
 
         popupObject.SetActive(true);
         activePopups.Add(newPopup);

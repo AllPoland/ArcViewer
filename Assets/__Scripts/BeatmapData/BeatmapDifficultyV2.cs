@@ -24,12 +24,7 @@ public class BeatmapDifficultyV2
         foreach(BeatmapNoteV2 n in _notes)
         {
             //Loop over each note and add it to our V3 difficulty
-            if(n._type == 2)
-            {
-                //Unused note type, this shouldn't be here
-                continue;
-            }
-            else if(n._type < 2)
+            if(n._type < 2)
             {
                 //Color note
                 colorNotes.Add(
@@ -40,7 +35,8 @@ public class BeatmapDifficultyV2
                         y = n._lineLayer,
                         c = n._type,
                         d = n._cutDirection,
-                        a = 0
+                        a = 0,
+                        customData = n._customData?.ConvertToV3() ?? null
                     }
                 );
             }
@@ -53,7 +49,8 @@ public class BeatmapDifficultyV2
                     {
                         b = n._time,
                         x = n._lineIndex,
-                        y = n._lineLayer
+                        y = n._lineLayer,
+                        customData = n._customData?.ConvertToV3() ?? null
                     }
                 );
             }
@@ -65,16 +62,43 @@ public class BeatmapDifficultyV2
         List<BeatmapObstacle> obstacles = new List<BeatmapObstacle>();
         foreach(BeatmapObstacleV2 o in _obstacles)
         {
+            int wallY = o._type == 0 ? 0 : 2;
+            int wallH = o._type == 0 ? 5 : 3;
+            if(o._type >= 1000)
+            {
+                //This is a mapping extensions wall
+                if(o._type > 4000)
+                {
+                    //Extra precision walls are so weird wtf
+                    int type = o._type - 4001;
+                    int position = type % 1000;
+                    int height = (type - position) / 1000;
+
+                    //Position is supposedly 4x as much as height but that doesn't actually work?
+                    //I need to figure this out at some point
+                    wallY = (position * 5) + 1000;
+                    wallH = (height * 5) + 1000;
+                }
+                else
+                {
+                    //Standard precision height
+                    int height = o._type - 1000;
+                    wallH = (height * 5) + 1000;
+                    wallY = 0;
+                }
+            }
+
             obstacles.Add
             (
                 new BeatmapObstacle
                 {
                     b = o._time,
                     x = o._lineIndex,
-                    y = o._type == 0 ? 0 : 2,
+                    y = wallY,
                     d = o._duration,
                     w = o._width,
-                    h = o._type == 0 ? 5 : 3
+                    h = wallH,
+                    customData = o._customData?.ConvertToV3() ?? null
                 }
             );
         }
@@ -169,7 +193,7 @@ public struct BeatmapNoteV2
     public int _type;
     public int _cutDirection;
 
-    public BeatmapCustomObjectDataV2 _customData;
+    public BeatmapCustomNoteDataV2 _customData;
 }
 
 
@@ -220,11 +244,28 @@ public class BeatmapCustomObjectDataV2
     public float[] _position;
 
 
-    public static BeatmapCustomObjectData ConvertToV3(BeatmapCustomObstacleDataV2 cd)
+    public BeatmapCustomObjectData ConvertToV3()
     {
         return new BeatmapCustomObjectData
         {
-            coordinates = cd._position
+            coordinates = _position
+        };
+    }
+}
+
+
+[Serializable]
+public class BeatmapCustomNoteDataV2 : BeatmapCustomObjectDataV2
+{
+    public float? _cutDirection;
+
+
+    public new BeatmapCustomNoteData ConvertToV3()
+    {
+        return new BeatmapCustomNoteData
+        {
+            coordinates = _position,
+            angle = _cutDirection
         };
     }
 }
@@ -236,12 +277,12 @@ public class BeatmapCustomObstacleDataV2 : BeatmapCustomObjectDataV2
     public float[] _scale;
 
 
-    public static new BeatmapCustomObstacleData ConvertToV3(BeatmapCustomObstacleDataV2 cd)
+    public new BeatmapCustomObstacleData ConvertToV3()
     {
         return new BeatmapCustomObstacleData
         {
-            coordinates = cd._position,
-            size = cd._scale
+            coordinates = _position,
+            size = _scale
         };
     }
 }

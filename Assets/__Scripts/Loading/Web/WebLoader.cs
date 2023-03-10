@@ -1,19 +1,42 @@
 using System;
-using System.Net;
 using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class WebLoader : MonoBehaviour
 {
-    public static WebClient Client;
-    public static int Progress;
-    public static long DownloadSize;
+    public const string CorsProxy = "https://cors.bsmg.dev/";
 
-    private static byte[] result;
+    //Domains listed in this array will bypass the CORS proxy
+    //Map sources that include CORS headers should be added here for faster downloads
+    public static readonly string[] WhitelistURLs = new string[]
+    {
+        "https://r2cdn.beatsaver.com",
+        "https://cdn.beatsaver.com"
+    };
+
+    public static ulong DownloadSize;
+    public static UnityWebRequest uwr;
+
+
+    public static string GetCorsURL(string url)
+    {
+        if(WhitelistURLs.Any(x => url.StartsWith(x)))
+        {
+            //The requested domain has CORS headers, so no need for a proxy
+            return url;
+        }
+
+        return CorsProxy + url;
+    }
+
 
     public static async Task<Stream> LoadMapURL(string url)
     {
+        await Task.Yield();
+
         MemoryStream stream = null;
 
         if(!url.EndsWith(".zip"))
@@ -31,72 +54,77 @@ public class WebLoader : MonoBehaviour
 
     public static async Task<MemoryStream> StreamFromURL(string url)
     {
-        Progress = 0;
-        result = null;
+        MapLoader.Progress = 0;
 
-        Client = new WebClient();
+#if UNITY_WEBGL && !UNITY_EDITOR
+        url = GetCorsURL(url);
+#endif
 
-        //Get the file size prior to starting the download
-        Stream sr = Client.OpenRead(url);
-        DownloadSize = Convert.ToInt64(Client.ResponseHeaders["Content-Length"]);
-        sr.Dispose();
-
-        Client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(UpdateDownloadProgress);
-        Client.DownloadDataCompleted += new DownloadDataCompletedEventHandler(CompleteDownload);
-        
-        Client.DownloadDataAsync(new Uri(url));
-
-        while(result == null)
+        try
         {
-            await Task.Delay(10);
-        }
+            //Download request
+            uwr = UnityWebRequest.Get(url);
 
-        if(result.Length == 0)
+            Debug.Log("Starting download.");
+            uwr.SendWebRequest();
+
+            while(!uwr.isDone)
+            {
+                if(uwr.downloadProgress > 0 && uwr.downloadedBytes > 0)
+                {
+                    //Calculate total size of the download based on how it's gone so far
+                    //For some reason HEAD requests to BeatSaver cdn return 404, making this workaround necessary
+                    DownloadSize = (ulong)(uwr.downloadedBytes / uwr.downloadProgress);
+                }
+                else DownloadSize = 0;
+                MapLoader.Progress = uwr.downloadProgress;
+
+                await Task.Yield();
+            }
+
+            if(uwr.result != UnityWebRequest.Result.Success)
+            {
+                if(uwr.error == "Request aborted")
+                {
+                    Debug.Log("Download cancelled.");
+                    ErrorHandler.Instance.QueuePopup(ErrorType.Notification, "Download cancelled!");
+                }
+                else
+                {
+                    Debug.LogWarning($"{uwr.error}");
+                    ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Download failed! {uwr.error}");
+                }
+
+                return null;
+            }
+            else
+            {
+                return new MemoryStream(uwr.downloadHandler.data);
+            }
+        }
+        catch(Exception e)
         {
-            //Download failed
-            return null;
+            Debug.LogWarning($"Map download failed with exception: {e.Message}, {e.StackTrace}");
         }
-
-        MemoryStream stream = new MemoryStream(result);
-        result = null;
+        finally
+        {
+            if(uwr != null)
+            {
+                uwr.Dispose();
+                uwr = null;
+            }
+            MapLoader.Progress = 0;
+        }
         
-        return stream;
+        return null;
     }
 
 
     public static void CancelDownload()
     {
-        if(Client != null && Client.IsBusy)
+        if(uwr != null && !uwr.isDone)
         {
-            Client.CancelAsync();
-
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Notification, "The download was cancelled!");
-            Debug.Log("Download task cancelled!");
+            uwr.Abort();
         }
-    }
-
-
-    public static void UpdateDownloadProgress(object sender, DownloadProgressChangedEventArgs args)
-    {
-        Progress = args.ProgressPercentage;
-    }
-
-
-    public static void CompleteDownload(object sender, DownloadDataCompletedEventArgs args)
-    {
-        result = new byte[0];
-
-        if(args.Error != null)
-        {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, $"Download failed! {args.Error.Message}");
-            Debug.Log($"Download task failed with error:{args.Error.Message}, {args.Error.StackTrace}");
-        }
-        else if(!args.Cancelled)
-        {
-            result = args.Result;
-        }
-
-        Client.Dispose();
-        Client = null;
     }
 }

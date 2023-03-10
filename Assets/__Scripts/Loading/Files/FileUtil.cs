@@ -30,17 +30,21 @@ public class FileUtil
             return null;
         }
 
+        Uri uri = new Uri("file://" + path);
+
         AudioClip song = null;
         try
         {
-            using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(path, type))
+            DownloadHandlerAudioClip downloadHandler = new DownloadHandlerAudioClip(uri, type);
+
+            using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(uri, type))
             {
                 Debug.Log("Loading audio file.");
                 audioUwr.SendWebRequest();
 
-                while(!audioUwr.isDone) await Task.Delay(5);
+                while(!audioUwr.isDone) await Task.Yield();
 
-                if(audioUwr.result == UnityWebRequest.Result.ConnectionError || audioUwr.result == UnityWebRequest.Result.ProtocolError)
+                if(audioUwr.result != UnityWebRequest.Result.Success)
                 {
                     Debug.LogWarning($"{audioUwr.error}");
                     return song;

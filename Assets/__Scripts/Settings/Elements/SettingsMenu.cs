@@ -120,7 +120,9 @@ public class SettingsMenu : MonoBehaviour
 
     private void SetClosed()
     {
+#if !UNITY_WEBGL || UNITY_EDITOR
         settingsManager.SaveSettings();
+#endif
 
         Vector2 openPosition = new Vector2(closedPosition.x - panelWidth, closedPosition.y);
         StartCoroutine(MovePanelCoroutine(openPosition, closedPosition));

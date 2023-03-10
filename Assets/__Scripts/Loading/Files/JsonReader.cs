@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
+using Newtonsoft.Json;
 using UnityEngine;
 
 public class JsonReader
@@ -28,7 +30,7 @@ public class JsonReader
 
         try
         {
-            info = JsonUtility.FromJson<BeatmapInfo>(json);
+            info = JsonConvert.DeserializeObject<BeatmapInfo>(json);
         }
         catch(Exception err)
         {
@@ -80,7 +82,7 @@ public class JsonReader
 
         try
         {
-            beatmapVersion = JsonUtility.FromJson<BeatmapVersion>(json);
+            beatmapVersion = JsonConvert.DeserializeObject<BeatmapVersion>(json);
         }
         catch(Exception err)
         {
@@ -93,17 +95,17 @@ public class JsonReader
             string[] v3Versions = {"3.0.0", "3.1.0", "3.2.0"};
             string[] v2Versions = {"2.0.0", "2.2.0", "2.5.0", "2.6.0"};
 
-            if(Array.IndexOf(v3Versions, beatmapVersion.version) > -1)
+            if(v3Versions.Contains(beatmapVersion.version))
             {
                 //Parse the difficulty file
                 Debug.Log("Parsing map in V3 format.");
-                difficulty = JsonUtility.FromJson<BeatmapDifficulty>(json);
+                difficulty = JsonConvert.DeserializeObject<BeatmapDifficulty>(json);
             }
-            else if(Array.IndexOf(v2Versions, beatmapVersion._version) > -1)
+            else if(v2Versions.Contains(beatmapVersion._version))
             {
                 Debug.Log("Parsing map in V2 format.");
 
-                BeatmapDifficultyV2 v2Diff = JsonUtility.FromJson<BeatmapDifficultyV2>(json);
+                BeatmapDifficultyV2 v2Diff = JsonConvert.DeserializeObject<BeatmapDifficultyV2>(json);
                 difficulty = BeatmapUtility.AddNullsDifficultyV2(v2Diff).ConvertToV3();
             }
             else
@@ -111,7 +113,7 @@ public class JsonReader
                 Debug.LogWarning("Unable to match map version. The map is either broken or in an unsupported version.");
 
                 Debug.Log("Trying to fallback load map in V3 format.");
-                BeatmapDifficulty v3Diff = JsonUtility.FromJson<BeatmapDifficulty>(json);
+                BeatmapDifficulty v3Diff = JsonConvert.DeserializeObject<BeatmapDifficulty>(json);
 
                 if(v3Diff.colorNotes != null)
                 {
@@ -121,7 +123,7 @@ public class JsonReader
                 else
                 {
                     Debug.Log("Fallback failed in V3, trying V2.");
-                    BeatmapDifficultyV2 v2Diff = JsonUtility.FromJson<BeatmapDifficultyV2>(json);
+                    BeatmapDifficultyV2 v2Diff = JsonConvert.DeserializeObject<BeatmapDifficultyV2>(json);
 
                     if(v2Diff._notes != null)
                     {
