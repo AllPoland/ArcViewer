@@ -81,10 +81,13 @@ public class MapLoader : MonoBehaviour
         AudioClip song = null;
         if(File.Exists(audioDirectory))
         {
-            AudioType type = FileUtil.GetAudioTypeByDirectory(info._songFilename);
+            using Task<AudioType> typeTask = AudioFileHandler.GetAudioTypeFromFile(audioDirectory);
+            yield return new WaitUntil(() => typeTask.IsCompleted);
+
+            AudioType type = typeTask.Result;
             Debug.Log($"Loading audio file with type of {type}.");
 
-            Task<AudioClip> audioTask = FileUtil.GetAudioFromFile(audioDirectory, type);
+            Task<AudioClip> audioTask = AudioFileHandler.GetAudioFromFile(audioDirectory, type);
             yield return new WaitUntil(() => audioTask.IsCompleted);
 
             song = audioTask.Result;
@@ -186,10 +189,13 @@ public class MapLoader : MonoBehaviour
         AudioClip song = null;
         if(File.Exists(songFile.Path))
         {
-            AudioType type = FileUtil.GetAudioTypeByDirectory(info._songFilename);
+            using Task<AudioType> typeTask = AudioFileHandler.GetAudioTypeFromFile(info._songFilename, songFile.Path);
+            yield return new WaitUntil(() => typeTask.IsCompleted);
+
+            AudioType type = typeTask.Result;
             Debug.Log($"Loading audio file with type of {type}.");
 
-            Task<AudioClip> audioTask = FileUtil.GetAudioFromFile(songFile.Path, type);
+            Task<AudioClip> audioTask = AudioFileHandler.GetAudioFromFile(songFile.Path, type);
             yield return new WaitUntil(() => audioTask.IsCompleted);
 
             song = audioTask.Result;
@@ -208,34 +214,11 @@ public class MapLoader : MonoBehaviour
 #else
         Debug.Log("Loading audio file.");
         WebAudioClip song = null;
-
-        AudioType audioType = FileUtil.GetAudioTypeByDirectory(info._songFilename);
-
-        if(audioType == AudioType.OGGVORBIS)
+        using(Task<WebAudioClip> audioTask = AudioFileHandler.WebAudioClipFromStream(songData))
         {
-            Task<WebAudioClip> audioTask = AudioFileHandler.ClipFromOGGAsync(songData);
             yield return new WaitUntil(() => audioTask.IsCompleted);
 
             song = audioTask.Result;
-            audioTask.Dispose();
-        }
-        else if(audioType == AudioType.WAV)
-        {
-            Task<WebAudioClip> audioTask = AudioFileHandler.ClipFromWavAsync(songData);
-            yield return new WaitUntil(() => audioTask.IsCompleted);
-
-            song = audioTask.Result;
-            audioTask.Dispose();
-        }
-        else
-        {
-            Debug.LogWarning("Song file is in an unsupported type!");
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Song file is in an unsupported type! Must be OGG or Wav.");
-
-            DisposeZip();
-
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
-            yield break;
         }
 #endif
 

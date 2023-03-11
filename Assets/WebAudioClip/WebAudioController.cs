@@ -8,19 +8,22 @@ public class WebAudioController : MonoBehaviour
     private static extern void Initcontroller(float volume);
 
     [DllImport("__Internal")]
-    public static extern void CreateClip(int id, int channels, int length, int frequency);
+    public static extern void CreateClip(int id);
 
     [DllImport("__Internal")]
     public static extern void DisposeClip(int id);
     
     [DllImport("__Internal")]
-    public static extern void UploadData(int id, byte[] data, int dataLength, int frequency, string gameObjectName, string methodName);
+    public static extern void UploadData(int id, byte[] data, int dataLength, string gameObjectName, string methodName);
 
     [DllImport("__Internal")]
     public static extern void SetOffset(int id, float offset);
 
     [DllImport("__Internal")]
     public static extern float GetSoundTime(int id);
+
+    [DllImport("__Internal")]
+    public static extern float GetSoundLength(int id);
 
     [DllImport("__Internal")]
     public static extern void SetVolume(float volume);
@@ -65,7 +68,7 @@ public class WebAudioController : MonoBehaviour
 
     public static AudioSource AllocateAudioSource()
     {
-#if UNITY_EDITOR || !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
         var audioSource = instance.gameObject.AddComponent<AudioSource>();
         return audioSource;
 #else
@@ -80,21 +83,21 @@ public class WebAudioController : MonoBehaviour
     }
 
 
-    public static int NewClip(int channels, int length, int frequency)
+    public static int NewClip()
     {
         // Register on JS side
         int id = clipId;
         clipId++;
 
-        CreateClip(id, channels, length, frequency);
+        CreateClip(id);
         return id;
     }
 
 
-    public static void SetDataClip(int id, byte[] data, int frequency, Action<int> callbackMethod = null)
+    public static void SetDataClip(int id, byte[] data, Action<int> callbackMethod = null)
     {
         callback = callbackMethod;
-        UploadData(id, data, data.Length, frequency, instance.name, "AudioDataCallback");
+        UploadData(id, data, data.Length, instance.name, "AudioDataCallback");
     }
 
 

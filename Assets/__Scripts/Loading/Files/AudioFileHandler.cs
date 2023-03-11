@@ -1,35 +1,34 @@
-#if UNITY_WEBGL && !UNITY_EDITOR
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
-using NVorbis;
+using UnityEngine.Networking;
+#if !UNITY_WEBGL || UNITY_EDITOR
+using Winista.Mime;
+#endif
 
 public class AudioFileHandler
 {
+#if UNITY_WEBGL && !UNITY_EDITOR
     private static AudioUploadState uploadState;
 
 
-    public static async Task<WebAudioClip> ClipFromOGGAsync(MemoryStream oggStream)
+    public static async Task<WebAudioClip> WebAudioClipFromStream(MemoryStream stream)
     {
-        VorbisReader vorbis = new VorbisReader(oggStream, false);
         WebAudioClip newClip = null;
-
         try
         {
             //Create the audio clip where we'll write the audio data
-            newClip = new WebAudioClip((int)vorbis.TotalSamples, vorbis.Channels, vorbis.SampleRate);
-            int sampleRate = vorbis.SampleRate;
+            newClip = new WebAudioClip();
 
-            byte[] data = oggStream.ToArray();
-            newClip.SetData(data, sampleRate, ClipUploadResultCallback);
+            byte[] data = stream.ToArray();
+            newClip.SetData(data, ClipUploadResultCallback);
             uploadState = AudioUploadState.uploading;
 
             while(uploadState == AudioUploadState.uploading)
             {
                 await Task.Yield();
             }
-            vorbis.Dispose();
 
             if(uploadState == AudioUploadState.error)
             {
@@ -42,9 +41,8 @@ public class AudioFileHandler
         }
         catch(Exception e)
         {
-            Debug.LogWarning($"Failed to load ogg data with error: {e.Message}, {e.StackTrace}");
+            Debug.LogWarning($"Failed to load audio data with error: {e.Message}, {e.StackTrace}");
 
-            vorbis.Dispose();
             if(newClip != null)
             {
                 newClip.Dispose();
@@ -55,82 +53,12 @@ public class AudioFileHandler
     }
 
 
-    public static async Task<WebAudioClip> ClipFromWavAsync(MemoryStream wavStream)
-    {
-        //Read wav details using a binary reader
-        BinaryReader reader = new BinaryReader(wavStream);
-
-        try
-        {
-            //Chunk 0
-            int chinkID = reader.ReadInt32();
-            int fileSize = reader.ReadInt32();
-            int riffType = reader.ReadInt32();
-
-            //Chunk 1
-            int fmtID = reader.ReadInt32();
-            int fmtSize = reader.ReadInt32();
-            int fmtCode = reader.ReadInt16();
-
-            int channels = reader.ReadInt16();
-            int sampleRate = reader.ReadInt32();
-            int byteRate = reader.ReadInt32();
-            int fmtBlockAlign = reader.ReadInt16();
-            int bitDepth = reader.ReadInt16();
-
-            if(fmtSize == 18)
-            {
-                //Read extra data
-                int fmtExtraSize = reader.ReadInt16();
-                reader.ReadBytes(fmtExtraSize);
-            }
-
-            //Chunk 2
-            int dataID = reader.ReadInt32();
-            int audioBytes = reader.ReadInt32();
-
-            int bytesPerSample = bitDepth / 8;
-            int sampleCount = audioBytes / bytesPerSample;
-
-            //Create the new audio clip
-            WebAudioClip newClip = new WebAudioClip(sampleCount / channels, channels, sampleRate);
-
-            byte[] data = wavStream.ToArray();
-            newClip.SetData(data, sampleRate, ClipUploadResultCallback);
-            uploadState = AudioUploadState.uploading;
-
-            while(uploadState == AudioUploadState.uploading)
-            {
-                await Task.Yield();
-            }
-            reader.Dispose();
-
-            if(uploadState == AudioUploadState.error)
-            {
-                //An error occurred in the upload
-                newClip.Dispose();
-                return null;
-            }
-
-            return newClip;
-        }
-        catch(Exception e)
-        {
-            Debug.LogWarning($"Failed to load wav data with error: {e.Message}, {e.StackTrace}");
-            reader.Dispose();
-
-            return null;
-        }
-    }
-
-
-
     public static void ClipUploadResultCallback(int result)
     {
         if(result < 1)
         {
             //A result below 1 means setting data failed
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load audio file!");
+            Debug.LogWarning("Failed to upload audio data!");
             uploadState = AudioUploadState.error;
         }
         else
@@ -147,5 +75,113 @@ public class AudioFileHandler
         success,
         error
     }
-}
+#else
+
+
+    public static async Task<AudioType> GetAudioTypeFromFile(string fileName, string directory = "")
+    {
+        AudioType type = AudioType.UNKNOWN;
+        if(fileName.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase) || fileName.EndsWith(".egg", StringComparison.OrdinalIgnoreCase))
+        {
+            type = AudioType.OGGVORBIS;
+        }
+        else if(fileName.EndsWith(".wav", StringComparison.OrdinalIgnoreCase))
+        {
+            type = AudioType.WAV;
+        }
+        else if(fileName.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+        {
+            type = AudioType.MPEG;
+        }
+
+        if(type != AudioType.UNKNOWN) return type;
+
+        if(string.IsNullOrEmpty(directory))
+        {
+            //If no directory is given, the name is the directory
+            directory = fileName;
+        }
+
+        if(!File.Exists(directory)) return AudioType.UNKNOWN;
+
+        //Unable to match type based on file extension, use mime types
+        try
+        {
+            Debug.Log($"Unable to match audio type by file extension from {fileName}");
+            byte[] audioData = await File.ReadAllBytesAsync(directory);
+            return GetAudioTypeFromData(audioData);
+        }
+        catch(Exception e)
+        {
+            Debug.LogWarning($"Failed to read audio file data with error: {e.Message}, {e.StackTrace}");
+            return AudioType.UNKNOWN;
+        }
+    }
+
+
+    public static AudioType GetAudioTypeFromData(byte[] data)
+    {
+        MimeTypes mimeTypes = new MimeTypes();
+
+        MimeType type = mimeTypes.GetMimeType(data);
+
+        Debug.Log($"Audio is mime type {type.Name}");
+
+        switch(type.Name)
+        {
+            case "audio/wav":
+            case "audio/x-wav":
+                return AudioType.WAV;
+            case "audio/ogg":
+            case "application/x-ogg":
+                return AudioType.OGGVORBIS;
+            case "audio/mpeg":
+                return AudioType.MPEG;
+            default:
+                return AudioType.UNKNOWN;
+        }
+    }
+
+
+    public static async Task<AudioClip> GetAudioFromFile(string path, AudioType type)
+    {
+        if(!File.Exists(path))
+        {
+            Debug.LogWarning("Trying to load audio from a nonexistant file!");
+            return null;
+        }
+
+        Uri uri = new Uri("file://" + path);
+
+        AudioClip song = null;
+        try
+        {
+            DownloadHandlerAudioClip downloadHandler = new DownloadHandlerAudioClip(uri, type);
+
+            using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(uri, type))
+            {
+                Debug.Log("Loading audio file.");
+                audioUwr.SendWebRequest();
+
+                while(!audioUwr.isDone) await Task.Yield();
+
+                if(audioUwr.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogWarning($"{audioUwr.error}");
+                    return song;
+                }
+                else
+                {
+                    song = DownloadHandlerAudioClip.GetContent(audioUwr);
+                }
+            }
+        }
+        catch(Exception err)
+        {
+            Debug.LogWarning($"Audio loading failed with exception: {err.Message}, {err.StackTrace}");
+        }
+
+        return song;
+    }
 #endif
+}

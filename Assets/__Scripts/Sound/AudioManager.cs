@@ -78,7 +78,7 @@ public class AudioManager : MonoBehaviour
         if(_musicClip != null)
         {
             //Free the memory from the previous song
-            Debug.Log(_musicClip.UnloadAudioData());
+            _musicClip.UnloadAudioData();
             Destroy(_musicClip);
             _musicClip = null;
         }
