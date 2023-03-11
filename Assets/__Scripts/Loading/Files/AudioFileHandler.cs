@@ -3,7 +3,9 @@ using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
+#if !UNITY_WEBGL || UNITY_EDITOR
 using Winista.Mime;
+#endif
 
 public class AudioFileHandler
 {
@@ -73,7 +75,7 @@ public class AudioFileHandler
         success,
         error
     }
-#endif
+#else
 
 
     public static async Task<AudioType> GetAudioTypeFromFile(string fileName, string directory = "")
@@ -181,4 +183,5 @@ public class AudioFileHandler
 
         return song;
     }
+#endif
 }
