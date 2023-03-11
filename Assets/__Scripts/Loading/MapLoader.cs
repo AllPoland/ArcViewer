@@ -81,10 +81,13 @@ public class MapLoader : MonoBehaviour
         AudioClip song = null;
         if(File.Exists(audioDirectory))
         {
-            AudioType type = FileUtil.GetAudioTypeByDirectory(info._songFilename);
+            using Task<AudioType> typeTask = AudioFileHandler.GetAudioTypeFromFile(audioDirectory);
+            yield return new WaitUntil(() => typeTask.IsCompleted);
+
+            AudioType type = typeTask.Result;
             Debug.Log($"Loading audio file with type of {type}.");
 
-            Task<AudioClip> audioTask = FileUtil.GetAudioFromFile(audioDirectory, type);
+            Task<AudioClip> audioTask = AudioFileHandler.GetAudioFromFile(audioDirectory, type);
             yield return new WaitUntil(() => audioTask.IsCompleted);
 
             song = audioTask.Result;
@@ -186,10 +189,13 @@ public class MapLoader : MonoBehaviour
         AudioClip song = null;
         if(File.Exists(songFile.Path))
         {
-            AudioType type = FileUtil.GetAudioTypeByDirectory(info._songFilename);
+            using Task<AudioType> typeTask = AudioFileHandler.GetAudioTypeFromFile(info._songFilename, songFile.Path);
+            yield return new WaitUntil(() => typeTask.IsCompleted);
+
+            AudioType type = typeTask.Result;
             Debug.Log($"Loading audio file with type of {type}.");
 
-            Task<AudioClip> audioTask = FileUtil.GetAudioFromFile(songFile.Path, type);
+            Task<AudioClip> audioTask = AudioFileHandler.GetAudioFromFile(songFile.Path, type);
             yield return new WaitUntil(() => audioTask.IsCompleted);
 
             song = audioTask.Result;
