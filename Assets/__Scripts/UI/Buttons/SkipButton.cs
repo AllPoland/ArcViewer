@@ -16,7 +16,7 @@ public class SkipButton : MonoBehaviour
 
         TimeManager.SetPlaying(false);
         TimeManager.CurrentTime += amount;
-        TimeManager.SetPlaying(wasPlaying);
+        TimeManager.SetPlaying(wasPlaying && TimeManager.CurrentTime < AudioManager.GetSongLength());
     }
 
 
