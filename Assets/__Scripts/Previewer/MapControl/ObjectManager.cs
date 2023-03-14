@@ -26,7 +26,15 @@ public class ObjectManager : MonoBehaviour
     public static readonly Vector2 GridBottomLeft = new Vector2(-0.9f, 0);
     public const float LaneWidth = 0.6f;
     public const float RowHeight = 0.55f;
+    public const float StartYSpacing = 0.6f;
     public const float WallHScale = 0.6f;
+
+    public static readonly Dictionary<int, float> VanillaRowHeights = new Dictionary<int, float>
+    {
+        {0, 0},
+        {1, 0.55f},
+        {2, 1.05f}
+    };
 
     public float BehindCameraTime => TimeFromWorldspace(behindCameraZ);
 
@@ -60,18 +68,6 @@ public class ObjectManager : MonoBehaviour
         (
             time > TimeManager.CurrentTime &&
             time <= TimeManager.CurrentTime + BeatmapManager.ReactionTime + Instance.moveTime
-        );
-    }
-
-
-    public bool CheckInSpawnRange(float beat, float currentBeat)
-    {
-        float time = TimeManager.TimeFromBeat(beat);
-        float currentTime = TimeManager.TimeFromBeat(currentBeat);
-        return
-        (
-            time > currentTime &&
-            time <= currentTime + BeatmapManager.ReactionTime + Instance.moveTime
         );
     }
 
@@ -193,22 +189,34 @@ public class ObjectManager : MonoBehaviour
 
     public static Vector2 CalculateObjectPosition(float x, float y, float[] coordinates = null)
     {
-        if(coordinates != null && coordinates.Length == 2)
+        Vector2 position = GridBottomLeft;
+        if(coordinates != null && coordinates.Length >= 2)
         {
             //Noodle coordinates treat x differently for some reason
             x = coordinates[0] + 2;
             y = coordinates[1];
-        }
-        else if(BeatmapManager.MappingExtensions)
-        {
-            Vector2 adjustedPosition = MappingExtensionsPosition(new Vector2(x, y));
-            x = adjustedPosition.x;
-            y = adjustedPosition.y;
+
+            position.x += x * LaneWidth;
+            position.y += y * RowHeight;
+            return position;
         }
 
-        Vector2 position = GridBottomLeft;
-        position.x += x * LaneWidth;
-        position.y += y * RowHeight;
+        if(BeatmapManager.MappingExtensions)
+        {
+            Vector2 adjustedPosition = MappingExtensionsPosition(new Vector2(x, y));
+
+            position.x += adjustedPosition.x * LaneWidth;
+            position.y += adjustedPosition.y * RowHeight;
+            return position;
+        }
+
+        position.x += (int)Mathf.Clamp(x, 0, 3) * LaneWidth;
+        position.y += (int)Mathf.Clamp(y, 0, 2) * RowHeight;
+
+        //Replace the other position.y calculation with this one for game-accurate spacing
+        //This spacing looks like garbage so I'm not using it even though fixed grid is technically inaccurate
+        // position.y += VanillaRowHeights[(int)Mathf.Clamp(y, 0, 2)];
+
         return position;
     }
 
@@ -370,7 +378,7 @@ public class ObjectManager : MonoBehaviour
             foreach(BeatmapColorNote n in notesOnBeat)
             {
                 Note newNote = Note.NoteFromBeatmapColorNote(n);
-                newNote.StartY = ((float)NoteManager.GetStartY(n, notesAndBombs) * RowHeight) + Instance.objectFloorOffset;
+                newNote.StartY = ((float)NoteManager.GetStartY(n, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
                 newNote.IsChainHead = NoteManager.CheckChainHead(n, burstSlidersOnBeat);
 
                 // set angle snapping here because angle offset is an int in ColorNote
@@ -401,7 +409,7 @@ public class ObjectManager : MonoBehaviour
             foreach(BeatmapBombNote b in bombsOnBeat)
             {
                 Bomb newBomb = Bomb.BombFromBeatmapBombNote(b);
-                newBomb.StartY = ((float)NoteManager.GetStartY(b, notesAndBombs) * RowHeight) + Instance.objectFloorOffset;
+                newBomb.StartY = ((float)NoteManager.GetStartY(b, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
 
                 // check attachment to arcs
                 foreach(BeatmapSliderHead a in sliderHeadsOnBeat)

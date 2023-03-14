@@ -169,7 +169,7 @@ public class WallManager : MonoBehaviour
 
     public static Vector2 CalculateWallPosition(float x, float y, float[] coordinates = null)
     {
-        if(coordinates != null && coordinates.Length == 2)
+        if(coordinates != null && coordinates.Length >= 2)
         {
             //Noodle coordinates treat x differently for some reason
             x = coordinates[0] + 2;
