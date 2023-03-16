@@ -47,7 +47,7 @@ public class MapLoader : MonoBehaviour
         Debug.LogWarning("Tried to load from directory in WebGL!");
         ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Loading from directory doesn't work in browser!");
 
-        UpdateMapInfo(null, new List<Difficulty>(), null, null);
+        UpdateMapInfo(LoadedMap.Empty);
         yield break;
 #else
         Loading = true;
@@ -64,7 +64,7 @@ public class MapLoader : MonoBehaviour
         if(info == null)
         {
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load Info.dat!");
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
@@ -98,7 +98,7 @@ public class MapLoader : MonoBehaviour
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
             Debug.LogWarning("Song file not found!");
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
@@ -107,7 +107,7 @@ public class MapLoader : MonoBehaviour
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
             Debug.LogWarning("Song file not found!");
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
@@ -134,7 +134,7 @@ public class MapLoader : MonoBehaviour
         Debug.Log("Loading complete.");
         LoadingMessage = "Done";
 
-        UpdateMapInfo(info, difficulties, song, coverImageData);
+        UpdateMapInfo(new LoadedMap(info, difficulties, coverImageData, song));
 #endif
     }
 
@@ -165,7 +165,7 @@ public class MapLoader : MonoBehaviour
         {
             DisposeZip();
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
@@ -173,7 +173,7 @@ public class MapLoader : MonoBehaviour
         {
             DisposeZip();
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
@@ -208,7 +208,7 @@ public class MapLoader : MonoBehaviour
 
             DisposeZip();
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 #else
@@ -229,7 +229,7 @@ public class MapLoader : MonoBehaviour
 
             DisposeZip();
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
@@ -237,9 +237,7 @@ public class MapLoader : MonoBehaviour
         LoadingMessage = "Done";
 
         DisposeZip();
-
-        UpdateMapInfo(info, difficulties, song, coverImageData);
-
+        UpdateMapInfo(new LoadedMap(info, difficulties, coverImageData, song));
 
         void DisposeZip()
         {
@@ -272,7 +270,7 @@ public class MapLoader : MonoBehaviour
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load zip file!");
             Debug.LogWarning($"Unhandled exception loading zip: {err.Message}, {err.StackTrace}.");
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
         }
     }
 
@@ -309,7 +307,7 @@ public class MapLoader : MonoBehaviour
 
                 Dispose();
 
-                UpdateMapInfo(null, new List<Difficulty>(), null, null);
+                UpdateMapInfo(LoadedMap.Empty);
                 yield break;
             }
         }
@@ -320,7 +318,7 @@ public class MapLoader : MonoBehaviour
 
             Dispose();
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
@@ -384,7 +382,7 @@ public class MapLoader : MonoBehaviour
         {
             Debug.LogWarning("Downloaded data is null!");
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 #if !UNITY_WEBGL || UNITY_EDITOR
@@ -410,7 +408,7 @@ public class MapLoader : MonoBehaviour
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to read map zip!");
             Debug.LogWarning($"Unhandled exception loading zip URL: {err.Message}, {err.StackTrace}");
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
         }
     }
 
@@ -441,34 +439,30 @@ public class MapLoader : MonoBehaviour
         if(mapURL == null || mapURL == "")
         {
             Debug.Log("Empty or nonexistant URL!");
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
         StartCoroutine(LoadMapURLCoroutine(mapURL, mapID));
     }
 
-#if !UNITY_WEBGL || UNITY_EDITOR
-    private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song, byte[] coverData)
-#else
-    private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, WebAudioClip song, byte[] coverData)
-#endif
+    private void UpdateMapInfo(LoadedMap newMap)
     {
         StopAllCoroutines();
         LoadingMessage = "";
         Loading = false;
         
-        if(info == null || difficulties.Count == 0 || song == null)
+        if(newMap.Info == null || newMap.Difficulties.Count == 0 || newMap.Song == null)
         {
             Debug.LogWarning("Failed to load map file");
 
-            if(song != null)
+            if(newMap.Song != null)
             {
 #if !UNITY_WEBGL || UNITY_EDITOR
-                song.UnloadAudioData();
-                Destroy(song);
+                newMap.Song.UnloadAudioData();
+                Destroy(newMap.Song);
 #else
-                song.Dispose();
+                newMap.Song.Dispose();
 #endif
             }
             UIStateManager.CurrentState = UIState.MapSelection;
@@ -479,16 +473,16 @@ public class MapLoader : MonoBehaviour
 
         UIStateManager.CurrentState = UIState.Previewer;
         
-        BeatmapManager.Info = info;
-        AudioManager.Instance.MusicClip = song;
+        BeatmapManager.Info = newMap.Info;
+        AudioManager.Instance.MusicClip = newMap.Song;
 
-        if(coverData != null && coverData.Length > 0)
+        if(newMap.CoverImageData != null && newMap.CoverImageData.Length > 0)
         {
-            CoverImageHandler.Instance.SetImageFromData(coverData);
+            CoverImageHandler.Instance.SetImageFromData(newMap.CoverImageData);
         }
         else CoverImageHandler.Instance.ClearImage();
 
-        BeatmapManager.Difficulties = difficulties;
+        BeatmapManager.Difficulties = newMap.Difficulties;
         BeatmapManager.CurrentMap = BeatmapManager.GetDefaultDifficulty();
 
         OnMapLoaded?.Invoke();
@@ -630,4 +624,32 @@ public class MapLoader : MonoBehaviour
         HotReloader.loadedMapPath = mapDirectory;
 #endif
     }
+}
+
+
+public class LoadedMap
+{
+#if !UNITY_WEBGL || UNITY_EDITOR
+    public LoadedMap(BeatmapInfo info, List<Difficulty> difficulties, byte[] coverImageData, AudioClip song)
+#else
+    public LoadedMap(BeatmapInfo info, List<Difficulty> difficulties, byte[] coverImageData, WebAudioClip song)
+#endif
+    {
+        Info = info;
+        Difficulties = difficulties;
+        CoverImageData = coverImageData;
+        Song = song;
+    }
+
+    public BeatmapInfo Info { get; private set; }
+    public List<Difficulty> Difficulties { get; private set; }
+    public byte[] CoverImageData { get; private set; }
+#if !UNITY_WEBGL || UNITY_EDITOR
+    public AudioClip Song { get; private set; }
+#else
+    public WebAudioClip Song { get; private set; }
+#endif
+
+
+    public static readonly LoadedMap Empty = new LoadedMap(null, new List<Difficulty>(), null, null);
 }
