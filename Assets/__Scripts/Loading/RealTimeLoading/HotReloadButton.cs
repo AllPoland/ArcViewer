@@ -4,11 +4,11 @@ using UnityEngine.UI;
 public class HotReloadButton : MonoBehaviour
 {
     [SerializeField] private GameObject buttonObject;
+    [SerializeField] private Image image;
     [SerializeField] private GameObject loadingSpin;
     [SerializeField] private string enabledTooltip;
     [SerializeField] private string disabledTooltip;
 
-    private Image image;
     private Button button;
     private Tooltip tooltip;
 
@@ -34,10 +34,6 @@ public class HotReloadButton : MonoBehaviour
 
     private void OnEnable()
     {
-        if(!image)
-        {
-            image = buttonObject.GetComponent<Image>();
-        }
         if(!button)
         {
             button = buttonObject.GetComponent<Button>();

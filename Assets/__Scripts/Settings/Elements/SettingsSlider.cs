@@ -1,9 +1,10 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using TMPro;
 
-public class SettingsSlider : MonoBehaviour
+public class SettingsSlider : MonoBehaviour, IPointerUpHandler
 {
     [SerializeField] private TextMeshProUGUI labelText;
     [SerializeField] private string minOverride;
@@ -11,19 +12,24 @@ public class SettingsSlider : MonoBehaviour
     [SerializeField] private string rule;
     [SerializeField] private bool integerValue;
     [SerializeField] private bool hideInWebGL;
+    [SerializeField] private bool realTimeUpdates = true;
 
     private Slider slider;
 
 
-    public void UpdateValue(float value)
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        UpdateSettings(slider.value);
+    }
+
+
+    public void UpdateSettings(float value)
     {
         if(!integerValue)
         {
             SettingsManager.SetRule(rule, value);
         }
         else SettingsManager.SetRule(rule, (int)value);
-
-        UpdateText(value);
     }
 
 
@@ -57,26 +63,28 @@ public class SettingsSlider : MonoBehaviour
         {
             float newValue = SettingsManager.GetFloat(rule);
 
-            slider.value = newValue;
+            slider.SetValueWithoutNotify(newValue);
             UpdateText(slider.value);
         }
         else if(integerValue)
         {
             int newValue = SettingsManager.GetInt(rule);
 
-            slider.value = newValue;
+            slider.SetValueWithoutNotify(newValue);
             UpdateText(slider.value);
         }
 
-        slider.onValueChanged.AddListener(UpdateValue);
+        slider.onValueChanged.AddListener(UpdateText);
+
+        if(realTimeUpdates)
+        {
+            slider.onValueChanged.AddListener(UpdateSettings);
+        }
     }
 
 
     private void OnDisable()
     {
-        if(slider)
-        {
-            slider.onValueChanged.RemoveAllListeners();
-        }
+        slider?.onValueChanged?.RemoveAllListeners();
     }
 }
