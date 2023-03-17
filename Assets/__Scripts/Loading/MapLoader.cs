@@ -54,12 +54,10 @@ public class MapLoader : MonoBehaviour
 
         Debug.Log("Loading info.");
         LoadingMessage = "Loading Info.dat";
-        Task<BeatmapInfo> infoTask = Task.Run(() => LoadInfoAsync(directory));
+        using Task<BeatmapInfo> infoTask = Task.Run(() => LoadInfoAsync(directory));
 
         yield return new WaitUntil(() => infoTask.IsCompleted);
         BeatmapInfo info = infoTask.Result;
-
-        infoTask.Dispose();
 
         if(info == null)
         {
@@ -69,12 +67,10 @@ public class MapLoader : MonoBehaviour
         }
 
         Debug.Log("Loading difficulties.");
-        Task<List<Difficulty>> diffTask = Task.Run(() => LoadDiffsAsync(directory, info));
+        using Task<List<Difficulty>> diffTask = Task.Run(() => LoadDiffsAsync(directory, info));
         
         yield return new WaitUntil(() => diffTask.IsCompleted);
         List<Difficulty> difficulties = diffTask.Result;
-
-        diffTask.Dispose();
 
         LoadingMessage = "Loading song";
         string audioDirectory = Path.Combine(directory, info._songFilename);
@@ -87,11 +83,10 @@ public class MapLoader : MonoBehaviour
             AudioType type = typeTask.Result;
             Debug.Log($"Loading audio file with type of {type}.");
 
-            Task<AudioClip> audioTask = AudioFileHandler.GetAudioFromFile(audioDirectory, type);
+            using Task<AudioClip> audioTask = AudioFileHandler.GetAudioFromFile(audioDirectory, type);
             yield return new WaitUntil(() => audioTask.IsCompleted);
 
             song = audioTask.Result;
-            audioTask.Dispose();
         }
         else
         {
@@ -114,10 +109,9 @@ public class MapLoader : MonoBehaviour
         Debug.Log("Loading cover image.");
         LoadingMessage = "Loading cover image";
 
-        Task<Stream> coverImageTask = Task.Run(() => FileUtil.ReadFileData(Path.Combine(directory, info._coverImageFilename)));
+        using Task<Stream> coverImageTask = Task.Run(() => FileUtil.ReadFileData(Path.Combine(directory, info._coverImageFilename)));
         yield return new WaitUntil(() => coverImageTask.IsCompleted);
         Stream coverImageStream = coverImageTask.IsCompletedSuccessfully ? coverImageTask.Result : null;
-        coverImageTask.Dispose();
 
         byte[] coverImageData = new byte[0];
         if(coverImageStream == null)
@@ -145,9 +139,9 @@ public class MapLoader : MonoBehaviour
         LoadingMessage = "Loading map zip";
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> loadZipTask = Task.Run(() => ZipReader.GetMapFromZipArchiveAsync(archive));
+        using Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> loadZipTask = Task.Run(() => ZipReader.GetMapFromZipArchiveAsync(archive));
 #else
-        Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> loadZipTask = ZipReader.GetMapFromZipArchiveAsync(archive);
+        using Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> loadZipTask = ZipReader.GetMapFromZipArchiveAsync(archive);
 #endif
 
         yield return new WaitUntil(() => loadZipTask.IsCompleted);
@@ -156,8 +150,6 @@ public class MapLoader : MonoBehaviour
         List<Difficulty> difficulties = result.Item2;
         MemoryStream songData = result.Item3;
         byte[] coverImageData = result.Item4;
-
-        TempFile songFile = new TempFile();
 
         loadZipTask.Dispose();
 
@@ -181,6 +173,7 @@ public class MapLoader : MonoBehaviour
 
 #if !UNITY_WEBGL || UNITY_EDITOR
         //Write song data to a tempfile so it can be loaded through a uwr
+        using TempFile songFile = new TempFile();
         using(Task writeTask = File.WriteAllBytesAsync(songFile.Path, songData.ToArray()))
         {
             yield return new WaitUntil(() => writeTask.IsCompleted);
@@ -243,8 +236,6 @@ public class MapLoader : MonoBehaviour
         {
             zipStream?.Dispose();
             songData?.Dispose();
-            songFile?.Dispose();
-            loadZipTask?.Dispose();
             archive?.Dispose();
         }
     }
@@ -262,10 +253,7 @@ public class MapLoader : MonoBehaviour
         }
         catch(Exception err)
         {
-            if(archive != null)
-            {
-                archive.Dispose();
-            }
+            archive?.Dispose();
 
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load zip file!");
             Debug.LogWarning($"Unhandled exception loading zip: {err.Message}, {err.StackTrace}.");
@@ -284,7 +272,7 @@ public class MapLoader : MonoBehaviour
         Stream zipStream = null;
         ZipArchive archive = null;
 
-        UnityWebRequest uwr = UnityWebRequest.Get(directory);
+        using UnityWebRequest uwr = UnityWebRequest.Get(directory);
         
         Debug.Log("Starting web request.");
         yield return uwr.SendWebRequest();
@@ -295,8 +283,6 @@ public class MapLoader : MonoBehaviour
             {
                 zipStream = new MemoryStream(uwr.downloadHandler.data);
                 archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
-
-                uwr.Dispose();
 
                 StartCoroutine(LoadMapZipArchiveCoroutine(archive, zipStream));
             }
@@ -326,7 +312,6 @@ public class MapLoader : MonoBehaviour
         {
             zipStream?.Dispose();
             archive?.Dispose();
-            uwr?.Dispose();
         }
     }
 
@@ -371,12 +356,10 @@ public class MapLoader : MonoBehaviour
         Debug.Log($"Downloading map data from: {url}");
         LoadingMessage = "Downloading map";
 
-        Task<Stream> downloadTask = WebLoader.LoadMapURL(url);
-
+        using Task<Stream> downloadTask = WebLoader.LoadMapURL(url);
         yield return new WaitUntil(() => downloadTask.IsCompleted);
-        Stream zipStream = downloadTask.Result;
 
-        downloadTask.Dispose();
+        Stream zipStream = downloadTask.Result;
 
         if(zipStream == null)
         {
@@ -403,7 +386,7 @@ public class MapLoader : MonoBehaviour
         catch(Exception err)
         {
             archive?.Dispose();
-            zipStream.Dispose();
+            zipStream?.Dispose();
 
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to read map zip!");
             Debug.LogWarning($"Unhandled exception loading zip URL: {err.Message}, {err.StackTrace}");
@@ -429,12 +412,11 @@ public class MapLoader : MonoBehaviour
 
         Debug.Log($"Getting beat saver response for ID: {mapID}");
         LoadingMessage = "Fetching map from BeatSaver";
-        Task<string> apiTask = BeatSaverHandler.GetBeatSaverMapURL(mapID);
 
+        using Task<string> apiTask = BeatSaverHandler.GetBeatSaverMapURL(mapID);
         yield return new WaitUntil(() => apiTask.IsCompleted);
+        
         string mapURL = apiTask.Result;
-
-        apiTask.Dispose();
 
         if(mapURL == null || mapURL == "")
         {
