@@ -8,10 +8,24 @@ using UnityEngine;
 
 public class SettingsManager : MonoBehaviour
 {
-    public static Settings CurrentSettings { get; private set; }
+    private static Settings _currentSettings;
+    public static Settings CurrentSettings
+    {
+        get => _currentSettings;
+
+        set
+        {
+            _currentSettings = value;
+
+            // Using the Loaded paremeter avoids null checking every single time a setting is read
+            Loaded = _currentSettings != null;
+        }
+    }
 
     public static Action OnSettingsUpdated;
     public static Action OnSettingsReset;
+
+    public static bool Loaded { get; private set; }
 
     private const string settingsFile = "UserSettings.json";
 
@@ -104,13 +118,19 @@ public class SettingsManager : MonoBehaviour
 
         return PlayerPrefs.GetInt(name, defaultValue) > 0;
 #else
+        if(!Loaded)
+        {
+            Debug.LogWarning($"Setting {name} was accessed before settings loaded!");
+            return false;
+        }
+
         if(CurrentSettings.Bools.ContainsKey(name))
         {
             return CurrentSettings.Bools[name];
         }
-        else if(Settings.GetDefaultSettings().Bools.ContainsKey(name))
+        else if(Settings.DefaultSettings.Bools.ContainsKey(name))
         {
-            return Settings.GetDefaultSettings().Bools[name];
+            return Settings.DefaultSettings.Bools[name];
         }
         else return false;
 #endif
@@ -129,13 +149,19 @@ public class SettingsManager : MonoBehaviour
 
         return PlayerPrefs.GetInt(name, defaultValue);
 #else
+        if(!Loaded)
+        {
+            Debug.LogWarning($"Setting {name} was accessed before settings loaded!");
+            return 0;
+        }
+
         if(CurrentSettings.Ints.ContainsKey(name))
         {
             return CurrentSettings.Ints[name];
         }
-        else if(Settings.GetDefaultSettings().Ints.ContainsKey(name))
+        else if(Settings.DefaultSettings.Ints.ContainsKey(name))
         {
-            return Settings.GetDefaultSettings().Ints[name];
+            return Settings.DefaultSettings.Ints[name];
         }
         else return 0;
 #endif
@@ -154,13 +180,19 @@ public class SettingsManager : MonoBehaviour
 
         return PlayerPrefs.GetFloat(name, defaultValue);
 #else
+        if(!Loaded)
+        {
+            Debug.LogWarning($"Setting {name} was accessed before settings loaded!");
+            return 0;
+        }
+
         if(CurrentSettings.Floats.ContainsKey(name))
         {
             return CurrentSettings.Floats[name];
         }
-        else if(Settings.GetDefaultSettings().Floats.ContainsKey(name))
+        else if(Settings.DefaultSettings.Floats.ContainsKey(name))
         {
-            return Settings.GetDefaultSettings().Floats[name];
+            return Settings.DefaultSettings.Floats[name];
         }
         else return 0;
 #endif
