@@ -15,10 +15,12 @@ public class ObjectSettingsUpdater : MonoBehaviour
         bool simpleNotes = SettingsManager.GetBool("simplenotes");
         bool moveAnimations = SettingsManager.GetBool("moveanimations");
         bool rotateAnimations = SettingsManager.GetBool("rotateanimations");
+        bool flipAnimations = SettingsManager.GetBool("flipanimations");
 
         objectManager.useSimpleNoteMaterial = simpleNotes;
         objectManager.doMovementAnimation = moveAnimations;
         objectManager.doRotationAnimation = rotateAnimations;
+        objectManager.doFlipAnimation = flipAnimations;
 
         noteManager.ClearRenderedNotes();
         noteManager.UpdateNoteVisuals(TimeManager.CurrentBeat);

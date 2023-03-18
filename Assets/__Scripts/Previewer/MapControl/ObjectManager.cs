@@ -22,6 +22,7 @@ public class ObjectManager : MonoBehaviour
     public bool useSimpleNoteMaterial = false;
     public bool doRotationAnimation = true;
     public bool doMovementAnimation = true;
+    public bool doFlipAnimation = true;
 
     public static readonly Vector2 GridBottomLeft = new Vector2(-0.9f, 0);
     public const float LaneWidth = 0.6f;
@@ -375,6 +376,9 @@ public class ObjectManager : MonoBehaviour
 
             List<BeatmapObject> notesAndBombs = sameBeatObjects.Where(x => (x is BeatmapColorNote) || (x is BeatmapBombNote)).ToList();
 
+            List<Note> newNotes = new List<Note>();
+            (float? redSnapAngle, float? blueSnapAngle) = NoteManager.GetSnapAngles(notesOnBeat);
+
             foreach(BeatmapColorNote n in notesOnBeat)
             {
                 Note newNote = Note.NoteFromBeatmapColorNote(n);
@@ -382,7 +386,14 @@ public class ObjectManager : MonoBehaviour
                 newNote.IsChainHead = NoteManager.CheckChainHead(n, burstSlidersOnBeat);
 
                 // set angle snapping here because angle offset is an int in ColorNote
-                newNote.Angle = NoteManager.GetAngleSnap(n, notesOnBeat) ?? newNote.Angle;
+                if(newNote.Color == 0)
+                {
+                    newNote.Angle = redSnapAngle ?? newNote.Angle;
+                }
+                else
+                {
+                    newNote.Angle = blueSnapAngle ?? newNote.Angle;
+                }
 
                 // check attachment to arcs
                 foreach(BeatmapSliderHead a in sliderHeadsOnBeat)
@@ -403,8 +414,27 @@ public class ObjectManager : MonoBehaviour
                     }
                 }
 
-                notes.Add(newNote);
+                newNotes.Add(newNote);
             }
+
+            if(notesOnBeat.Count == 2)
+            {
+                BeatmapColorNote first = notesOnBeat[0];
+                BeatmapColorNote second = notesOnBeat[1];
+                (newNotes[0].FlipYHeight, newNotes[1].FlipYHeight) = NoteManager.GetFlipYHeights(first, second);
+
+                if(newNotes[0].FlipYHeight != 0)
+                {
+                    newNotes[0].FlipStartX = newNotes[1].Position.x;
+                }
+
+                if(newNotes[1].FlipYHeight != 0)
+                {
+                    newNotes[1].FlipStartX = newNotes[0].Position.x;
+                }
+            }
+
+            notes.AddRange(newNotes);
 
             foreach(BeatmapBombNote b in bombsOnBeat)
             {

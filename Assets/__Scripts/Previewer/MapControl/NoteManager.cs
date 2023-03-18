@@ -65,20 +65,32 @@ public class NoteManager : MonoBehaviour
 
         float angle = n.Angle;
 
+        float jumpTime = TimeManager.CurrentTime + reactionTime;
+        float jumpProgress = (jumpTime - noteTime) / reactionTime;
+
+        if (objectManager.doFlipAnimation)
+        {
+            if(jumpProgress <= 0)
+            {
+                worldPos.x = n.FlipStartX;
+            }
+            else if(jumpProgress < 0.5f)
+            {
+                worldPos.x = Mathf.Lerp(n.FlipStartX, n.Position.x, Easings.Quad.InOut(jumpProgress / 0.5f));
+                worldPos.y += n.FlipYHeight * (0.5f - Mathf.Cos(jumpProgress * Mathf.PI * 4) / 2);
+            }
+        }
+
         if(objectManager.doRotationAnimation)
         {
-            float jumpTime = TimeManager.CurrentTime + reactionTime;
-            float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
-
-            if(noteTime > jumpTime)
+            if(jumpProgress <= 0)
             {
                 //Note is still jumping in
                 angle = 0;
             }
-            else if(noteTime > jumpTime - rotationAnimationLength)
+            else if(jumpProgress < objectManager.rotationAnimationTime)
             {
-                float timeSinceJump = reactionTime - (noteTime - TimeManager.CurrentTime);
-                float rotationProgress = timeSinceJump / rotationAnimationLength;
+                float rotationProgress = jumpProgress / objectManager.rotationAnimationTime;
                 float angleDist = Easings.Sine.Out(rotationProgress);
 
                 angle *= angleDist;
@@ -328,58 +340,109 @@ public class NoteManager : MonoBehaviour
     }
 
 
-    public static float? GetAngleSnap(BeatmapColorNote n, List<BeatmapColorNote> sameBeatNotes)
+    public static (float?, float?) GetSnapAngles(List<BeatmapColorNote> sameBeatNotes)
     {
-        List<BeatmapColorNote> notesOnBeat = new List<BeatmapColorNote>(sameBeatNotes);
+        List<BeatmapColorNote> redNotes = sameBeatNotes.Where(x => x.c == 0).ToList();
+        List<BeatmapColorNote> blueNotes = sameBeatNotes.Where(x => x.c == 1).ToList();
 
-        //Returns the angle offset the note should use to snap, or 0 if it shouldn't
-        if(notesOnBeat.Count == 0) return null;
+        //Returns the angle the notes should use to snap, or null if they shouldn't
+        float? redDesiredAngle = null;
+        float? blueDesiredAngle = null;
 
-        notesOnBeat.RemoveAll(x => x.c != n.c);
-
-        if(notesOnBeat.Count != 2)
+        if(redNotes.Count == 2)
         {
             //Angle snapping requires exactly 2 notes
-            return null;
+            BeatmapColorNote first = redNotes[0];
+            BeatmapColorNote second = redNotes[1];
+
+            redDesiredAngle = GetAngleSnap(first, second);
         }
 
-        //Disregard notes that are on the same row or column
-        notesOnBeat.RemoveAll(x => x.x == n.x || x.y == n.y);
-        if(notesOnBeat.Count == 0)
+        if(blueNotes.Count == 2)
         {
+            //Angle snapping requires exactly 2 notes
+            BeatmapColorNote first = blueNotes[0];
+            BeatmapColorNote second = blueNotes[1];
+
+            blueDesiredAngle = GetAngleSnap(first, second);
+        }
+
+        return (redDesiredAngle, blueDesiredAngle);
+    }
+
+
+    public static float? GetAngleSnap(BeatmapColorNote first, BeatmapColorNote second)
+    {
+        if(first.x == second.x || first.y == second.y)
+        {
+            //Don't snap notes that are on the same row or column
             return null;
         }
 
-        BeatmapColorNote other = notesOnBeat[0];
-
-        if(!(n.d == other.d || n.d == 8 || other.d == 8))
+        if(!(first.d == second.d || first.d == 8 || second.d == 8))
         {
             //Notes must have the same direction
             return null;
         }
 
-        Vector2 deltaPos = new Vector2(n.x - other.x, n.y - other.y);
+        Vector2 deltaPos = new Vector2(first.x - second.x, first.y - second.y);
 
-        float noteAngle = ObjectManager.CalculateObjectAngle(n.d);
-        float otherAngle = ObjectManager.CalculateObjectAngle(other.d);
+        float firstAngle = ObjectManager.CalculateObjectAngle(first.d);
+        float secondAngle = ObjectManager.CalculateObjectAngle(second.d);
         float desiredAngle = Mathf.Atan2(-deltaPos.x, deltaPos.y) * Mathf.Rad2Deg;
 
-        if(Mathf.Abs(Mathf.DeltaAngle(desiredAngle, noteAngle)) > 90)
+        if((first.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, firstAngle)) > 90) || (second.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, secondAngle)) > 90))
         {
             desiredAngle = Mathf.Atan2(deltaPos.x, -deltaPos.y) * Mathf.Rad2Deg;
         }
 
-        if(n.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, noteAngle)) > 40)
-        {
-            return null;
-        }
-
-        if(n.d == 8 && other.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, otherAngle)) > 40)
+        if((first.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, firstAngle)) > 40) || (second.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, secondAngle)) > 40))
         {
             return null;
         }
 
         return desiredAngle;
+    }
+
+
+    public static (float, float) GetFlipYHeights(BeatmapColorNote first, BeatmapColorNote second)
+    {
+        const float flipYHeightOver = 0.45f;
+        const float flipYHeightUnder = -0.15f;
+
+        if(first.c == second.c)
+        {
+            return (0f, 0f);
+        }
+
+        if((first.c == 0 && first.x <= second.x) || (first.c == 1 && first.x >= second.x))
+        {
+            // non-crossover double
+            return (0f, 0f);
+        }
+
+        if(first.c == 0)
+        {
+            if(first.y < second.y)
+            {
+                return (flipYHeightUnder, flipYHeightOver);
+            }
+            else
+            {
+                return (flipYHeightOver, flipYHeightUnder);
+            }
+        }
+        else
+        {
+            if(first.y > second.y)
+            {
+                return (flipYHeightOver, flipYHeightUnder);
+            }
+            else
+            {
+                return (flipYHeightUnder, flipYHeightOver);
+            }
+        }
     }
 
 
@@ -397,6 +460,8 @@ public class Note : HitSoundEmitter
     public int Color;
     public float Angle;
     public float StartY;
+    public float FlipStartX;
+    public float FlipYHeight;
     public bool IsDot;
     public bool IsChainHead;
     public NoteHandler noteHandler;
@@ -413,6 +478,7 @@ public class Note : HitSoundEmitter
             Position = position,
             Color = n.c,
             Angle = n.customData?.angle ?? angle,
+            FlipStartX = position.x,
             IsDot = n.d == 8
         };
     }
