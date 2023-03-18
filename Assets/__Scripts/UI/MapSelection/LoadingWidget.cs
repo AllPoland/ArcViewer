@@ -66,7 +66,7 @@ public class LoadingWidget : MonoBehaviour
                     float downloadSize = (float)WebLoader.DownloadSize / 1000000;
                     float downloaded = downloadSize * MapLoader.Progress;
 
-                    downloadSizeText.text = $"{Math.Round(downloaded, 1)}MB / {Math.Round(downloadSize, 1)} MB";
+                    downloadSizeText.text = $"{Math.Round(downloaded, 1)}MB / {Math.Round(downloadSize, 1)}MB";
                     downloadSizeText.gameObject.SetActive(true);
                 }
                 else downloadSizeText.gameObject.SetActive(false);
