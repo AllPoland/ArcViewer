@@ -379,6 +379,8 @@ public class ObjectManager : MonoBehaviour
             List<Note> newNotes = new List<Note>();
             (float? redSnapAngle, float? blueSnapAngle) = NoteManager.GetSnapAngles(notesOnBeat);
 
+            //Used to disable swap animations whenever notes are attached to arcs
+            bool arcAttachment = false;
             foreach(BeatmapColorNote n in notesOnBeat)
             {
                 Note newNote = Note.NoteFromBeatmapColorNote(n);
@@ -402,6 +404,7 @@ public class ObjectManager : MonoBehaviour
                     {
                         a.StartY = newNote.StartY;
                         a.HasAttachment = true;
+                        arcAttachment = true;
                     }
                 }
 
@@ -411,13 +414,14 @@ public class ObjectManager : MonoBehaviour
                     {
                         a.StartY = newNote.StartY;
                         a.HasAttachment = true;
+                        arcAttachment = true;
                     }
                 }
 
                 newNotes.Add(newNote);
             }
 
-            if(notesOnBeat.Count == 2)
+            if(notesOnBeat.Count == 2 && !arcAttachment)
             {
                 BeatmapColorNote first = notesOnBeat[0];
                 BeatmapColorNote second = notesOnBeat[1];
