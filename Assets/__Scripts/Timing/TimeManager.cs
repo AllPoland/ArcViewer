@@ -131,13 +131,14 @@ public class TimeManager : MonoBehaviour
         {
             newPlaying = false;
         }
-        if(newPlaying && Progress >= 1)
+
+        Playing = newPlaying && !ForcePause;
+        if(Playing && Progress >= 1)
         {
             CurrentTime = 0;
         }
 
-        OnPlayingChanged?.Invoke(newPlaying);
-        Playing = newPlaying && !ForcePause;
+        OnPlayingChanged?.Invoke(Playing);
     }
 
     public static void TogglePlaying()

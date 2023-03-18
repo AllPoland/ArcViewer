@@ -47,34 +47,30 @@ public class MapLoader : MonoBehaviour
         Debug.LogWarning("Tried to load from directory in WebGL!");
         ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Loading from directory doesn't work in browser!");
 
-        UpdateMapInfo(null, new List<Difficulty>(), null, null);
+        UpdateMapInfo(LoadedMap.Empty);
         yield break;
 #else
         Loading = true;
 
         Debug.Log("Loading info.");
         LoadingMessage = "Loading Info.dat";
-        Task<BeatmapInfo> infoTask = Task.Run(() => LoadInfoAsync(directory));
+        using Task<BeatmapInfo> infoTask = Task.Run(() => LoadInfoAsync(directory));
 
         yield return new WaitUntil(() => infoTask.IsCompleted);
         BeatmapInfo info = infoTask.Result;
 
-        infoTask.Dispose();
-
         if(info == null)
         {
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load Info.dat!");
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
         Debug.Log("Loading difficulties.");
-        Task<List<Difficulty>> diffTask = Task.Run(() => LoadDiffsAsync(directory, info));
+        using Task<List<Difficulty>> diffTask = Task.Run(() => LoadDiffsAsync(directory, info));
         
         yield return new WaitUntil(() => diffTask.IsCompleted);
         List<Difficulty> difficulties = diffTask.Result;
-
-        diffTask.Dispose();
 
         LoadingMessage = "Loading song";
         string audioDirectory = Path.Combine(directory, info._songFilename);
@@ -87,18 +83,17 @@ public class MapLoader : MonoBehaviour
             AudioType type = typeTask.Result;
             Debug.Log($"Loading audio file with type of {type}.");
 
-            Task<AudioClip> audioTask = AudioFileHandler.GetAudioFromFile(audioDirectory, type);
+            using Task<AudioClip> audioTask = AudioFileHandler.GetAudioFromFile(audioDirectory, type);
             yield return new WaitUntil(() => audioTask.IsCompleted);
 
             song = audioTask.Result;
-            audioTask.Dispose();
         }
         else
         {
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
             Debug.LogWarning("Song file not found!");
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
@@ -107,17 +102,16 @@ public class MapLoader : MonoBehaviour
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
             Debug.LogWarning("Song file not found!");
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
         Debug.Log("Loading cover image.");
         LoadingMessage = "Loading cover image";
 
-        Task<Stream> coverImageTask = Task.Run(() => FileUtil.ReadFileData(Path.Combine(directory, info._coverImageFilename)));
+        using Task<Stream> coverImageTask = Task.Run(() => FileUtil.ReadFileData(Path.Combine(directory, info._coverImageFilename)));
         yield return new WaitUntil(() => coverImageTask.IsCompleted);
         Stream coverImageStream = coverImageTask.IsCompletedSuccessfully ? coverImageTask.Result : null;
-        coverImageTask.Dispose();
 
         byte[] coverImageData = new byte[0];
         if(coverImageStream == null)
@@ -134,7 +128,7 @@ public class MapLoader : MonoBehaviour
         Debug.Log("Loading complete.");
         LoadingMessage = "Done";
 
-        UpdateMapInfo(info, difficulties, song, coverImageData);
+        UpdateMapInfo(new LoadedMap(info, difficulties, coverImageData, song));
 #endif
     }
 
@@ -145,9 +139,9 @@ public class MapLoader : MonoBehaviour
         LoadingMessage = "Loading map zip";
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> loadZipTask = Task.Run(() => ZipReader.GetMapFromZipArchiveAsync(archive));
+        using Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> loadZipTask = Task.Run(() => ZipReader.GetMapFromZipArchiveAsync(archive));
 #else
-        Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> loadZipTask = ZipReader.GetMapFromZipArchiveAsync(archive);
+        using Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> loadZipTask = ZipReader.GetMapFromZipArchiveAsync(archive);
 #endif
 
         yield return new WaitUntil(() => loadZipTask.IsCompleted);
@@ -157,15 +151,13 @@ public class MapLoader : MonoBehaviour
         MemoryStream songData = result.Item3;
         byte[] coverImageData = result.Item4;
 
-        TempFile songFile = new TempFile();
-
         loadZipTask.Dispose();
 
         if(info == null)
         {
             DisposeZip();
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
@@ -173,7 +165,7 @@ public class MapLoader : MonoBehaviour
         {
             DisposeZip();
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
@@ -181,6 +173,7 @@ public class MapLoader : MonoBehaviour
 
 #if !UNITY_WEBGL || UNITY_EDITOR
         //Write song data to a tempfile so it can be loaded through a uwr
+        using TempFile songFile = new TempFile();
         using(Task writeTask = File.WriteAllBytesAsync(songFile.Path, songData.ToArray()))
         {
             yield return new WaitUntil(() => writeTask.IsCompleted);
@@ -208,7 +201,7 @@ public class MapLoader : MonoBehaviour
 
             DisposeZip();
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 #else
@@ -229,7 +222,7 @@ public class MapLoader : MonoBehaviour
 
             DisposeZip();
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
@@ -237,16 +230,12 @@ public class MapLoader : MonoBehaviour
         LoadingMessage = "Done";
 
         DisposeZip();
-
-        UpdateMapInfo(info, difficulties, song, coverImageData);
-
+        UpdateMapInfo(new LoadedMap(info, difficulties, coverImageData, song));
 
         void DisposeZip()
         {
             zipStream?.Dispose();
             songData?.Dispose();
-            songFile?.Dispose();
-            loadZipTask?.Dispose();
             archive?.Dispose();
         }
     }
@@ -264,15 +253,12 @@ public class MapLoader : MonoBehaviour
         }
         catch(Exception err)
         {
-            if(archive != null)
-            {
-                archive.Dispose();
-            }
+            archive?.Dispose();
 
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load zip file!");
             Debug.LogWarning($"Unhandled exception loading zip: {err.Message}, {err.StackTrace}.");
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
         }
     }
 
@@ -286,7 +272,7 @@ public class MapLoader : MonoBehaviour
         Stream zipStream = null;
         ZipArchive archive = null;
 
-        UnityWebRequest uwr = UnityWebRequest.Get(directory);
+        using UnityWebRequest uwr = UnityWebRequest.Get(directory);
         
         Debug.Log("Starting web request.");
         yield return uwr.SendWebRequest();
@@ -298,8 +284,6 @@ public class MapLoader : MonoBehaviour
                 zipStream = new MemoryStream(uwr.downloadHandler.data);
                 archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
 
-                uwr.Dispose();
-
                 StartCoroutine(LoadMapZipArchiveCoroutine(archive, zipStream));
             }
             catch(Exception e)
@@ -309,7 +293,7 @@ public class MapLoader : MonoBehaviour
 
                 Dispose();
 
-                UpdateMapInfo(null, new List<Difficulty>(), null, null);
+                UpdateMapInfo(LoadedMap.Empty);
                 yield break;
             }
         }
@@ -320,7 +304,7 @@ public class MapLoader : MonoBehaviour
 
             Dispose();
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
@@ -328,7 +312,6 @@ public class MapLoader : MonoBehaviour
         {
             zipStream?.Dispose();
             archive?.Dispose();
-            uwr?.Dispose();
         }
     }
 
@@ -373,18 +356,16 @@ public class MapLoader : MonoBehaviour
         Debug.Log($"Downloading map data from: {url}");
         LoadingMessage = "Downloading map";
 
-        Task<Stream> downloadTask = WebLoader.LoadMapURL(url);
-
+        using Task<Stream> downloadTask = WebLoader.LoadMapURL(url);
         yield return new WaitUntil(() => downloadTask.IsCompleted);
-        Stream zipStream = downloadTask.Result;
 
-        downloadTask.Dispose();
+        Stream zipStream = downloadTask.Result;
 
         if(zipStream == null)
         {
             Debug.LogWarning("Downloaded data is null!");
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 #if !UNITY_WEBGL || UNITY_EDITOR
@@ -405,12 +386,12 @@ public class MapLoader : MonoBehaviour
         catch(Exception err)
         {
             archive?.Dispose();
-            zipStream.Dispose();
+            zipStream?.Dispose();
 
             ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to read map zip!");
             Debug.LogWarning($"Unhandled exception loading zip URL: {err.Message}, {err.StackTrace}");
 
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
         }
     }
 
@@ -431,44 +412,39 @@ public class MapLoader : MonoBehaviour
 
         Debug.Log($"Getting beat saver response for ID: {mapID}");
         LoadingMessage = "Fetching map from BeatSaver";
-        Task<string> apiTask = BeatSaverHandler.GetBeatSaverMapURL(mapID);
 
+        using Task<string> apiTask = BeatSaverHandler.GetBeatSaverMapURL(mapID);
         yield return new WaitUntil(() => apiTask.IsCompleted);
+        
         string mapURL = apiTask.Result;
-
-        apiTask.Dispose();
 
         if(mapURL == null || mapURL == "")
         {
             Debug.Log("Empty or nonexistant URL!");
-            UpdateMapInfo(null, new List<Difficulty>(), null, null);
+            UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
         StartCoroutine(LoadMapURLCoroutine(mapURL, mapID));
     }
 
-#if !UNITY_WEBGL || UNITY_EDITOR
-    private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, AudioClip song, byte[] coverData)
-#else
-    private void UpdateMapInfo(BeatmapInfo info, List<Difficulty> difficulties, WebAudioClip song, byte[] coverData)
-#endif
+    private void UpdateMapInfo(LoadedMap newMap)
     {
         StopAllCoroutines();
         LoadingMessage = "";
         Loading = false;
         
-        if(info == null || difficulties.Count == 0 || song == null)
+        if(newMap.Info == null || newMap.Difficulties.Count == 0 || newMap.Song == null)
         {
             Debug.LogWarning("Failed to load map file");
 
-            if(song != null)
+            if(newMap.Song != null)
             {
 #if !UNITY_WEBGL || UNITY_EDITOR
-                song.UnloadAudioData();
-                Destroy(song);
+                newMap.Song.UnloadAudioData();
+                Destroy(newMap.Song);
 #else
-                song.Dispose();
+                newMap.Song.Dispose();
 #endif
             }
             UIStateManager.CurrentState = UIState.MapSelection;
@@ -479,16 +455,16 @@ public class MapLoader : MonoBehaviour
 
         UIStateManager.CurrentState = UIState.Previewer;
         
-        BeatmapManager.Info = info;
-        AudioManager.Instance.MusicClip = song;
+        BeatmapManager.Info = newMap.Info;
+        AudioManager.Instance.MusicClip = newMap.Song;
 
-        if(coverData != null && coverData.Length > 0)
+        if(newMap.CoverImageData != null && newMap.CoverImageData.Length > 0)
         {
-            CoverImageHandler.Instance.SetImageFromData(coverData);
+            CoverImageHandler.Instance.SetImageFromData(newMap.CoverImageData);
         }
         else CoverImageHandler.Instance.ClearImage();
 
-        BeatmapManager.Difficulties = difficulties;
+        BeatmapManager.Difficulties = newMap.Difficulties;
         BeatmapManager.CurrentMap = BeatmapManager.GetDefaultDifficulty();
 
         OnMapLoaded?.Invoke();
@@ -630,4 +606,32 @@ public class MapLoader : MonoBehaviour
         HotReloader.loadedMapPath = mapDirectory;
 #endif
     }
+}
+
+
+public class LoadedMap
+{
+#if !UNITY_WEBGL || UNITY_EDITOR
+    public LoadedMap(BeatmapInfo info, List<Difficulty> difficulties, byte[] coverImageData, AudioClip song)
+#else
+    public LoadedMap(BeatmapInfo info, List<Difficulty> difficulties, byte[] coverImageData, WebAudioClip song)
+#endif
+    {
+        Info = info;
+        Difficulties = difficulties;
+        CoverImageData = coverImageData;
+        Song = song;
+    }
+
+    public BeatmapInfo Info { get; private set; }
+    public List<Difficulty> Difficulties { get; private set; }
+    public byte[] CoverImageData { get; private set; }
+#if !UNITY_WEBGL || UNITY_EDITOR
+    public AudioClip Song { get; private set; }
+#else
+    public WebAudioClip Song { get; private set; }
+#endif
+
+
+    public static readonly LoadedMap Empty = new LoadedMap(null, new List<Difficulty>(), null, null);
 }
