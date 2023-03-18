@@ -389,9 +389,19 @@ public class NoteManager : MonoBehaviour
         float secondAngle = ObjectManager.CalculateObjectAngle(second.d);
         float desiredAngle = Mathf.Atan2(-deltaPos.x, deltaPos.y) * Mathf.Rad2Deg;
 
-        if((first.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, firstAngle)) > 90) || (second.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, secondAngle)) > 90))
+        if(first.d == 8)
         {
-            desiredAngle = Mathf.Atan2(deltaPos.x, -deltaPos.y) * Mathf.Rad2Deg;
+            if(Mathf.Abs(Mathf.DeltaAngle(desiredAngle, secondAngle)) > 90)
+            {
+                desiredAngle = Mathf.Atan2(deltaPos.x, -deltaPos.y) * Mathf.Rad2Deg;
+            }
+        }
+        else
+        {
+            if(Mathf.Abs(Mathf.DeltaAngle(desiredAngle, firstAngle)) > 90)
+            {
+                desiredAngle = Mathf.Atan2(deltaPos.x, -deltaPos.y) * Mathf.Rad2Deg;
+            }
         }
 
         if((first.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, firstAngle)) > 40) || (second.d != 8 && Mathf.Abs(Mathf.DeltaAngle(desiredAngle, secondAngle)) > 40))
