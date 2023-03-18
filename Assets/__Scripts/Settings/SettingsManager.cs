@@ -301,7 +301,7 @@ public class Settings
             {"simplenotes", false},
             {"moveanimations", true},
             {"rotateanimations", true},
-            {"flipanimations", true },
+            {"flipanimations", true},
             {"vsync", true},
             {"ssao", true},
             {"dynamicsoundpriority", true}

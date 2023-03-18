@@ -36,8 +36,6 @@ public class NoteManager : MonoBehaviour
     private ObjectManager objectManager;
 
 
-
-
     public void ReloadNotes()
     {
         ClearRenderedNotes();
@@ -68,7 +66,7 @@ public class NoteManager : MonoBehaviour
         float jumpTime = TimeManager.CurrentTime + reactionTime;
         float jumpProgress = (jumpTime - noteTime) / reactionTime;
 
-        if (objectManager.doFlipAnimation)
+        if(objectManager.doFlipAnimation && n.FlipYHeight != 0)
         {
             if(jumpProgress <= 0)
             {
