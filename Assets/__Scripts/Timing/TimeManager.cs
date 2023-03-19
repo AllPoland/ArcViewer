@@ -27,11 +27,12 @@ public class TimeManager : MonoBehaviour
                 _time = SongLength;
                 _beat = BeatFromTime(_time);
 
-                SetPlaying(false);
                 OnBeatChanged?.Invoke(CurrentBeat);
+                SetPlaying(false);
                 return;
             }
-            else if(value < 0)
+
+            if(value < 0)
             {
                 value = 0;
             }
@@ -127,11 +128,6 @@ public class TimeManager : MonoBehaviour
     public static bool Playing { get; private set; }
     public static void SetPlaying(bool newPlaying)
     {
-        if(ForcePause)
-        {
-            newPlaying = false;
-        }
-
         Playing = newPlaying && !ForcePause;
         if(Playing && Progress >= 1)
         {

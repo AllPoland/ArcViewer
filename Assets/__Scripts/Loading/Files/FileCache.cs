@@ -96,8 +96,15 @@ public class FileCache
             FilePath = newFilePath
         };
 
-        File.WriteAllBytes(newFilePath, FileUtil.StreamToBytes(fileStream));
-        CachedFiles.Add(newFile);
+        try
+        {
+            File.WriteAllBytes(newFilePath, FileUtil.StreamToBytes(fileStream));
+            CachedFiles.Add(newFile);
+        }
+        catch(Exception e)
+        {
+            Debug.LogWarning($"Failed to write map zip data with error: {e.Message}, {e.StackTrace}");
+        }
 
         SaveCacheData();
 
@@ -121,7 +128,14 @@ public class FileCache
 
         if(File.Exists(toRemove.FilePath))
         {
-            File.Delete(toRemove.FilePath);
+            try
+            {
+                File.Delete(toRemove.FilePath);
+            }
+            catch(Exception e)
+            {
+                Debug.LogWarning($"Failed to delete {toRemove.FilePath} with error: {e.Message}, {e.StackTrace}");
+            }
         }
 
         CachedFiles.Remove(toRemove);
@@ -141,8 +155,16 @@ public class FileCache
             return;
         }
 
-        string json = File.ReadAllText(CacheDataFile);
-        CachedFiles = JsonConvert.DeserializeObject<List<CachedFile>>(json);
+        try
+        {
+            string json = File.ReadAllText(CacheDataFile);
+            CachedFiles = JsonConvert.DeserializeObject<List<CachedFile>>(json);
+        }
+        catch(Exception e)
+        {
+            Debug.LogWarning($"Failed to read cache data with error: {e.Message}, {e.StackTrace}");
+            CachedFiles = new List<CachedFile>();
+        }
 
         while(CachedFiles.Count > MaxCacheSize)
         {
@@ -159,8 +181,15 @@ public class FileCache
             return;
         }
 
-        string json = JsonConvert.SerializeObject(CachedFiles);
-        File.WriteAllText(CacheDataFile, json);
+        try
+        {
+            string json = JsonConvert.SerializeObject(CachedFiles);
+            File.WriteAllText(CacheDataFile, json);
+        }
+        catch(Exception e)
+        {
+            Debug.LogWarning($"Failed to write cache data with error: {e.Message}, {e.StackTrace}");
+        }
     }
 
 
