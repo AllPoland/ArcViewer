@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class WallManager : MonoBehaviour
@@ -20,6 +19,7 @@ public class WallManager : MonoBehaviour
     };
 
     private ObjectManager objectManager;
+    private MaterialPropertyBlock wallMaterialProperties;
 
 
     public void ReloadWalls()
@@ -31,13 +31,16 @@ public class WallManager : MonoBehaviour
     }
 
 
-    public void UpdateMaterial(float opacity)
+    public void UpdateMaterial()
     {
-        Color wallColor = wallMaterial.color;
-        if(wallColor.a == opacity) return;
+        ClearRenderedWalls();
 
-        wallColor.a = opacity;
-        wallMaterial.color = wallColor;
+        Color wallColor = wallMaterial.color;
+
+        wallColor.a = SettingsManager.GetFloat("wallopacity");
+        wallMaterialProperties.SetColor("_BaseColor", wallColor);
+
+        UpdateWallVisuals(TimeManager.CurrentBeat);
     }
 
 
@@ -63,7 +66,7 @@ public class WallManager : MonoBehaviour
             //Wall scale only needs to be set once when it's created
             WallHandler handler = w.Visual.GetComponent<WallHandler>();
             handler.SetScale(new Vector3(w.Width, w.Height, wallLength));
-            handler.SetMaterial(wallMaterial);
+            handler.SetMaterial(wallMaterialProperties);
 
             RenderedWalls.Add(w);
         }
@@ -186,6 +189,12 @@ public class WallManager : MonoBehaviour
         position.x += x * ObjectManager.LaneWidth;
         position.y += y * ObjectManager.WallHScale;
         return position;
+    }
+
+
+    private void Awake()
+    {
+        wallMaterialProperties = new MaterialPropertyBlock();
     }
 
 

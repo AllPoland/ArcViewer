@@ -23,9 +23,7 @@ public class ArcManager : MonoBehaviour
 
     private static ObjectManager objectManager;
 
-    private Material currentRedArcMaterial;
-    private Material currentBlueArcMaterial;
-    private Material currentArcCenterMaterial;
+    private MaterialPropertyBlock arcMaterialProperties;
 
 
     public void ReloadArcs()
@@ -45,22 +43,9 @@ public class ArcManager : MonoBehaviour
         float fadeDist = BeatmapManager.JumpDistance / 2;
         float closeFadeDist = SettingsManager.GetFloat("cameraposition") + arcCloseFadeDist;
 
-        currentRedArcMaterial = new Material(redArcMaterial);
-        currentBlueArcMaterial = new Material(blueArcMaterial);
-        currentArcCenterMaterial = new Material(arcCenterMaterial);
-
-        //So many parameters :fw_nofwoompdespair:
-        currentRedArcMaterial.SetFloat("_FadeStartPoint", closeFadeDist);
-        currentRedArcMaterial.SetFloat("_FadeEndPoint", fadeDist);
-        currentRedArcMaterial.SetFloat("_FadeTransitionLength", arcFadeTransitionLength);
-
-        currentBlueArcMaterial.SetFloat("_FadeStartPoint", closeFadeDist);
-        currentBlueArcMaterial.SetFloat("_FadeEndPoint", fadeDist);
-        currentBlueArcMaterial.SetFloat("_FadeTransitionLength", arcFadeTransitionLength);
-
-        currentArcCenterMaterial.SetFloat("_FadeStartPoint", closeFadeDist);
-        currentArcCenterMaterial.SetFloat("_FadeEndPoint", fadeDist);
-        currentArcCenterMaterial.SetFloat("_FadeTransitionLength", arcCenterFadeTransitionLength);
+        arcMaterialProperties.SetFloat("_FadeStartPoint", closeFadeDist);
+        arcMaterialProperties.SetFloat("_FadeEndPoint", fadeDist);
+        arcMaterialProperties.SetFloat("_FadeTransitionLength", arcFadeTransitionLength);
 
         UpdateArcVisuals(TimeManager.CurrentBeat);
     }
@@ -116,7 +101,7 @@ public class ArcManager : MonoBehaviour
             a.Visual.SetActive(true);
 
             a.arcHandler = a.Visual.GetComponent<ArcHandler>();
-            a.arcHandler.SetMaterial(a.Color == 0 ? currentRedArcMaterial : currentBlueArcMaterial, currentArcCenterMaterial);
+            a.arcHandler.SetMaterial(a.Color == 0 ? redArcMaterial : blueArcMaterial, arcCenterMaterial, arcMaterialProperties);
 
             a.arcHandler.SetArcPoints(GetArcPoints(a));
 
@@ -207,6 +192,12 @@ public class ArcManager : MonoBehaviour
             ReleaseArc(a);
         }
         RenderedArcs.Clear();
+    }
+
+
+    private void Awake()
+    {
+        arcMaterialProperties = new MaterialPropertyBlock();
     }
 
 

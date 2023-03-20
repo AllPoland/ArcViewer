@@ -12,17 +12,17 @@ public class ChainLinkHandler : MonoBehaviour
 
     public void SetMaterial(Material newMaterial)
     {
-        if(newMaterial == meshRenderer.material) return;
+        if(newMaterial == meshRenderer.sharedMaterial) return;
 
-        meshRenderer.material = newMaterial;
+        meshRenderer.sharedMaterial = newMaterial;
     }
 
 
     public void SetDotMaterial(Material newMaterial)
     {
-        if(newMaterial == dotMeshRenderer.material) return;
+        if(newMaterial == dotMeshRenderer.sharedMaterial) return;
 
-        dotMeshRenderer.material = newMaterial;
+        dotMeshRenderer.sharedMaterial = newMaterial;
     }
 
 

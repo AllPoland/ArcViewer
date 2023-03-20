@@ -31,12 +31,7 @@ public class ObjectSettingsUpdater : MonoBehaviour
         ArcManager.ArcSegmentDensity = SettingsManager.GetInt("arcdensity");
 
         arcManager.UpdateMaterials();
-
-        //Settings that modify assets should be placed below this,
-        //so that they don't get permanently altered by settings
-        if(Application.isEditor) return;
-
-        wallManager.UpdateMaterial(SettingsManager.GetFloat("wallopacity"));
+        wallManager.UpdateMaterial();
     }
 
 
