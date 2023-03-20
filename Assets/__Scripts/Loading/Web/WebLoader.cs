@@ -55,6 +55,7 @@ public class WebLoader : MonoBehaviour
     public static async Task<MemoryStream> StreamFromURL(string url)
     {
         MapLoader.Progress = 0;
+        DownloadSize = 0;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         url = GetCorsURL(url);
@@ -70,13 +71,16 @@ public class WebLoader : MonoBehaviour
 
             while(!uwr.isDone)
             {
-                if(uwr.downloadProgress > 0 && uwr.downloadedBytes > 0)
+                if(DownloadSize == 0)
                 {
-                    //Calculate total size of the download based on how it's gone so far
-                    //For some reason HEAD requests to BeatSaver cdn return 404, making this workaround necessary
-                    DownloadSize = (ulong)(uwr.downloadedBytes / uwr.downloadProgress);
+                    //GetRequestHeader returns the file size in a string,
+                    //or null if the headers haven't been receieved yet
+                    string sizeHeader = uwr.GetResponseHeader("Content-Length");
+
+                    ulong outValue;
+                    DownloadSize = ulong.TryParse(sizeHeader, out outValue) ? outValue : 0;
                 }
-                else DownloadSize = 0;
+
                 MapLoader.Progress = uwr.downloadProgress;
 
                 await Task.Yield();
