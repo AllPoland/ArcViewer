@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class ArcManager : MonoBehaviour
 {
-    public static float ArcSegmentDensity = 30f;
+    public static float ArcSegmentDensity => SettingsManager.GetInt("arcdensity");
 
     public List<Arc> Arcs = new List<Arc>();
     public List<Arc> RenderedArcs = new List<Arc>();

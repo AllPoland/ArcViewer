@@ -19,10 +19,10 @@ public class ObjectManager : MonoBehaviour
     public ChainManager chainManager;
     public ArcManager arcManager;
 
-    public bool useSimpleNoteMaterial = false;
-    public bool doRotationAnimation = true;
-    public bool doMovementAnimation = true;
-    public bool doFlipAnimation = true;
+    public bool useSimpleNoteMaterial => SettingsManager.GetBool("simplenotes");
+    public bool doRotationAnimation => SettingsManager.GetBool("rotateanimations");
+    public bool doMovementAnimation => SettingsManager.GetBool("moveanimations");
+    public bool doFlipAnimation => SettingsManager.GetBool("flipanimations");
 
     public static readonly Vector2 GridBottomLeft = new Vector2(-0.9f, 0);
     public const float LaneWidth = 0.6f;
@@ -43,15 +43,6 @@ public class ObjectManager : MonoBehaviour
     public static List<T> SortObjectsByBeat<T>(List<T> objects) where T : MapObject
     {
         return objects.OrderBy(x => x.Beat).ToList();
-    }
-
-
-    public static List<T> GetObjectsOnBeat<T>(List<T> search, float beat) where T : MapObject
-    {
-        const float leeway = 0.001f;
-        float time = TimeManager.TimeFromBeat(beat);
-
-        return search.FindAll(x => Mathf.Abs(TimeManager.TimeFromBeat(x.Beat) - time) <= leeway);
     }
 
 
@@ -272,6 +263,18 @@ public class ObjectManager : MonoBehaviour
     }
 
 
+    public void RescheduleHitsounds(bool playing)
+    {
+        if(!playing)
+        {
+            return;
+        }
+
+        noteManager.RescheduleHitsounds();
+        chainManager.RescheduleHitsounds();
+    }
+
+
     // only used for loading purposes
     private class BeatmapSliderHead : BeatmapObject
     {
@@ -386,7 +389,7 @@ public class ObjectManager : MonoBehaviour
             {
                 Note newNote = Note.NoteFromBeatmapColorNote(n);
                 newNote.StartY = ((float)NoteManager.GetStartY(n, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
-                
+
                 newNote.IsChainHead = NoteManager.CheckChainHead(n, burstSlidersOnBeat);
                 chainAttachment |= newNote.IsChainHead;
 
@@ -530,6 +533,7 @@ public class ObjectManager : MonoBehaviour
     {
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
         TimeManager.OnBeatChanged += UpdateBeat;
+        TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }
 
 

@@ -21,23 +21,12 @@ public class UISettingsUpdater : MonoBehaviour
     }
 
 
-    private void OnEnable()
+    private void Start()
     {
         canvasScaler = canvas.GetComponent<CanvasScaler>();
         defaultReferenceHeight = canvasScaler.referenceResolution.y;
-
         SettingsManager.OnSettingsUpdated += UpdateUISettings;
-    }
 
-
-    private void OnDisable()
-    {
-        SettingsManager.OnSettingsUpdated -= UpdateUISettings;
-    }
-
-
-    private void Start()
-    {
         UpdateUISettings();
     }
 }
