@@ -162,7 +162,7 @@ public class UrlArgHandler : MonoBehaviour
             {
                 difficulty = difficulties.FirstOrDefault(x => x.difficultyRank == diffRank);
             }
-            BeatmapManager.CurrentMap = difficulty ?? difficulties.Last();
+            BeatmapManager.CurrentDifficulty = difficulty ?? difficulties.Last();
         }
         else if(diffRank != null)
         {
@@ -170,7 +170,7 @@ public class UrlArgHandler : MonoBehaviour
             List<Difficulty> difficulties = BeatmapManager.GetDifficultiesByCharacteristic(defaultCharacteristic);
 
             Difficulty difficulty = difficulties.FirstOrDefault(x => x.difficultyRank == diffRank);
-            BeatmapManager.CurrentMap = difficulty ?? difficulties.Last();
+            BeatmapManager.CurrentDifficulty = difficulty ?? difficulties.Last();
         }
         MapLoader.OnMapLoaded -= SetDifficulty;
     }

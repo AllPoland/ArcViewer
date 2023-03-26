@@ -43,20 +43,20 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    private static Difficulty _currentMap = Difficulty.Empty;
-    public static Difficulty CurrentMap
+    private static Difficulty _currentDifficulty = Difficulty.Empty;
+    public static Difficulty CurrentDifficulty
     {
-        get => _currentMap;
+        get => _currentDifficulty;
         
         set
         {
-            _currentMap = value;
+            _currentDifficulty = value;
 
-            SpawnOffset = _currentMap.SpawnOffset;
-            NJS = _currentMap.NoteJumpSpeed;
+            SpawnOffset = _currentDifficulty.SpawnOffset;
+            NJS = _currentDifficulty.NoteJumpSpeed;
             if(NJS == 0)
             {
-                switch(_currentMap.difficultyRank)
+                switch(_currentDifficulty.difficultyRank)
                 {
                     case DifficultyRank.Easy:
                     case DifficultyRank.Normal:
@@ -73,8 +73,8 @@ public class BeatmapManager : MonoBehaviour
             }
             JumpDistance = GetJumpDistance(HJD, Info._beatsPerMinute, NJS);
 
-            MappingExtensions = _currentMap.requirements.Contains("Mapping Extensions");
-            NoodleExtensions = _currentMap.requirements.Contains("Noodle Extensions");
+            MappingExtensions = _currentDifficulty.requirements.Contains("Mapping Extensions");
+            NoodleExtensions = _currentDifficulty.requirements.Contains("Noodle Extensions");
 
             if(NoodleExtensions)
             {
@@ -85,8 +85,8 @@ public class BeatmapManager : MonoBehaviour
                 ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Mapping Extensions support is incomplete! Things may not display correctly.");
             }
 
-            Debug.Log($"Current diff is {_currentMap.characteristic}, {_currentMap.difficultyRank}");
-            OnBeatmapDifficultyChanged?.Invoke(_currentMap);
+            Debug.Log($"Current diff is {_currentDifficulty.characteristic}, {_currentDifficulty.difficultyRank}");
+            OnBeatmapDifficultyChanged?.Invoke(_currentDifficulty);
         }
     }
 
@@ -186,7 +186,7 @@ public class BeatmapManager : MonoBehaviour
         if(newState != UIState.Previewer)
         {
             Difficulties.Clear();
-            CurrentMap = Difficulty.Empty;
+            CurrentDifficulty = Difficulty.Empty;
             Info = new BeatmapInfo();
         }
     }

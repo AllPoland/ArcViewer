@@ -465,7 +465,7 @@ public class MapLoader : MonoBehaviour
         else CoverImageHandler.Instance.ClearImage();
 
         BeatmapManager.Difficulties = newMap.Difficulties;
-        BeatmapManager.CurrentMap = BeatmapManager.GetDefaultDifficulty();
+        BeatmapManager.CurrentDifficulty = BeatmapManager.GetDefaultDifficulty();
 
         OnMapLoaded?.Invoke();
     }

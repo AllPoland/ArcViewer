@@ -196,19 +196,13 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
     }
 
 
-    private void SetDifficulty(Difficulty newDiff)
-    {
-        BeatmapManager.CurrentMap = newDiff;
-    }
-
-
     public void ChangeDifficulty(DifficultyRank newDiff)
     {
         List<Difficulty> diffs = BeatmapManager.GetDifficultiesByCharacteristic(currentCharacteristic);
         try
         {
             Difficulty newDifficulty = diffs.Single(x => x.difficultyRank == newDiff);
-            SetDifficulty(newDifficulty);
+            BeatmapManager.CurrentDifficulty = newDifficulty;
         }
         catch(InvalidOperationException)
         {

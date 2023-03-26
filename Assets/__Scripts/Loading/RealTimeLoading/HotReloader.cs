@@ -150,7 +150,7 @@ public class HotReloader : MonoBehaviour
 
     private void UpdateMap(BeatmapInfo info, List<Difficulty> difficulties)
     {
-        Difficulty currentDiff = BeatmapManager.CurrentMap;
+        Difficulty currentDiff = BeatmapManager.CurrentDifficulty;
         DifficultyCharacteristic currentCharacteristic = currentDiff.characteristic;
         DifficultyRank currentRank = currentDiff.difficultyRank;
 
@@ -163,12 +163,12 @@ public class HotReloader : MonoBehaviour
 
         if(newDiff != null)
         {
-            BeatmapManager.CurrentMap = newDiff;
+            BeatmapManager.CurrentDifficulty = newDiff;
         }
         else
         {
             //Unable to find a matching diff, so just use the default instead
-            BeatmapManager.CurrentMap = BeatmapManager.GetDefaultDifficulty();
+            BeatmapManager.CurrentDifficulty = BeatmapManager.GetDefaultDifficulty();
             ErrorHandler.Instance.DisplayPopup(ErrorType.Notification, "The current difficulty was deleted!");
         }
     }
