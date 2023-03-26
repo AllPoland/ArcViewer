@@ -7,7 +7,6 @@ public class ErrorHandler : MonoBehaviour
     public static ErrorHandler Instance { get; private set; }
 
     [SerializeField] private GameObject errorPopup;
-    [SerializeField] private Vector2 topPosition;
     [SerializeField] private float popupHeight;
     [SerializeField] private float transitionTime;
     [SerializeField] private Color errorColor;
@@ -28,30 +27,31 @@ public class ErrorHandler : MonoBehaviour
             return;
         }
 
-        GameObject popupObject = Instantiate(errorPopup, topPosition, Quaternion.identity, transform);
+        GameObject popupObject = Instantiate(errorPopup, transform, false);
         popupObject.SetActive(false);
-
-        Vector2 aboveScreen = new Vector2(topPosition.x, topPosition.y + popupHeight);
-        popupObject.transform.position = aboveScreen;
-
-        Color color = Color.black;
-        switch(errorType)
-        {
-            case ErrorType.Error:
-                color = errorColor;
-                break;
-            case ErrorType.Warning:
-                color = warningColor;
-                break;
-            case ErrorType.Notification:
-                color = notificationColor;
-                break;
-        }
 
         ErrorPopup newPopup = popupObject.GetComponent<ErrorPopup>();
         newPopup.message = message;
-        newPopup.backgroundColor = color;
         newPopup.lifeTime = messageLifeSpan;
+
+        //Position the new popup directly above the screen
+        newPopup.rectTransform.anchoredPosition = new Vector2(0, popupHeight);
+
+        switch(errorType)
+        {
+            case ErrorType.Error:
+                newPopup.backgroundColor = errorColor;
+                break;
+            case ErrorType.Warning:
+                newPopup.backgroundColor = warningColor;
+                break;
+            case ErrorType.Notification:
+                newPopup.backgroundColor = notificationColor;
+                break;
+            default:
+                newPopup.backgroundColor = Color.black;
+                break;
+        }
 
         popupObject.SetActive(true);
         activePopups.Add(newPopup);
@@ -81,26 +81,26 @@ public class ErrorHandler : MonoBehaviour
             return;
         }
 
-        float currentY = topPosition.y - popupHeight * (activePopups.Count - 2);
+        float currentY = 0;
         foreach(ErrorPopup popup in activePopups)
         {
-            if(popup.transform.localPosition.y == currentY)
+            if(popup.rectTransform.anchoredPosition.y == currentY)
             {
                 //This popup doesn't need to be moved
                 currentY += popupHeight;
                 continue;
             }
 
-            Vector2 targetPosition = new Vector2(topPosition.x, currentY);
-            if(popup.transform.localPosition.y < currentY)
+            Vector2 targetPosition = new Vector2(0, currentY);
+            if(popup.rectTransform.anchoredPosition.y < currentY)
             {
                 //Popup needs to be moved up, but should do so instantly
-                popup.MoveToPosition(popup.transform.position, targetPosition, 0);
+                popup.MoveToPosition(popup.rectTransform.anchoredPosition, targetPosition, 0);
             }
             else
             {
                 //Popup needs to be moved down, and should transition smoothly
-                Vector2 startPosition = new Vector2(topPosition.x, currentY + popupHeight);
+                Vector2 startPosition = new Vector2(0, currentY + popupHeight);
                 popup.MoveToPosition(startPosition, targetPosition, transitionTime);
             }
 

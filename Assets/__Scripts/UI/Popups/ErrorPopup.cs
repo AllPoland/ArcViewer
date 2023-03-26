@@ -7,6 +7,7 @@ public class ErrorPopup : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI messageText;
 
+    public RectTransform rectTransform;
     public Color backgroundColor;
     public string message;
     public float lifeTime;
@@ -20,7 +21,7 @@ public class ErrorPopup : MonoBehaviour
     {
         if(transitionTime <= 0)
         {
-            transform.localPosition = targetPosition;
+            rectTransform.anchoredPosition = targetPosition;
             yield break;
         }
 
@@ -32,11 +33,11 @@ public class ErrorPopup : MonoBehaviour
             t += Time.deltaTime / transitionTime;
 
             Vector2 newPosition = Vector2.Lerp(startPosition, targetPosition, t);
-            transform.localPosition = newPosition;
+            rectTransform.anchoredPosition = newPosition;
 
             yield return null;
         }
-        transform.localPosition = targetPosition;
+        rectTransform.anchoredPosition = targetPosition;
         moving = false;
     }
 

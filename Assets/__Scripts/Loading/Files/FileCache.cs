@@ -51,6 +51,7 @@ public class FileCache
             //Move this file to the end of the list
             CachedFiles.Remove(match);
             CachedFiles.Add(match);
+            SaveCacheData();
         }
 
         return match?.FilePath ?? "";
@@ -109,6 +110,30 @@ public class FileCache
         SaveCacheData();
 
         Debug.Log($"Successfully saved {randomString}.zip to cache.");
+    }
+
+
+    public static void ClearCache()
+    {
+        if(!Directory.Exists(CachePath))
+        {
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Notification, "The cache is already empty!");
+            return;
+        }
+
+        try
+        {
+            Debug.Log($"Deleting cache directory: {CachePath}.");
+            Directory.Delete(CachePath, true);
+
+            CachedFiles = null;
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Notification, "Successfully cleared the cache.");
+        }
+        catch(Exception e)
+        {
+            Debug.LogWarning($"Failed to delete path: {CachePath} with error: {e.Message}, {e.StackTrace}");
+            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to clear the cache!");
+        }
     }
 
 
