@@ -110,31 +110,41 @@ public class AudioManager : MonoBehaviour
     }
 
 
+    public void PlaySong(float time)
+    {
+#if !UNITY_WEBGL || UNITY_EDITOR
+        musicSource.time = time;
+        musicSource.Play();
+#else
+        MusicClip?.Play(time);
+#endif
+    }
+
+
+    public void StopSong()
+    {
+#if !UNITY_WEBGL || UNITY_EDITOR
+        musicSource.Stop();
+#else
+        MusicClip?.Stop();
+#endif
+    }
+
+
     public void UpdatePlaying(bool playing)
     {
         if(playing)
         {
             float mapTime = TimeManager.CurrentTime;
-            if(mapTime < 0 || mapTime > GetSongLength())
+            if(mapTime < 0 || mapTime >= GetSongLength())
             {
+                StopSong();
                 return;
             }
 
-#if !UNITY_WEBGL || UNITY_EDITOR
-            musicSource.time = mapTime;
-            musicSource.Play();
-#else
-            MusicClip?.Play(mapTime);
-#endif
+            PlaySong(mapTime);
         }
-        else
-        {
-#if !UNITY_WEBGL || UNITY_EDITOR
-            musicSource.Stop();
-#else
-            MusicClip?.Stop();
-#endif
-        }
+        else StopSong();
     }
 
 
