@@ -29,6 +29,7 @@ public class ObjectManager : MonoBehaviour
     public const float RowHeight = 0.55f;
     public const float StartYSpacing = 0.6f;
     public const float WallHScale = 0.6f;
+    public const float PrecisionUnits = 0.6f;
 
     public static readonly Dictionary<int, float> VanillaRowHeights = new Dictionary<int, float>
     {
@@ -188,8 +189,8 @@ public class ObjectManager : MonoBehaviour
             x = coordinates[0] + 2;
             y = coordinates[1];
 
-            position.x += x * LaneWidth;
-            position.y += y * RowHeight;
+            position.x += x * PrecisionUnits;
+            position.y += y * PrecisionUnits;
             return position;
         }
 
@@ -197,8 +198,8 @@ public class ObjectManager : MonoBehaviour
         {
             Vector2 adjustedPosition = MappingExtensionsPosition(new Vector2(x, y));
 
-            position.x += adjustedPosition.x * LaneWidth;
-            position.y += adjustedPosition.y * RowHeight;
+            position.x += adjustedPosition.x * PrecisionUnits;
+            position.y += adjustedPosition.y * PrecisionUnits;
             return position;
         }
 
