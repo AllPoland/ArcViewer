@@ -117,7 +117,7 @@ public class FileCache
     {
         if(!Directory.Exists(CachePath))
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Notification, "The cache is already empty!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "The cache is already empty!");
             return;
         }
 
@@ -127,12 +127,12 @@ public class FileCache
             Directory.Delete(CachePath, true);
 
             CachedFiles = null;
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Notification, "Successfully cleared the cache.");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "Successfully cleared the cache.");
         }
         catch(Exception e)
         {
             Debug.LogWarning($"Failed to delete path: {CachePath} with error: {e.Message}, {e.StackTrace}");
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to clear the cache!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to clear the cache!");
         }
     }
 

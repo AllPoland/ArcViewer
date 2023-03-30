@@ -19,7 +19,7 @@ public class ErrorHandler : MonoBehaviour
     private List<QueuedPopup> queuedPopups = new List<QueuedPopup>();
 
 
-    public void DisplayPopup(ErrorType errorType, string message)
+    public void ShowPopup(ErrorType errorType, string message)
     {
         if(activePopups.Any(x => x.message == message))
         {
@@ -127,7 +127,7 @@ public class ErrorHandler : MonoBehaviour
         {
             foreach(QueuedPopup popup in queuedPopups)
             {
-                DisplayPopup(popup.ErrorType, popup.Message);
+                ShowPopup(popup.ErrorType, popup.Message);
             }
 
             queuedPopups.Clear();
@@ -150,15 +150,15 @@ public class ErrorHandler : MonoBehaviour
     //Test methods do not use
     public void SendError()
     {
-        DisplayPopup(ErrorType.Error, "Gm");
+        ShowPopup(ErrorType.Error, "Gm");
     }
     public void SendWarning()
     {
-        DisplayPopup(ErrorType.Warning, "Gn");
+        ShowPopup(ErrorType.Warning, "Gn");
     }
     public void SendNotification()
     {
-        DisplayPopup(ErrorType.Notification, "Good evening my good samaritan. I'd like to tell you a story of medium-to-long-length about a very odd situation I encountered in my youth. It all began with a pretzel, but not just any pretzel, mind you. This was a pretzel that would change the course of my entire life, and, by extension, the history of the universe as we know it.");
+        ShowPopup(ErrorType.Notification, "Good evening my good samaritan. I'd like to tell you a story of medium-to-long-length about a very odd situation I encountered in my youth. It all began with a pretzel, but not just any pretzel, mind you. This was a pretzel that would change the course of my entire life, and, by extension, the history of the universe as we know it.");
     }
 
 

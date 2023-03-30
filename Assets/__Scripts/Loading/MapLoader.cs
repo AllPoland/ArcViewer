@@ -45,7 +45,7 @@ public class MapLoader : MonoBehaviour
         //Loading maps from directories will never work in WebGL
 #if UNITY_WEBGL && !UNITY_EDITOR
         Debug.LogWarning("Tried to load from directory in WebGL!");
-        ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Loading from directory doesn't work in browser!");
+        ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Loading from directory doesn't work in browser!");
 
         UpdateMapInfo(LoadedMap.Empty);
         yield break;
@@ -61,7 +61,7 @@ public class MapLoader : MonoBehaviour
 
         if(info == null)
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load Info.dat!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Unable to load Info.dat!");
             UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
@@ -90,7 +90,7 @@ public class MapLoader : MonoBehaviour
         }
         else
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Unable to load audio file!");
             Debug.LogWarning("Song file not found!");
 
             UpdateMapInfo(LoadedMap.Empty);
@@ -99,7 +99,7 @@ public class MapLoader : MonoBehaviour
 
         if(song == null)
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Unable to load audio file!");
             Debug.LogWarning("Song file not found!");
 
             UpdateMapInfo(LoadedMap.Empty);
@@ -116,7 +116,7 @@ public class MapLoader : MonoBehaviour
         byte[] coverImageData = new byte[0];
         if(coverImageStream == null)
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Cover image not found!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Warning, "Cover image not found!");
             Debug.Log($"Didn't find image file {info._coverImageFilename}!");
         }
         else
@@ -196,7 +196,7 @@ public class MapLoader : MonoBehaviour
         }
         else
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Unable to load audio file!");
             Debug.LogWarning("Song file not found!");
 
             DisposeZip();
@@ -217,7 +217,7 @@ public class MapLoader : MonoBehaviour
 
         if(song == null)
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Unable to load audio file!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Unable to load audio file!");
             Debug.LogWarning("Failed to load AudioClip!");
 
             DisposeZip();
@@ -255,7 +255,7 @@ public class MapLoader : MonoBehaviour
         {
             archive?.Dispose();
 
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load zip file!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to load zip file!");
             Debug.LogWarning($"Unhandled exception loading zip: {err.Message}, {err.StackTrace}.");
 
             UpdateMapInfo(LoadedMap.Empty);
@@ -289,7 +289,7 @@ public class MapLoader : MonoBehaviour
             catch(Exception e)
             {
                 Debug.LogWarning($"Failed to read map data with error: {e.Message}, {e.StackTrace}");
-                ErrorHandler.Instance.DisplayPopup(ErrorType.Error, $"Failed to read map data!");
+                ErrorHandler.Instance.ShowPopup(ErrorType.Error, $"Failed to read map data!");
 
                 Dispose();
 
@@ -300,7 +300,7 @@ public class MapLoader : MonoBehaviour
         else
         {
             Debug.LogWarning(uwr.error);
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, $"Failed to load map! {uwr.error}");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, $"Failed to load map! {uwr.error}");
 
             Dispose();
 
@@ -325,7 +325,7 @@ public class MapLoader : MonoBehaviour
 
         if(Loading)
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "You're already loading something!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "You're already loading something!");
             Debug.LogWarning("Trying to load a map while already loading!");
             return;
         }
@@ -388,7 +388,7 @@ public class MapLoader : MonoBehaviour
             archive?.Dispose();
             zipStream?.Dispose();
 
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to read map zip!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to read map zip!");
             Debug.LogWarning($"Unhandled exception loading zip URL: {err.Message}, {err.StackTrace}");
 
             UpdateMapInfo(LoadedMap.Empty);
@@ -535,7 +535,7 @@ public class MapLoader : MonoBehaviour
 
         if(Loading)
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "You're already loading something!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "You're already loading something!");
             Debug.LogWarning("Trying to load a map while already loading!");
             return;
         }
@@ -570,7 +570,7 @@ public class MapLoader : MonoBehaviour
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         //Loading files from string directories doesn't work in WebGL
-        ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Invalid URL!");
+        ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Invalid URL!");
 #else
         UrlArgHandler.LoadedMapURL = null;
 
@@ -578,7 +578,7 @@ public class MapLoader : MonoBehaviour
         {
             if(!File.Exists(mapDirectory))
             {
-                ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "That file doesn't exist!");
+                ErrorHandler.Instance.ShowPopup(ErrorType.Error, "That file doesn't exist!");
                 Debug.LogWarning("Trying to load a map from a file that doesn't exist!");
                 return;
             }
@@ -597,7 +597,7 @@ public class MapLoader : MonoBehaviour
 
         if(!Directory.Exists(mapDirectory))
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "That directory doesn't exist!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "That directory doesn't exist!");
             Debug.LogWarning("Trying to load a map from a directory that doesn't exist!");
             return;
         }

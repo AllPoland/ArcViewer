@@ -78,11 +78,11 @@ public class BeatmapManager : MonoBehaviour
 
             if(NoodleExtensions)
             {
-                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Noodle Extensions is not fully supported! Things may not display correctly.");
+                ErrorHandler.Instance.ShowPopup(ErrorType.Warning, "Noodle Extensions is not fully supported! Things may not display correctly.");
             }
             else if(MappingExtensions)
             {
-                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Mapping Extensions support is incomplete! Things may not display correctly.");
+                ErrorHandler.Instance.ShowPopup(ErrorType.Warning, "Mapping Extensions support is incomplete! Things may not display correctly.");
             }
 
             Debug.Log($"Current diff is {_currentDifficulty.characteristic}, {_currentDifficulty.difficultyRank}");

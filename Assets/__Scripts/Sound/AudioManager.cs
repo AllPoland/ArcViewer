@@ -31,7 +31,7 @@ public class AudioManager : MonoBehaviour
 #else
                 _musicClip.SetOffset(songTimeOffset);
 #endif
-                ErrorHandler.Instance.DisplayPopup(ErrorType.Warning, "Song Time Offset is depreciated!");
+                ErrorHandler.Instance.ShowPopup(ErrorType.Warning, "Song Time Offset is depreciated!");
             }
 
 #if !UNITY_WEBGL || UNITY_EDITOR

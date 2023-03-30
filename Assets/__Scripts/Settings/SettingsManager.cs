@@ -53,7 +53,7 @@ public class SettingsManager : MonoBehaviour
         if(writeTask.Exception != null)
         {
             Debug.Log($"Failed to save settings with error: {writeTask.Exception.Message}, {writeTask.Exception.StackTrace}");
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to save your settings!");
+            ErrorHandler.Instance?.ShowPopup(ErrorType.Error, "Failed to save your settings!");
         }
 
         saving = false;
@@ -93,7 +93,7 @@ public class SettingsManager : MonoBehaviour
         }
         catch(Exception err)
         {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to load settings! Reverting to default.");
+            ErrorHandler.Instance?.ShowPopup(ErrorType.Error, "Failed to load settings! Reverting to default.");
             Debug.LogWarning($"Failed to load settings with error: {err.Message}, {err.StackTrace}");
 
             CurrentSettings = Settings.GetDefaultSettings();
