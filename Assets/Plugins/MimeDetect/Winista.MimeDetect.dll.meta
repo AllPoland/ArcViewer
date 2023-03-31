@@ -19,13 +19,13 @@ PluginImporter:
         Exclude Editor: 0
         Exclude Linux64: 0
         Exclude OSXUniversal: 0
-        Exclude WebGL: 0
+        Exclude WebGL: 1
         Exclude Win: 0
         Exclude Win64: 0
   - first:
       Any: 
     second:
-      enabled: 1
+      enabled: 0
       settings: {}
   - first:
       Editor: Editor
@@ -59,11 +59,6 @@ PluginImporter:
       enabled: 1
       settings:
         CPU: x86_64
-  - first:
-      WebGL: WebGL
-    second:
-      enabled: 1
-      settings: {}
   - first:
       Windows Store Apps: WindowsStoreApps
     second:

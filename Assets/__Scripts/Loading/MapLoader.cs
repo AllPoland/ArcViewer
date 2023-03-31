@@ -207,7 +207,7 @@ public class MapLoader : MonoBehaviour
 #else
         Debug.Log("Loading audio file.");
         WebAudioClip song = null;
-        using(Task<WebAudioClip> audioTask = AudioFileHandler.WebAudioClipFromStream(songData, info._songFilename))
+        using(Task<WebAudioClip> audioTask = AudioFileHandler.WebAudioClipFromStream(songData))
         {
             yield return new WaitUntil(() => audioTask.IsCompleted);
 

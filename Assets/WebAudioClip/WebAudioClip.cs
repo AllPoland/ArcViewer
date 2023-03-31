@@ -33,9 +33,9 @@ public class WebAudioClip : IDisposable
 
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-    public void SetData(byte[] data, bool isOGG, Action<int> callback)
+    public void SetData(byte[] data, Action<int> callback)
     {
-        WebAudioController.SetDataClip(clipId, data, isOGG, callback);
+        WebAudioController.SetDataClip(clipId, data, callback);
     }
 
 

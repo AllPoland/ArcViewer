@@ -34,7 +34,7 @@ mergeInto(LibraryManager.library, {
     delete(this.soundOffsets[id]);
   },
 
-  UploadData: function(id, data, dataLength, isOGG, gameObjectName, methodName) {
+  UploadData: function(id, data, dataLength, gameObjectName, methodName) {
     //Convert the C# byte[] to an arraybuffer for audio decoding
     const byteArray = new Uint8Array(dataLength);
     for(var i = 0; i < dataLength; i++) {
@@ -44,18 +44,8 @@ mergeInto(LibraryManager.library, {
     gameObjectName = UTF8ToString(gameObjectName);
     methodName = UTF8ToString(methodName);
 
-    function sendError(err) {
-      console.error("Error decoding audio data: " + err.err);
-
-      //Callback to C# says that decoding failed
-      SendMessage(gameObjectName, methodName, 0);
-    }
-
-    const isSafari = navigator.userAgent.toLowerCase().indexOf('safari') !== -1 && navigator.userAgent.toLowerCase().indexOf('chrome') === -1;
-    if(isSafari && isOGG) {
-      //Safari doesn't support OGG decoding for some reason (pain)
-      //Use custom OGG decoding taken from BeatLeader (thanks NSGolova)
-      Module().decodeOggData(byteArray.buffer, (decodedData) => {
+    this.audioCtx.decodeAudioData(byteArray.buffer,
+      (decodedData) => {
         const newClip = this.audioCtx.createBufferSource();
         newClip.buffer = decodedData;
 
@@ -64,20 +54,13 @@ mergeInto(LibraryManager.library, {
 
         //Callback to C# says that decoding succeeded
         SendMessage(gameObjectName, methodName, 1);
-      }, sendError);
-    }
-    else {
-      this.audioCtx.decodeAudioData(byteArray.buffer, (decodedData) => {
-        const newClip = this.audioCtx.createBufferSource();
-        newClip.buffer = decodedData;
+      },
+      (err) => {
+        console.error("Error decoding audio data: " + err.err);
 
-        delete(this.clips[id]);
-        this.clips[id] = newClip;
-
-        //Callback to C# says that decoding succeeded
-        SendMessage(gameObjectName, methodName, 1);
-      }, sendError);
-    }
+        //Callback to C# says that decoding failed
+        SendMessage(gameObjectName, methodName, 0);
+      });
   },
 
   SetOffset: function(id, offset) {
