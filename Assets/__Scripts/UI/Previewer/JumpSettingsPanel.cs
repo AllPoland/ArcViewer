@@ -4,19 +4,29 @@ public class JumpSettingsPanel : MonoBehaviour
 {
     [SerializeField] private ValuePicker NJSPicker;
     [SerializeField] private ValuePicker JumpDistancePicker;
+    [SerializeField] private ValuePicker ReactionTimePicker;
 
 
     public void SetNJS(float NJS)
     {
         BeatmapManager.NJS = NJS;
-        UpdateMap();
+        UpdateValues();
     }
 
 
     public void SetJumpDistance(float distance)
     {
         BeatmapManager.JumpDistance = distance;
-        UpdateMap();
+        UpdateValues();
+    }
+
+
+    public void SetReactionTime(float reactionTime)
+    {
+        //Picker uses ms, but BeatmapManager uses seconds
+        reactionTime /= 1000;
+        BeatmapManager.JumpDistance = reactionTime * BeatmapManager.NJS * 2;
+        UpdateValues();
     }
 
 
@@ -27,16 +37,23 @@ public class JumpSettingsPanel : MonoBehaviour
         BeatmapManager.NJS = currentDifficulty.NoteJumpSpeed;
         BeatmapManager.JumpDistance = BeatmapManager.GetJumpDistance(BeatmapManager.HJD, BeatmapManager.Info._beatsPerMinute, BeatmapManager.NJS);
 
-        UpdateValues(currentDifficulty);
+        UpdateValues();
     }
 
 
-    public void UpdateValues(Difficulty newDifficulty)
+    public void UpdateValues()
     {
-        NJSPicker.SetValueWithoutNotify(newDifficulty.NoteJumpSpeed);
+        NJSPicker.SetValueWithoutNotify(BeatmapManager.NJS);
         JumpDistancePicker.SetValueWithoutNotify(BeatmapManager.JumpDistance);
+        ReactionTimePicker.SetValueWithoutNotify(BeatmapManager.ReactionTime * 1000);
         
         UpdateMap();
+    }
+
+
+    public void UpdateDifficulty(Difficulty newDifficulty)
+    {
+        UpdateValues();
     }
 
 
@@ -56,15 +73,16 @@ public class JumpSettingsPanel : MonoBehaviour
 
     private void OnEnable()
     {
-        BeatmapManager.OnBeatmapDifficultyChanged += UpdateValues;
+        BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
 
         NJSPicker.SetValueWithoutNotify(BeatmapManager.NJS);
         JumpDistancePicker.SetValueWithoutNotify(BeatmapManager.JumpDistance);
+        ReactionTimePicker.SetValueWithoutNotify(BeatmapManager.ReactionTime * 1000);
     }
 
 
     private void OnDisable()
     {
-        BeatmapManager.OnBeatmapDifficultyChanged -= UpdateValues;
+        BeatmapManager.OnBeatmapDifficultyChanged -= UpdateDifficulty;
     }
 }
