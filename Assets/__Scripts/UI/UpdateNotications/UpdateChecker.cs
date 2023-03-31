@@ -173,7 +173,7 @@ public class UpdateChecker : MonoBehaviour
 
     private void Start()
     {
-#if !UNITY_WEBGL || UNITY_EDITOR
+#if !UNITY_WEBGL && !UNITY_EDITOR
         StartCoroutine(CheckLatestVersionCoroutine());
 #else
         UpdateButton.SetActive(false);
