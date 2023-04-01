@@ -24,6 +24,7 @@ public class FullscreenButton : MonoBehaviour, IPointerDownHandler
 #endif
 
 
+#if !UNITY_WEBGL || UNITY_EDITOR
     public void ToggleFullscreen()
     {
         if(!isFullscreen)
@@ -39,6 +40,7 @@ public class FullscreenButton : MonoBehaviour, IPointerDownHandler
             Screen.SetResolution(preferredWindowWidth, preferredWindowHeight, FullScreenMode.Windowed);
         }
     }
+#endif
 
 
     private void UpdateButton()
