@@ -1,7 +1,8 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class IdleHide : MonoBehaviour
+public class IdleFade : MonoBehaviour
 {
     private bool _forceEnable = false;
     public bool forceEnable
@@ -17,64 +18,63 @@ public class IdleHide : MonoBehaviour
         }
     }
 
-    [SerializeField] private GameObject target;
-    [SerializeField] private Vector2 enabledPos;
-    [SerializeField] private Vector2 disabledPos;
+    [SerializeField] private Image target;
+    [SerializeField] private Color enabledColor;
+    [SerializeField] private Color disabledColor;
     [SerializeField] private float transitionTime;
     [SerializeField] private bool disableOnHide = true;
 
-    private bool moving;
-    private Coroutine moveCoroutine;
-    private RectTransform targetTransform;
+    private bool fading;
+    private Coroutine fadeCoroutine;
 
 
-    private IEnumerator MoveElementCoroutine(Vector2 startPos, Vector2 targetPos, bool activate)
+    private IEnumerator FadeElementCoroutine(Color startColor, Color targetColor, bool activate)
     {
         if(transitionTime <= 0)
         {
-            targetTransform.anchoredPosition = targetPos;
+            target.color = targetColor;
             if(!activate)
             {
-                target.SetActive(false || !disableOnHide);
+                target.gameObject.SetActive(false || !disableOnHide);
             }
 
             yield break;
         }
 
-        moving = true;
+        fading = true;
 
         if(activate)
         {
-            target.SetActive(true);
+            target.gameObject.SetActive(true);
         }
 
         float t = 0;
         while(t < 1)
         {
             t += Time.deltaTime / transitionTime;
-            targetTransform.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
+            target.color = Color.Lerp(startColor, targetColor, t);
 
             yield return null;
         }
-        targetTransform.anchoredPosition = targetPos;
+        target.color = targetColor;
 
         if(!activate)
         {
-            target.SetActive(false || !disableOnHide);
+            target.gameObject.SetActive(false || !disableOnHide);
         }
 
-        moving = false;
+        fading = false;
     }
 
 
     public void ShowElement()
     {
-        if(moving)
+        if(fading)
         {
-            StopCoroutine(moveCoroutine);
+            StopCoroutine(fadeCoroutine);
         }
 
-        moveCoroutine = StartCoroutine(MoveElementCoroutine(targetTransform.anchoredPosition, enabledPos, true));
+        fadeCoroutine = StartCoroutine(FadeElementCoroutine(target.color, enabledColor, true));
     }
 
 
@@ -85,22 +85,17 @@ public class IdleHide : MonoBehaviour
             return;
         }
 
-        if(moving)
+        if(fading)
         {
-            StopCoroutine(moveCoroutine);
+            StopCoroutine(fadeCoroutine);
         }
 
-        moveCoroutine = StartCoroutine(MoveElementCoroutine(targetTransform.anchoredPosition, disabledPos, false));
+        fadeCoroutine = StartCoroutine(FadeElementCoroutine(target.color, disabledColor, false));
     }
 
 
     private void OnEnable()
     {
-        if(!targetTransform)
-        {
-            targetTransform = target.GetComponent<RectTransform>();
-        }
-
         UserIdleDetector.OnUserActive += ShowElement;
         UserIdleDetector.OnUserIdle += HideElement;
     }
