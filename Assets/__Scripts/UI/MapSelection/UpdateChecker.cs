@@ -97,7 +97,7 @@ public class UpdateChecker : MonoBehaviour
             //Failed to get the latest version for some reason, so just assume we know what the latest is
             LatestVersion = knownVersion;
         }
-        else if(knownVersion.CheckLaterVersion(LatestVersion))
+        else if(knownVersion.IsEarlierThan(LatestVersion))
         {
             //A new update has released since we last checked
             //Display a popup about it, even if we're multiple versions behind
@@ -106,14 +106,14 @@ public class UpdateChecker : MonoBehaviour
             knownVersion = LatestVersion;
         }
 
-        if(currentVersion.CheckLaterVersion(knownVersion))
+        if(currentVersion.IsEarlierThan(knownVersion))
         {
             //There's a newer version than the current version,
             //Enable the update button that'll annoy the user smil
-            Debug.Log($"Current app version {Application.version} is outdated! Latest is {knownVersion.Name}");
+            Debug.Log($"App version {Application.version} is outdated! Latest is {knownVersion.Name}");
             UpdateButton.SetActive(true);
         }
-        else Debug.Log("App version is up to date!");
+        else Debug.Log($"App version {Application.version} is up to date!");
 
         SetLatestKnownVersion(knownVersion);
     }
@@ -188,7 +188,7 @@ public class Version
     public string Name;
 
 
-    public bool CheckLaterVersion(Version other)
+    public bool IsEarlierThan(Version other)
     {
         //Returns true if other is a later version
         //Returns false if other is an earlier or equal version
