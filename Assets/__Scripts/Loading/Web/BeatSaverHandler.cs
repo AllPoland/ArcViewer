@@ -44,7 +44,7 @@ public class BeatSaverHandler
                 }
                 else
                 {
-                    Debug.Log(uwr.error);
+                    Debug.LogWarning(uwr.error);
                     ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find beatsaver map {mapID}! {uwr.error}");
                     return "";
                 }
@@ -53,7 +53,7 @@ public class BeatSaverHandler
         catch(Exception err)
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find beatsaver map {mapID}! {err.Message}");
-            Debug.Log($"Failed to get BeatSaver api response with error: {err.Message}, {err.StackTrace}");
+            Debug.LogWarning($"Failed to get BeatSaver api response with error: {err.Message}, {err.StackTrace}");
             return "";
         }
     }

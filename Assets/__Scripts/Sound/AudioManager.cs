@@ -24,17 +24,18 @@ public class AudioManager : MonoBehaviour
             UpdateSpeed(TimeSyncHandler.TimeScale);
 
             float songTimeOffset = BeatmapManager.Info._songTimeOffset;
+            if(songTimeOffset != 0)
+            {
 #if !UNITY_WEBGL || UNITY_EDITOR
-            if(songTimeOffset != 0)
-            {
                 ApplySongTimeOffset(ref _musicClip);
-            }
-            Instance.musicSource.clip = _musicClip;
 #else
-            if(songTimeOffset != 0)
-            {
                 _musicClip.SetOffset(songTimeOffset);
+#endif
+                ErrorHandler.Instance.ShowPopup(ErrorType.Warning, "Song Time Offset is depreciated!");
             }
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+            Instance.musicSource.clip = _musicClip;
 #endif
         }
     }
@@ -77,7 +78,6 @@ public class AudioManager : MonoBehaviour
 
         if(_musicClip != null)
         {
-            //Free the memory from the previous song
             _musicClip.UnloadAudioData();
             Destroy(_musicClip);
             _musicClip = null;
@@ -110,31 +110,41 @@ public class AudioManager : MonoBehaviour
     }
 
 
+    public void PlaySong(float time)
+    {
+#if !UNITY_WEBGL || UNITY_EDITOR
+        musicSource.time = time;
+        musicSource.Play();
+#else
+        MusicClip?.Play(time);
+#endif
+    }
+
+
+    public void StopSong()
+    {
+#if !UNITY_WEBGL || UNITY_EDITOR
+        musicSource.Stop();
+#else
+        MusicClip?.Stop();
+#endif
+    }
+
+
     public void UpdatePlaying(bool playing)
     {
         if(playing)
         {
             float mapTime = TimeManager.CurrentTime;
-            if(mapTime < 0 || mapTime > GetSongLength())
+            if(mapTime < 0 || mapTime >= GetSongLength())
             {
+                StopSong();
                 return;
             }
 
-#if !UNITY_WEBGL || UNITY_EDITOR
-            musicSource.time = mapTime;
-            musicSource.Play();
-#else
-            MusicClip?.Play(mapTime);
-#endif
+            PlaySong(mapTime);
         }
-        else
-        {
-#if !UNITY_WEBGL || UNITY_EDITOR
-            musicSource.Stop();
-#else
-            MusicClip?.Stop();
-#endif
-        }
+        else StopSong();
     }
 
 

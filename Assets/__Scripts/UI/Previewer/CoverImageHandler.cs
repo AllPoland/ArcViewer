@@ -19,7 +19,7 @@ public class CoverImageHandler : MonoBehaviour
         if(!loaded)
         {
             Debug.LogWarning("Unable to load cover image!");
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Warning, "Unable to load cover image!");
+            ErrorHandler.Instance?.ShowPopup(ErrorType.Warning, "Unable to load cover image!");
 
             Destroy(newTexture);
             UpdateImage(defaultCoverImage);
@@ -38,7 +38,7 @@ public class CoverImageHandler : MonoBehaviour
         if(newImage.rect.width != newImage.rect.height)
         {
             Debug.LogWarning("Cover image isn't a square!");
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Warning, "The cover image isn't a square!");
+            ErrorHandler.Instance?.ShowPopup(ErrorType.Warning, "The cover image isn't a square!");
         }
 
         image.sprite = newImage;

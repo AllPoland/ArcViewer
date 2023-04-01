@@ -17,7 +17,7 @@ public class DialogueHandler : MonoBehaviour
     [SerializeField] private GameObject dialogueBoxPrefab;
 
 
-    public static void ShowDialogueBox(string text, Action<DialogueResponse> callback, DialogueBoxType type)
+    public static void ShowDialogueBox(DialogueBoxType type, string text, Action<DialogueResponse> callback = null)
     {
         GameObject dialogueBoxObject = Instantiate(Instance.dialogueBoxPrefab);
         dialogueBoxObject.transform.SetParent(Instance.transform, false);

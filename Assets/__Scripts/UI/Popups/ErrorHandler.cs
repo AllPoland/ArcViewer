@@ -7,7 +7,6 @@ public class ErrorHandler : MonoBehaviour
     public static ErrorHandler Instance { get; private set; }
 
     [SerializeField] private GameObject errorPopup;
-    [SerializeField] private Vector2 topPosition;
     [SerializeField] private float popupHeight;
     [SerializeField] private float transitionTime;
     [SerializeField] private Color errorColor;
@@ -20,7 +19,7 @@ public class ErrorHandler : MonoBehaviour
     private List<QueuedPopup> queuedPopups = new List<QueuedPopup>();
 
 
-    public void DisplayPopup(ErrorType errorType, string message)
+    public void ShowPopup(ErrorType errorType, string message)
     {
         if(activePopups.Any(x => x.message == message))
         {
@@ -28,30 +27,31 @@ public class ErrorHandler : MonoBehaviour
             return;
         }
 
-        GameObject popupObject = Instantiate(errorPopup, topPosition, Quaternion.identity, transform);
+        GameObject popupObject = Instantiate(errorPopup, transform, false);
         popupObject.SetActive(false);
-
-        Vector2 aboveScreen = new Vector2(topPosition.x, topPosition.y + popupHeight);
-        popupObject.transform.position = aboveScreen;
-
-        Color color = Color.black;
-        switch(errorType)
-        {
-            case ErrorType.Error:
-                color = errorColor;
-                break;
-            case ErrorType.Warning:
-                color = warningColor;
-                break;
-            case ErrorType.Notification:
-                color = notificationColor;
-                break;
-        }
 
         ErrorPopup newPopup = popupObject.GetComponent<ErrorPopup>();
         newPopup.message = message;
-        newPopup.backgroundColor = color;
         newPopup.lifeTime = messageLifeSpan;
+
+        //Position the new popup directly above the screen
+        newPopup.rectTransform.anchoredPosition = new Vector2(0, popupHeight);
+
+        switch(errorType)
+        {
+            case ErrorType.Error:
+                newPopup.backgroundColor = errorColor;
+                break;
+            case ErrorType.Warning:
+                newPopup.backgroundColor = warningColor;
+                break;
+            case ErrorType.Notification:
+                newPopup.backgroundColor = notificationColor;
+                break;
+            default:
+                newPopup.backgroundColor = Color.black;
+                break;
+        }
 
         popupObject.SetActive(true);
         activePopups.Add(newPopup);
@@ -81,26 +81,26 @@ public class ErrorHandler : MonoBehaviour
             return;
         }
 
-        float currentY = topPosition.y - popupHeight * (activePopups.Count - 2);
+        float currentY = 0;
         foreach(ErrorPopup popup in activePopups)
         {
-            if(popup.transform.localPosition.y == currentY)
+            if(popup.rectTransform.anchoredPosition.y == currentY)
             {
                 //This popup doesn't need to be moved
                 currentY += popupHeight;
                 continue;
             }
 
-            Vector2 targetPosition = new Vector2(topPosition.x, currentY);
-            if(popup.transform.localPosition.y < currentY)
+            Vector2 targetPosition = new Vector2(0, currentY);
+            if(popup.rectTransform.anchoredPosition.y < currentY)
             {
                 //Popup needs to be moved up, but should do so instantly
-                popup.MoveToPosition(popup.transform.position, targetPosition, 0);
+                popup.MoveToPosition(popup.rectTransform.anchoredPosition, targetPosition, 0);
             }
             else
             {
                 //Popup needs to be moved down, and should transition smoothly
-                Vector2 startPosition = new Vector2(topPosition.x, currentY + popupHeight);
+                Vector2 startPosition = new Vector2(0, currentY + popupHeight);
                 popup.MoveToPosition(startPosition, targetPosition, transitionTime);
             }
 
@@ -127,7 +127,7 @@ public class ErrorHandler : MonoBehaviour
         {
             foreach(QueuedPopup popup in queuedPopups)
             {
-                DisplayPopup(popup.ErrorType, popup.Message);
+                ShowPopup(popup.ErrorType, popup.Message);
             }
 
             queuedPopups.Clear();
@@ -150,15 +150,15 @@ public class ErrorHandler : MonoBehaviour
     //Test methods do not use
     public void SendError()
     {
-        DisplayPopup(ErrorType.Error, "Gm");
+        ShowPopup(ErrorType.Error, "Gm");
     }
     public void SendWarning()
     {
-        DisplayPopup(ErrorType.Warning, "Gn");
+        ShowPopup(ErrorType.Warning, "Gn");
     }
     public void SendNotification()
     {
-        DisplayPopup(ErrorType.Notification, "Good evening my good samaritan. I'd like to tell you a story of medium-to-long-length about a very odd situation I encountered in my youth. It all began with a pretzel, but not just any pretzel, mind you. This was a pretzel that would change the course of my entire life, and, by extension, the history of the universe as we know it.");
+        ShowPopup(ErrorType.Notification, "Good evening my good samaritan. I'd like to tell you a story of medium-to-long-length about a very odd situation I encountered in my youth. It all began with a pretzel, but not just any pretzel, mind you. This was a pretzel that would change the course of my entire life, and, by extension, the history of the universe as we know it.");
     }
 
 

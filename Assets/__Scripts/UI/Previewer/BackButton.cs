@@ -19,7 +19,7 @@ public class BackButton : MonoBehaviour
 
     public void ShowDialogue()
     {
-        DialogueHandler.ShowDialogueBox("Are you sure you want to exit the map?", SetMapSelection, DialogueBoxType.YesNo);
+        DialogueHandler.ShowDialogueBox(DialogueBoxType.YesNo, "Are you sure you want to exit the map?", SetMapSelection);
     }
 
 

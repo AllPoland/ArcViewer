@@ -51,6 +51,7 @@ public class FileCache
             //Move this file to the end of the list
             CachedFiles.Remove(match);
             CachedFiles.Add(match);
+            SaveCacheData();
         }
 
         return match?.FilePath ?? "";
@@ -96,12 +97,43 @@ public class FileCache
             FilePath = newFilePath
         };
 
-        File.WriteAllBytes(newFilePath, FileUtil.StreamToBytes(fileStream));
-        CachedFiles.Add(newFile);
+        try
+        {
+            File.WriteAllBytes(newFilePath, FileUtil.StreamToBytes(fileStream));
+            CachedFiles.Add(newFile);
+        }
+        catch(Exception e)
+        {
+            Debug.LogWarning($"Failed to write map zip data with error: {e.Message}, {e.StackTrace}");
+        }
 
         SaveCacheData();
 
         Debug.Log($"Successfully saved {randomString}.zip to cache.");
+    }
+
+
+    public static void ClearCache()
+    {
+        if(!Directory.Exists(CachePath))
+        {
+            ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "The cache is already empty!");
+            return;
+        }
+
+        try
+        {
+            Debug.Log($"Deleting cache directory: {CachePath}.");
+            Directory.Delete(CachePath, true);
+
+            CachedFiles = null;
+            ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "Successfully cleared the cache.");
+        }
+        catch(Exception e)
+        {
+            Debug.LogWarning($"Failed to delete path: {CachePath} with error: {e.Message}, {e.StackTrace}");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to clear the cache!");
+        }
     }
 
 
@@ -121,7 +153,14 @@ public class FileCache
 
         if(File.Exists(toRemove.FilePath))
         {
-            File.Delete(toRemove.FilePath);
+            try
+            {
+                File.Delete(toRemove.FilePath);
+            }
+            catch(Exception e)
+            {
+                Debug.LogWarning($"Failed to delete {toRemove.FilePath} with error: {e.Message}, {e.StackTrace}");
+            }
         }
 
         CachedFiles.Remove(toRemove);
@@ -141,8 +180,16 @@ public class FileCache
             return;
         }
 
-        string json = File.ReadAllText(CacheDataFile);
-        CachedFiles = JsonConvert.DeserializeObject<List<CachedFile>>(json);
+        try
+        {
+            string json = File.ReadAllText(CacheDataFile);
+            CachedFiles = JsonConvert.DeserializeObject<List<CachedFile>>(json);
+        }
+        catch(Exception e)
+        {
+            Debug.LogWarning($"Failed to read cache data with error: {e.Message}, {e.StackTrace}");
+            CachedFiles = new List<CachedFile>();
+        }
 
         while(CachedFiles.Count > MaxCacheSize)
         {
@@ -159,8 +206,15 @@ public class FileCache
             return;
         }
 
-        string json = JsonConvert.SerializeObject(CachedFiles);
-        File.WriteAllText(CacheDataFile, json);
+        try
+        {
+            string json = JsonConvert.SerializeObject(CachedFiles);
+            File.WriteAllText(CacheDataFile, json);
+        }
+        catch(Exception e)
+        {
+            Debug.LogWarning($"Failed to write cache data with error: {e.Message}, {e.StackTrace}");
+        }
     }
 
 

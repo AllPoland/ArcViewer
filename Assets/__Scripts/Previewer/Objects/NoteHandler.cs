@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class NoteHandler : MonoBehaviour
@@ -27,18 +25,18 @@ public class NoteHandler : MonoBehaviour
 
     public void SetMaterial(Material newMaterial)
     {
-        if(newMaterial == meshRenderer.material) return;
+        if(newMaterial == meshRenderer.sharedMaterial) return;
 
-        meshRenderer.material = newMaterial;
+        meshRenderer.sharedMaterial = newMaterial;
     }
 
 
     public void SetArrowMaterial(Material newMaterial)
     {
-        if(newMaterial == arrowMeshRenderer.material) return;
+        if(newMaterial == arrowMeshRenderer.sharedMaterial) return;
 
-        arrowMeshRenderer.material = newMaterial;
-        dotMeshRenderer.material = newMaterial;
+        arrowMeshRenderer.sharedMaterial = newMaterial;
+        dotMeshRenderer.sharedMaterial = newMaterial;
     }
 
 

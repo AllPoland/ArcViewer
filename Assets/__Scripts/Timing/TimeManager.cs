@@ -15,46 +15,32 @@ public class TimeManager : MonoBehaviour
     public static event Action<bool> OnPlayingChanged;
 
     private static float SongLength => AudioManager.GetSongLength();
-    private static float _time = 0;
+    private static float _currentTime = 0;
     public static float CurrentTime
     {
-        get => _time;
+        get => _currentTime;
         
         set
         {
             if(value >= SongLength)
             {
-                _time = SongLength;
-                _beat = BeatFromTime(_time);
+                _currentTime = SongLength;
+                CurrentBeat = BeatFromTime(_currentTime);
 
-                SetPlaying(false);
                 OnBeatChanged?.Invoke(CurrentBeat);
+                SetPlaying(false);
                 return;
             }
-            else if(value < 0)
-            {
-                value = 0;
-            }
 
-            _beat = BeatFromTime(value);
-            _time = value;
+            value = Mathf.Max(value, 0);
+
+            _currentTime = value;
+            CurrentBeat = BeatFromTime(value);
             OnBeatChanged?.Invoke(CurrentBeat);
         }
     }
 
-    private static float _beat = 0;
-    public static float CurrentBeat
-    {
-        get => _beat;
-        
-        private set
-        {
-            _time = TimeFromBeat(value);
-            _beat = value;
-            OnBeatChanged?.Invoke(_beat);
-        }
-    }
-
+    public static float CurrentBeat { get; private set; }
 
     public static float CurrentBPM
     {
@@ -115,23 +101,14 @@ public class TimeManager : MonoBehaviour
 
         set
         {
-            if(value > 1)
-            {
-                value = 1;
-            }
-
-            CurrentTime = SongLength * value;
+            CurrentTime = SongLength * Mathf.Clamp(value, 0, 1);
         }
     }
+
 
     public static bool Playing { get; private set; }
     public static void SetPlaying(bool newPlaying)
     {
-        if(ForcePause)
-        {
-            newPlaying = false;
-        }
-
         Playing = newPlaying && !ForcePause;
         if(Playing && Progress >= 1)
         {
@@ -140,6 +117,7 @@ public class TimeManager : MonoBehaviour
 
         OnPlayingChanged?.Invoke(Playing);
     }
+
 
     public static void TogglePlaying()
     {
@@ -163,7 +141,7 @@ public class TimeManager : MonoBehaviour
         //Events must be ordered by beat for this to work (they almost always are but just gotta be safe)
         bpmEvents = bpmEvents.OrderBy(x => x.b).ToList();
 
-        //Calculate the time of each change and populate the bpmChanges list
+        //Calculate the time of each change and populate the BpmChanges list
         float currentTime = 0;
         float lastBeat = 0;
         float lastBpm = BPM;

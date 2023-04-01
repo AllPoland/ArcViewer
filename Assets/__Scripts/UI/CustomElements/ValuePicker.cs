@@ -63,15 +63,14 @@ public class ValuePicker : MonoBehaviour
 
     public void SetValueWithoutNotify(float value)
     {
-        _value = value;
+        _value = Mathf.Clamp(value, minValue, maxValue);
         UpdateElements();
     }
 
 
     private void UpdateElements()
     {
-        //Round text to 3 digits to avoid it getting weird
-        float textValue = (float)Math.Round(Value, 3);
+        float textValue = (float)Math.Round(Value, roundDigits);
         inputField.SetTextWithoutNotify(textValue.ToString());
 
         leftButton.interactable = Value > minValue;

@@ -16,9 +16,12 @@ public class ArcHandler : MonoBehaviour
     }
 
 
-    public void SetMaterial(Material newMaterial, Material centerMaterial)
+    public void SetMaterial(Material newMaterial, Material centerMaterial, MaterialPropertyBlock properties)
     {
         lineRenderer.sharedMaterial = newMaterial;
         centerLineRenderer.sharedMaterial = centerMaterial;
+
+        lineRenderer.SetPropertyBlock(properties);
+        centerLineRenderer.SetPropertyBlock(properties);
     }
 }

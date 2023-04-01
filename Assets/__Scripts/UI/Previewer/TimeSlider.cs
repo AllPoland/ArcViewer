@@ -7,7 +7,6 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
     [SerializeField] private Slider slider;
     [SerializeField] private GameObject timeTooltip;
 
-    private bool Playing;
     private bool clicking;
     private bool mouseOver;
 
@@ -15,12 +14,6 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
     public void UpdateSlider(float beat)
     {
         slider.SetValueWithoutNotify(TimeManager.Progress);
-    }
-
-
-    public void UpdatePlaying(bool newPlaying)
-    {
-        Playing = newPlaying;
     }
 
 
@@ -34,7 +27,7 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
         TimeManager.SetPlaying(false);
         TimeManager.Progress = slider.value;
 
-        timeTooltip.SetActive(mouseOver || clicking);
+        timeTooltip.SetActive(true);
     }
 
 
@@ -53,21 +46,21 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
         }
         clicking = false;
 
-        timeTooltip.SetActive(mouseOver || clicking);
+        timeTooltip.SetActive(mouseOver);
     }
 
 
     public void OnPointerEnter(PointerEventData eventData)
     {
         mouseOver = true;
-        timeTooltip.SetActive(mouseOver || clicking);
+        timeTooltip.SetActive(true);
     }
 
 
     public void OnPointerExit(PointerEventData eventData)
     {
         mouseOver = false;
-        timeTooltip.SetActive(mouseOver || clicking);
+        timeTooltip.SetActive(clicking);
     }
 
 
@@ -83,7 +76,6 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
     private void OnEnable()
     {
         TimeManager.OnBeatChanged += UpdateSlider;
-        TimeManager.OnPlayingChanged += UpdatePlaying;
 
         slider = GetComponent<Slider>();
     }

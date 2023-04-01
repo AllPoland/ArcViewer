@@ -10,15 +10,16 @@ public class HitSoundManager : MonoBehaviour
     public static AudioClip HitSound;
     public static List<ScheduledSound> scheduledSounds = new List<ScheduledSound>();
 
-    public static bool RandomPitch = false;
-    public static bool Spatial = false;
-    public static float ScheduleBuffer = 0.2f;
-    public static bool DynamicPriority = true;
+    public static bool RandomPitch => SettingsManager.GetBool("randomhitsoundpitch");
+    public static bool Spatial => SettingsManager.GetBool("spatialhitsounds");
+    public static float ScheduleBuffer => SettingsManager.GetFloat("hitsoundbuffer");
+    public static bool DynamicPriority => SettingsManager.GetBool("dynamicsoundpriority");
 
     public float HitSoundVolume
     {
         set
         {
+            value = (float)System.Math.Round(value, 2);
             if(value == 0)
             {
                 value = 0.0001f;
@@ -32,6 +33,7 @@ public class HitSoundManager : MonoBehaviour
     {
         set
         {
+            value = (float)System.Math.Round(value, 2);
             if(value == 0)
             {
                 value = 0.0001f;

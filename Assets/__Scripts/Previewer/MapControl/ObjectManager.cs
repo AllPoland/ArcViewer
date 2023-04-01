@@ -19,16 +19,17 @@ public class ObjectManager : MonoBehaviour
     public ChainManager chainManager;
     public ArcManager arcManager;
 
-    public bool useSimpleNoteMaterial = false;
-    public bool doRotationAnimation = true;
-    public bool doMovementAnimation = true;
-    public bool doFlipAnimation = true;
+    public bool useSimpleNoteMaterial => SettingsManager.GetBool("simplenotes");
+    public bool doRotationAnimation => SettingsManager.GetBool("rotateanimations");
+    public bool doMovementAnimation => SettingsManager.GetBool("moveanimations");
+    public bool doFlipAnimation => SettingsManager.GetBool("flipanimations");
 
     public static readonly Vector2 GridBottomLeft = new Vector2(-0.9f, 0);
     public const float LaneWidth = 0.6f;
     public const float RowHeight = 0.55f;
     public const float StartYSpacing = 0.6f;
     public const float WallHScale = 0.6f;
+    public const float PrecisionUnits = 0.6f;
 
     public static readonly Dictionary<int, float> VanillaRowHeights = new Dictionary<int, float>
     {
@@ -43,15 +44,6 @@ public class ObjectManager : MonoBehaviour
     public static List<T> SortObjectsByBeat<T>(List<T> objects) where T : MapObject
     {
         return objects.OrderBy(x => x.Beat).ToList();
-    }
-
-
-    public static List<T> GetObjectsOnBeat<T>(List<T> search, float beat) where T : MapObject
-    {
-        const float leeway = 0.001f;
-        float time = TimeManager.TimeFromBeat(beat);
-
-        return search.FindAll(x => Mathf.Abs(TimeManager.TimeFromBeat(x.Beat) - time) <= leeway);
     }
 
 
@@ -197,8 +189,8 @@ public class ObjectManager : MonoBehaviour
             x = coordinates[0] + 2;
             y = coordinates[1];
 
-            position.x += x * LaneWidth;
-            position.y += y * RowHeight;
+            position.x += x * PrecisionUnits;
+            position.y += y * PrecisionUnits;
             return position;
         }
 
@@ -206,8 +198,8 @@ public class ObjectManager : MonoBehaviour
         {
             Vector2 adjustedPosition = MappingExtensionsPosition(new Vector2(x, y));
 
-            position.x += adjustedPosition.x * LaneWidth;
-            position.y += adjustedPosition.y * RowHeight;
+            position.x += adjustedPosition.x * PrecisionUnits;
+            position.y += adjustedPosition.y * PrecisionUnits;
             return position;
         }
 
@@ -269,6 +261,18 @@ public class ObjectManager : MonoBehaviour
         wallManager.UpdateWallVisuals(currentBeat);
         chainManager.UpdateChainVisuals(currentBeat);
         arcManager.UpdateArcVisuals(currentBeat);
+    }
+
+
+    public void RescheduleHitsounds(bool playing)
+    {
+        if(!playing)
+        {
+            return;
+        }
+
+        noteManager.RescheduleHitsounds();
+        chainManager.RescheduleHitsounds();
     }
 
 
@@ -379,13 +383,16 @@ public class ObjectManager : MonoBehaviour
             List<Note> newNotes = new List<Note>();
             (float? redSnapAngle, float? blueSnapAngle) = NoteManager.GetSnapAngles(notesOnBeat);
 
-            //Used to disable swap animations whenever notes are attached to arcs
+            //Used to disable swap animations whenever notes are attached to arcs or chains
             bool arcAttachment = false;
+            bool chainAttachment = false;
             foreach(BeatmapColorNote n in notesOnBeat)
             {
                 Note newNote = Note.NoteFromBeatmapColorNote(n);
                 newNote.StartY = ((float)NoteManager.GetStartY(n, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
+
                 newNote.IsChainHead = NoteManager.CheckChainHead(n, burstSlidersOnBeat);
+                chainAttachment |= newNote.IsChainHead;
 
                 // set angle snapping here because angle offset is an int in ColorNote
                 if(newNote.Color == 0)
@@ -421,7 +428,7 @@ public class ObjectManager : MonoBehaviour
                 newNotes.Add(newNote);
             }
 
-            if(notesOnBeat.Count == 2 && !arcAttachment)
+            if(notesOnBeat.Count == 2 && !arcAttachment && !chainAttachment)
             {
                 BeatmapColorNote first = notesOnBeat[0];
                 BeatmapColorNote second = notesOnBeat[1];
@@ -527,6 +534,7 @@ public class ObjectManager : MonoBehaviour
     {
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
         TimeManager.OnBeatChanged += UpdateBeat;
+        TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }
 
 

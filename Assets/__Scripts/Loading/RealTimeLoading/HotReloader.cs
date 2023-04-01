@@ -33,7 +33,7 @@ public class HotReloader : MonoBehaviour
     {
         if(!Directory.Exists(loadedMapPath))
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "The map folder has been deleted!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "The map folder has been deleted!");
             Debug.LogWarning("The map folder has been deleted!");
             yield break;
         }
@@ -51,7 +51,7 @@ public class HotReloader : MonoBehaviour
         if(info == null)
         {
             //Failed to load info
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load Info.dat!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to load Info.dat!");
             Debug.LogWarning("Failed to load Info.dat!");
 
             CancelLoading();
@@ -69,7 +69,7 @@ public class HotReloader : MonoBehaviour
         if(difficulties.Count == 0)
         {
             //Failed to load difficulties (or the map just has none, in either case, don't replace the loaded map)
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load map difficulties!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to load map difficulties!");
             Debug.LogWarning("Failed to load difficulties!");
 
             CancelLoading();
@@ -86,7 +86,7 @@ public class HotReloader : MonoBehaviour
     {
         if(!File.Exists(loadedMapPath))
         {
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "The map file has been deleted!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "The map file has been deleted!");
             Debug.LogWarning("The map file has been deleted!");
             yield break;
         }
@@ -101,7 +101,7 @@ public class HotReloader : MonoBehaviour
         catch(Exception e)
         {
             Debug.LogWarning($"Failed to load map zip with error: {e.Message}, {e.StackTrace}");
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load map zip!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to load map zip!");
 
             CancelLoading();
             yield break;
@@ -134,7 +134,7 @@ public class HotReloader : MonoBehaviour
         if(difficulties.Count == 0)
         {
             //Failed to load difficulties (or the map just has none, in either case, don't replace the loaded map)
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Error, "Failed to load map difficulties!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to load map difficulties!");
             Debug.LogWarning("Failed to load difficulties!");
 
             CancelLoading();
@@ -150,7 +150,7 @@ public class HotReloader : MonoBehaviour
 
     private void UpdateMap(BeatmapInfo info, List<Difficulty> difficulties)
     {
-        Difficulty currentDiff = BeatmapManager.CurrentMap;
+        Difficulty currentDiff = BeatmapManager.CurrentDifficulty;
         DifficultyCharacteristic currentCharacteristic = currentDiff.characteristic;
         DifficultyRank currentRank = currentDiff.difficultyRank;
 
@@ -163,13 +163,13 @@ public class HotReloader : MonoBehaviour
 
         if(newDiff != null)
         {
-            BeatmapManager.CurrentMap = newDiff;
+            BeatmapManager.CurrentDifficulty = newDiff;
         }
         else
         {
             //Unable to find a matching diff, so just use the default instead
-            BeatmapManager.CurrentMap = BeatmapManager.GetDefaultDifficulty();
-            ErrorHandler.Instance.DisplayPopup(ErrorType.Notification, "The current difficulty was deleted!");
+            BeatmapManager.CurrentDifficulty = BeatmapManager.GetDefaultDifficulty();
+            ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "The current difficulty was deleted!");
         }
     }
 #endif

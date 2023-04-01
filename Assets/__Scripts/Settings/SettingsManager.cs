@@ -53,7 +53,7 @@ public class SettingsManager : MonoBehaviour
         if(writeTask.Exception != null)
         {
             Debug.Log($"Failed to save settings with error: {writeTask.Exception.Message}, {writeTask.Exception.StackTrace}");
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to save your settings!");
+            ErrorHandler.Instance?.ShowPopup(ErrorType.Error, "Failed to save your settings!");
         }
 
         saving = false;
@@ -93,7 +93,7 @@ public class SettingsManager : MonoBehaviour
         }
         catch(Exception err)
         {
-            ErrorHandler.Instance?.DisplayPopup(ErrorType.Error, "Failed to load settings! Reverting to default.");
+            ErrorHandler.Instance?.ShowPopup(ErrorType.Error, "Failed to load settings! Reverting to default.");
             Debug.LogWarning($"Failed to load settings with error: {err.Message}, {err.StackTrace}");
 
             CurrentSettings = Settings.GetDefaultSettings();
@@ -107,13 +107,14 @@ public class SettingsManager : MonoBehaviour
 
     public static bool GetBool(string name)
     {
+        bool value;
 #if UNITY_WEBGL && !UNITY_EDITOR
         //Use player prefs for WebGL
         //Use ints for bools since PlayerPrefs can't store them
         int defaultValue = 0;
-        if(Settings.DefaultSettings.Bools.ContainsKey(name))
+        if(Settings.DefaultSettings.Bools.TryGetValue(name, out value))
         {
-            defaultValue = Settings.DefaultSettings.Bools[name] ? 1 : 0;
+            defaultValue = value ? 1 : 0;
         }
 
         return PlayerPrefs.GetInt(name, defaultValue) > 0;
@@ -124,13 +125,13 @@ public class SettingsManager : MonoBehaviour
             return false;
         }
 
-        if(CurrentSettings.Bools.ContainsKey(name))
+        if(CurrentSettings.Bools.TryGetValue(name, out value))
         {
-            return CurrentSettings.Bools[name];
+            return value;
         }
-        else if(Settings.DefaultSettings.Bools.ContainsKey(name))
+        else if(Settings.DefaultSettings.Bools.TryGetValue(name, out value))
         {
-            return Settings.DefaultSettings.Bools[name];
+            return value;
         }
         else return false;
 #endif
@@ -139,12 +140,13 @@ public class SettingsManager : MonoBehaviour
 
     public static int GetInt(string name)
     {
+        int value;
 #if UNITY_WEBGL && !UNITY_EDITOR
         //Use player prefs for WebGL
         int defaultValue = 0;
-        if(Settings.DefaultSettings.Ints.ContainsKey(name))
+        if(Settings.DefaultSettings.Ints.TryGetValue(name, out value))
         {
-            defaultValue = Settings.DefaultSettings.Ints[name];
+            defaultValue = value;
         }
 
         return PlayerPrefs.GetInt(name, defaultValue);
@@ -155,13 +157,13 @@ public class SettingsManager : MonoBehaviour
             return 0;
         }
 
-        if(CurrentSettings.Ints.ContainsKey(name))
+        if(CurrentSettings.Ints.TryGetValue(name, out value))
         {
-            return CurrentSettings.Ints[name];
+            return value;
         }
-        else if(Settings.DefaultSettings.Ints.ContainsKey(name))
+        else if(Settings.DefaultSettings.Ints.TryGetValue(name, out value))
         {
-            return Settings.DefaultSettings.Ints[name];
+            return value;
         }
         else return 0;
 #endif
@@ -170,12 +172,13 @@ public class SettingsManager : MonoBehaviour
 
     public static float GetFloat(string name)
     {
+        float value;
 #if UNITY_WEBGL && !UNITY_EDITOR
         //Use player prefs for WebGL
         float defaultValue = 0;
-        if(Settings.DefaultSettings.Floats.ContainsKey(name))
+        if(Settings.DefaultSettings.Floats.TryGetValue(name, out value))
         {
-            defaultValue = Settings.DefaultSettings.Floats[name];
+            defaultValue = value;
         }
 
         return PlayerPrefs.GetFloat(name, defaultValue);
@@ -186,13 +189,13 @@ public class SettingsManager : MonoBehaviour
             return 0;
         }
 
-        if(CurrentSettings.Floats.ContainsKey(name))
+        if(CurrentSettings.Floats.TryGetValue(name, out value))
         {
-            return CurrentSettings.Floats[name];
+            return value;
         }
-        else if(Settings.DefaultSettings.Floats.ContainsKey(name))
+        else if(Settings.DefaultSettings.Floats.TryGetValue(name, out value))
         {
-            return Settings.DefaultSettings.Floats[name];
+            return value;
         }
         else return 0;
 #endif

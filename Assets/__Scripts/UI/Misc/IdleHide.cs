@@ -21,6 +21,7 @@ public class IdleHide : MonoBehaviour
     [SerializeField] private Vector2 enabledPos;
     [SerializeField] private Vector2 disabledPos;
     [SerializeField] private float transitionTime;
+    [SerializeField] private bool disableOnHide = true;
 
     private bool moving;
     private Coroutine moveCoroutine;
@@ -34,7 +35,7 @@ public class IdleHide : MonoBehaviour
             targetTransform.anchoredPosition = targetPos;
             if(!activate)
             {
-                target.SetActive(false);
+                target.SetActive(false || !disableOnHide);
             }
 
             yield break;
@@ -59,7 +60,7 @@ public class IdleHide : MonoBehaviour
 
         if(!activate)
         {
-            target.SetActive(false);
+            target.SetActive(false || !disableOnHide);
         }
 
         moving = false;

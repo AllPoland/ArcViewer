@@ -71,10 +71,8 @@ public class GraphicSettingsUpdater : MonoBehaviour
     }
 
 
-    private void OnEnable()
-    {
-        SettingsManager.OnSettingsUpdated += UpdateGraphicsSettings;
-        
+    private void Start()
+    {   
         mainCamera = Camera.main;
 
         bool foundMainBloom = mainBloomVolume.TryGet<Bloom>(out mainBloom);
@@ -88,17 +86,8 @@ public class GraphicSettingsUpdater : MonoBehaviour
         {
             defaultBackgroundBloomStrength = backgroundBloom.intensity.value;
         }
-    }
 
-
-    private void OnDisable()
-    {
-        SettingsManager.OnSettingsUpdated -= UpdateGraphicsSettings;
-    }
-
-
-    private void Start()
-    {
+        SettingsManager.OnSettingsUpdated += UpdateGraphicsSettings;
         UpdateGraphicsSettings();
     }
 }

@@ -289,13 +289,8 @@ public class NoteManager : MonoBehaviour
     }
 
 
-    public void RescheduleHitsounds(bool playing)
+    public void RescheduleHitsounds()
     {
-        if(!playing)
-        {
-            return;
-        }
-
         foreach(Note n in RenderedNotes)
         {
             if(n.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0)
@@ -457,8 +452,6 @@ public class NoteManager : MonoBehaviour
     private void Start()
     {
         objectManager = ObjectManager.Instance;
-
-        TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }
 }
 

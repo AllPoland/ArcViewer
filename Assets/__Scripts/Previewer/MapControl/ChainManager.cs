@@ -250,13 +250,8 @@ public class ChainManager : MonoBehaviour
     }
 
 
-    public void RescheduleHitsounds(bool playing)
+    public void RescheduleHitsounds()
     {
-        if(!playing)
-        {
-            return;
-        }
-
         foreach(ChainLink cl in RenderedChainLinks)
         {
             if(cl.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0 && SettingsManager.GetFloat("chainvolume") > 0)
@@ -270,8 +265,6 @@ public class ChainManager : MonoBehaviour
     private void Start()
     {
         objectManager = ObjectManager.Instance;
-
-        TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }
 }
 

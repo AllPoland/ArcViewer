@@ -16,8 +16,8 @@ public class WallHandler : MonoBehaviour
     }
 
 
-    public void SetMaterial(Material newMaterial)
+    public void SetMaterial(MaterialPropertyBlock properties)
     {
-        bodyRenderer.sharedMaterial = newMaterial;
+        bodyRenderer.SetPropertyBlock(properties);
     }
 }
