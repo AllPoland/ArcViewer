@@ -88,6 +88,7 @@ GameObject:
   - component: {fileID: 7931610966774467335}
   - component: {fileID: 7931610966774467334}
   - component: {fileID: 7931610966774467328}
+  - component: {fileID: 3092223009463263723}
   m_Layer: 5
   m_Name: ErrorPopup
   m_TagString: Untagged
@@ -172,6 +173,20 @@ MonoBehaviour:
   backgroundColor: {r: 0, g: 0, b: 0, a: 0}
   message: 
   lifeTime: 0
+--- !u!114 &3092223009463263723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7931610966774467332}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a31cce6b884f0334eab2ffb7fb0e6d38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  preferredPadding: 250
+  minWidth: 400
 --- !u!1 &7931610968386055125
 GameObject:
   m_ObjectHideFlags: 0
