@@ -366,13 +366,15 @@ public class NoteManager : MonoBehaviour
 
     public static float? GetAngleSnap(BeatmapColorNote first, BeatmapColorNote second)
     {
-        if(first.x == second.x || first.y == second.y)
+        bool hasDot = first.d == 8 || second.d == 8;
+        if(!hasDot && (first.x == second.x || first.y == second.y))
         {
             //Don't snap notes that are on the same row or column
+            //But always snap dots
             return null;
         }
 
-        if(!(first.d == second.d || first.d == 8 || second.d == 8))
+        if(!(first.d == second.d || hasDot))
         {
             //Notes must have the same direction
             return null;
