@@ -42,11 +42,7 @@ public class AudioFileHandler
         catch(Exception e)
         {
             Debug.LogWarning($"Failed to load audio data with error: {e.Message}, {e.StackTrace}");
-
-            if(newClip != null)
-            {
-                newClip.Dispose();
-            }
+            newClip?.Dispose();
 
             return null;
         }
@@ -76,6 +72,19 @@ public class AudioFileHandler
         error
     }
 #else
+
+
+    public static async Task<AudioClip> LoadAudioDirectory(string directory, string filename = "")
+    {
+        if(!File.Exists(directory))
+        {
+            return null;
+        }
+
+        AudioType type = await GetAudioTypeFromFile(filename, directory);
+        Debug.Log($"Loading audio file with type of {type}.");
+        return await GetAudioFromFile(directory, type);
+    }
 
 
     public static async Task<AudioType> GetAudioTypeFromFile(string fileName, string directory = "")
