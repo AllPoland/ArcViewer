@@ -19,8 +19,6 @@ These features aren't included yet, but are very likely to be added in the futur
 
 - 360/90 degree gamemode support (currently just displays as a regular map without rotation events)
 
-- Overriding NJS and JD
-
 - Basic lighting support (V1 and V2 events on a single environment)
 
 - Basic chroma and custom color support (note and light colors, chroma color events)
