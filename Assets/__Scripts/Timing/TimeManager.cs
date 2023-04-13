@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class TimeManager : MonoBehaviour
 {
-    public static float BPM = 120;
+    public static float BPM => BeatmapManager.Info._beatsPerMinute;
     public static bool ForcePause;
     public static float TimeScale = 1f;
 
@@ -52,6 +52,11 @@ public class TimeManager : MonoBehaviour
             }
 
             BpmChange lastChange = BpmChanges.FindLast(x => x.Beat < CurrentBeat);
+            if(lastChange.BPM <= 0)
+            {
+                //Failsafe in the event that no BPM change is found
+                return BPM;
+            }
             return lastChange.BPM;
         }
     }
@@ -127,7 +132,6 @@ public class TimeManager : MonoBehaviour
 
     public void UpdateInfo(BeatmapInfo info)
     {
-        BPM = info._beatsPerMinute;
         OnBeatChanged?.Invoke(CurrentBeat);
     }
 

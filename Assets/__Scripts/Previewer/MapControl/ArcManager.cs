@@ -58,6 +58,79 @@ public class ArcManager : MonoBehaviour
     }
 
 
+    private static Vector3[] GetArcPointsWithMidRotation(Arc a, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int pointCount)
+    {
+        const float midPointRotationDeg = 90f;
+        const float midPointOffset = 2.5f;
+        const float controlXMod = 0.25f;
+        const float controlYMod = 0.25f;
+        const float controlZMod = 0.15f;
+
+        //Get the midpoint between the two end points; this is the center point which dictates rotation
+        Vector3 midPoint = (p0 + p3) / 2;
+
+        //Offset the midpoint based on rotation direction
+        bool rotateClockwise = a.MidRotationDirection == ArcRotationDirection.Clockwise;
+        float midPointRotation = rotateClockwise ? -midPointRotationDeg : midPointRotationDeg;
+
+        //Directionless arcs shouldn't offset the midpoint at all
+        Vector2 headCutDirection = a.HeadDot ? Vector2.zero : ObjectManager.DirectionVector(a.HeadAngle + midPointRotation);
+        midPoint += (Vector3)headCutDirection * midPointOffset;
+
+        //Calculate the control points to use for the midPoint
+        Vector3 p1Dist = (p1 - midPoint).Abs();
+        Vector3 p2Dist = (p2 - midPoint).Abs();
+
+        bool equalXOffset = p1.x.Approximately(p2.x);
+        bool equalYOffset = p1.y.Approximately(p2.y);
+
+        //Offset the middle control point based on distances from head and tail control points
+        //Don't offset a coordinate if the end control point offsets are equal
+        float controlX = equalXOffset ? 0f : (p1Dist.x + p2Dist.x) * controlXMod;
+        float controlY = equalYOffset ? 0f : (p1Dist.y + p2Dist.y) * controlYMod;
+        float controlZ = (p1Dist.z + p2Dist.z) * controlZMod;
+
+        if(p1.x < p2.x) controlX = -controlX;
+        if(p1.y < p2.y) controlY = -controlY;
+
+        Vector3 controlPointOffset = new Vector3(controlX, controlY, -controlZ);
+        Vector3 headToMidControl = midPoint + controlPointOffset;
+        //The second half of the arc uses a mirrored control point position
+        Vector3 midToTailControl = midPoint + controlPointOffset.Invert();
+
+        if(pointCount % 2 == 0)
+        {
+            //A mid anchor requires an odd number of points (even number of segments)
+            pointCount++;
+        }
+        int midPointIndex = (pointCount / 2) + 1;
+
+        Vector3[] points = new Vector3[pointCount];
+        for(int i = 0; i < midPointIndex; i++)
+        {
+            //Calculate the first half of the arc
+            float t = (float)i / midPointIndex;
+            //Use easing to dedicate more segments to the edges and middle of the arc
+            t = Easings.Quad.InOut(t);
+
+            //Use the head control point for the first half
+            points[i] = PointOnCubicBezier(p0, p1, headToMidControl, midPoint, t);
+        }
+        for(int i = midPointIndex; i < pointCount; i++)
+        {
+            //Calculate the second half of the arc
+            float t = (float)(i - midPointIndex) / (pointCount - midPointIndex - 1);
+            //Use easing to dedicate more segments to the edges and middle of the arc
+            t = Easings.Quad.InOut(t);
+
+            //Use the tail control point for the second half
+            points[i] = PointOnCubicBezier(midPoint, midToTailControl, p2, p3, t);
+        }
+
+        return points;
+    }
+
+
     public static Vector3[] GetArcPoints(Arc a, float headOffsetY = 0, float tailOffsetY = 0)
     {
         float startTime = TimeManager.TimeFromBeat(a.Beat);
@@ -70,14 +143,19 @@ public class ArcManager : MonoBehaviour
         Vector3 p2 = new Vector3(a.TailControlPoint.x, a.TailControlPoint.y + tailOffsetY, length);
         Vector3 p3 = new Vector3(a.TailPosition.x, a.TailPosition.y + tailOffsetY, length);
 
-        //Estimate the number of points we'll need to make this arc based on density option
+        //Calculate the number of points we'll need to make this arc based on the density setting
         //A minimum value is given because very short arcs would otherwise potentially get no segments at all (very bad)
         int pointCount = Mathf.Max((int)ArcSegmentDensity / 2, (int)(ArcSegmentDensity * duration) + 1);
+        if(a.MidRotationDirection != ArcRotationDirection.None)
+        {
+            //Calculating points is different with a midpoint rotation direction
+            return GetArcPointsWithMidRotation(a, p0, p1, p2, p3, pointCount);
+        }
+
         Vector3[] points = new Vector3[pointCount];
         for(int i = 0; i < pointCount; i++)
         {
             float t = (float)i / (pointCount - 1);
-
             //Easing here dedicates more segments to the edges of the arc, where more curvature is present
             t = Easings.Quad.InOut(t);
 
@@ -212,22 +290,38 @@ public class Arc : BaseSlider
 {
     public Vector2 HeadControlPoint;
     public Vector2 TailControlPoint;
+    public float HeadAngle; //Used solely for rotation direction calculation
+    public bool HeadDot;
     public float HeadStartY;
     public float TailStartY;
-    public int MiddleRotationDirection; // currently unimplemented
+    public ArcRotationDirection MidRotationDirection;
 
     public ArcHandler arcHandler;
 
 
     public static Arc ArcFromBeatmapSlider(BeatmapSlider a)
     {
+        const float defaultControlOffset = 2.5f;
         Vector2 headPosition = ObjectManager.CalculateObjectPosition(a.x, a.y, a.customData?.coordinates);
         Vector2 tailPosition = ObjectManager.CalculateObjectPosition(a.tx, a.ty, a.customData?.tailCoordinates);
-        Vector2 headControlPoint = headPosition + ObjectManager.DirectionVector(ObjectManager.CalculateObjectAngle(a.d)) * a.mu * 2.5f;
-        Vector2 tailControlPoint = tailPosition - ObjectManager.DirectionVector(ObjectManager.CalculateObjectAngle(a.tc)) * a.tmu * 2.5f;
+
+        float headAngle = ObjectManager.CalculateObjectAngle(a.d);
+        float tailAngle = ObjectManager.CalculateObjectAngle(a.tc);
+
+        Vector2 headControlOffset = ObjectManager.DirectionVector(headAngle) * a.mu * defaultControlOffset;
+        Vector2 tailControlOffset = ObjectManager.DirectionVector(tailAngle) * a.tmu * defaultControlOffset;
+        Vector2 headControlPoint = headPosition + headControlOffset;
+        Vector2 tailControlPoint = tailPosition - tailControlOffset;
 
         float headBeat = a.b;
         float tailBeat = a.tb;
+
+        ArcRotationDirection rotationDirection = ArcRotationDirection.None;
+        if(ObjectManager.SamePlaneAngles(headAngle, tailAngle) && a.x == a.tx)
+        {
+            //If the angles share the same cut plane, account for rotation direction
+            rotationDirection = (ArcRotationDirection)Mathf.Clamp(a.m, 0, 2);
+        }
 
         if(tailBeat < headBeat)
         {
@@ -244,9 +338,19 @@ public class Arc : BaseSlider
             TailPosition = tailPosition,
             HeadControlPoint = a.d == 8 ? headPosition : headControlPoint,
             TailControlPoint = a.tc == 8 ? tailPosition : tailControlPoint,
+            HeadAngle = headAngle,
+            HeadDot = a.d == 8,
             HeadStartY = headPosition.y,
             TailStartY = tailPosition.y,
-            MiddleRotationDirection = a.m
+            MidRotationDirection = rotationDirection
         };
     }
+}
+
+
+public enum ArcRotationDirection
+{
+    None,
+    Clockwise,
+    CounterClockwise
 }

@@ -38,6 +38,19 @@ public class ObjectManager : MonoBehaviour
         {2, 1.05f}
     };
 
+    public static readonly Dictionary<int, float> DirectionAngles = new Dictionary<int, float>
+    {
+        {0, 180},
+        {1, 0},
+        {2, -90},
+        {3, 90},
+        {4, -135},
+        {5, 135},
+        {6, -45},
+        {7, 45},
+        {8, 0}
+    };
+
     public float BehindCameraTime => TimeFromWorldspace(behindCameraZ);
 
 
@@ -225,20 +238,14 @@ public class ObjectManager : MonoBehaviour
                 return (float)angle;
             }
         }
-
-        Dictionary<int, float> DirectionAngles = new Dictionary<int, float>
-        {
-            {0, 180},
-            {1, 0},
-            {2, -90},
-            {3, 90},
-            {4, -135},
-            {5, 135},
-            {6, -45},
-            {7, 45},
-            {8, 0}
-        };
         return DirectionAngles[Mathf.Clamp(cutDirection, 0, 8)] + angleOffset;
+    }
+
+
+    public static bool SamePlaneAngles(float a, float b)
+    {
+        float diff = Mathf.Abs(a - b);
+        return diff.Approximately(0) || diff.Approximately(180);
     }
 
 
