@@ -102,8 +102,11 @@ public class UpdateChecker : MonoBehaviour
             //A new update has released since we last checked
             //Display a popup about it, even if we're multiple versions behind
             Debug.Log($"Found new version! {LatestVersion.Name}");
-            ShowUpdateDialogue();
             knownVersion = LatestVersion;
+            if(currentVersion.IsEarlierThan(LatestVersion))
+            {
+                ShowUpdateDialogue();
+            }
         }
 
         if(currentVersion.IsEarlierThan(knownVersion))
