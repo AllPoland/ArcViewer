@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ArcManager : MonoBehaviour
@@ -131,17 +133,17 @@ public class ArcManager : MonoBehaviour
     }
 
 
-    public static Vector3[] GetArcPoints(Arc a, float headOffsetY = 0, float tailOffsetY = 0)
+    public static Vector3[] GetArcBaseCurve(Arc a)
     {
         float startTime = TimeManager.TimeFromBeat(a.Beat);
         float endTime = TimeManager.TimeFromBeat(a.TailBeat);
         float duration = endTime - startTime;
         float length = objectManager.WorldSpaceFromTime(duration);
 
-        Vector3 p0 = new Vector3(a.Position.x, a.Position.y + headOffsetY, 0);
-        Vector3 p1 = new Vector3(a.HeadControlPoint.x, a.HeadControlPoint.y + headOffsetY, 0);
-        Vector3 p2 = new Vector3(a.TailControlPoint.x, a.TailControlPoint.y + tailOffsetY, length);
-        Vector3 p3 = new Vector3(a.TailPosition.x, a.TailPosition.y + tailOffsetY, length);
+        Vector3 p0 = new Vector3(a.Position.x, a.Position.y, 0);
+        Vector3 p1 = new Vector3(a.HeadControlPoint.x, a.HeadControlPoint.y, 0);
+        Vector3 p2 = new Vector3(a.TailControlPoint.x, a.TailControlPoint.y, length);
+        Vector3 p3 = new Vector3(a.TailPosition.x, a.TailPosition.y, length);
 
         //Calculate the number of points we'll need to make this arc based on the density setting
         //A minimum value is given because very short arcs would otherwise potentially get no segments at all (very bad)
@@ -166,6 +168,44 @@ public class ArcManager : MonoBehaviour
     }
 
 
+    public static Vector3[] ArcSpawnAnimationOffset(Vector3[] baseCurve, float headOffsetY, float tailOffsetY)
+    {
+        //Copy the base curve here so we don't overwrite it
+        Vector3[] points = new Vector3[baseCurve.Length];
+        Array.Copy(baseCurve, points, baseCurve.Length);
+
+        //This is too few points to work with and will create errors
+        if(points.Length < 3) return points;
+
+        float arcLength = points.Last().z;
+        if(!headOffsetY.Approximately(0))
+        {
+            for(int i = 0; i < points.Length; i++)
+            {
+                //The point should be offset proportionally to its distance from the head
+                float t = points[i].z / arcLength;
+                t = 1 - Easings.Cubic.Out(t);
+
+                points[i].y += headOffsetY * t;
+            }
+        }
+        if(!tailOffsetY.Approximately(0))
+        {
+            for(int i = points.Length - 1; i >= 0; i--)
+            {
+                //The point should be offset proportionally to its distance from the tail
+                float z = arcLength - points[i].z;
+                float t = z / arcLength;
+                t = 1 - Easings.Cubic.Out(t);
+
+                points[i].y += tailOffsetY * t;
+            }
+        }
+
+        return points;
+    }
+
+
     public void UpdateArcVisual(Arc a)
     {
         float arcTime = TimeManager.TimeFromBeat(a.Beat);
@@ -181,7 +221,8 @@ public class ArcManager : MonoBehaviour
             a.arcHandler = a.Visual.GetComponent<ArcHandler>();
             a.arcHandler.SetMaterial(a.Color == 0 ? redArcMaterial : blueArcMaterial, arcCenterMaterial, arcMaterialProperties);
 
-            a.arcHandler.SetArcPoints(GetArcPoints(a));
+            a.CalculateBaseCurve();
+            a.arcHandler.SetArcPoints(a.BaseCurve);
 
             RenderedArcs.Add(a);
         }
@@ -189,10 +230,9 @@ public class ArcManager : MonoBehaviour
         if(objectManager.doMovementAnimation)
         {
             float headOffsetY = objectManager.GetObjectY(a.HeadStartY, a.Position.y, TimeManager.TimeFromBeat(a.Beat)) - a.Position.y;
-
             float tailOffsetY = objectManager.GetObjectY(a.TailStartY, a.TailPosition.y, TimeManager.TimeFromBeat(a.TailBeat)) - a.TailPosition.y;
 
-            a.arcHandler.SetArcPoints(GetArcPoints(a, headOffsetY, tailOffsetY)); // arc visuals get reset on settings change, so fine to only update in here
+            a.arcHandler.SetArcPoints(ArcSpawnAnimationOffset(a.BaseCurve, headOffsetY, tailOffsetY)); // arc visuals get reset on settings change, so fine to only update in here
         }
 
         a.Visual.transform.localPosition = new Vector3(0, 0, zDist);
@@ -288,6 +328,7 @@ public class ArcManager : MonoBehaviour
 
 public class Arc : BaseSlider
 {
+    public Vector3[] BaseCurve;
     public Vector2 HeadControlPoint;
     public Vector2 TailControlPoint;
     public float HeadAngle; //Used solely for rotation direction calculation
@@ -297,6 +338,12 @@ public class Arc : BaseSlider
     public ArcRotationDirection MidRotationDirection;
 
     public ArcHandler arcHandler;
+
+
+    public void CalculateBaseCurve()
+    {
+        BaseCurve = ArcManager.GetArcBaseCurve(this);
+    }
 
 
     public static Arc ArcFromBeatmapSlider(BeatmapSlider a)
