@@ -17,10 +17,7 @@ public class ArcManager : MonoBehaviour
     [SerializeField] private Material blueArcMaterial;
     [SerializeField] private Material arcCenterMaterial;
 
-    [SerializeField] private NoteManager noteManager;
-
     [SerializeField] private float arcFadeTransitionLength;
-    [SerializeField] private float arcCenterFadeTransitionLength;
     [SerializeField] private float arcCloseFadeDist;
 
     private static ObjectManager objectManager;
@@ -42,7 +39,8 @@ public class ArcManager : MonoBehaviour
         ClearRenderedArcs();
 
         //Sets the distance that arcs should fade out
-        float fadeDist = BeatmapManager.JumpDistance / 2;
+        const float fadeDistMultiplier = 0.9f;
+        float fadeDist = BeatmapManager.JumpDistance / 2 * fadeDistMultiplier;
         float closeFadeDist = SettingsManager.GetFloat("cameraposition") + arcCloseFadeDist;
 
         arcMaterialProperties.SetFloat("_FadeStartPoint", closeFadeDist);
@@ -168,7 +166,7 @@ public class ArcManager : MonoBehaviour
     }
 
 
-    public static Vector3[] ArcSpawnAnimationOffset(Vector3[] baseCurve, float headOffsetY, float tailOffsetY)
+    public static Vector3[] GetArcSpawnAnimationOffset(Vector3[] baseCurve, float headOffsetY, float tailOffsetY)
     {
         //Copy the base curve here so we don't overwrite it
         Vector3[] points = new Vector3[baseCurve.Length];
@@ -191,12 +189,11 @@ public class ArcManager : MonoBehaviour
         }
         if(!tailOffsetY.Approximately(0))
         {
-            for(int i = points.Length - 1; i >= 0; i--)
+            for(int i = 0; i < points.Length; i++)
             {
                 //The point should be offset proportionally to its distance from the tail
-                float z = arcLength - points[i].z;
-                float t = z / arcLength;
-                t = 1 - Easings.Cubic.Out(t);
+                float t = points[i].z / arcLength;
+                t = Easings.Cubic.In(t);
 
                 points[i].y += tailOffsetY * t;
             }
@@ -232,7 +229,7 @@ public class ArcManager : MonoBehaviour
             float headOffsetY = objectManager.GetObjectY(a.HeadStartY, a.Position.y, TimeManager.TimeFromBeat(a.Beat)) - a.Position.y;
             float tailOffsetY = objectManager.GetObjectY(a.TailStartY, a.TailPosition.y, TimeManager.TimeFromBeat(a.TailBeat)) - a.TailPosition.y;
 
-            a.arcHandler.SetArcPoints(ArcSpawnAnimationOffset(a.BaseCurve, headOffsetY, tailOffsetY)); // arc visuals get reset on settings change, so fine to only update in here
+            a.arcHandler.SetArcPoints(GetArcSpawnAnimationOffset(a.BaseCurve, headOffsetY, tailOffsetY)); // arc visuals get reset on settings change, so fine to only update in here
         }
 
         a.Visual.transform.localPosition = new Vector3(0, 0, zDist);

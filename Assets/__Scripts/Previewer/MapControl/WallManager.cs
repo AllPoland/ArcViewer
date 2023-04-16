@@ -11,13 +11,6 @@ public class WallManager : MonoBehaviour
     public List<Wall> Walls = new List<Wall>();
     public List<Wall> RenderedWalls = new List<Wall>();
 
-    public readonly List<float> WallHeights = new List<float>
-    {
-        0,
-        1,
-        1.5f
-    };
-
     private ObjectManager objectManager;
     private MaterialPropertyBlock wallMaterialProperties;
 

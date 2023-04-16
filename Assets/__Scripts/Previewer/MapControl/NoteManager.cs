@@ -24,9 +24,6 @@ public class NoteManager : MonoBehaviour
     [SerializeField] private Material arrowMaterialRed;
     [SerializeField] private Material arrowMaterialBlue;
 
-    [Header("References")]
-    [SerializeField] private ChainManager chainManager;
-
     public List<Note> Notes = new List<Note>();
     public List<Note> RenderedNotes = new List<Note>();
 
