@@ -23,22 +23,30 @@ using UnityEngine;
     public DifficultyBeatmapSet[] _difficultyBeatmapSets;
 
 
+    public void AddNulls()
+    {
+        _songName = _songName ?? "Unknown";
+        _songSubName = _songSubName ?? "";
+        _songAuthorName = _songAuthorName ?? "Unknown";
+        _levelAuthorName = _levelAuthorName ?? "Unknown";
+        _songFilename = _songFilename ?? "";
+        _coverImageFilename = _coverImageFilename ?? "";
+        _environmentName = _environmentName ?? "DefaultEnvironment";
+        _allDirectionsEnvironmentName = _allDirectionsEnvironmentName ?? "GlassDesertEnvironment";
+        _difficultyBeatmapSets = _difficultyBeatmapSets ?? new DifficultyBeatmapSet[0];
+    }
+
+
     public static DifficultyCharacteristic CharacteristicFromString(string characteristicName)
     {
-        switch(characteristicName)
+        DifficultyCharacteristic characteristic;
+        bool success = Enum.TryParse(characteristicName, true, out characteristic);
+        if(!success)
         {
-            case "Standard": return DifficultyCharacteristic.Standard;
-            case "OneSaber": return DifficultyCharacteristic.OneSaber;
-            case "NoArrows": return DifficultyCharacteristic.NoArrows;
-            case "360Degree": return DifficultyCharacteristic.ThreeSixty;
-            case "90Degree": return DifficultyCharacteristic.Ninety;
-            case "Lightshow": return DifficultyCharacteristic.Lightshow;
-            case "Lawless": return DifficultyCharacteristic.Lawless;
-
-            default:
-                Debug.LogWarning("Could not match characteristic name!");
-                return DifficultyCharacteristic.Unknown;
+            Debug.LogWarning("Could not match characteristic name!");
+            return DifficultyCharacteristic.Unknown;
         }
+        else return characteristic;
     }
 
 

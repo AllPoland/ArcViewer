@@ -12,6 +12,16 @@ public class BeatmapDifficultyV2
     //Waypoints ommitted
 
 
+    public void AddNulls()
+    {
+        _version = _version ?? "2.6.0";
+        _notes = _notes ?? new BeatmapNoteV2[0];
+        _sliders = _sliders ?? new BeatmapSliderV2[0];
+        _obstacles = _obstacles ?? new BeatmapObstacleV2[0];
+        _events = _events ?? new BeatmapEventV2[0];
+    }
+
+
     public BeatmapDifficulty ConvertToV3()
     {
         BeatmapDifficulty converted = new BeatmapDifficulty
@@ -23,8 +33,7 @@ public class BeatmapDifficultyV2
         List<BeatmapBombNote> bombNotes = new List<BeatmapBombNote>();
         foreach(BeatmapNoteV2 n in _notes)
         {
-            //Loop over each note and add it to our V3 difficulty
-            if(n._type < 2)
+            if(n._type == 0 || n._type == 1)
             {
                 //Color note
                 colorNotes.Add(
@@ -143,14 +152,14 @@ public class BeatmapDifficultyV2
                     new BeatmapRotationEvent
                     {
                         b = e._time,
-                        e = e._type - 14,  //subtracting 14 from the type makes it line up with the expected 0 and 1 in V3 format
+                        e = e._type - 14,  //Subtracting 14 from the type makes it line up with the expected 0 and 1 in V3 format
                         r = e._floatValue
                     }
                 );
             }
             else if(e._type == 5)
             {
-                //Bost color event
+                //Boost color event
                 colorBoostBeatmapEvents.Add
                 (
                     new BeatmapColorBoostBeatmapEvent

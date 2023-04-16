@@ -162,7 +162,7 @@ public class BeatmapManager : MonoBehaviour
         }
         else if(NinetyDifficulties.Count > 0)
         {
-            return NinetyDifficulties[NinetyDifficulties.Count - 1];
+            return NinetyDifficulties.Last();
         }
         else if(LightshowDifficulties.Count > 0)
         {

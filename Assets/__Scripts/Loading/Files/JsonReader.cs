@@ -35,13 +35,10 @@ public class JsonReader
         catch(Exception err)
         {
             Debug.LogWarning($"Unable to parse info from json with error: {err.Message}, {err.StackTrace}.");
-            info = null;
+            return null;
         }
 
-        if(info != null)
-        {
-            info = BeatmapUtility.AddNullsInfo(info);
-        }
+        info?.AddNulls();
         return info;
     }
 
@@ -62,7 +59,7 @@ public class JsonReader
         string location = Path.Combine(directory, filename);
         string json = await ReadFileAsync(location);
 
-        if(json == "")
+        if(string.IsNullOrEmpty(json))
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to load {filename}!");
             return null;
@@ -106,7 +103,8 @@ public class JsonReader
                 Debug.Log("Parsing map in V2 format.");
 
                 BeatmapDifficultyV2 v2Diff = JsonConvert.DeserializeObject<BeatmapDifficultyV2>(json);
-                difficulty = BeatmapUtility.AddNullsDifficultyV2(v2Diff).ConvertToV3();
+                v2Diff.AddNulls();
+                difficulty = v2Diff.ConvertToV3();
             }
             else
             {
@@ -128,7 +126,8 @@ public class JsonReader
                     if(v2Diff._notes != null)
                     {
                         Debug.Log("Fallback succeeded in V2.");
-                        difficulty = BeatmapUtility.AddNullsDifficultyV2(v2Diff).ConvertToV3();
+                        v2Diff.AddNulls();
+                        difficulty = v2Diff.ConvertToV3();
                     }
                     else
                     {
@@ -146,32 +145,29 @@ public class JsonReader
             return new BeatmapDifficulty();
         }
 
-        difficulty = BeatmapUtility.AddNullsDifficulty(difficulty);
-        Debug.Log($"Parsed difficulty with {difficulty.colorNotes.Length} notes, {difficulty.bombNotes.Length} bombs, and {difficulty.obstacles.Length} walls.");
+        difficulty.AddNulls();
+        Debug.Log($"Parsed difficulty with {difficulty.colorNotes.Length} notes, {difficulty.bombNotes.Length} bombs, {difficulty.obstacles.Length} walls, {difficulty.sliders.Length} arcs, and {difficulty.burstSliders.Length} chains.");
         return difficulty;
     }
 
 
     public static async Task<string> ReadFileAsync(string location)
     {
-        string text = "";
-
         if(!File.Exists(location))
         {
             Debug.LogWarning("Trying to read a file that doesn't exist!");
-            return text;
+            return "";
         }
 
         try
         {
-            text = await File.ReadAllTextAsync(location);
+            string text = await File.ReadAllTextAsync(location);
+            return text;
         }
         catch(Exception err)
         {
             Debug.LogWarning($"Unable to read the text from file with error: {err.Message}, {err.StackTrace}.");
-            text = "";
+            return "";
         }
-
-        return text;
     }
 }

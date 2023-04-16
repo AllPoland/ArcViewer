@@ -31,6 +31,21 @@ public class BeatmapDifficulty
         colorBoostBeatMapEvents = new BeatmapColorBoostBeatmapEvent[0],
         useNormalEventsAsCompatibleEvents = false
     };
+
+
+    public void AddNulls()
+    {
+        version = version ?? "3.2.0";
+        bpmEvents = bpmEvents ?? new BeatmapBpmEvent[0];
+        rotationEvents = rotationEvents ?? new BeatmapRotationEvent[0];
+        colorNotes = colorNotes ?? new BeatmapColorNote [0];
+        bombNotes = bombNotes ?? new BeatmapBombNote[0];
+        obstacles = obstacles ?? new BeatmapObstacle[0];
+        sliders = sliders ?? new BeatmapSlider[0];
+        burstSliders = burstSliders ?? new BeatmapBurstSlider[0];
+        basicBeatMapEvents = basicBeatMapEvents ?? new BeatmapBasicBeatmapEvent[0];
+        colorBoostBeatMapEvents = colorBoostBeatMapEvents ?? new BeatmapColorBoostBeatmapEvent[0];
+    }
 }
 
 
