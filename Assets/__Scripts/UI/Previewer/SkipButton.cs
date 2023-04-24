@@ -22,32 +22,32 @@ public class SkipButton : MonoBehaviour
 
     private void Update()
     {
-        if(DialogueHandler.PopupActive)
+        if(!DialogueHandler.Instance.jumpSettingsPanel.activeInHierarchy)
         {
-            //Since skip binds are used a lot in UI, avoid accidentally skipping around while UI is open
-            return;
-        }
-        
-        if(Input.GetButtonDown("SkipForward"))
-        {
-            Skip(skipAmount);
-        }
-        else if(Input.GetButtonDown("SkipBackward"))
-        {
-            Skip(skipAmount * -1f);
+            if(Input.GetButtonDown("SkipForward"))
+            {
+                Skip(skipAmount);
+            }
+            else if(Input.GetButtonDown("SkipBackward"))
+            {
+                Skip(skipAmount * -1f);
+            }
         }
 
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if(!TimeManager.Playing && Mathf.Abs(scroll) > 0)
+        if(!SettingsMenu.Open)
         {
-            float skipTime = TimeManager.RawTimeFromBeat(shortSkipBeats, TimeManager.CurrentBPM);
-            if(scroll > 0)
+            float scroll = Input.GetAxis("Mouse ScrollWheel");
+            if(!TimeManager.Playing && Mathf.Abs(scroll) > 0)
             {
-                Skip(skipTime);
-            }
-            else
-            {
-                Skip(-skipTime);
+                float skipTime = TimeManager.RawTimeFromBeat(shortSkipBeats, TimeManager.CurrentBPM);
+                if(scroll > 0)
+                {
+                    Skip(skipTime);
+                }
+                else
+                {
+                    Skip(-skipTime);
+                }
             }
         }
     }

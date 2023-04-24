@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class SettingsMenu : MonoBehaviour
 {
-    public bool Open { get; private set; }
+    public static bool Open { get; private set; }
 
     private SettingsTab _currentTab;
     public SettingsTab CurrentTab
