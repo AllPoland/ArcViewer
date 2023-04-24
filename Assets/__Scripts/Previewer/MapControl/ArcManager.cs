@@ -168,35 +168,41 @@ public class ArcManager : MonoBehaviour
 
     public static Vector3[] GetArcSpawnAnimationOffset(Vector3[] baseCurve, float headOffsetY, float tailOffsetY)
     {
-        //Copy the base curve here so we don't overwrite it
+        if(baseCurve.Length == 0) return baseCurve;
+
+        float arcLength = baseCurve.Last().z;
+        float JD = BeatmapManager.JumpDistance / 2;
+
+        //Create a new curve here so we don't overwrite the input
         Vector3[] points = new Vector3[baseCurve.Length];
-        Array.Copy(baseCurve, points, baseCurve.Length);
-
-        //This is too few points to work with and will create errors
-        if(points.Length < 3) return points;
-
-        float arcLength = points.Last().z;
-        if(!headOffsetY.Approximately(0))
+        for(int i = 0; i < baseCurve.Length; i++)
         {
-            for(int i = 0; i < points.Length; i++)
-            {
-                //The point should be offset proportionally to its distance from the head
-                float t = points[i].z / arcLength;
-                t = 1 - Easings.Cubic.Out(t);
+            Vector3 point = baseCurve[i];
 
-                points[i].y += headOffsetY * t;
-            }
-        }
-        if(!tailOffsetY.Approximately(0))
-        {
-            for(int i = 0; i < points.Length; i++)
-            {
-                //The point should be offset proportionally to its distance from the tail
-                float t = points[i].z / arcLength;
-                t = Easings.Cubic.In(t);
+            //Get the preferred offset based on distance from the head
+            float headDist = point.z / JD;
+            float headT = 1 - Easings.Cubic.Out(Mathf.Clamp(headDist, 0, 1));
+            float headPreferredOffset = headOffsetY * headT;
 
-                points[i].y += tailOffsetY * t;
+            //Get the preferred offset based on distance from the tail
+            float tailDist = (arcLength - point.z) / JD;
+            float tailT = 1 - Easings.Cubic.Out(Mathf.Clamp(tailDist, 0, 1));
+            float tailPreferredOffset = tailOffsetY * tailT;
+
+            if(arcLength <= JD)
+            {
+                //Weight the adjustment based on which end of the arc the point is closer to
+                float relativePosition = point.z / arcLength;
+                point.y += Mathf.Lerp(headPreferredOffset, tailPreferredOffset, relativePosition);
             }
+            else
+            {
+                //Adjust the arc entirely based on which end is closer
+                bool tailOffsetGreater = tailT > headT;
+                point.y += tailOffsetGreater ? tailPreferredOffset : headPreferredOffset;
+            }
+
+            points[i] = point;
         }
 
         return points;
