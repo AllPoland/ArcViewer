@@ -189,18 +189,9 @@ public class ArcManager : MonoBehaviour
             float tailT = 1 - Easings.Cubic.Out(Mathf.Clamp(tailDist, 0, 1));
             float tailPreferredOffset = tailOffsetY * tailT;
 
-            if(arcLength <= JD)
-            {
-                //Weight the adjustment based on which end of the arc the point is closer to
-                float relativePosition = point.z / arcLength;
-                point.y += Mathf.Lerp(headPreferredOffset, tailPreferredOffset, relativePosition);
-            }
-            else
-            {
-                //Adjust the arc entirely based on which end is closer
-                bool tailOffsetGreater = tailT > headT;
-                point.y += tailOffsetGreater ? tailPreferredOffset : headPreferredOffset;
-            }
+            //Weight the adjustment based on which end of the arc the point is closer to
+            float relativePosition = point.z / arcLength;
+            point.y += Mathf.Lerp(headPreferredOffset, tailPreferredOffset, relativePosition);
 
             points[i] = point;
         }
