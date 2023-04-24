@@ -317,80 +317,6 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    public static async Task<List<Difficulty>> GetDifficultiesAsync(BeatmapInfo info, string directory)
-    {
-        return await LoadDiffsAsync(info, directory, null);
-    }
-
-
-    public static async Task<List<Difficulty>> GetDifficultiesAsync(BeatmapInfo info, ZipArchive archive)
-    {
-        return await LoadDiffsAsync(info, null, archive);
-    }
-
-
-    private static async Task<List<Difficulty>> LoadDiffsAsync(BeatmapInfo info, string directory = null, ZipArchive archive = null)
-    {
-        List<Difficulty> difficulties = new List<Difficulty>();
-
-        foreach(DifficultyBeatmapSet set in info._difficultyBeatmapSets)
-        {
-            string characteristicName = set._beatmapCharacteristicName;
-
-            if(set._difficultyBeatmaps.Length == 0)
-            {
-                Debug.LogWarning($"{characteristicName} lists no difficulties!");
-                continue;
-            }
-
-            DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
-
-            int diffCount = 0;
-            foreach(DifficultyBeatmap beatmap in set._difficultyBeatmaps)
-            {
-                LoadingMessage = $"Loading {beatmap._beatmapFilename}";
-                Debug.Log($"Loading {beatmap._beatmapFilename}");
-
-                //Yielding is a dumb and inconsistent way of allowing the loading text to update
-                await Task.Yield();
-                Difficulty newDifficulty = await LoadDiffAsync(beatmap, setCharacteristic, directory, archive);
-                if(newDifficulty == null) continue;
-
-                difficulties.Add(newDifficulty);
-                diffCount++;
-            }
-            Debug.Log($"Finished loading {diffCount} difficulties in characteristic {characteristicName}.");
-        }
-
-        return difficulties;
-    }
-
-
-    public static async Task<Difficulty> LoadDiffAsync(DifficultyBeatmap beatmap, DifficultyCharacteristic characteristic, string directory = null, ZipArchive archive = null)
-    {
-        Difficulty difficulty;
-        if(!string.IsNullOrEmpty(directory))
-        {
-            difficulty = await JsonReader.LoadDifficultyAsync(directory, beatmap);
-        }
-        else if(archive != null)
-        {
-            difficulty = ZipReader.GetDifficulty(archive, beatmap);
-        }
-        else difficulty = null;
-
-        if(difficulty == null)
-        {
-            Debug.LogWarning($"Unable to load {beatmap._beatmapFilename}!");
-            return null;
-        }
-
-        difficulty.characteristic = characteristic;
-        difficulty.requirements = beatmap._customData?._requirements ?? new string[0];
-        return difficulty;
-    }
-
-
     public void LoadMapInput(string input)
     {
         if(DialogueHandler.DialogueActive)
@@ -470,6 +396,15 @@ public class MapLoader : MonoBehaviour
         StartCoroutine(LoadMapDirectoryCoroutine(input));
         HotReloader.loadedMapPath = input;
 #endif
+    }
+
+
+    private struct ScheduledDifficulty
+    {
+        //Just a container for concurrent difficulty loading
+        public DifficultyBeatmap Beatmap;
+        public DifficultyCharacteristic Characteristic;
+        public byte[] diffData;
     }
 }
 

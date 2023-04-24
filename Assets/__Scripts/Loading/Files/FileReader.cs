@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class FileReader : MonoBehaviour
 {
+//Suppress warnings about a lack of await when building for WebGL
+#pragma warning disable 1998
     public static async Task<LoadedMap> LoadMapDirectoryAsync(string directory)
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -45,6 +47,7 @@ public class FileReader : MonoBehaviour
         return new LoadedMap(mapData, coverImageData, song);
 #endif
     }
+#pragma warning restore 1998
 
 
     public static async Task<LoadedMapData> LoadMapDataDirectoryAsync(string directory)
@@ -59,10 +62,8 @@ public class FileReader : MonoBehaviour
             return LoadedMapData.Empty;
         }
 
-        Debug.Log($"Loaded info for {info._songAuthorName} - {info._songName}, mapped by {info._levelAuthorName}");
-
         Debug.Log("Loading difficulties.");
-        List<Difficulty> difficulties = await Task.Run(() => MapLoader.GetDifficultiesAsync(info, directory));
+        List<Difficulty> difficulties = await Task.Run(() => DifficultyLoader.GetDifficultiesAsync(info, directory));
 
         return new LoadedMapData(info, difficulties);
     }

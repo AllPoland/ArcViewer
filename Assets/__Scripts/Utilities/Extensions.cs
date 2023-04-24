@@ -1,3 +1,5 @@
+using System;
+using System.IO.Compression;
 using UnityEngine;
 
 public static class Extensions
@@ -49,5 +51,19 @@ public static class Extensions
     {
         float diff = Mathf.Abs(f - x);
         return diff < 0.00001f;
+    }
+
+
+    public static ZipArchiveEntry GetEntryCaseInsensitive(this ZipArchive archive, string name)
+    {
+        foreach(ZipArchiveEntry entry in archive.Entries)
+        {
+            if(entry.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return entry;
+            }
+        }
+        Debug.LogWarning($"Unable to find zip archive entry {name}!");
+        return null;
     }
 }

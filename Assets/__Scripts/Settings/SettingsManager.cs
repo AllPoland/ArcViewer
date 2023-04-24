@@ -307,7 +307,8 @@ public class Settings
             {"flipanimations", true},
             {"vsync", true},
             {"ssao", true},
-            {"dynamicsoundpriority", true}
+            {"dynamicsoundpriority", true},
+            {"concurrentloading", true}
         },
 
         Ints = new Dictionary<string, int>
