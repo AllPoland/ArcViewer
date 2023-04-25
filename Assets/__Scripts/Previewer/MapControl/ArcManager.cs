@@ -343,6 +343,7 @@ public class Arc : BaseSlider
     public static Arc ArcFromBeatmapSlider(BeatmapSlider a)
     {
         const float defaultControlOffset = 2.5f;
+
         Vector2 headPosition = ObjectManager.CalculateObjectPosition(a.x, a.y, a.customData?.coordinates);
         Vector2 tailPosition = ObjectManager.CalculateObjectPosition(a.tx, a.ty, a.customData?.tailCoordinates);
 
@@ -357,17 +358,20 @@ public class Arc : BaseSlider
         float headBeat = a.b;
         float tailBeat = a.tb;
 
+        if(tailBeat < headBeat)
+        {
+            //Negative duration arcs breaks stuff, flip head and tail so they act like regular arcs
+            (headBeat, tailBeat) = (tailBeat, headBeat);
+            (headPosition, tailPosition) = (tailPosition, headPosition);
+            (headAngle, tailAngle) = (tailAngle, headAngle);
+            (headControlPoint, tailControlPoint) = (tailControlPoint, headControlPoint);
+        }
+
         ArcRotationDirection rotationDirection = ArcRotationDirection.None;
         if(ObjectManager.SamePlaneAngles(headAngle, tailAngle) && a.x == a.tx)
         {
             //If the angles share the same cut plane, account for rotation direction
             rotationDirection = (ArcRotationDirection)Mathf.Clamp(a.m, 0, 2);
-        }
-
-        if(tailBeat < headBeat)
-        {
-            //Negative duration arcs breaks stuff, flip head and tail so they act like regular arcs
-            (headBeat, tailBeat) = (tailBeat, headBeat);
         }
 
         return new Arc
