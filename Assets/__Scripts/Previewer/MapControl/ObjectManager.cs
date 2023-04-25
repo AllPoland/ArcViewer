@@ -286,58 +286,48 @@ public class ObjectManager : MonoBehaviour
 
 
     // only used for loading purposes
-    private class BeatmapSliderHead : BeatmapObject
-    {
-        public int id; // used for pairing back up
-        public int c;
-        public int d;
-        public float mu;
-        public int m;
-        public float StartY;
-        public bool HasAttachment;
-
-        public BeatmapCustomSliderData customData;
-    }
-
-    private class BeatmapSliderTail : BeatmapObject
+    private class BeatmapSliderEnd : BeatmapObject
     {
         public int id; // used for pairing back up
         public int d;
-        public float mu;
         public float StartY;
         public bool HasAttachment;
+        public bool IsTail;
     }
 
 
     public static void LoadMapObjects(BeatmapDifficulty beatmapDifficulty, out List<Note> notes, out List<Bomb> bombs, out List<Chain> chains, out List<Arc> arcs, out List<Wall> walls)
     {
         // split arcs into heads and tails for easier processing
-        List<BeatmapSliderHead> beatmapSliderHeads = new List<BeatmapSliderHead>();
-        List<BeatmapSliderTail> beatmapSliderTails = new List<BeatmapSliderTail>();
+        List<BeatmapSliderEnd> beatmapSliderHeads = new List<BeatmapSliderEnd>();
+        List<BeatmapSliderEnd> beatmapSliderTails = new List<BeatmapSliderEnd>();
         for(int i = 0; i < beatmapDifficulty.sliders.Length; i++)
         {
             BeatmapSlider a = beatmapDifficulty.sliders[i];
-            BeatmapSliderHead head = new BeatmapSliderHead();
+
+            BeatmapSliderEnd head = new BeatmapSliderEnd();
             head.id = i;
             head.b = a.b;
             head.x = a.x;
             head.y = a.y;
-            head.c = a.c;
             head.d = a.d;
-            head.mu = a.mu;
-            head.m = a.m;
-            head.customData = a.customData;
             beatmapSliderHeads.Add(head);
 
-
-            BeatmapSliderTail tail = new BeatmapSliderTail();
+            BeatmapSliderEnd tail = new BeatmapSliderEnd();
             tail.id = i;
             tail.b = a.tb;
             tail.x = a.tx;
             tail.y = a.ty;
             tail.d = a.tc;
-            tail.mu = a.tmu;
             beatmapSliderTails.Add(tail);
+
+            if(a.tb < a.b)
+            {
+                //Swap the head and tail if the head is backwards
+                (head, tail) = (tail, head);
+            }
+            head.IsTail = false;
+            tail.IsTail = true;
         }
 
         List<BeatmapObject> allObjects = new List<BeatmapObject>();
@@ -384,8 +374,7 @@ public class ObjectManager : MonoBehaviour
             List<BeatmapBombNote> bombsOnBeat = sameBeatObjects.OfType<BeatmapBombNote>().ToList();
             List<BeatmapBurstSlider> burstSlidersOnBeat = sameBeatObjects.OfType<BeatmapBurstSlider>().ToList();
             List<BeatmapObstacle> obstaclesOnBeat = sameBeatObjects.OfType<BeatmapObstacle>().ToList();
-            List<BeatmapSliderHead> sliderHeadsOnBeat = sameBeatObjects.OfType<BeatmapSliderHead>().ToList();
-            List<BeatmapSliderTail> sliderTailsOnBeat = sameBeatObjects.OfType<BeatmapSliderTail>().ToList();
+            List<BeatmapSliderEnd> sliderEndsOnBeat = sameBeatObjects.OfType<BeatmapSliderEnd>().ToList();
 
             List<BeatmapObject> notesAndBombs = sameBeatObjects.Where(x => (x is BeatmapColorNote) || (x is BeatmapBombNote)).ToList();
 
@@ -414,17 +403,7 @@ public class ObjectManager : MonoBehaviour
                 }
 
                 // check attachment to arcs
-                foreach(BeatmapSliderHead a in sliderHeadsOnBeat)
-                {
-                    if(!a.HasAttachment && a.x == n.x && n.y == a.y)
-                    {
-                        a.StartY = newNote.StartY;
-                        a.HasAttachment = true;
-                        arcAttachment = true;
-                    }
-                }
-
-                foreach(BeatmapSliderTail a in sliderTailsOnBeat)
+                foreach(BeatmapSliderEnd a in sliderEndsOnBeat)
                 {
                     if(!a.HasAttachment && a.x == n.x && n.y == a.y)
                     {
@@ -462,16 +441,7 @@ public class ObjectManager : MonoBehaviour
                 newBomb.StartY = ((float)NoteManager.GetStartY(b, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
 
                 // check attachment to arcs
-                foreach(BeatmapSliderHead a in sliderHeadsOnBeat)
-                {
-                    if(!a.HasAttachment && a.x == b.x && b.y == a.y)
-                    {
-                        a.StartY = newBomb.StartY;
-                        a.HasAttachment = true;
-                    }
-                }
-
-                foreach(BeatmapSliderTail a in sliderTailsOnBeat)
+                foreach(BeatmapSliderEnd a in sliderEndsOnBeat)
                 {
                     if(!a.HasAttachment && a.x == b.x && b.y == a.y)
                     {
@@ -501,8 +471,8 @@ public class ObjectManager : MonoBehaviour
         beatmapSliderTails = beatmapSliderTails.OrderBy(a => a.id).ToList();
         for(int i = 0; i < beatmapSliderHeads.Count; i++)
         {
-            BeatmapSliderHead head = beatmapSliderHeads[i];
-            BeatmapSliderTail tail = beatmapSliderTails[i];
+            BeatmapSliderEnd head = beatmapSliderHeads[i];
+            BeatmapSliderEnd tail = beatmapSliderTails[i];
 
             Arc newArc = Arc.ArcFromBeatmapSlider(beatmapDifficulty.sliders[i]);
 
