@@ -67,26 +67,26 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public bool CheckInSpawnRange(float beat)
+    public bool CheckInSpawnRange(float time, bool extendBehindCamera = false)
     {
-        float time = TimeManager.TimeFromBeat(beat);
+        float despawnTime = extendBehindCamera ? TimeManager.CurrentTime + BehindCameraTime : TimeManager.CurrentTime;
         return
         (
-            time > TimeManager.CurrentTime &&
+            time > despawnTime &&
             time <= TimeManager.CurrentTime + BeatmapManager.ReactionTime + Instance.moveTime
         );
     }
 
 
-    public bool DurationObjectInSpawnRange(float startBeat, float endBeat)
+    public bool DurationObjectInSpawnRange(float startTime, float endTime, bool extendBehindCamera = true)
     {
-        float startTime = TimeManager.TimeFromBeat(startBeat);
-        float endTime = TimeManager.TimeFromBeat(endBeat) - BehindCameraTime;
+        if(extendBehindCamera)
+        {
+            endTime = endTime - BehindCameraTime;
+        }
 
         bool timeInRange = TimeManager.CurrentTime >= startTime && TimeManager.CurrentTime <= endTime;
-        bool jumpTime = CheckInSpawnRange(startBeat);
-
-        return jumpTime || timeInRange;
+        return timeInRange || CheckInSpawnRange(startTime);
     }
 
 
@@ -253,6 +253,8 @@ public class ObjectManager : MonoBehaviour
     {
         HitSoundManager.ClearScheduledSounds();
 
+        //Always ensure that bpm events are updated first so we don't get false time values on objects
+        TimeManager.UpdateBpmEvents(difficulty);
         LoadMapObjects(difficulty.beatmapDifficulty, out noteManager.Notes, out noteManager.Bombs, out chainManager.Chains, out arcManager.Arcs, out wallManager.Walls);
 
         chainManager.ReloadChains();
@@ -557,7 +559,18 @@ public class ObjectManager : MonoBehaviour
 
 public abstract class MapObject
 {
-    public float Beat;
+    private float _beat;
+    public float Beat
+    {
+        get => _beat;
+        set
+        {
+            _beat = value;
+            Time = TimeManager.TimeFromBeat(_beat);
+        }
+    }
+    public float Time { get; private set; }
+    
     public GameObject Visual;
     public Vector2 Position;
 }
@@ -571,7 +584,18 @@ public abstract class HitSoundEmitter : MapObject
 
 public abstract class BaseSlider : MapObject
 {
+    private float _tailBeat;
+    public float TailBeat
+    {
+        get => _tailBeat;
+        set
+        {
+            _tailBeat = value;
+            TailTime = TimeManager.TimeFromBeat(_tailBeat);
+        }
+    }
+    public float TailTime { get; private set; }
+
     public int Color;
-    public float TailBeat;
     public Vector2 TailPosition;
 }

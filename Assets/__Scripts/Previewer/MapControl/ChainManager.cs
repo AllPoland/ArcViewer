@@ -98,19 +98,16 @@ public class ChainManager : MonoBehaviour
 
     public void UpdateLinkVisual(ChainLink cl)
     {
-        //Calculate the Z position based on time
-        float linkTime = TimeManager.TimeFromBeat(cl.Beat);
-
         float reactionTime = BeatmapManager.ReactionTime;
         float jumpTime = TimeManager.CurrentTime + reactionTime;
 
-        float worldDist = objectManager.GetZPosition(linkTime);
+        float worldDist = objectManager.GetZPosition(cl.Time);
         Vector3 worldPos = new Vector3(cl.Position.x, cl.Position.y, worldDist);
 
         if(objectManager.doMovementAnimation)
         {
             float startY = objectManager.objectFloorOffset;
-            worldPos.y = objectManager.GetObjectY(startY, worldPos.y, linkTime);
+            worldPos.y = objectManager.GetObjectY(startY, worldPos.y, cl.Time);
         }
 
         float angle = cl.Angle;
@@ -118,14 +115,14 @@ public class ChainManager : MonoBehaviour
 
         if(objectManager.doRotationAnimation)
         {
-            if(linkTime > jumpTime)
+            if(cl.Time > jumpTime)
             {
                 //Note is still jumping in
                 angle = 0;
             }
-            else if(linkTime > jumpTime - rotationAnimationLength)
+            else if(cl.Time > jumpTime - rotationAnimationLength)
             {
-                float timeSinceJump = reactionTime - (linkTime - TimeManager.CurrentTime);
+                float timeSinceJump = reactionTime - (cl.Time - TimeManager.CurrentTime);
                 float rotationProgress = timeSinceJump / rotationAnimationLength;
                 float angleDist = Easings.Sine.Out(rotationProgress);
 
@@ -157,7 +154,7 @@ public class ChainManager : MonoBehaviour
 
             if(TimeManager.Playing && SettingsManager.GetFloat("hitsoundvolume") > 0 && SettingsManager.GetFloat("chainvolume") > 0)
             {
-                HitSoundManager.ScheduleHitsound(linkTime, cl.source);
+                HitSoundManager.ScheduleHitsound(cl.Time, cl.source);
             }
 
             RenderedChainLinks.Add(cl);
@@ -204,7 +201,7 @@ public class ChainManager : MonoBehaviour
         for(int i = RenderedChainLinks.Count - 1; i >= 0; i--)
         {
             ChainLink cl = RenderedChainLinks[i];
-            if(!objectManager.CheckInSpawnRange(cl.Beat))
+            if(!objectManager.CheckInSpawnRange(cl.Time))
             {
                 if(cl.source.isPlaying)
                 {
@@ -233,14 +230,14 @@ public class ChainManager : MonoBehaviour
             return;
         }
 
-        int firstLink = ChainLinks.FindIndex(x => objectManager.CheckInSpawnRange(x.Beat));
+        int firstLink = ChainLinks.FindIndex(x => objectManager.CheckInSpawnRange(x.Time));
         if(firstLink >= 0)
         {
             for(int i = firstLink; i < ChainLinks.Count; i++)
             {
                 //Update each link's position
                 ChainLink cl = ChainLinks[i];
-                if(objectManager.CheckInSpawnRange(cl.Beat))
+                if(objectManager.CheckInSpawnRange(cl.Time))
                 {
                     UpdateLinkVisual(cl);
                 }
@@ -256,7 +253,7 @@ public class ChainManager : MonoBehaviour
         {
             if(cl.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0 && SettingsManager.GetFloat("chainvolume") > 0)
             {
-                HitSoundManager.ScheduleHitsound(TimeManager.TimeFromBeat(cl.Beat), cl.source);
+                HitSoundManager.ScheduleHitsound(cl.Time, cl.source);
             }
         }
     }

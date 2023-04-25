@@ -130,13 +130,13 @@ public class TimeManager : MonoBehaviour
     }
 
 
-    public void UpdateInfo(BeatmapInfo info)
+    private void UpdateInfo(BeatmapInfo info)
     {
         OnBeatChanged?.Invoke(CurrentBeat);
     }
 
 
-    public void UpdateDiff(Difficulty diff)
+    public static void UpdateBpmEvents(Difficulty diff)
     {
         BpmChanges.Clear();
 
@@ -186,7 +186,6 @@ public class TimeManager : MonoBehaviour
     private void OnEnable()
     {
         BeatmapManager.OnBeatmapInfoChanged += UpdateInfo;
-        BeatmapManager.OnBeatmapDifficultyChanged += UpdateDiff;
         UIStateManager.OnUIStateChanged += UpdateUIState;
     }
 
@@ -194,7 +193,6 @@ public class TimeManager : MonoBehaviour
     private void OnDisable()
     {
         BeatmapManager.OnBeatmapInfoChanged -= UpdateInfo;
-        BeatmapManager.OnBeatmapDifficultyChanged -= UpdateDiff;
         UIStateManager.OnUIStateChanged -= UpdateUIState;
     }
 }

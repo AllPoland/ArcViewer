@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -133,9 +132,7 @@ public class ArcManager : MonoBehaviour
 
     public static Vector3[] GetArcBaseCurve(Arc a)
     {
-        float startTime = TimeManager.TimeFromBeat(a.Beat);
-        float endTime = TimeManager.TimeFromBeat(a.TailBeat);
-        float duration = endTime - startTime;
+        float duration = Mathf.Abs(a.TailTime - a.Time);
         float length = objectManager.WorldSpaceFromTime(duration);
 
         Vector3 p0 = new Vector3(a.Position.x, a.Position.y, 0);
@@ -181,12 +178,12 @@ public class ArcManager : MonoBehaviour
 
             //Get the preferred offset based on distance from the head
             float headDist = point.z / JD;
-            float headT = 1 - Easings.Cubic.Out(Mathf.Clamp(headDist, 0, 1));
+            float headT = 1 - Easings.Quad.Out(Mathf.Clamp(headDist, 0, 1));
             float headPreferredOffset = headOffsetY * headT;
 
             //Get the preferred offset based on distance from the tail
             float tailDist = (arcLength - point.z) / JD;
-            float tailT = 1 - Easings.Cubic.Out(Mathf.Clamp(tailDist, 0, 1));
+            float tailT = 1 - Easings.Quad.Out(Mathf.Clamp(tailDist, 0, 1));
             float tailPreferredOffset = tailOffsetY * tailT;
 
             //Weight the adjustment based on which end of the arc the point is closer to
@@ -202,9 +199,7 @@ public class ArcManager : MonoBehaviour
 
     public void UpdateArcVisual(Arc a)
     {
-        float arcTime = TimeManager.TimeFromBeat(a.Beat);
-
-        float zDist = objectManager.GetZPosition(arcTime);
+        float zDist = objectManager.GetZPosition(a.Time);
 
         if(a.Visual == null)
         {
@@ -223,8 +218,8 @@ public class ArcManager : MonoBehaviour
 
         if(objectManager.doMovementAnimation)
         {
-            float headOffsetY = objectManager.GetObjectY(a.HeadStartY, a.Position.y, TimeManager.TimeFromBeat(a.Beat)) - a.Position.y;
-            float tailOffsetY = objectManager.GetObjectY(a.TailStartY, a.TailPosition.y, TimeManager.TimeFromBeat(a.TailBeat)) - a.TailPosition.y;
+            float headOffsetY = objectManager.GetObjectY(a.HeadStartY, a.Position.y, a.Time) - a.Position.y;
+            float tailOffsetY = objectManager.GetObjectY(a.TailStartY, a.TailPosition.y, a.TailTime) - a.TailPosition.y;
 
             a.arcHandler.SetArcPoints(GetArcSpawnAnimationOffset(a.BaseCurve, headOffsetY, tailOffsetY)); // arc visuals get reset on settings change, so fine to only update in here
         }
@@ -250,7 +245,7 @@ public class ArcManager : MonoBehaviour
         for(int i = RenderedArcs.Count - 1; i >= 0; i--)
         {
             Arc a = RenderedArcs[i];
-            if(!objectManager.DurationObjectInSpawnRange(a.Beat, a.TailBeat))
+            if(!objectManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false))
             {
                 ReleaseArc(a);
                 RenderedArcs.Remove(a);
@@ -268,14 +263,14 @@ public class ArcManager : MonoBehaviour
             return;
         }
 
-        int firstArc = Arcs.FindIndex(x => objectManager.DurationObjectInSpawnRange(x.Beat, x.TailBeat));
+        int firstArc = Arcs.FindIndex(x => objectManager.DurationObjectInSpawnRange(x.Time, x.TailTime, false));
         if(firstArc >= 0)
         {
             float lastBeat = 0;
             for(int i = firstArc; i < Arcs.Count; i++)
             {
                 Arc a = Arcs[i];
-                if(objectManager.DurationObjectInSpawnRange(a.Beat, a.TailBeat))
+                if(objectManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false))
                 {
                     UpdateArcVisual(a);
                     lastBeat = a.TailBeat;
