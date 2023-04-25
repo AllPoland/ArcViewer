@@ -305,27 +305,35 @@ public class ObjectManager : MonoBehaviour
         {
             BeatmapSlider a = beatmapDifficulty.sliders[i];
 
-            BeatmapSliderEnd head = new BeatmapSliderEnd();
-            head.id = i;
-            head.b = a.b;
-            head.x = a.x;
-            head.y = a.y;
-            head.d = a.d;
+            BeatmapSliderEnd head = new BeatmapSliderEnd
+            {
+                id = i,
+                b = a.b,
+                x = a.x,
+                y = a.y,
+                d = a.d,
+                HasAttachment = false
+            };
             beatmapSliderHeads.Add(head);
 
-            BeatmapSliderEnd tail = new BeatmapSliderEnd();
-            tail.id = i;
-            tail.b = a.tb;
-            tail.x = a.tx;
-            tail.y = a.ty;
-            tail.d = a.tc;
+            BeatmapSliderEnd tail = new BeatmapSliderEnd
+            {
+                id = i,
+                b = a.tb,
+                x = a.tx,
+                y = a.ty,
+                d = a.tc,
+                HasAttachment = false
+            };
             beatmapSliderTails.Add(tail);
 
             if(a.tb < a.b)
             {
-                //Swap the head and tail if the head is backwards
+                //Swap the head and tail if the arc is backwards
                 (head, tail) = (tail, head);
             }
+
+            //Assign this late in case the swap happens
             head.IsTail = false;
             tail.IsTail = true;
         }
@@ -350,23 +358,20 @@ public class ObjectManager : MonoBehaviour
         {
             BeatmapObject current = allObjects[i];
 
-            if(sameBeatObjects.Count == 0 || !CheckSameBeat(current.b, sameBeatObjects[0].b))
-            {
-                //This object doesn't share the same beat with the previous objects
-                sameBeatObjects.Clear();
+            sameBeatObjects.Clear();
+            sameBeatObjects.Add(current);
 
-                for(int x = i; x < allObjects.Count; x++)
+            for(int x = i + 1; x < allObjects.Count; x++)
+            {
+                //Gather all consecutive objects that share the same beat
+                BeatmapObject check = allObjects[x];
+                if(CheckSameBeat(check.b, current.b))
                 {
-                    //Gather all consecutive objects that share the same beat
-                    BeatmapObject check = allObjects[x];
-                    if(CheckSameBeat(check.b, current.b))
-                    {
-                        sameBeatObjects.Add(check);
-                        //Skip to the first object that doesn't share this beat next loop
-                        i = x;
-                    }
-                    else break;
+                    sameBeatObjects.Add(check);
+                    //Skip to the first object that doesn't share this beat next loop
+                    i = x;
                 }
+                else break;
             }
 
             //Precalculate values for all objects on this beat
