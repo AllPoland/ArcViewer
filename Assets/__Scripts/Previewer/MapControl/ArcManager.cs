@@ -12,8 +12,9 @@ public class ArcManager : MonoBehaviour
     [SerializeField] private ObjectPool arcPool;
     [SerializeField] private GameObject arcParent;
 
-    [SerializeField] private Material redArcMaterial;
-    [SerializeField] private Material blueArcMaterial;
+    [SerializeField] private Material arcMaterial;
+    [SerializeField] private Color redArcColor;
+    [SerializeField] private Color blueArcColor;
 
     [SerializeField] private float arcEndFadeLength;
     [SerializeField] private float arcFadeTransitionLength;
@@ -21,7 +22,8 @@ public class ArcManager : MonoBehaviour
 
     private static ObjectManager objectManager;
 
-    private MaterialPropertyBlock arcMaterialProperties;
+    private MaterialPropertyBlock redArcMaterialProperties;
+    private MaterialPropertyBlock blueArcMaterialProperties;
 
 
     public void ReloadArcs()
@@ -42,9 +44,23 @@ public class ArcManager : MonoBehaviour
         float fadeDist = BeatmapManager.JumpDistance / 2 * fadeDistMultiplier;
         float closeFadeDist = SettingsManager.GetFloat("cameraposition") + arcCloseFadeDist;
 
-        arcMaterialProperties.SetFloat("_FadeStartPoint", closeFadeDist);
-        arcMaterialProperties.SetFloat("_FadeEndPoint", fadeDist);
-        arcMaterialProperties.SetFloat("_FadeTransitionLength", arcFadeTransitionLength);
+        redArcMaterialProperties.SetFloat("_FadeStartPoint", closeFadeDist);
+        redArcMaterialProperties.SetFloat("_FadeEndPoint", fadeDist);
+        redArcMaterialProperties.SetFloat("_FadeTransitionLength", arcFadeTransitionLength);
+
+        blueArcMaterialProperties.SetFloat("_FadeStartPoint", closeFadeDist);
+        blueArcMaterialProperties.SetFloat("_FadeEndPoint", fadeDist);
+        blueArcMaterialProperties.SetFloat("_FadeTransitionLength", arcFadeTransitionLength);
+
+        Color redColor = redArcColor;
+        Color blueColor = blueArcColor;
+
+        float alpha = SettingsManager.GetFloat("arcbrightness");
+        redColor.a = alpha;
+        blueColor.a = alpha;
+
+        redArcMaterialProperties.SetColor("_BaseColor", redColor);
+        blueArcMaterialProperties.SetColor("_BaseColor", blueColor);
 
         UpdateArcVisuals(TimeManager.CurrentBeat);
     }
@@ -225,7 +241,7 @@ public class ArcManager : MonoBehaviour
             a.Visual.SetActive(true);
 
             a.arcHandler = a.Visual.GetComponent<ArcHandler>();
-            a.arcHandler.SetMaterial(a.Color == 0 ? redArcMaterial : blueArcMaterial, arcMaterialProperties);
+            a.arcHandler.SetMaterial(arcMaterial, a.Color == 0 ? redArcMaterialProperties : blueArcMaterialProperties);
 
             a.CalculateBaseCurve();
             a.arcHandler.SetArcPoints(a.BaseCurve);
@@ -322,7 +338,8 @@ public class ArcManager : MonoBehaviour
 
     private void Awake()
     {
-        arcMaterialProperties = new MaterialPropertyBlock();
+        redArcMaterialProperties = new MaterialPropertyBlock();
+        blueArcMaterialProperties = new MaterialPropertyBlock();
     }
 
 
