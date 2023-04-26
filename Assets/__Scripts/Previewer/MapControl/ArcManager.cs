@@ -14,8 +14,8 @@ public class ArcManager : MonoBehaviour
 
     [SerializeField] private Material redArcMaterial;
     [SerializeField] private Material blueArcMaterial;
-    [SerializeField] private Material arcCenterMaterial;
 
+    [SerializeField] private float arcEndFadeLength;
     [SerializeField] private float arcFadeTransitionLength;
     [SerializeField] private float arcCloseFadeDist;
 
@@ -163,6 +163,23 @@ public class ArcManager : MonoBehaviour
     }
 
 
+    public static float GetCurveLength(Vector3[] curve)
+    {
+        if(curve.Length <= 1)
+        {
+            //When there's only one point the curve has no length
+            return 0;
+        }
+
+        float length = 0;
+        for(int i = 1; i < curve.Length; i++)
+        {
+            length += (curve[i - 1] - curve[i]).magnitude;
+        }
+        return length;
+    }
+
+
     public static Vector3[] GetArcSpawnAnimationOffset(Vector3[] baseCurve, float headOffsetY, float tailOffsetY)
     {
         if(baseCurve.Length == 0) return baseCurve;
@@ -208,10 +225,11 @@ public class ArcManager : MonoBehaviour
             a.Visual.SetActive(true);
 
             a.arcHandler = a.Visual.GetComponent<ArcHandler>();
-            a.arcHandler.SetMaterial(a.Color == 0 ? redArcMaterial : blueArcMaterial, arcCenterMaterial, arcMaterialProperties);
+            a.arcHandler.SetMaterial(a.Color == 0 ? redArcMaterial : blueArcMaterial, arcMaterialProperties);
 
             a.CalculateBaseCurve();
             a.arcHandler.SetArcPoints(a.BaseCurve);
+            a.arcHandler.SetGradient(a.CurveLength, arcEndFadeLength);
 
             RenderedArcs.Add(a);
         }
@@ -317,10 +335,11 @@ public class ArcManager : MonoBehaviour
 
 public class Arc : BaseSlider
 {
-    public Vector3[] BaseCurve;
+    public Vector3[] BaseCurve { get; private set; }
+    public float CurveLength { get; private set; }
     public Vector2 HeadControlPoint;
     public Vector2 TailControlPoint;
-    public float HeadAngle; //Used solely for rotation direction calculation
+    public float HeadAngle;
     public bool HeadDot;
     public float HeadStartY;
     public float TailStartY;
@@ -332,6 +351,7 @@ public class Arc : BaseSlider
     public void CalculateBaseCurve()
     {
         BaseCurve = ArcManager.GetArcBaseCurve(this);
+        CurveLength = ArcManager.GetCurveLength(BaseCurve);
     }
 
 
