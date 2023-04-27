@@ -12,12 +12,13 @@ public class ArcHandler : MonoBehaviour
     }
 
 
-    public void SetGradient(float curveLength, float endFadeLength)
+    public void SetGradient(float curveLength, float endFadeStart, float endFadeLength)
     {
         //Sets the alpha gradient of the linerenderer to make the end fades consistent
         //Needed since gradients are based on percentage of length, not actual distance,
         //so longer arcs would have a longer fade at the end without this
-        float ratio = endFadeLength / curveLength;
+        float fadeStart = endFadeStart / curveLength;
+        float fadeEnd = endFadeLength / curveLength;
 
         Gradient gradient = new Gradient();
         gradient.SetKeys(
@@ -27,10 +28,10 @@ public class ArcHandler : MonoBehaviour
             },
             new GradientAlphaKey[]
             {
-                new GradientAlphaKey(0f, 0f),
-                new GradientAlphaKey(1f, ratio),
-                new GradientAlphaKey(1f, 1f - ratio),
-                new GradientAlphaKey(0f, 1f)
+                new GradientAlphaKey(0f, fadeStart),
+                new GradientAlphaKey(1f, fadeEnd),
+                new GradientAlphaKey(1f, 1f - fadeEnd),
+                new GradientAlphaKey(0f, 1f - fadeStart)
             }
         );
         lineRenderer.colorGradient = gradient;

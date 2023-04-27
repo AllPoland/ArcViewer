@@ -16,7 +16,8 @@ public class ArcManager : MonoBehaviour
     [SerializeField] private Color redArcColor;
     [SerializeField] private Color blueArcColor;
 
-    [SerializeField] private float arcEndFadeLength;
+    [SerializeField] private float arcEndFadeStart;
+    [SerializeField] private float arcEndFadeEnd;
     [SerializeField] private float arcFadeTransitionLength;
     [SerializeField] private float arcCloseFadeDist;
 
@@ -245,7 +246,7 @@ public class ArcManager : MonoBehaviour
 
             a.CalculateBaseCurve();
             a.arcHandler.SetArcPoints(a.BaseCurve);
-            a.arcHandler.SetGradient(a.CurveLength, arcEndFadeLength);
+            a.arcHandler.SetGradient(a.CurveLength, arcEndFadeStart, arcEndFadeEnd);
 
             RenderedArcs.Add(a);
         }
