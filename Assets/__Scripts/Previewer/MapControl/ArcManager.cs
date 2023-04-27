@@ -280,7 +280,7 @@ public class ArcManager : MonoBehaviour
         for(int i = RenderedArcs.Count - 1; i >= 0; i--)
         {
             Arc a = RenderedArcs[i];
-            if(!objectManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false))
+            if(!objectManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false, false))
             {
                 ReleaseArc(a);
                 RenderedArcs.Remove(a);
@@ -298,14 +298,14 @@ public class ArcManager : MonoBehaviour
             return;
         }
 
-        int firstArc = Arcs.FindIndex(x => objectManager.DurationObjectInSpawnRange(x.Time, x.TailTime, false));
+        int firstArc = Arcs.FindIndex(x => objectManager.DurationObjectInSpawnRange(x.Time, x.TailTime, false, false));
         if(firstArc >= 0)
         {
             float lastBeat = 0;
             for(int i = firstArc; i < Arcs.Count; i++)
             {
                 Arc a = Arcs[i];
-                if(objectManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false))
+                if(objectManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false, false))
                 {
                     UpdateArcVisual(a);
                     lastBeat = a.TailBeat;

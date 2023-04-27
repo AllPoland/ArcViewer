@@ -67,18 +67,20 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public bool CheckInSpawnRange(float time, bool extendBehindCamera = false)
+    public bool CheckInSpawnRange(float time, bool extendBehindCamera = false, bool includeMoveTime = true)
     {
         float despawnTime = extendBehindCamera ? TimeManager.CurrentTime + BehindCameraTime : TimeManager.CurrentTime;
-        return
-        (
-            time > despawnTime &&
-            time <= TimeManager.CurrentTime + BeatmapManager.ReactionTime + Instance.moveTime
-        );
+        float spawnTime = TimeManager.CurrentTime + BeatmapManager.ReactionTime;
+        if(includeMoveTime)
+        {
+            spawnTime += Instance.moveTime;
+        }
+
+        return time <= spawnTime && time > despawnTime;
     }
 
 
-    public bool DurationObjectInSpawnRange(float startTime, float endTime, bool extendBehindCamera = true)
+    public bool DurationObjectInSpawnRange(float startTime, float endTime, bool extendBehindCamera = true, bool includeMoveTime = true)
     {
         if(extendBehindCamera)
         {
@@ -86,7 +88,7 @@ public class ObjectManager : MonoBehaviour
         }
 
         bool timeInRange = TimeManager.CurrentTime >= startTime && TimeManager.CurrentTime <= endTime;
-        return timeInRange || CheckInSpawnRange(startTime);
+        return timeInRange || CheckInSpawnRange(startTime, extendBehindCamera, includeMoveTime);
     }
 
 
