@@ -81,7 +81,8 @@ public class AudioFileHandler
             return null;
         }
 
-        AudioType type = await GetAudioTypeFromFile(filename, directory);
+        string fileString = string.IsNullOrEmpty(filename) ? directory : filename;
+        AudioType type = await GetAudioTypeFromFile(fileString, directory);
         Debug.Log($"Loading audio file with type of {type}.");
         return await GetAudioFromFile(directory, type);
     }
