@@ -33,7 +33,7 @@ public class FullscreenButton : MonoBehaviour, IPointerDownHandler
             preferredWindowWidth = Screen.width;
             preferredWindowHeight = Screen.height;
 
-            Screen.SetResolution(Screen.currentResolution.width, Screen.currentResolution.height, FullScreenMode.MaximizedWindow);
+            Screen.SetResolution(Screen.currentResolution.width, Screen.currentResolution.height, FullScreenMode.FullScreenWindow);
         }
         else
         {
