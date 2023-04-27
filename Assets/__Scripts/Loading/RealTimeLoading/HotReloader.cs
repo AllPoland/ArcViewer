@@ -40,43 +40,18 @@ public class HotReloader : MonoBehaviour
         Loading = true;
 
         //Reloading should only load the info and difficulties, to maximise speed
-        Debug.Log("Loading Info.dat.");
-        BeatmapInfo info = null;
-        using(Task<BeatmapInfo> infoTask = Task.Run(() => MapLoader.LoadInfoAsync(loadedMapPath)))
-        {
-            yield return new WaitUntil(() => infoTask.IsCompleted);
-            info = infoTask.Result;
-        }
+        using Task<LoadedMapData> loadingTask = Task.Run(() => FileReader.LoadMapDataDirectoryAsync(loadedMapPath));
+        yield return new WaitUntil(() => loadingTask.IsCompleted);
+        LoadedMapData mapData = loadingTask.Result;
 
-        if(info == null)
+        if(mapData.Info == null || mapData.Difficulties == null || mapData.Difficulties.Count == 0)
         {
-            //Failed to load info
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to load Info.dat!");
-            Debug.LogWarning("Failed to load Info.dat!");
-
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to reload map!");
             CancelLoading();
             yield break;
         }
 
-        Debug.Log("Loading difficulties.");
-        List<Difficulty> difficulties = new List<Difficulty>();
-        using(Task<List<Difficulty>> diffTask = Task.Run(() => MapLoader.LoadDiffsAsync(loadedMapPath, info)))
-        {
-            yield return new WaitUntil(() => diffTask.IsCompleted);
-            difficulties = diffTask.Result;
-        }
-
-        if(difficulties.Count == 0)
-        {
-            //Failed to load difficulties (or the map just has none, in either case, don't replace the loaded map)
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to load map difficulties!");
-            Debug.LogWarning("Failed to load difficulties!");
-
-            CancelLoading();
-            yield break;
-        }
-
-        UpdateMap(info, difficulties);
+        UpdateMap(mapData);
 
         Loading = false;
     }
@@ -107,55 +82,32 @@ public class HotReloader : MonoBehaviour
             yield break;
         }
 
-        Debug.Log("Loading Info.dat.");
-        BeatmapInfo info = null;
-        using(Task<BeatmapInfo> infoTask = Task.Run(() => ZipReader.GetInfoData(mapZipArchive)))
-        {
-            yield return new WaitUntil(() => infoTask.IsCompleted);
-            info = infoTask.Result;
-        }
+        using Task<LoadedMapData> loadingTask = Task.Run(() => ZipReader.MapDataFromZipArchiveAsync(mapZipArchive));
+        yield return new WaitUntil(() => loadingTask.IsCompleted);
+        LoadedMapData mapData = loadingTask.Result;
 
-        if(info == null)
+        if(mapData.Info == null || mapData.Difficulties == null || mapData.Difficulties.Count == 0)
         {
-            //Errors are logged in ZipReader.GetInfoData
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to reload map!");
             CancelLoading();
             yield break;
         }
 
-        Debug.Log("Loading difficulties.");
-        List<Difficulty> difficulties = new List<Difficulty>();
-        using(Task<List<Difficulty>> diffTask = Task.Run(() =>
-            ZipReader.GetDifficultiesAsync(info._difficultyBeatmapSets, mapZipArchive)))
-        {
-            yield return new WaitUntil(() => diffTask.IsCompleted);
-            difficulties = diffTask.Result;
-        }
-
-        if(difficulties.Count == 0)
-        {
-            //Failed to load difficulties (or the map just has none, in either case, don't replace the loaded map)
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to load map difficulties!");
-            Debug.LogWarning("Failed to load difficulties!");
-
-            CancelLoading();
-            yield break;
-        }
-
-        UpdateMap(info, difficulties);
+        UpdateMap(mapData);
         DisposeZip();
 
         Loading = false;
     }
 
 
-    private void UpdateMap(BeatmapInfo info, List<Difficulty> difficulties)
+    private void UpdateMap(LoadedMapData mapData)
     {
         Difficulty currentDiff = BeatmapManager.CurrentDifficulty;
         DifficultyCharacteristic currentCharacteristic = currentDiff.characteristic;
         DifficultyRank currentRank = currentDiff.difficultyRank;
 
-        BeatmapManager.Info = info;
-        BeatmapManager.Difficulties = difficulties;
+        BeatmapManager.Info = mapData.Info;
+        BeatmapManager.Difficulties = mapData.Difficulties;
 
         //Set the difficulty to the one matching the current characteristic and rank
         List<Difficulty> characteristicDiffs = BeatmapManager.GetDifficultiesByCharacteristic(currentCharacteristic);

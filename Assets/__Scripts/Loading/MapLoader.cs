@@ -52,83 +52,14 @@ public class MapLoader : MonoBehaviour
 #else
         Loading = true;
 
-        Debug.Log("Loading info.");
-        LoadingMessage = "Loading Info.dat";
-        using Task<BeatmapInfo> infoTask = Task.Run(() => LoadInfoAsync(directory));
-
-        yield return new WaitUntil(() => infoTask.IsCompleted);
-        BeatmapInfo info = infoTask.Result;
-
-        if(info == null)
-        {
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Unable to load Info.dat!");
-            UpdateMapInfo(LoadedMap.Empty);
-            yield break;
-        }
-
-        Debug.Log("Loading difficulties.");
-        using Task<List<Difficulty>> diffTask = Task.Run(() => LoadDiffsAsync(directory, info));
-        
-        yield return new WaitUntil(() => diffTask.IsCompleted);
-        List<Difficulty> difficulties = diffTask.Result;
-
-        LoadingMessage = "Loading song";
-        string audioDirectory = Path.Combine(directory, info._songFilename);
-        AudioClip song = null;
-        if(File.Exists(audioDirectory))
-        {
-            using Task<AudioType> typeTask = AudioFileHandler.GetAudioTypeFromFile(audioDirectory);
-            yield return new WaitUntil(() => typeTask.IsCompleted);
-
-            AudioType type = typeTask.Result;
-            Debug.Log($"Loading audio file with type of {type}.");
-
-            using Task<AudioClip> audioTask = AudioFileHandler.GetAudioFromFile(audioDirectory, type);
-            yield return new WaitUntil(() => audioTask.IsCompleted);
-
-            song = audioTask.Result;
-        }
-        else
-        {
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Unable to load audio file!");
-            Debug.LogWarning("Song file not found!");
-
-            UpdateMapInfo(LoadedMap.Empty);
-            yield break;
-        }
-
-        if(song == null)
-        {
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Unable to load audio file!");
-            Debug.LogWarning("Song file not found!");
-
-            UpdateMapInfo(LoadedMap.Empty);
-            yield break;
-        }
-
-        Debug.Log("Loading cover image.");
-        LoadingMessage = "Loading cover image";
-
-        using Task<Stream> coverImageTask = Task.Run(() => FileUtil.ReadFileData(Path.Combine(directory, info._coverImageFilename)));
-        yield return new WaitUntil(() => coverImageTask.IsCompleted);
-        Stream coverImageStream = coverImageTask.IsCompletedSuccessfully ? coverImageTask.Result : null;
-
-        byte[] coverImageData = new byte[0];
-        if(coverImageStream == null)
-        {
-            ErrorHandler.Instance.ShowPopup(ErrorType.Warning, "Cover image not found!");
-            Debug.Log($"Didn't find image file {info._coverImageFilename}!");
-        }
-        else
-        {
-            coverImageData = FileUtil.StreamToBytes(coverImageStream);
-            coverImageStream.Dispose();
-        }
+        using Task<LoadedMap> loadingTask = FileReader.LoadMapDirectoryAsync(directory);
+        yield return new WaitUntil(() => loadingTask.IsCompleted);
+        LoadedMap mapData = loadingTask.Result;
 
         Debug.Log("Loading complete.");
         LoadingMessage = "Done";
 
-        UpdateMapInfo(new LoadedMap(info, difficulties, coverImageData, song));
+        UpdateMapInfo(mapData);
 #endif
     }
 
@@ -138,104 +69,19 @@ public class MapLoader : MonoBehaviour
         Debug.Log("Loading map zip.");
         LoadingMessage = "Loading map zip";
 
-#if !UNITY_WEBGL || UNITY_EDITOR
-        using Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> loadZipTask = Task.Run(() => ZipReader.GetMapFromZipArchiveAsync(archive));
-#else
-        using Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> loadZipTask = ZipReader.GetMapFromZipArchiveAsync(archive);
-#endif
-
+        using Task<LoadedMap> loadZipTask = ZipReader.MapFromZipArchiveAsync(archive);
         yield return new WaitUntil(() => loadZipTask.IsCompleted);
-        var result = loadZipTask.Result;
-        BeatmapInfo info = result.Item1;
-        List<Difficulty> difficulties = result.Item2;
-        MemoryStream songData = result.Item3;
-        byte[] coverImageData = result.Item4;
-
-        loadZipTask.Dispose();
-
-        if(info == null)
-        {
-            DisposeZip();
-
-            UpdateMapInfo(LoadedMap.Empty);
-            yield break;
-        }
-
-        if(songData == null)
-        {
-            DisposeZip();
-
-            UpdateMapInfo(LoadedMap.Empty);
-            yield break;
-        }
-
-        LoadingMessage = "Loading song";
-
-#if !UNITY_WEBGL || UNITY_EDITOR
-        //Write song data to a tempfile so it can be loaded through a uwr
-        using TempFile songFile = new TempFile();
-        using(Task writeTask = File.WriteAllBytesAsync(songFile.Path, songData.ToArray()))
-        {
-            yield return new WaitUntil(() => writeTask.IsCompleted);
-        }
-
-        AudioClip song = null;
-        if(File.Exists(songFile.Path))
-        {
-            using Task<AudioType> typeTask = AudioFileHandler.GetAudioTypeFromFile(info._songFilename, songFile.Path);
-            yield return new WaitUntil(() => typeTask.IsCompleted);
-
-            AudioType type = typeTask.Result;
-            Debug.Log($"Loading audio file with type of {type}.");
-
-            Task<AudioClip> audioTask = AudioFileHandler.GetAudioFromFile(songFile.Path, type);
-            yield return new WaitUntil(() => audioTask.IsCompleted);
-
-            song = audioTask.Result;
-            audioTask.Dispose();
-        }
-        else
-        {
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Unable to load audio file!");
-            Debug.LogWarning("Song file not found!");
-
-            DisposeZip();
-
-            UpdateMapInfo(LoadedMap.Empty);
-            yield break;
-        }
-#else
-        Debug.Log("Loading audio file.");
-        WebAudioClip song = null;
-        using(Task<WebAudioClip> audioTask = AudioFileHandler.WebAudioClipFromStream(songData))
-        {
-            yield return new WaitUntil(() => audioTask.IsCompleted);
-
-            song = audioTask.Result;
-        }
-#endif
-
-        if(song == null)
-        {
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Unable to load audio file!");
-            Debug.LogWarning("Failed to load AudioClip!");
-
-            DisposeZip();
-
-            UpdateMapInfo(LoadedMap.Empty);
-            yield break;
-        }
+        LoadedMap mapData = loadZipTask.Result;
 
         Debug.Log("Loading complete.");
         LoadingMessage = "Done";
 
         DisposeZip();
-        UpdateMapInfo(new LoadedMap(info, difficulties, coverImageData, song));
+        UpdateMapInfo(mapData);
 
         void DisposeZip()
         {
             zipStream?.Dispose();
-            songData?.Dispose();
             archive?.Dispose();
         }
     }
@@ -471,62 +317,7 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    public static async Task<BeatmapInfo> LoadInfoAsync(string directory)
-    {
-        string infoPath = Path.Combine(directory, "Info.dat");
-
-        BeatmapInfo info = await JsonReader.LoadInfoAsync(infoPath);
-        if(info == null) return null;
-
-        Debug.Log($"Loaded info for {info._songAuthorName} - {info._songName}, mapped by {info._levelAuthorName}");
-        return info;
-    }
-
-
-    public static async Task<List<Difficulty>> LoadDiffsAsync(string directory, BeatmapInfo info)
-    {
-        List<Difficulty> difficulties = new List<Difficulty>();
-
-        foreach(DifficultyBeatmapSet set in info._difficultyBeatmapSets)
-        {
-            string characteristicName = set._beatmapCharacteristicName;
-
-            if(set._difficultyBeatmaps.Length == 0)
-            {
-                Debug.LogWarning($"{characteristicName} lists no difficulties!");
-                continue;
-            }
-
-            DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
-            
-            List<Difficulty> newDifficulties = new List<Difficulty>();
-            foreach(DifficultyBeatmap beatmap in set._difficultyBeatmaps)
-            {
-                LoadingMessage = $"Loading {beatmap._beatmapFilename}";
-                Debug.Log($"Loading {beatmap._beatmapFilename}");
-
-                Difficulty diff = await JsonReader.LoadDifficultyAsync(directory, beatmap);
-                if(diff == null)
-                {
-                    Debug.LogWarning($"Unable to load {beatmap._beatmapFilename}!");
-                    continue;
-                }
-
-                diff.characteristic = setCharacteristic;
-                diff.requirements = beatmap._customData?._requirements ?? new string[0];
-
-                newDifficulties.Add(diff);
-            }
-
-            difficulties.AddRange(newDifficulties);
-            Debug.Log($"Finished loading {newDifficulties.Count} difficulties in characteristic {characteristicName}.");
-        }
-
-        return difficulties;
-    }
-
-
-    public void LoadMapDirectory(string mapDirectory)
+    public void LoadMapInput(string input)
     {
         if(DialogueHandler.DialogueActive)
         {
@@ -542,29 +333,29 @@ public class MapLoader : MonoBehaviour
 
         HotReloader.loadedMapPath = null;
 
-        if(mapDirectory.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        if(input.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
-            if(mapDirectory.Contains("beatsaver.com/maps"))
+            if(input.Contains("beatsaver.com/maps"))
             {
                 //Direct beatsaver link, should load based on ID instead
-                string ID = mapDirectory.Split("/").Last();
+                string ID = input.Split("/").Last();
                 StartCoroutine(LoadMapIDCoroutine(ID));
 
                 UrlArgHandler.LoadedMapID = ID;
                 return;
             }
 
-            StartCoroutine(LoadMapURLCoroutine(mapDirectory));
-            UrlArgHandler.LoadedMapURL = mapDirectory;
+            StartCoroutine(LoadMapURLCoroutine(input));
+            UrlArgHandler.LoadedMapURL = input;
             return;
         }
 
         const string IDchars = "0123456789abcdef";
         //If the directory doesn't contain any characters that aren't hexadecimal, that means it's probably an ID
-        if(!mapDirectory.Any(x => !IDchars.Contains(x)))
+        if(!input.Any(x => !IDchars.Contains(x)))
         {
-            StartCoroutine(LoadMapIDCoroutine(mapDirectory));
-            UrlArgHandler.LoadedMapID = mapDirectory;
+            StartCoroutine(LoadMapIDCoroutine(input));
+            UrlArgHandler.LoadedMapID = input;
             return;
         }
 
@@ -574,37 +365,46 @@ public class MapLoader : MonoBehaviour
 #else
         UrlArgHandler.LoadedMapURL = null;
 
-        if(mapDirectory.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+        if(input.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
         {
-            if(!File.Exists(mapDirectory))
+            if(!File.Exists(input))
             {
                 ErrorHandler.Instance.ShowPopup(ErrorType.Error, "That file doesn't exist!");
                 Debug.LogWarning("Trying to load a map from a file that doesn't exist!");
                 return;
             }
 
-            LoadMapZip(mapDirectory);
-            HotReloader.loadedMapPath = mapDirectory;
+            LoadMapZip(input);
+            HotReloader.loadedMapPath = input;
             return;
         }
 
-        if(mapDirectory.EndsWith(".dat", StringComparison.OrdinalIgnoreCase))
+        if(input.EndsWith(".dat", StringComparison.OrdinalIgnoreCase))
         {
             //User is trying to load an unzipped map, get the parent directory
-            DirectoryInfo parentDir = Directory.GetParent(mapDirectory);
-            mapDirectory = parentDir.FullName;
+            DirectoryInfo parentDir = Directory.GetParent(input);
+            input = parentDir.FullName;
         }
 
-        if(!Directory.Exists(mapDirectory))
+        if(!Directory.Exists(input))
         {
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "That directory doesn't exist!");
             Debug.LogWarning("Trying to load a map from a directory that doesn't exist!");
             return;
         }
 
-        StartCoroutine(LoadMapDirectoryCoroutine(mapDirectory));
-        HotReloader.loadedMapPath = mapDirectory;
+        StartCoroutine(LoadMapDirectoryCoroutine(input));
+        HotReloader.loadedMapPath = input;
 #endif
+    }
+
+
+    private struct ScheduledDifficulty
+    {
+        //Just a container for concurrent difficulty loading
+        public DifficultyBeatmap Beatmap;
+        public DifficultyCharacteristic Characteristic;
+        public byte[] diffData;
     }
 }
 
@@ -612,19 +412,19 @@ public class MapLoader : MonoBehaviour
 public class LoadedMap
 {
 #if !UNITY_WEBGL || UNITY_EDITOR
-    public LoadedMap(BeatmapInfo info, List<Difficulty> difficulties, byte[] coverImageData, AudioClip song)
+    public LoadedMap(LoadedMapData mapData, byte[] coverImageData, AudioClip song)
 #else
-    public LoadedMap(BeatmapInfo info, List<Difficulty> difficulties, byte[] coverImageData, WebAudioClip song)
+    public LoadedMap(LoadedMapData mapData, byte[] coverImageData, WebAudioClip song)
 #endif
     {
-        Info = info;
-        Difficulties = difficulties;
+        MapData = mapData;
         CoverImageData = coverImageData;
         Song = song;
     }
 
-    public BeatmapInfo Info { get; private set; }
-    public List<Difficulty> Difficulties { get; private set; }
+    public LoadedMapData MapData { get; private set; }
+    public BeatmapInfo Info => MapData.Info;
+    public List<Difficulty> Difficulties => MapData.Difficulties;
     public byte[] CoverImageData { get; private set; }
 #if !UNITY_WEBGL || UNITY_EDITOR
     public AudioClip Song { get; private set; }
@@ -632,6 +432,20 @@ public class LoadedMap
     public WebAudioClip Song { get; private set; }
 #endif
 
+    public static readonly LoadedMap Empty = new LoadedMap(LoadedMapData.Empty, null, null);
+}
 
-    public static readonly LoadedMap Empty = new LoadedMap(null, new List<Difficulty>(), null, null);
+
+public class LoadedMapData
+{
+    public LoadedMapData(BeatmapInfo info, List<Difficulty> difficulties)
+    {
+        Info = info;
+        Difficulties = difficulties;
+    }
+
+    public BeatmapInfo Info { get; private set; }
+    public List<Difficulty> Difficulties { get; private set; }
+
+    public static readonly LoadedMapData Empty = new LoadedMapData(null, new List<Difficulty>());
 }

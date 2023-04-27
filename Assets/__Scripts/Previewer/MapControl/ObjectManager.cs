@@ -38,6 +38,32 @@ public class ObjectManager : MonoBehaviour
         {2, 1.05f}
     };
 
+    public static readonly Dictionary<int, float> DirectionAngles = new Dictionary<int, float>
+    {
+        {0, 180},
+        {1, 0},
+        {2, -90},
+        {3, 90},
+        {4, -135},
+        {5, 135},
+        {6, -45},
+        {7, 45},
+        {8, 0}
+    };
+
+    public static readonly Dictionary<int, int> ReverseCutDirection = new Dictionary<int, int>
+    {
+        {0, 1},
+        {1, 0},
+        {2, 3},
+        {3, 2},
+        {4, 7},
+        {5, 6},
+        {6, 5},
+        {7, 4},
+        {8, 8}
+    };
+
     public float BehindCameraTime => TimeFromWorldspace(behindCameraZ);
 
 
@@ -54,26 +80,28 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public bool CheckInSpawnRange(float beat)
+    public bool CheckInSpawnRange(float time, bool extendBehindCamera = false, bool includeMoveTime = true)
     {
-        float time = TimeManager.TimeFromBeat(beat);
-        return
-        (
-            time > TimeManager.CurrentTime &&
-            time <= TimeManager.CurrentTime + BeatmapManager.ReactionTime + Instance.moveTime
-        );
+        float despawnTime = extendBehindCamera ? TimeManager.CurrentTime + BehindCameraTime : TimeManager.CurrentTime;
+        float spawnTime = TimeManager.CurrentTime + BeatmapManager.ReactionTime;
+        if(includeMoveTime)
+        {
+            spawnTime += Instance.moveTime;
+        }
+
+        return time <= spawnTime && time > despawnTime;
     }
 
 
-    public bool DurationObjectInSpawnRange(float startBeat, float endBeat)
+    public bool DurationObjectInSpawnRange(float startTime, float endTime, bool extendBehindCamera = true, bool includeMoveTime = true)
     {
-        float startTime = TimeManager.TimeFromBeat(startBeat);
-        float endTime = TimeManager.TimeFromBeat(endBeat) - BehindCameraTime;
+        if(extendBehindCamera)
+        {
+            endTime = endTime - BehindCameraTime;
+        }
 
         bool timeInRange = TimeManager.CurrentTime >= startTime && TimeManager.CurrentTime <= endTime;
-        bool jumpTime = CheckInSpawnRange(startBeat);
-
-        return jumpTime || timeInRange;
+        return timeInRange || CheckInSpawnRange(startTime, extendBehindCamera, includeMoveTime);
     }
 
 
@@ -225,20 +253,14 @@ public class ObjectManager : MonoBehaviour
                 return (float)angle;
             }
         }
-
-        Dictionary<int, float> DirectionAngles = new Dictionary<int, float>
-        {
-            {0, 180},
-            {1, 0},
-            {2, -90},
-            {3, 90},
-            {4, -135},
-            {5, 135},
-            {6, -45},
-            {7, 45},
-            {8, 0}
-        };
         return DirectionAngles[Mathf.Clamp(cutDirection, 0, 8)] + angleOffset;
+    }
+
+
+    public static bool SamePlaneAngles(float a, float b)
+    {
+        float diff = Mathf.Abs(a - b);
+        return diff.Approximately(0) || diff.Approximately(180);
     }
 
 
@@ -246,6 +268,8 @@ public class ObjectManager : MonoBehaviour
     {
         HitSoundManager.ClearScheduledSounds();
 
+        //Always ensure that bpm events are updated first so we don't get false time values on objects
+        TimeManager.UpdateBpmEvents(difficulty);
         LoadMapObjects(difficulty.beatmapDifficulty, out noteManager.Notes, out noteManager.Bombs, out chainManager.Chains, out arcManager.Arcs, out wallManager.Walls);
 
         chainManager.ReloadChains();
@@ -277,24 +301,10 @@ public class ObjectManager : MonoBehaviour
 
 
     // only used for loading purposes
-    private class BeatmapSliderHead : BeatmapObject
-    {
-        public int id; // used for pairing back up
-        public int c;
-        public int d;
-        public float mu;
-        public int m;
-        public float StartY;
-        public bool HasAttachment;
-
-        public BeatmapCustomSliderData customData;
-    }
-
-    private class BeatmapSliderTail : BeatmapObject
+    private class BeatmapSliderEnd : BeatmapObject
     {
         public int id; // used for pairing back up
         public int d;
-        public float mu;
         public float StartY;
         public bool HasAttachment;
     }
@@ -303,32 +313,46 @@ public class ObjectManager : MonoBehaviour
     public static void LoadMapObjects(BeatmapDifficulty beatmapDifficulty, out List<Note> notes, out List<Bomb> bombs, out List<Chain> chains, out List<Arc> arcs, out List<Wall> walls)
     {
         // split arcs into heads and tails for easier processing
-        List<BeatmapSliderHead> beatmapSliderHeads = new List<BeatmapSliderHead>();
-        List<BeatmapSliderTail> beatmapSliderTails = new List<BeatmapSliderTail>();
+        List<BeatmapSliderEnd> beatmapSliderHeads = new List<BeatmapSliderEnd>();
+        List<BeatmapSliderEnd> beatmapSliderTails = new List<BeatmapSliderEnd>();
         for(int i = 0; i < beatmapDifficulty.sliders.Length; i++)
         {
             BeatmapSlider a = beatmapDifficulty.sliders[i];
-            BeatmapSliderHead head = new BeatmapSliderHead();
-            head.id = i;
-            head.b = a.b;
-            head.x = a.x;
-            head.y = a.y;
-            head.c = a.c;
-            head.d = a.d;
-            head.mu = a.mu;
-            head.m = a.m;
-            head.customData = a.customData;
-            beatmapSliderHeads.Add(head);
 
+            BeatmapSliderEnd head = new BeatmapSliderEnd
+            {
+                id = i,
+                b = a.b,
+                x = a.x,
+                y = a.y,
+                d = a.d,
+                HasAttachment = false
+            };
 
-            BeatmapSliderTail tail = new BeatmapSliderTail();
-            tail.id = i;
-            tail.b = a.tb;
-            tail.x = a.tx;
-            tail.y = a.ty;
-            tail.d = a.tc;
-            tail.mu = a.tmu;
-            beatmapSliderTails.Add(tail);
+            BeatmapSliderEnd tail = new BeatmapSliderEnd
+            {
+                id = i,
+                b = a.tb,
+                x = a.tx,
+                y = a.ty,
+                d = a.tc,
+                HasAttachment = false
+            };
+
+            if(a.tb < a.b)
+            {
+                //Swap the head and tail if the arc is backwards
+                //Flip the directions as well since heads and tails are different
+                head.d = ReverseCutDirection[Mathf.Clamp(head.d, 0, 8)];
+                tail.d = ReverseCutDirection[Mathf.Clamp(tail.d, 0, 8)];
+                beatmapSliderTails.Add(head);
+                beatmapSliderHeads.Add(tail);
+            }
+            else
+            {
+                beatmapSliderHeads.Add(head);
+                beatmapSliderTails.Add(tail);
+            }
         }
 
         List<BeatmapObject> allObjects = new List<BeatmapObject>();
@@ -351,23 +375,20 @@ public class ObjectManager : MonoBehaviour
         {
             BeatmapObject current = allObjects[i];
 
-            if(sameBeatObjects.Count == 0 || !CheckSameBeat(current.b, sameBeatObjects[0].b))
-            {
-                //This object doesn't share the same beat with the previous objects
-                sameBeatObjects.Clear();
+            sameBeatObjects.Clear();
+            sameBeatObjects.Add(current);
 
-                for(int x = i; x < allObjects.Count; x++)
+            for(int x = i + 1; x < allObjects.Count; x++)
+            {
+                //Gather all consecutive objects that share the same beat
+                BeatmapObject check = allObjects[x];
+                if(CheckSameBeat(check.b, current.b))
                 {
-                    //Gather all consecutive objects that share the same beat
-                    BeatmapObject check = allObjects[x];
-                    if(CheckSameBeat(check.b, current.b))
-                    {
-                        sameBeatObjects.Add(check);
-                        //Skip to the first object that doesn't share this beat next loop
-                        i = x;
-                    }
-                    else break;
+                    sameBeatObjects.Add(check);
+                    //Skip to the first object that doesn't share this beat next loop
+                    i = x;
                 }
+                else break;
             }
 
             //Precalculate values for all objects on this beat
@@ -375,8 +396,7 @@ public class ObjectManager : MonoBehaviour
             List<BeatmapBombNote> bombsOnBeat = sameBeatObjects.OfType<BeatmapBombNote>().ToList();
             List<BeatmapBurstSlider> burstSlidersOnBeat = sameBeatObjects.OfType<BeatmapBurstSlider>().ToList();
             List<BeatmapObstacle> obstaclesOnBeat = sameBeatObjects.OfType<BeatmapObstacle>().ToList();
-            List<BeatmapSliderHead> sliderHeadsOnBeat = sameBeatObjects.OfType<BeatmapSliderHead>().ToList();
-            List<BeatmapSliderTail> sliderTailsOnBeat = sameBeatObjects.OfType<BeatmapSliderTail>().ToList();
+            List<BeatmapSliderEnd> sliderEndsOnBeat = sameBeatObjects.OfType<BeatmapSliderEnd>().ToList();
 
             List<BeatmapObject> notesAndBombs = sameBeatObjects.Where(x => (x is BeatmapColorNote) || (x is BeatmapBombNote)).ToList();
 
@@ -405,17 +425,7 @@ public class ObjectManager : MonoBehaviour
                 }
 
                 // check attachment to arcs
-                foreach(BeatmapSliderHead a in sliderHeadsOnBeat)
-                {
-                    if(!a.HasAttachment && a.x == n.x && n.y == a.y)
-                    {
-                        a.StartY = newNote.StartY;
-                        a.HasAttachment = true;
-                        arcAttachment = true;
-                    }
-                }
-
-                foreach(BeatmapSliderTail a in sliderTailsOnBeat)
+                foreach(BeatmapSliderEnd a in sliderEndsOnBeat)
                 {
                     if(!a.HasAttachment && a.x == n.x && n.y == a.y)
                     {
@@ -453,16 +463,7 @@ public class ObjectManager : MonoBehaviour
                 newBomb.StartY = ((float)NoteManager.GetStartY(b, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
 
                 // check attachment to arcs
-                foreach(BeatmapSliderHead a in sliderHeadsOnBeat)
-                {
-                    if(!a.HasAttachment && a.x == b.x && b.y == a.y)
-                    {
-                        a.StartY = newBomb.StartY;
-                        a.HasAttachment = true;
-                    }
-                }
-
-                foreach(BeatmapSliderTail a in sliderTailsOnBeat)
+                foreach(BeatmapSliderEnd a in sliderEndsOnBeat)
                 {
                     if(!a.HasAttachment && a.x == b.x && b.y == a.y)
                     {
@@ -492,8 +493,8 @@ public class ObjectManager : MonoBehaviour
         beatmapSliderTails = beatmapSliderTails.OrderBy(a => a.id).ToList();
         for(int i = 0; i < beatmapSliderHeads.Count; i++)
         {
-            BeatmapSliderHead head = beatmapSliderHeads[i];
-            BeatmapSliderTail tail = beatmapSliderTails[i];
+            BeatmapSliderEnd head = beatmapSliderHeads[i];
+            BeatmapSliderEnd tail = beatmapSliderTails[i];
 
             Arc newArc = Arc.ArcFromBeatmapSlider(beatmapDifficulty.sliders[i]);
 
@@ -504,6 +505,7 @@ public class ObjectManager : MonoBehaviour
                 newArc.Position += offset;
                 newArc.HeadControlPoint += offset;
                 newArc.HeadStartY = head.StartY + offset.y;
+                newArc.HasHeadAttachment = true;
             }
 
             if(tail.HasAttachment)
@@ -550,7 +552,18 @@ public class ObjectManager : MonoBehaviour
 
 public abstract class MapObject
 {
-    public float Beat;
+    private float _beat;
+    public float Beat
+    {
+        get => _beat;
+        set
+        {
+            _beat = value;
+            Time = TimeManager.TimeFromBeat(_beat);
+        }
+    }
+    public float Time { get; private set; }
+    
     public GameObject Visual;
     public Vector2 Position;
 }
@@ -564,7 +577,18 @@ public abstract class HitSoundEmitter : MapObject
 
 public abstract class BaseSlider : MapObject
 {
+    private float _tailBeat;
+    public float TailBeat
+    {
+        get => _tailBeat;
+        set
+        {
+            _tailBeat = value;
+            TailTime = TimeManager.TimeFromBeat(_tailBeat);
+        }
+    }
+    public float TailTime { get; private set; }
+
     public int Color;
-    public float TailBeat;
     public Vector2 TailPosition;
 }

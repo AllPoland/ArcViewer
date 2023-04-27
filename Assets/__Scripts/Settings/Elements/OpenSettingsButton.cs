@@ -11,7 +11,7 @@ public class OpenSettingsButton : MonoBehaviour
 
     public void UpdateTooltip()
     {
-        tooltip.Text = settingsMenu.Open ? "Close settings" : "Settings";
+        tooltip.Text = SettingsMenu.Open ? "Close settings" : "Settings";
     }
 
 

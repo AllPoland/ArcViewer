@@ -32,7 +32,7 @@ public class MapDirectoryInput : MonoBehaviour
             }
         }
 
-        mapLoader.LoadMapDirectory(MapDirectory);
+        mapLoader.LoadMapInput(MapDirectory);
     }
 
 

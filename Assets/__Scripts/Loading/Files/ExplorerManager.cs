@@ -41,7 +41,7 @@ public class ExplorerManager : MonoBehaviour, IPointerDownHandler
         
         if(paths.Length > 0)
         {
-            mapLoader.LoadMapDirectory(paths[0]);
+            mapLoader.LoadMapInput(paths[0]);
         }
         else Debug.Log("No path selected!");
     }

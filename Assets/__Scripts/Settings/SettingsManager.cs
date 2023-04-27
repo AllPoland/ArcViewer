@@ -305,9 +305,11 @@ public class Settings
             {"moveanimations", true},
             {"rotateanimations", true},
             {"flipanimations", true},
+            {"headlessarcfade", true},
             {"vsync", true},
             {"ssao", true},
-            {"dynamicsoundpriority", true}
+            {"dynamicsoundpriority", true},
+            {"concurrentloading", true}
         },
 
         Ints = new Dictionary<string, int>
@@ -328,6 +330,7 @@ public class Settings
             {"uiscale", 1f},
             {"chainvolume", 0.8f},
             {"wallopacity", 0.5f},
+            {"arcbrightness", 1f},
             {"cameraposition", -2},
             {"bloom", 1},
             {"backgroundbloom", 1},

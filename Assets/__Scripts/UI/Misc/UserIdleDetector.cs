@@ -7,11 +7,12 @@ public class UserIdleDetector : MonoBehaviour, IPointerEnterHandler, IPointerExi
     public static event Action OnUserIdle;
     public static event Action OnUserActive;
 
+    public static bool MouseOnUI { get; private set; }
+
     [SerializeField] private float idleTimeout;
 
     private Vector2 previousPosition;
     private float idleTime;
-    private bool mousedOver;
     private bool userIdle;
 
 
@@ -40,13 +41,13 @@ public class UserIdleDetector : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        mousedOver = true;
+        MouseOnUI = false;
     }
 
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        mousedOver = false;
+        MouseOnUI = true;
     }
 
 
@@ -76,7 +77,7 @@ public class UserIdleDetector : MonoBehaviour, IPointerEnterHandler, IPointerExi
         {
             if(MouseOnScreen())
             {
-                if(mousedOver)
+                if(!MouseOnUI)
                 {
                     //User isn't moused over UI
                     CheckUserInput();

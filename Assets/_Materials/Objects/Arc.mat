@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-4525176585330043053
+--- !u!114 &-5679193841953714635
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,11 +20,11 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: BlueArc
+  m_Name: Arc
   m_Shader: {fileID: -6465566751694194690, guid: 66d8d206117ffc94c9a79e46f82c556a, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
-  m_LightmapFlags: 2
+  m_LightmapFlags: 0
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
@@ -96,12 +96,14 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaClip: 0
+    - _AlphaFalloff: 1
     - _Blend: 0
     - _BlendOp: 0
     - _BumpScale: 1
     - _CameraFadingEnabled: 1
     - _CameraFarFadeDistance: 10.113142
     - _CameraNearFadeDistance: 11.113142
+    - _CastShadows: 0
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
     - _ColorMode: 0
@@ -109,14 +111,18 @@ Material:
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
-    - _DistortionBlend: 0.5
+    - _DistortionBlend: 1
     - _DistortionEnabled: 0
-    - _DistortionStrength: 1
-    - _DistortionStrengthScaled: 0.1
+    - _DistortionStrength: 8.53
+    - _DistortionStrengthScaled: 0.853
     - _DstBlend: 10
+    - _EmissionSaturation: 0.625
+    - _EmissionStrength: 1.4
     - _EnvironmentReflections: 1
-    - _FadeEndPoint: 0
-    - _FadeStartPoint: 0
+    - _FadeEndDistance: 18.21
+    - _FadeEndPoint: 10
+    - _FadeStartDistance: 10.2
+    - _FadeStartPoint: -10
     - _FadeTransitionLength: 1
     - _FlipbookBlending: 0
     - _FlipbookMode: 0
@@ -138,15 +144,18 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 5
     - _Surface: 1
-    - _WorkflowMode: 1
+    - _WorkflowMode: 0
+    - _ZTest: 4
     - _ZWrite: 0
+    - _ZWriteControl: 0
     m_Colors:
-    - _BaseColor: {r: 0.19824673, g: 0.56375474, b: 0.9339623, a: 0.7529412}
+    - _BaseColor: {r: 0.8773585, g: 0.22761661, b: 0.22761661, a: 1}
     - _BaseColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
-    - _Base_Color: {r: 0.2, g: 0.5647059, b: 0.93333334, a: 0.74509805}
+    - _Base_Color: {r: 0.9716981, g: 0.24292453, b: 0.24292453, a: 1}
     - _CameraFadeParams: {r: 11.113142, g: -1, b: 0, a: 0}
-    - _Color: {r: 0.19824673, g: 0.56375474, b: 0.9339623, a: 0.7529412}
-    - _EmissionColor: {r: 0.025, g: 0.07058824, b: 0.11666667, a: 1}
+    - _Color: {r: 0.8773585, g: 0.22761661, b: 0.22761661, a: 0.7529412}
+    - _Emission: {r: 0.39215687, g: 0.039215688, b: 0.039215688, a: 1}
+    - _EmissionColor: {r: 0.39215687, g: 0.039215688, b: 0.039215688, a: 1}
     - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   m_BuildTextureStacks: []

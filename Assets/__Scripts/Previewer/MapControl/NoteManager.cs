@@ -24,9 +24,6 @@ public class NoteManager : MonoBehaviour
     [SerializeField] private Material arrowMaterialRed;
     [SerializeField] private Material arrowMaterialBlue;
 
-    [Header("References")]
-    [SerializeField] private ChainManager chainManager;
-
     public List<Note> Notes = new List<Note>();
     public List<Note> RenderedNotes = new List<Note>();
 
@@ -48,23 +45,20 @@ public class NoteManager : MonoBehaviour
 
     public void UpdateNoteVisual(Note n)
     {
-        //Calculate the Z position based on time
-        float noteTime = TimeManager.TimeFromBeat(n.Beat);
-
         float reactionTime = BeatmapManager.ReactionTime;
 
-        float worldDist = objectManager.GetZPosition(noteTime);
+        float worldDist = objectManager.GetZPosition(n.Time);
         Vector3 worldPos = new Vector3(n.Position.x, n.Position.y, worldDist);
 
         if(objectManager.doMovementAnimation)
         {
-            worldPos.y = objectManager.GetObjectY(n.StartY, worldPos.y, noteTime);
+            worldPos.y = objectManager.GetObjectY(n.StartY, worldPos.y, n.Time);
         }
 
         float angle = n.Angle;
 
         float jumpTime = TimeManager.CurrentTime + reactionTime;
-        float jumpProgress = (jumpTime - noteTime) / reactionTime;
+        float jumpProgress = (jumpTime - n.Time) / reactionTime;
 
         if(objectManager.doFlipAnimation && n.FlipYHeight != 0)
         {
@@ -122,7 +116,7 @@ public class NoteManager : MonoBehaviour
 
             if(TimeManager.Playing && SettingsManager.GetFloat("hitsoundvolume") > 0)
             {
-                HitSoundManager.ScheduleHitsound(noteTime, n.source);
+                HitSoundManager.ScheduleHitsound(n.Time, n.source);
             }
 
             RenderedNotes.Add(n);
@@ -135,14 +129,13 @@ public class NoteManager : MonoBehaviour
 
     public void UpdateBombVisual(Bomb b)
     {
-        float bombTime = TimeManager.TimeFromBeat(b.Beat);
-        float worldDist = objectManager.GetZPosition(bombTime);
+        float worldDist = objectManager.GetZPosition(b.Time);
 
         Vector3 worldPos = new Vector3(b.Position.x, b.Position.y, worldDist);
 
         if(objectManager.doMovementAnimation)
         {
-            worldPos.y = objectManager.GetObjectY(b.StartY, worldPos.y, bombTime);
+            worldPos.y = objectManager.GetObjectY(b.StartY, worldPos.y, b.Time);
         }
 
         if(b.Visual == null)
@@ -182,7 +175,7 @@ public class NoteManager : MonoBehaviour
             for(int i = RenderedNotes.Count - 1; i >= 0; i--)
             {
                 Note n = RenderedNotes[i];
-                if(!objectManager.CheckInSpawnRange(n.Beat))
+                if(!objectManager.CheckInSpawnRange(n.Time))
                 {
                     if(n.source.isPlaying)
                     {
@@ -206,7 +199,7 @@ public class NoteManager : MonoBehaviour
             for(int i = RenderedBombs.Count - 1; i >= 0; i--)
             {
                 Bomb b = RenderedBombs[i];
-                if(!CheckBombInSpawnRange(b.Beat))
+                if(!objectManager.CheckInSpawnRange(b.Time, true))
                 {
                     ReleaseBomb(b);
                     RenderedBombs.Remove(b);
@@ -245,14 +238,14 @@ public class NoteManager : MonoBehaviour
 
         if(Notes.Count > 0)
         {
-            int firstNote = Notes.FindIndex(x => objectManager.CheckInSpawnRange(x.Beat));
+            int firstNote = Notes.FindIndex(x => objectManager.CheckInSpawnRange(x.Time));
             if(firstNote >= 0)
             {
                 for(int i = firstNote; i < Notes.Count; i++)
                 {
                     //Update each note's position
                     Note n = Notes[i];
-                    if(objectManager.CheckInSpawnRange(n.Beat))
+                    if(objectManager.CheckInSpawnRange(n.Time))
                     {
                         UpdateNoteVisual(n);
                     }
@@ -263,13 +256,13 @@ public class NoteManager : MonoBehaviour
 
         if(Bombs.Count > 0)
         {
-            int firstBomb = Bombs.FindIndex(x => CheckBombInSpawnRange(x.Beat));
+            int firstBomb = Bombs.FindIndex(x => objectManager.CheckInSpawnRange(x.Time, true));
             if(firstBomb >= 0)
             {
                 for(int i = firstBomb; i < Bombs.Count; i++)
                 {
                     Bomb b = Bombs[i];
-                    if(CheckBombInSpawnRange(b.Beat))
+                    if(objectManager.CheckInSpawnRange(b.Time, true))
                     {
                         UpdateBombVisual(b);
                     }
@@ -280,22 +273,13 @@ public class NoteManager : MonoBehaviour
     }
 
 
-    private bool CheckBombInSpawnRange(float beat)
-    {
-        float bombTime = TimeManager.TimeFromBeat(beat);
-        bool timeInRange = TimeManager.CurrentTime >= bombTime && TimeManager.CurrentTime <= bombTime - objectManager.BehindCameraTime;
-
-        return objectManager.CheckInSpawnRange(beat) || timeInRange;
-    }
-
-
     public void RescheduleHitsounds()
     {
         foreach(Note n in RenderedNotes)
         {
             if(n.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0)
             {
-                HitSoundManager.ScheduleHitsound(TimeManager.TimeFromBeat(n.Beat), n.source);
+                HitSoundManager.ScheduleHitsound(n.Time, n.source);
             }
         }
     }
@@ -366,13 +350,15 @@ public class NoteManager : MonoBehaviour
 
     public static float? GetAngleSnap(BeatmapColorNote first, BeatmapColorNote second)
     {
-        if(first.x == second.x || first.y == second.y)
+        bool hasDot = first.d == 8 || second.d == 8;
+        if(!hasDot && (first.x == second.x || first.y == second.y))
         {
             //Don't snap notes that are on the same row or column
+            //But always snap dots
             return null;
         }
 
-        if(!(first.d == second.d || first.d == 8 || second.d == 8))
+        if(!(first.d == second.d || hasDot))
         {
             //Notes must have the same direction
             return null;

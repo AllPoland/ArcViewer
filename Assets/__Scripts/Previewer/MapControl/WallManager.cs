@@ -11,13 +11,6 @@ public class WallManager : MonoBehaviour
     public List<Wall> Walls = new List<Wall>();
     public List<Wall> RenderedWalls = new List<Wall>();
 
-    public readonly List<float> WallHeights = new List<float>
-    {
-        0,
-        1,
-        1.5f
-    };
-
     private ObjectManager objectManager;
     private MaterialPropertyBlock wallMaterialProperties;
 
@@ -46,14 +39,10 @@ public class WallManager : MonoBehaviour
 
     public void UpdateWallVisual(Wall w)
     {
-        float wallStartTime = TimeManager.TimeFromBeat(w.Beat);
-        float wallEndTime = TimeManager.TimeFromBeat(w.Beat + w.Duration);
-        //Can't just take w.Duration for this because it doesn't work with bpm changes
-        float wallDurationTime = wallEndTime - wallStartTime;
-        float wallLength = objectManager.WorldSpaceFromTime(wallDurationTime);
+        float wallLength = objectManager.WorldSpaceFromTime(w.DurationTime);
 
         //Subtract 0.25 to make front face of wall line up with front face of note (walls just built like that)
-        float worldDist = objectManager.GetZPosition(wallStartTime) - 0.25f;
+        float worldDist = objectManager.GetZPosition(w.Time) - 0.25f;
 
         worldDist += wallLength / 2;
 
@@ -91,7 +80,7 @@ public class WallManager : MonoBehaviour
         for(int i = RenderedWalls.Count - 1; i >= 0; i--)
         {
             Wall w = RenderedWalls[i];
-            if(!objectManager.DurationObjectInSpawnRange(w.Beat, w.Beat + w.Duration))
+            if(!objectManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime))
             {
                 ReleaseWall(w);
                 RenderedWalls.Remove(w);
@@ -124,7 +113,7 @@ public class WallManager : MonoBehaviour
             return;
         }
 
-        int firstWall = Walls.FindIndex(x => objectManager.DurationObjectInSpawnRange(x.Beat, x.Beat + x.Duration));
+        int firstWall = Walls.FindIndex(x => objectManager.DurationObjectInSpawnRange(x.Time, x.Time + x.DurationTime));
         if(firstWall >= 0)
         {
             float lastBeat = 0;
@@ -132,12 +121,12 @@ public class WallManager : MonoBehaviour
             {
                 //Update each wall's position
                 Wall w = Walls[i];
-                if(objectManager.DurationObjectInSpawnRange(w.Beat, w.Beat + w.Duration))
+                if(objectManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime))
                 {
                     UpdateWallVisual(w);
-                    lastBeat = w.Beat + w.Duration;
+                    lastBeat = w.Beat + w.DurationBeats;
                 }
-                else if(w.Duration <= w.Beat - lastBeat)
+                else if(w.DurationBeats <= w.Beat - lastBeat)
                 {
                     //Continue looping if this wall overlaps in time with another
                     //This avoids edge cases where two walls that are close, with one ending before the other causes later walls to not update
@@ -207,7 +196,21 @@ public class WallManager : MonoBehaviour
 
 public class Wall : MapObject
 {
-    public float Duration;
+    private float _durationBeats;
+    public float DurationBeats
+    {
+        get => _durationBeats;
+        set
+        {
+            _durationBeats = value;
+
+            //Can't just directly convert durationBeats because that doesn't work with bpm changes
+            float endTime = TimeManager.TimeFromBeat(Beat + _durationBeats);
+            DurationTime = endTime - Time;
+        }
+    }
+    public float DurationTime { get; private set; }
+
     public float Width;
     public float Height;
 
@@ -254,7 +257,7 @@ public class Wall : MapObject
         {
             Beat = beat,
             Position = position,
-            Duration = duration,
+            DurationBeats = duration,
             Width = worldWidth,
             Height = worldHeight
         };

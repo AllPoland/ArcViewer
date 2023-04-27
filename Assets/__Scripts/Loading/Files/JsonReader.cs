@@ -35,13 +35,10 @@ public class JsonReader
         catch(Exception err)
         {
             Debug.LogWarning($"Unable to parse info from json with error: {err.Message}, {err.StackTrace}.");
-            info = null;
+            return null;
         }
 
-        if(info != null)
-        {
-            info = BeatmapUtility.AddNullsInfo(info);
-        }
+        info?.AddNulls();
         return info;
     }
 
@@ -54,7 +51,6 @@ public class JsonReader
             NoteJumpSpeed = beatmap._noteJumpMovementSpeed,
             SpawnOffset = beatmap._noteJumpStartBeatOffset
         };
-        output.Label = beatmap._customData?._difficultyLabel ?? Difficulty.DiffLabelFromRank(output.difficultyRank);
 
         string filename = beatmap._beatmapFilename;
         Debug.Log($"Loading json from {filename}");
@@ -62,20 +58,20 @@ public class JsonReader
         string location = Path.Combine(directory, filename);
         string json = await ReadFileAsync(location);
 
-        if(json == "")
+        if(string.IsNullOrEmpty(json))
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to load {filename}!");
             return null;
         }
 
         Debug.Log($"Parsing {filename}");
-        output.beatmapDifficulty = ParseBeatmapFromJson(json);
+        output.beatmapDifficulty = ParseBeatmapFromJson(json, filename);
 
         return output;
     }
 
 
-    public static BeatmapDifficulty ParseBeatmapFromJson(string json)
+    public static BeatmapDifficulty ParseBeatmapFromJson(string json, string filename = "{UnknownDifficulty}")
     {
         BeatmapDifficulty difficulty = new BeatmapDifficulty();
         BeatmapVersion beatmapVersion;
@@ -86,7 +82,7 @@ public class JsonReader
         }
         catch(Exception err)
         {
-            Debug.LogWarning($"Unable to parse difficulty version with error: {err.Message}, {err.StackTrace}.");
+            Debug.LogWarning($"Unable to parse difficulty version from {filename} with error: {err.Message}, {err.StackTrace}.");
             return difficulty;
         }
 
@@ -98,42 +94,44 @@ public class JsonReader
             if(v3Versions.Contains(beatmapVersion.version))
             {
                 //Parse the difficulty file
-                Debug.Log("Parsing map in V3 format.");
+                Debug.Log($"Parsing {filename} in V3 format.");
                 difficulty = JsonConvert.DeserializeObject<BeatmapDifficulty>(json);
             }
             else if(v2Versions.Contains(beatmapVersion._version))
             {
-                Debug.Log("Parsing map in V2 format.");
+                Debug.Log($"Parsing {filename} in V2 format.");
 
                 BeatmapDifficultyV2 v2Diff = JsonConvert.DeserializeObject<BeatmapDifficultyV2>(json);
-                difficulty = BeatmapUtility.AddNullsDifficultyV2(v2Diff).ConvertToV3();
+                v2Diff.AddNulls();
+                difficulty = v2Diff.ConvertToV3();
             }
             else
             {
-                Debug.LogWarning("Unable to match map version. The map is either broken or in an unsupported version.");
+                Debug.LogWarning($"Unable to match map version for {filename}. The map is either broken or in an unsupported version.");
 
-                Debug.Log("Trying to fallback load map in V3 format.");
+                Debug.Log($"Trying to fallback load {filename} in V3 format.");
                 BeatmapDifficulty v3Diff = JsonConvert.DeserializeObject<BeatmapDifficulty>(json);
 
                 if(v3Diff.colorNotes != null)
                 {
-                    Debug.Log("Fallback succeeded in V3.");
+                    Debug.Log($"Fallback for {filename} succeeded in V3.");
                     difficulty = v3Diff;
                 }
                 else
                 {
-                    Debug.Log("Fallback failed in V3, trying V2.");
+                    Debug.Log($"Fallback for {filename} failed in V3, trying V2.");
                     BeatmapDifficultyV2 v2Diff = JsonConvert.DeserializeObject<BeatmapDifficultyV2>(json);
 
                     if(v2Diff._notes != null)
                     {
-                        Debug.Log("Fallback succeeded in V2.");
-                        difficulty = BeatmapUtility.AddNullsDifficultyV2(v2Diff).ConvertToV3();
+                        Debug.Log($"Fallback for {filename} succeeded in V2.");
+                        v2Diff.AddNulls();
+                        difficulty = v2Diff.ConvertToV3();
                     }
                     else
                     {
-                        ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Unable to find difficulty version!");
-                        Debug.LogWarning("Difficulty failed to load due to unsupported or missing version!");
+                        ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to find difficulty version from {filename}!");
+                        Debug.LogWarning($"{filename} failed to load due to unsupported or missing version!");
                         return new BeatmapDifficulty();
                     }
                 }
@@ -141,37 +139,34 @@ public class JsonReader
         }
         catch(Exception err)
         {
-            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Unable to parse difficulty!");
-            Debug.LogWarning($"Unable to parse difficulty file with error: {err.Message}, {err.StackTrace}.");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to parse {filename}!");
+            Debug.LogWarning($"Unable to parse {filename} file with error: {err.Message}, {err.StackTrace}.");
             return new BeatmapDifficulty();
         }
 
-        difficulty = BeatmapUtility.AddNullsDifficulty(difficulty);
-        Debug.Log($"Parsed difficulty with {difficulty.colorNotes.Length} notes, {difficulty.bombNotes.Length} bombs, and {difficulty.obstacles.Length} walls.");
+        difficulty.AddNulls();
+        Debug.Log($"Parsed {filename} with {difficulty.colorNotes.Length} notes, {difficulty.bombNotes.Length} bombs, {difficulty.obstacles.Length} walls, {difficulty.sliders.Length} arcs, and {difficulty.burstSliders.Length} chains.");
         return difficulty;
     }
 
 
     public static async Task<string> ReadFileAsync(string location)
     {
-        string text = "";
-
         if(!File.Exists(location))
         {
             Debug.LogWarning("Trying to read a file that doesn't exist!");
-            return text;
+            return "";
         }
 
         try
         {
-            text = await File.ReadAllTextAsync(location);
+            string text = await File.ReadAllTextAsync(location);
+            return text;
         }
         catch(Exception err)
         {
             Debug.LogWarning($"Unable to read the text from file with error: {err.Message}, {err.StackTrace}.");
-            text = "";
+            return "";
         }
-
-        return text;
     }
 }

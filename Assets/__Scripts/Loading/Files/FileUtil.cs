@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using System.IO;
 using UnityEngine;
 
@@ -7,24 +6,23 @@ public class FileUtil
 {
     public static byte[] StreamToBytes(Stream sourceStream)
     {
-        using(MemoryStream memoryStream = new MemoryStream())
-        {
-            sourceStream.CopyTo(memoryStream);
-            return memoryStream.ToArray();
-        }
+        using MemoryStream memoryStream = new MemoryStream();
+        sourceStream.CopyTo(memoryStream);
+        return memoryStream.ToArray();
     }
 
 
-    public static Task<Stream> ReadFileData(string path)
+    public static Stream ReadFileData(string path)
     {
         if(!File.Exists(path))
         {
+            Debug.LogWarning($"File at path {path} doesn't exist!");
             return null;
         }
 
         try
         {
-            return Task.FromResult<Stream>(File.OpenRead(path));
+            return File.OpenRead(path);
         }
         catch(Exception e)
         {

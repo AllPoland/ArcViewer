@@ -7,12 +7,84 @@ using UnityEngine;
 
 public class ZipReader
 {
-    public static async Task<(BeatmapInfo, List<Difficulty>, MemoryStream, byte[])> GetMapFromZipArchiveAsync(ZipArchive archive)
+    public static async Task<LoadedMap> MapFromZipArchiveAsync(ZipArchive archive)
+    {
+#if !UNITY_WEBGL || UNITY_EDITOR
+        LoadedMapData mapData = await Task.Run(() => MapDataFromZipArchiveAsync(archive));
+#else
+        LoadedMapData mapData = await MapDataFromZipArchiveAsync(archive);
+#endif
+        if(mapData.Info == null)
+        {
+            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to load Info.dat!");
+            return LoadedMap.Empty;
+        }
+        if(mapData.Difficulties == null || mapData.Difficulties.Count == 0)
+        {
+            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to load difficulties!");
+            return LoadedMap.Empty;
+        }
+
+        BeatmapInfo info = mapData.Info;
+
+        string songFilename = info._songFilename ?? "";
+        using Stream songStream = archive.GetEntryCaseInsensitive(songFilename)?.Open();
+        if(songStream == null)
+        {
+            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Song file not found!");
+            Debug.LogWarning($"Didn't find audio file {songFilename}!");
+            return LoadedMap.Empty;
+        }
+
+        using MemoryStream songData = new MemoryStream(FileUtil.StreamToBytes(songStream));
+        if(songData == null)
+        {
+            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to read song file!");
+            Debug.LogWarning($"Failed to read memory stream for audio file {songFilename}!");
+            return LoadedMap.Empty;
+        }
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+        AudioClip song = await AudioClipFromMemoryStream(songData, songFilename);
+#else
+        WebAudioClip song = await AudioFileHandler.WebAudioClipFromStream(songData);
+#endif
+        if(song == null)
+        {
+            //Failed to load song
+            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to load song file!");
+            return LoadedMap.Empty;
+        }
+
+        MapLoader.LoadingMessage = "Loading cover image";
+        Debug.Log("Loading cover image.");
+        await Task.Yield();
+
+        byte[] coverImageData = new byte[0];
+        string coverFilename = info._coverImageFilename ?? "";
+        using Stream coverImageStream = archive.GetEntryCaseInsensitive(coverFilename)?.Open();
+        if(coverImageStream == null)
+        {
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Cover image not found!");
+            Debug.Log($"Didn't find image file {coverFilename}!");
+        }
+        else
+        {
+            coverImageData = FileUtil.StreamToBytes(coverImageStream);
+            if(coverImageData == null || coverImageData.Length <= 0)
+            {
+                ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Failed to read cover image data!");
+                Debug.Log($"Failed to read bytes from {coverFilename}!");
+            }
+        }
+
+        return new LoadedMap(mapData, coverImageData, song);
+    }
+
+
+    public static async Task<LoadedMapData> MapDataFromZipArchiveAsync(ZipArchive archive)
     {
         BeatmapInfo info = null;
-        List<Difficulty> difficulties = new List<Difficulty>();
-        MemoryStream song = null;
-        byte[] coverImageData = new byte[0];
 
         MapLoader.LoadingMessage = "Loading Info.dat";
         await Task.Yield();
@@ -21,64 +93,19 @@ public class ZipReader
         if(info == null)
         {
             //Failed to load info (errors are handled in GetInfoData)
-            return (info, difficulties, song, coverImageData);
+            return LoadedMapData.Empty;
         }
 
         Debug.Log($"Loaded info for {info._songAuthorName} - {info._songName}, mapped by {info._levelAuthorName}");
 
-        if(info?._difficultyBeatmapSets == null || info._difficultyBeatmapSets.Length < 1)
+        if(info._difficultyBeatmapSets == null || info._difficultyBeatmapSets.Length < 1)
         {
-            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "The map lists no difficulty sets!");
             Debug.LogWarning("Info lists no difficulty sets!");
+            return LoadedMapData.Empty;
         }
-        else
-        {
-            difficulties = await GetDifficultiesAsync(info._difficultyBeatmapSets, archive);
-        }
+        List<Difficulty> difficulties = await DifficultyLoader.GetDifficultiesAsync(info, archive);
 
-        string songFilename = info?._songFilename ?? "";
-        foreach(ZipArchiveEntry entry in archive.Entries)
-        {
-            if(entry.Name.Equals(songFilename))
-            {
-                //We need to convert the stream specifically to a Memory Stream to make it seekable
-                //This is required for audio processing to work
-                using(Stream songStream = entry.Open())
-                {
-                    song = new MemoryStream(FileUtil.StreamToBytes(songStream));
-                }
-                break;
-            }
-        }
-        if(song == null)
-        {
-            ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Song file not found!");
-            Debug.LogWarning($"Didn't find audio file {songFilename}!");
-            return (info, difficulties, song, coverImageData);
-        }
-
-        MapLoader.LoadingMessage = "Loading cover image";
-        Debug.Log("Loading cover image.");
-        await Task.Yield();
-
-        string coverFilename = info?._coverImageFilename ?? "";
-        foreach(ZipArchiveEntry entry in archive.Entries)
-        {
-            if(entry.Name.Equals(coverFilename))
-            {
-                using(Stream coverImageStream = entry.Open())
-                {
-                    coverImageData = FileUtil.StreamToBytes(coverImageStream);
-                }
-            }
-        }
-        if(coverImageData == null || coverImageData.Length <= 0)
-        {
-            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Cover image not found!");
-            Debug.Log($"Didn't find image file {coverFilename}!");
-        }
-
-        return (info, difficulties, song, coverImageData);
+        return new LoadedMapData(info, difficulties);
     }
 
 
@@ -135,86 +162,56 @@ public class ZipReader
     }
 
 
-    public static async Task<List<Difficulty>> GetDifficultiesAsync(DifficultyBeatmapSet[] beatmapSets, ZipArchive archive)
+    public static Difficulty GetDifficulty(ZipArchive archive, DifficultyBeatmap beatmap)
     {
-        List<Difficulty> difficulties = new List<Difficulty>();
-
-        foreach(DifficultyBeatmapSet set in beatmapSets)
-        {
-            string characteristicName = set._beatmapCharacteristicName;
-
-            if(set._difficultyBeatmaps.Length == 0)
-            {
-                ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Characteristic {characteristicName} lists no difficulties!");
-                Debug.LogWarning($"{characteristicName} lists no difficulties!");
-                continue;
-            }
-
-            DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
-
-            List<Difficulty> newDifficulties = new List<Difficulty>();
-            foreach(DifficultyBeatmap beatmap in set._difficultyBeatmaps)
-            {
-                MapLoader.LoadingMessage = $"Loading {beatmap._beatmapFilename}";
-                Debug.Log($"Loading {beatmap._beatmapFilename}");
-                
-                Difficulty diff = await GetDiffAsync(beatmap, archive);
-                if(diff == null)
-                {
-                    continue;
-                }
-
-                diff.characteristic = setCharacteristic;
-                diff.requirements = beatmap._customData?._requirements ?? new string[0];
-
-                newDifficulties.Add(diff);
-            }
-
-            difficulties.AddRange(newDifficulties);
-            Debug.Log($"Finished loading {newDifficulties.Count} difficulties in characteristic {characteristicName}.");
-        }
-
-        return difficulties;
-    }
-
-
-    private static async Task<Difficulty> GetDiffAsync(DifficultyBeatmap beatmap, ZipArchive archive)
-    {
-        await Task.Yield();
-
-        Difficulty output = new Difficulty
-        {
-            difficultyRank = MapLoader.DiffValueFromString[beatmap._difficulty],
-            NoteJumpSpeed = beatmap._noteJumpMovementSpeed,
-            SpawnOffset = beatmap._noteJumpStartBeatOffset
-        };
-        output.Label = beatmap._customData?._difficultyLabel ?? Difficulty.DiffLabelFromRank(output.difficultyRank);
-
         string filename = beatmap._beatmapFilename;
-        Debug.Log($"Loading json from {filename}");
+        Debug.Log($"Getting archive entry for {filename}");
 
-        Stream diffData = null;
-        foreach(ZipArchiveEntry entry in archive.Entries)
-        {
-            if(entry.Name.Equals(filename))
-            {
-                diffData = entry.Open();
-                break;
-            }
-        }
-
-        if(diffData == null)
+        ZipArchiveEntry entry = archive.GetEntryCaseInsensitive(filename);
+        if(entry == null)
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to load {filename}!");
             Debug.LogWarning("Difficulty file not found!");
             return null;
         }
 
-        Debug.Log($"Parsing {filename}");
-        string diffJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(diffData));
-        output.beatmapDifficulty = JsonReader.ParseBeatmapFromJson(diffJson);
-        diffData.Dispose();
+        return GetDifficulty(entry, beatmap);
+    }
+
+
+    public static Difficulty GetDifficulty(ZipArchiveEntry entry, DifficultyBeatmap beatmap)
+    {
+        Debug.Log($"Reading data from {beatmap._beatmapFilename}");
+        byte[] diffData = FileUtil.StreamToBytes(entry.Open());
+
+        return GetDifficulty(diffData, beatmap);
+    }
+
+
+    public static Difficulty GetDifficulty(byte[] diffData, DifficultyBeatmap beatmap)
+    {
+        Difficulty output = new Difficulty
+        {
+            difficultyRank = MapLoader.DiffValueFromString[beatmap._difficulty],
+            NoteJumpSpeed = beatmap._noteJumpMovementSpeed,
+            SpawnOffset = beatmap._noteJumpStartBeatOffset
+        };
+
+        string diffJson = System.Text.Encoding.UTF8.GetString(diffData);
+        output.beatmapDifficulty = JsonReader.ParseBeatmapFromJson(diffJson, beatmap._beatmapFilename);
 
         return output;
     }
+
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+    private static async Task<AudioClip> AudioClipFromMemoryStream(MemoryStream stream, string songFilename)
+    {
+        //Write song data to a tempfile so it can be loaded through a uwr
+        using TempFile songFile = new TempFile();
+        await File.WriteAllBytesAsync(songFile.Path, stream.ToArray());
+
+        return await AudioFileHandler.LoadAudioDirectory(songFile.Path, songFilename);
+    }
+#endif
 }
