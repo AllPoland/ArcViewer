@@ -34,10 +34,10 @@ public class SkipButton : MonoBehaviour
             }
         }
 
-        if(!SettingsMenu.Open)
+        if(!TimeManager.Playing && (!SettingsMenu.Open || !UserIdleDetector.MouseOnUI))
         {
             float scroll = Input.GetAxis("Mouse ScrollWheel");
-            if(!TimeManager.Playing && Mathf.Abs(scroll) > 0)
+            if(Mathf.Abs(scroll) > 0)
             {
                 float skipTime = TimeManager.RawTimeFromBeat(shortSkipBeats, TimeManager.CurrentBPM);
                 if(scroll > 0)
