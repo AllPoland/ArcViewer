@@ -51,6 +51,19 @@ public class ObjectManager : MonoBehaviour
         {8, 0}
     };
 
+    public static readonly Dictionary<int, int> ReverseCutDirection = new Dictionary<int, int>
+    {
+        {0, 1},
+        {1, 0},
+        {2, 3},
+        {3, 2},
+        {4, 7},
+        {5, 6},
+        {6, 5},
+        {7, 4},
+        {8, 8}
+    };
+
     public float BehindCameraTime => TimeFromWorldspace(behindCameraZ);
 
 
@@ -294,7 +307,6 @@ public class ObjectManager : MonoBehaviour
         public int d;
         public float StartY;
         public bool HasAttachment;
-        public bool IsTail;
     }
 
 
@@ -316,7 +328,6 @@ public class ObjectManager : MonoBehaviour
                 d = a.d,
                 HasAttachment = false
             };
-            beatmapSliderHeads.Add(head);
 
             BeatmapSliderEnd tail = new BeatmapSliderEnd
             {
@@ -327,17 +338,21 @@ public class ObjectManager : MonoBehaviour
                 d = a.tc,
                 HasAttachment = false
             };
-            beatmapSliderTails.Add(tail);
 
             if(a.tb < a.b)
             {
                 //Swap the head and tail if the arc is backwards
-                (head, tail) = (tail, head);
+                //Flip the directions as well since heads and tails are different
+                head.d = ReverseCutDirection[Mathf.Clamp(head.d, 0, 8)];
+                tail.d = ReverseCutDirection[Mathf.Clamp(tail.d, 0, 8)];
+                beatmapSliderTails.Add(head);
+                beatmapSliderHeads.Add(tail);
             }
-
-            //Assign this late in case the swap happens
-            head.IsTail = false;
-            tail.IsTail = true;
+            else
+            {
+                beatmapSliderHeads.Add(head);
+                beatmapSliderTails.Add(tail);
+            }
         }
 
         List<BeatmapObject> allObjects = new List<BeatmapObject>();
@@ -490,6 +505,7 @@ public class ObjectManager : MonoBehaviour
                 newArc.Position += offset;
                 newArc.HeadControlPoint += offset;
                 newArc.HeadStartY = head.StartY + offset.y;
+                newArc.HasHeadAttachment = true;
             }
 
             if(tail.HasAttachment)

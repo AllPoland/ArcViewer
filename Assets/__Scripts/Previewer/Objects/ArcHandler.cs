@@ -4,6 +4,8 @@ public class ArcHandler : MonoBehaviour
 {
     [SerializeField] private LineRenderer lineRenderer;
 
+    private MaterialPropertyBlock materialProperties;
+
 
     public void SetArcPoints(Vector3[] newPoints)
     {
@@ -42,5 +44,21 @@ public class ArcHandler : MonoBehaviour
     {
         lineRenderer.sharedMaterial = newMaterial;
         lineRenderer.SetPropertyBlock(properties);
+
+        //This creates a proper copy of the material property block
+        //Allows us to change properties on this arc without worrying about reference types
+        if(materialProperties == null) materialProperties = new MaterialPropertyBlock();
+        lineRenderer.GetPropertyBlock(materialProperties);
+    }
+
+
+    public void SetAlpha(float alpha)
+    {
+        if(alpha == materialProperties.GetColor("_BaseColor").a) return;
+
+        Color color = materialProperties.GetColor("_BaseColor");
+        color.a = alpha;
+        materialProperties.SetColor("_BaseColor", color);
+        lineRenderer.SetPropertyBlock(materialProperties);
     }
 }

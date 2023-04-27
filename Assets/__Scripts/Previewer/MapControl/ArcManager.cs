@@ -19,7 +19,7 @@ public class ArcManager : MonoBehaviour
     [SerializeField] private float arcEndFadeStart;
     [SerializeField] private float arcEndFadeEnd;
     [SerializeField] private float arcFadeTransitionLength;
-    [SerializeField] private float arcCloseFadeDist;
+    [SerializeField] private float headlessArcFadeBeats;
 
     private static ObjectManager objectManager;
 
@@ -41,9 +41,9 @@ public class ArcManager : MonoBehaviour
         ClearRenderedArcs();
 
         //Sets the distance that arcs should fade out
-        const float fadeDistMultiplier = 0.9f;
+        const float closeFadeDist = 0f;
+        const float fadeDistMultiplier = 0.95f;
         float fadeDist = BeatmapManager.JumpDistance / 2 * fadeDistMultiplier;
-        float closeFadeDist = SettingsManager.GetFloat("cameraposition") + arcCloseFadeDist;
 
         redArcMaterialProperties.SetFloat("_FadeStartPoint", closeFadeDist);
         redArcMaterialProperties.SetFloat("_FadeEndPoint", fadeDist);
@@ -251,6 +251,13 @@ public class ArcManager : MonoBehaviour
             RenderedArcs.Add(a);
         }
 
+        if(!a.HasHeadAttachment && SettingsManager.GetBool("headlessarcfade"))
+        {
+            float beatDifference = TimeManager.CurrentBeat - a.Beat;
+            float alpha = Mathf.Clamp(beatDifference / headlessArcFadeBeats, 0f, 1f);
+            a.arcHandler.SetAlpha(alpha);
+        }
+
         if(objectManager.doMovementAnimation)
         {
             float headOffsetY = objectManager.GetObjectY(a.HeadStartY, a.Position.y, a.Time) - a.Position.y;
@@ -359,6 +366,7 @@ public class Arc : BaseSlider
     public Vector2 TailControlPoint;
     public float HeadAngle;
     public bool HeadDot;
+    public bool HasHeadAttachment;
     public float HeadStartY;
     public float TailStartY;
     public ArcRotationDirection MidRotationDirection;
@@ -391,12 +399,16 @@ public class Arc : BaseSlider
         float headBeat = a.b;
         float tailBeat = a.tb;
 
+        int headCutDirection = a.d;
+        int tailCutDirection = a.tc;
+
         if(tailBeat < headBeat)
         {
             //Negative duration arcs breaks stuff, flip head and tail so they act like regular arcs
             (headBeat, tailBeat) = (tailBeat, headBeat);
             (headPosition, tailPosition) = (tailPosition, headPosition);
             (headAngle, tailAngle) = (tailAngle, headAngle);
+            (headCutDirection, tailCutDirection) = (tailCutDirection, headCutDirection);
             (headControlPoint, tailControlPoint) = (tailControlPoint, headControlPoint);
         }
 
@@ -414,10 +426,11 @@ public class Arc : BaseSlider
             Color = a.c,
             TailBeat = tailBeat,
             TailPosition = tailPosition,
-            HeadControlPoint = a.d == 8 ? headPosition : headControlPoint,
-            TailControlPoint = a.tc == 8 ? tailPosition : tailControlPoint,
+            HeadControlPoint = headCutDirection == 8 ? headPosition : headControlPoint,
+            TailControlPoint = tailCutDirection == 8 ? tailPosition : tailControlPoint,
             HeadAngle = headAngle,
-            HeadDot = a.d == 8,
+            HeadDot = headCutDirection == 8,
+            HasHeadAttachment = false,
             HeadStartY = headPosition.y,
             TailStartY = tailPosition.y,
             MidRotationDirection = rotationDirection

@@ -305,6 +305,7 @@ public class Settings
             {"moveanimations", true},
             {"rotateanimations", true},
             {"flipanimations", true},
+            {"headlessarcfade", true},
             {"vsync", true},
             {"ssao", true},
             {"dynamicsoundpriority", true},
