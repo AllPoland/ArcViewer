@@ -40,6 +40,13 @@ public class ArcHandler : MonoBehaviour
     }
 
 
+    public void SetWidth(float width)
+    {
+        lineRenderer.startWidth = width;
+        lineRenderer.endWidth = width;
+    }
+
+
     public void SetMaterial(Material newMaterial, MaterialPropertyBlock properties)
     {
         lineRenderer.sharedMaterial = newMaterial;
@@ -52,13 +59,14 @@ public class ArcHandler : MonoBehaviour
     }
 
 
-    public void SetAlpha(float alpha)
+    public void SetProperties(float alpha, float textureOffset)
     {
-        if(alpha == materialProperties.GetColor("_BaseColor").a) return;
+        materialProperties.SetFloat("_TextureOffset", textureOffset);
 
         Color color = materialProperties.GetColor("_BaseColor");
         color.a = alpha;
         materialProperties.SetColor("_BaseColor", color);
+
         lineRenderer.SetPropertyBlock(materialProperties);
     }
 }
