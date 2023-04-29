@@ -738,7 +738,7 @@ MonoBehaviour:
   buttonObject: {fileID: 1976545191}
   image: {fileID: 934671497}
   loadingSpin: {fileID: 932343288}
-  enabledTooltip: Reload the map in real-time
+  enabledTooltip: Quick reload [R]
   disabledTooltip: Quick reloading is only available on locally loaded maps
 --- !u!1 &29924398
 GameObject:
@@ -7203,6 +7203,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   button: {fileID: 1169124860}
   tooltip: {fileID: 1169124863}
+  openTooltip: Close settings [Tab]
+  closedTooltip: Settings [Tab]
 --- !u!114 &288421086
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17698,7 +17700,7 @@ MonoBehaviour:
   redArcColor: {r: 0.78431374, g: 0.078431375, b: 0.078431375, a: 1}
   blueArcColor: {r: 0.15686275, g: 0.5568628, b: 0.8235294, a: 1}
   arcEndFadeStart: 0
-  arcEndFadeEnd: 0.3
+  arcEndFadeEnd: 0.25
   arcFadeTransitionLength: 1
   headlessArcFadeBeats: 0.3
   arcAnimationSpeed: 0.75
@@ -27267,7 +27269,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Settings
+  Text: Settings [Tab]
 --- !u!1 &1172154321
 GameObject:
   m_ObjectHideFlags: 0
@@ -36341,7 +36343,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggle fullscreen
+  Text: Toggle fullscreen [F11]
 --- !u!114 &1556757282
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -45682,7 +45684,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Quick reload map
+  Text: Quick reload [R]
 --- !u!114 &1976545194
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -50362,7 +50364,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Exit to map select
+  Text: Exit to map select [Esc]
 --- !u!1 &2145086323
 GameObject:
   m_ObjectHideFlags: 0

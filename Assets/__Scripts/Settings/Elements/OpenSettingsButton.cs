@@ -5,13 +5,15 @@ public class OpenSettingsButton : MonoBehaviour
 {
     [SerializeField] private Button button;
     [SerializeField] private Tooltip tooltip;
+    [SerializeField] private string openTooltip;
+    [SerializeField] private string closedTooltip;
 
     private SettingsMenu settingsMenu;
 
 
     public void UpdateTooltip()
     {
-        tooltip.Text = SettingsMenu.Open ? "Close settings" : "Settings";
+        tooltip.Text = SettingsMenu.Open ? openTooltip : closedTooltip;
     }
 
 
