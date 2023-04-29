@@ -20,6 +20,7 @@ public class ArcManager : MonoBehaviour
     [SerializeField] private float arcEndFadeEnd;
     [SerializeField] private float arcFadeTransitionLength;
     [SerializeField] private float headlessArcFadeBeats;
+    [SerializeField] private float arcAnimationSpeed;
 
     private static ObjectManager objectManager;
 
@@ -42,7 +43,7 @@ public class ArcManager : MonoBehaviour
 
         //Sets the distance that arcs should fade out
         const float closeFadeDist = 0f;
-        const float fadeDistMultiplier = 0.95f;
+        const float fadeDistMultiplier = 0.9f;
         float fadeDist = BeatmapManager.JumpDistance / 2 * fadeDistMultiplier;
 
         redArcMaterialProperties.SetFloat("_FadeStartPoint", closeFadeDist);
@@ -247,15 +248,43 @@ public class ArcManager : MonoBehaviour
             a.CalculateBaseCurve();
             a.arcHandler.SetArcPoints(a.BaseCurve);
             a.arcHandler.SetGradient(a.CurveLength, arcEndFadeStart, arcEndFadeEnd);
+            a.arcHandler.SetWidth(SettingsManager.GetFloat("arcwidth") / 2);
 
             RenderedArcs.Add(a);
         }
 
-        if(!a.HasHeadAttachment && SettingsManager.GetBool("headlessarcfade"))
+        bool fadeAnimation = SettingsManager.GetBool("arcfadeanimation");
+        bool textureAnimation = SettingsManager.GetBool("arctextureanimation");
+
+        float alpha = SettingsManager.GetFloat("arcbrightness");
+        if(fadeAnimation)
         {
-            float beatDifference = TimeManager.CurrentBeat - a.Beat;
-            float alpha = Mathf.Clamp(beatDifference / headlessArcFadeBeats, 0f, 1f);
-            a.arcHandler.SetAlpha(alpha);
+            if(!a.HasHeadAttachment)
+            {
+                float beatDifference = TimeManager.CurrentBeat - a.Beat;
+                alpha *= Mathf.Clamp(beatDifference / headlessArcFadeBeats, 0f, 1f);
+            }
+            else
+            {
+                const float fadeSpeedMult = 0.85f;
+                float fullAlphaPos = BeatmapManager.JumpDistance * fadeSpeedMult;
+                alpha *= 1f - Mathf.Clamp(zDist / fullAlphaPos, 0f, 1f);
+            }
+        }
+
+        //This arbitrary starting value is just a default for when animations are disabled
+        //I picked this because it's a fairly balanced, decent looking variation
+        float textureOffset = 0.509f;
+        if(textureAnimation)
+        {
+            float timeDifference = TimeManager.CurrentTime - a.Time;
+            textureOffset = a.Beat + (timeDifference * arcAnimationSpeed);
+            textureOffset %= 1f;
+        }
+
+        if(textureAnimation || fadeAnimation)
+        {
+            a.arcHandler.SetProperties(alpha, textureOffset);
         }
 
         if(objectManager.doMovementAnimation)
