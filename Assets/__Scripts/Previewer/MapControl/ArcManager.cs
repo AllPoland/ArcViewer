@@ -278,7 +278,8 @@ public class ArcManager : MonoBehaviour
         if(textureAnimation)
         {
             float timeDifference = TimeManager.CurrentTime - a.Time;
-            textureOffset = a.Beat + (timeDifference * arcAnimationSpeed);
+            float startValue = a.Beat + a.HeadAngle + a.Position.x + a.Position.y;
+            textureOffset = startValue + (timeDifference * arcAnimationSpeed);
             textureOffset %= 1f;
         }
 
