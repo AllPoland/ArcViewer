@@ -24,23 +24,14 @@ public class HotReloader : MonoBehaviour
     public static event Action<bool> OnLoadingChanged;
 
     private Coroutine loadingCoroutine;
-    private Stream mapZipStream;
-    private ZipArchive mapZipArchive;
 
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-    private IEnumerator ReloadMapDirectoryCoroutine()
+    private IEnumerator ReloadMapCoroutine(IMapDataLoader loader)
     {
-        if(!Directory.Exists(loadedMapPath))
-        {
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "The map folder has been deleted!");
-            Debug.LogWarning("The map folder has been deleted!");
-            yield break;
-        }
         Loading = true;
 
-        //Reloading should only load the info and difficulties, to maximise speed
-        using Task<LoadedMapData> loadingTask = Task.Run(() => FileReader.LoadMapDataDirectoryAsync(loadedMapPath));
+        using Task<LoadedMapData> loadingTask = Task.Run(() => loader.GetMapData());
         yield return new WaitUntil(() => loadingTask.IsCompleted);
         LoadedMapData mapData = loadingTask.Result;
 
@@ -51,52 +42,51 @@ public class HotReloader : MonoBehaviour
             yield break;
         }
 
+        loader.Dispose();
         UpdateMap(mapData);
 
         Loading = false;
     }
 
 
-    private IEnumerator ReloadMapZipCoroutine()
+    private void ReloadMapDirectory()
+    {
+        if(!Directory.Exists(loadedMapPath))
+        {
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "The map folder has been deleted!");
+            Debug.LogWarning("The map folder has been deleted!");
+            return;
+        }
+
+        FileReader fileReader = new FileReader(loadedMapPath);
+        loadingCoroutine = StartCoroutine(ReloadMapCoroutine(fileReader));
+    }
+
+
+    private void ReloadMapZip()
     {
         if(!File.Exists(loadedMapPath))
         {
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "The map file has been deleted!");
             Debug.LogWarning("The map file has been deleted!");
-            yield break;
+            return;
         }
         Loading = true;
 
         Debug.Log("Loading zip file.");
         try
         {
-            mapZipStream = File.OpenRead(loadedMapPath);
-            mapZipArchive = new ZipArchive(mapZipStream, ZipArchiveMode.Read);
+            ZipArchive archive = ZipFile.OpenRead(loadedMapPath);
+            ZipReader zipReader = new ZipReader(archive);
+
+            loadingCoroutine = StartCoroutine(ReloadMapCoroutine(zipReader));
         }
         catch(Exception e)
         {
             Debug.LogWarning($"Failed to load map zip with error: {e.Message}, {e.StackTrace}");
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to load map zip!");
-
-            CancelLoading();
-            yield break;
+            return;
         }
-
-        using Task<LoadedMapData> loadingTask = Task.Run(() => ZipReader.MapDataFromZipArchiveAsync(mapZipArchive));
-        yield return new WaitUntil(() => loadingTask.IsCompleted);
-        LoadedMapData mapData = loadingTask.Result;
-
-        if(mapData.Info == null || mapData.Difficulties == null || mapData.Difficulties.Count == 0)
-        {
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to reload map!");
-            CancelLoading();
-            yield break;
-        }
-
-        UpdateMap(mapData);
-        DisposeZip();
-
-        Loading = false;
     }
 
 
@@ -147,37 +137,23 @@ public class HotReloader : MonoBehaviour
         Debug.Log($"Reloading map from {loadedMapPath}");
         if(loadedMapPath.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
         {
-            loadingCoroutine = StartCoroutine(ReloadMapZipCoroutine());
+            ReloadMapZip();
         }
         else
         {
-            loadingCoroutine = StartCoroutine(ReloadMapDirectoryCoroutine());
+            ReloadMapDirectory();
         }
 #endif
     }
 
 
-    private void DisposeZip()
-    {
-        mapZipArchive?.Dispose();
-        mapZipStream?.Dispose();
-    }
-
-
     public void CancelLoading()
     {
-        if(!Loading)
-        {
-            //No need to cancel if we aren't loading
-            return;
-        }
-
         if(loadingCoroutine != null)
         {
             StopCoroutine(loadingCoroutine);
+            loadingCoroutine = null;
         }
-
-        DisposeZip();
         Loading = false;
     }
 

@@ -40,50 +40,19 @@ public class MapLoader : MonoBehaviour
     };
 
 
-    private IEnumerator LoadMapDirectoryCoroutine(string directory)
+    private IEnumerator LoadMapFileCoroutine(IMapDataLoader loader)
     {
-        //Loading maps from directories will never work in WebGL
-#if UNITY_WEBGL && !UNITY_EDITOR
-        Debug.LogWarning("Tried to load from directory in WebGL!");
-        ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Loading from directory doesn't work in browser!");
-
-        UpdateMapInfo(LoadedMap.Empty);
-        yield break;
-#else
         Loading = true;
 
-        using Task<LoadedMap> loadingTask = FileReader.LoadMapDirectoryAsync(directory);
+        using Task<LoadedMap> loadingTask = loader.GetMap();
         yield return new WaitUntil(() => loadingTask.IsCompleted);
         LoadedMap mapData = loadingTask.Result;
 
         Debug.Log("Loading complete.");
         LoadingMessage = "Done";
 
+        loader.Dispose();
         UpdateMapInfo(mapData);
-#endif
-    }
-
-
-    private IEnumerator LoadMapZipArchiveCoroutine(ZipArchive archive, Stream zipStream = null)
-    {
-        Debug.Log("Loading map zip.");
-        LoadingMessage = "Loading map zip";
-
-        using Task<LoadedMap> loadZipTask = ZipReader.MapFromZipArchiveAsync(archive);
-        yield return new WaitUntil(() => loadZipTask.IsCompleted);
-        LoadedMap mapData = loadZipTask.Result;
-
-        Debug.Log("Loading complete.");
-        LoadingMessage = "Done";
-
-        DisposeZip();
-        UpdateMapInfo(mapData);
-
-        void DisposeZip()
-        {
-            zipStream?.Dispose();
-            archive?.Dispose();
-        }
     }
 
 
@@ -91,15 +60,18 @@ public class MapLoader : MonoBehaviour
     {
         Loading = true;
 
-        ZipArchive archive = null;
+        ZipReader zipReader = new ZipReader();
         try
         {
-            archive = ZipFile.OpenRead(directory);
-            StartCoroutine(LoadMapZipArchiveCoroutine(archive));
+            Debug.Log("Loading map zip.");
+            LoadingMessage = "Loading map zip";
+
+            zipReader.Archive = ZipFile.OpenRead(directory);
+            StartCoroutine(LoadMapFileCoroutine(zipReader));
         }
         catch(Exception err)
         {
-            archive?.Dispose();
+            zipReader.Dispose();
 
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to load zip file!");
             Debug.LogWarning($"Unhandled exception loading zip: {err.Message}, {err.StackTrace}.");
@@ -115,30 +87,26 @@ public class MapLoader : MonoBehaviour
         Loading = true;
         LoadingMessage = "Loading zip";
 
-        Stream zipStream = null;
-        ZipArchive archive = null;
-
-        using UnityWebRequest uwr = UnityWebRequest.Get(directory);
-        
         Debug.Log("Starting web request.");
+        using UnityWebRequest uwr = UnityWebRequest.Get(directory);
         yield return uwr.SendWebRequest();
 
         if(uwr.result == UnityWebRequest.Result.Success)
         {
+            ZipReader zipReader = new ZipReader();
             try
             {
-                zipStream = new MemoryStream(uwr.downloadHandler.data);
-                archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
+                zipReader.ArchiveStream = new MemoryStream(uwr.downloadHandler.data);
+                zipReader.Archive = new ZipArchive(zipReader.ArchiveStream, ZipArchiveMode.Read);
 
-                StartCoroutine(LoadMapZipArchiveCoroutine(archive, zipStream));
+                StartCoroutine(LoadMapFileCoroutine(zipReader));
             }
             catch(Exception e)
             {
                 Debug.LogWarning($"Failed to read map data with error: {e.Message}, {e.StackTrace}");
                 ErrorHandler.Instance.ShowPopup(ErrorType.Error, $"Failed to read map data!");
 
-                Dispose();
-
+                zipReader.Dispose();
                 UpdateMapInfo(LoadedMap.Empty);
                 yield break;
             }
@@ -148,16 +116,8 @@ public class MapLoader : MonoBehaviour
             Debug.LogWarning(uwr.error);
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, $"Failed to load map! {uwr.error}");
 
-            Dispose();
-
             UpdateMapInfo(LoadedMap.Empty);
             yield break;
-        }
-
-        void Dispose()
-        {
-            zipStream?.Dispose();
-            archive?.Dispose();
         }
     }
 
@@ -221,18 +181,15 @@ public class MapLoader : MonoBehaviour
         }
 #endif
 
-        ZipArchive archive = null;
-        
+        ZipReader zipReader = new ZipReader(null, zipStream);
         try
         {
-            archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
-
-            StartCoroutine(LoadMapZipArchiveCoroutine(archive, zipStream));
+            zipReader.Archive = new ZipArchive(zipReader.ArchiveStream, ZipArchiveMode.Read);
+            StartCoroutine(LoadMapFileCoroutine(zipReader));
         }
         catch(Exception err)
         {
-            archive?.Dispose();
-            zipStream?.Dispose();
+            zipReader.Dispose();
 
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to read map zip!");
             Debug.LogWarning($"Unhandled exception loading zip URL: {err.Message}, {err.StackTrace}");
@@ -393,7 +350,8 @@ public class MapLoader : MonoBehaviour
             return;
         }
 
-        StartCoroutine(LoadMapDirectoryCoroutine(input));
+        FileReader fileReader = new FileReader(input);
+        StartCoroutine(LoadMapFileCoroutine(fileReader));
         HotReloader.loadedMapPath = input;
 #endif
     }
@@ -448,4 +406,11 @@ public class LoadedMapData
     public List<Difficulty> Difficulties { get; private set; }
 
     public static readonly LoadedMapData Empty = new LoadedMapData(null, new List<Difficulty>());
+}
+
+
+public interface IMapDataLoader : IDisposable
+{
+    public Task<LoadedMap> GetMap();
+    public Task<LoadedMapData> GetMapData();
 }
