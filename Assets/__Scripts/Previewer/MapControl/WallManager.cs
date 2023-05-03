@@ -7,6 +7,8 @@ public class WallManager : MonoBehaviour
     [SerializeField] private GameObject wallParent;
 
     [SerializeField] private Material wallMaterial;
+    [SerializeField] private Color wallColor;
+    [SerializeField, Range(0f, 1f)] private float wallLightness;
 
     public List<Wall> Walls = new List<Wall>();
     public List<Wall> RenderedWalls = new List<Wall>();
@@ -28,10 +30,17 @@ public class WallManager : MonoBehaviour
     {
         ClearRenderedWalls();
 
-        Color wallColor = wallMaterial.color;
+        //Set the value of wall color directly
+        float h;
+        float s;
+        float v;
 
-        wallColor.a = SettingsManager.GetFloat("wallopacity");
-        wallMaterialProperties.SetColor("_BaseColor", wallColor);
+        Color.RGBToHSV(wallColor, out h, out s, out v);
+        v = wallLightness;
+        Color newColor = Color.HSVToRGB(h, s, v);
+
+        newColor.a = SettingsManager.GetFloat("wallopacity");
+        wallMaterialProperties.SetColor("_BaseColor", newColor);
 
         UpdateWallVisuals(TimeManager.CurrentBeat);
     }
