@@ -489,8 +489,6 @@ public class ObjectManager : MonoBehaviour
         }
 
         // pair slider heads/tails back up and make final arcs
-        beatmapSliderHeads = beatmapSliderHeads.OrderBy(a => a.id).ToList();
-        beatmapSliderTails = beatmapSliderTails.OrderBy(a => a.id).ToList();
         for(int i = 0; i < beatmapSliderHeads.Count; i++)
         {
             const float halfNoteOffset = 0.225f;
