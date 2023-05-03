@@ -493,27 +493,37 @@ public class ObjectManager : MonoBehaviour
         beatmapSliderTails = beatmapSliderTails.OrderBy(a => a.id).ToList();
         for(int i = 0; i < beatmapSliderHeads.Count; i++)
         {
+            const float halfNoteOffset = 0.225f;
+
             BeatmapSliderEnd head = beatmapSliderHeads[i];
             BeatmapSliderEnd tail = beatmapSliderTails[i];
 
             Arc newArc = Arc.ArcFromBeatmapSlider(beatmapDifficulty.sliders[i]);
 
-            const float halfNoteOffset = 0.225f;
-            if(head.HasAttachment)
+            Vector2 headOffset = Vector2.zero;
+            Vector2 tailOffset = Vector2.zero;
+            if(head.d != 8)
             {
-                Vector2 offset = DirectionVector(CalculateObjectAngle(head.d)) * halfNoteOffset;
-                newArc.Position += offset;
-                newArc.HeadControlPoint += offset;
-                newArc.HeadStartY = head.StartY + offset.y;
-                newArc.HasHeadAttachment = true;
+                headOffset = DirectionVector(newArc.HeadAngle) * halfNoteOffset;
+                newArc.Position += headOffset;
+                newArc.HeadControlPoint += headOffset;
+            }
+            if(tail.d != 8)
+            {
+                //This gets inverted because tail goes in the oppsite direction of the arrow
+                tailOffset = DirectionVector(newArc.TailAngle) * halfNoteOffset * -1f;
+                newArc.TailPosition += tailOffset;
+                newArc.TailControlPoint += tailOffset;
             }
 
+            if(head.HasAttachment)
+            {
+                newArc.HeadStartY = head.StartY + headOffset.y;
+                newArc.HasHeadAttachment = true;
+            }
             if(tail.HasAttachment)
             {
-                Vector2 offset = DirectionVector(CalculateObjectAngle(tail.d)) * halfNoteOffset * -1;
-                newArc.TailPosition += offset;
-                newArc.TailControlPoint += offset;
-                newArc.TailStartY = tail.StartY + offset.y;
+                newArc.TailStartY = tail.StartY + tailOffset.y;
             }
 
             arcs.Add(newArc);

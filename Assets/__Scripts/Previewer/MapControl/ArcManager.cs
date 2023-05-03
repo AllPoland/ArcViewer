@@ -395,6 +395,7 @@ public class Arc : BaseSlider
     public Vector2 HeadControlPoint;
     public Vector2 TailControlPoint;
     public float HeadAngle;
+    public float TailAngle;
     public bool HeadDot;
     public bool HasHeadAttachment;
     public float HeadStartY;
@@ -459,6 +460,7 @@ public class Arc : BaseSlider
             HeadControlPoint = headCutDirection == 8 ? headPosition : headControlPoint,
             TailControlPoint = tailCutDirection == 8 ? tailPosition : tailControlPoint,
             HeadAngle = headAngle,
+            TailAngle = tailAngle,
             HeadDot = headCutDirection == 8,
             HasHeadAttachment = false,
             HeadStartY = headPosition.y,
