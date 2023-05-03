@@ -394,8 +394,9 @@ public class Arc : BaseSlider
     public float CurveLength { get; private set; }
     public Vector2 HeadControlPoint;
     public Vector2 TailControlPoint;
+    public Vector2 HeadOffsetDirection;
+    public Vector2 TailOffsetDirection;
     public float HeadAngle;
-    public float TailAngle;
     public bool HeadDot;
     public bool HasHeadAttachment;
     public float HeadStartY;
@@ -422,10 +423,13 @@ public class Arc : BaseSlider
         float headAngle = ObjectManager.CalculateObjectAngle(a.d);
         float tailAngle = ObjectManager.CalculateObjectAngle(a.tc);
 
-        Vector2 headControlOffset = ObjectManager.DirectionVector(headAngle) * a.mu * defaultControlOffset;
-        Vector2 tailControlOffset = ObjectManager.DirectionVector(tailAngle) * a.tmu * defaultControlOffset;
+        Vector2 headOffsetDirection = a.d == 8 ? Vector2.zero : ObjectManager.DirectionVector(headAngle);
+        Vector2 tailOffsetDirection = a.tc == 8 ? Vector2.zero : ObjectManager.DirectionVector(tailAngle) * -1f;
+
+        Vector2 headControlOffset = headOffsetDirection * a.mu * defaultControlOffset;
+        Vector2 tailControlOffset = tailOffsetDirection * a.tmu * defaultControlOffset;
         Vector2 headControlPoint = headPosition + headControlOffset;
-        Vector2 tailControlPoint = tailPosition - tailControlOffset;
+        Vector2 tailControlPoint = tailPosition + tailControlOffset;
 
         float headBeat = a.b;
         float tailBeat = a.tb;
@@ -440,6 +444,7 @@ public class Arc : BaseSlider
             (headPosition, tailPosition) = (tailPosition, headPosition);
             (headAngle, tailAngle) = (tailAngle, headAngle);
             (headCutDirection, tailCutDirection) = (tailCutDirection, headCutDirection);
+            (headOffsetDirection, tailOffsetDirection) = (tailOffsetDirection, headOffsetDirection);
             (headControlPoint, tailControlPoint) = (tailControlPoint, headControlPoint);
         }
 
@@ -457,10 +462,11 @@ public class Arc : BaseSlider
             Color = a.c,
             TailBeat = tailBeat,
             TailPosition = tailPosition,
-            HeadControlPoint = headCutDirection == 8 ? headPosition : headControlPoint,
-            TailControlPoint = tailCutDirection == 8 ? tailPosition : tailControlPoint,
+            HeadControlPoint = headControlPoint,
+            TailControlPoint = tailControlPoint,
+            HeadOffsetDirection = headOffsetDirection,
+            TailOffsetDirection = tailOffsetDirection,
             HeadAngle = headAngle,
-            TailAngle = tailAngle,
             HeadDot = headCutDirection == 8,
             HasHeadAttachment = false,
             HeadStartY = headPosition.y,

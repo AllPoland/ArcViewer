@@ -500,30 +500,20 @@ public class ObjectManager : MonoBehaviour
 
             Arc newArc = Arc.ArcFromBeatmapSlider(beatmapDifficulty.sliders[i]);
 
-            Vector2 headOffset = Vector2.zero;
-            Vector2 tailOffset = Vector2.zero;
-            if(head.d != 8)
-            {
-                headOffset = DirectionVector(newArc.HeadAngle) * halfNoteOffset;
-                newArc.Position += headOffset;
-                newArc.HeadControlPoint += headOffset;
-            }
-            if(tail.d != 8)
-            {
-                //This gets inverted because tail goes in the oppsite direction of the arrow
-                tailOffset = DirectionVector(newArc.TailAngle) * halfNoteOffset * -1f;
-                newArc.TailPosition += tailOffset;
-                newArc.TailControlPoint += tailOffset;
-            }
-
             if(head.HasAttachment)
             {
-                newArc.HeadStartY = head.StartY + headOffset.y;
+                Vector2 offset = newArc.HeadOffsetDirection * halfNoteOffset;
+                newArc.Position += offset;
+                newArc.HeadControlPoint += offset;
+                newArc.HeadStartY = head.StartY + offset.y;
                 newArc.HasHeadAttachment = true;
             }
             if(tail.HasAttachment)
             {
-                newArc.TailStartY = tail.StartY + tailOffset.y;
+                Vector2 offset = newArc.TailOffsetDirection * halfNoteOffset;
+                newArc.TailPosition += offset;
+                newArc.TailControlPoint += offset;
+                newArc.TailStartY = tail.StartY + offset.y;
             }
 
             arcs.Add(newArc);
