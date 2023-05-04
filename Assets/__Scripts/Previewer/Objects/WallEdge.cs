@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(MeshRenderer))]
 public class WallEdge : MonoBehaviour
 {
     [SerializeField] private WallHandler scaleHandler;
@@ -8,6 +9,8 @@ public class WallEdge : MonoBehaviour
     [SerializeField] private YAnchor yAnchor;
     [SerializeField] private XAnchor xAnchor;
     [SerializeField] private ZAnchor zAnchor;
+
+    private MeshRenderer meshRenderer;
 
 
     public void UpdateScale(Vector3 newScale)
@@ -74,15 +77,28 @@ public class WallEdge : MonoBehaviour
     }
 
 
-    private void OnEnable()
+    public void UpdateProperties(MaterialPropertyBlock properties)
     {
-        scaleHandler.OnScaleUpdated += UpdateScale;
+        meshRenderer.SetPropertyBlock(properties);
     }
 
 
-    private void OnDisable()
+    private void OnEnable()
+    {
+        if(!meshRenderer)
+        {
+            meshRenderer = GetComponent<MeshRenderer>();
+        }
+
+        scaleHandler.OnScaleUpdated += UpdateScale;
+        scaleHandler.OnPropertiesUpdated += UpdateProperties;
+    }
+
+
+    private void OnDestroy()
     {
         scaleHandler.OnScaleUpdated -= UpdateScale;
+        scaleHandler.OnPropertiesUpdated -= UpdateProperties;
     }
 
 
