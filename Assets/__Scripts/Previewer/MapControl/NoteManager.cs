@@ -350,21 +350,23 @@ public class NoteManager : MonoBehaviour
 
     public static float? GetAngleSnap(BeatmapColorNote first, BeatmapColorNote second)
     {
-        bool hasDot = first.d == 8 || second.d == 8;
-        if(!hasDot && (first.x == second.x || first.y == second.y))
+        if(!(first.d == 8 && second.d == 8) && (first.x == second.x || first.y == second.y))
         {
             //Don't snap notes that are on the same row or column
             //But always snap dots
             return null;
         }
 
+        bool hasDot = first.d == 8 || second.d == 8;
         if(!(first.d == second.d || hasDot))
         {
             //Notes must have the same direction
             return null;
         }
 
-        Vector2 deltaPos = new Vector2(first.x - second.x, first.y - second.y);
+        Vector2 firstPos = ObjectManager.CalculateObjectPosition(first.x, first.y, first.customData?.coordinates);
+        Vector2 secondPos = ObjectManager.CalculateObjectPosition(second.x, second.y, second.customData?.coordinates);
+        Vector2 deltaPos = firstPos - secondPos;
 
         float firstAngle = ObjectManager.CalculateObjectAngle(first.d);
         float secondAngle = ObjectManager.CalculateObjectAngle(second.d);
