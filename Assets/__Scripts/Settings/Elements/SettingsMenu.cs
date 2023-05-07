@@ -146,12 +146,3 @@ public class SettingsMenu : MonoBehaviour
         settingsPanel.SetActive(Open);
     }
 }
-
-
-public enum SettingsTab
-{
-    General,
-    Visuals,
-    Graphics,
-    Advanced
-}
