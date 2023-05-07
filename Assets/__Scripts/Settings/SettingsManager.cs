@@ -22,7 +22,7 @@ public class SettingsManager : MonoBehaviour
         }
     }
 
-    public static Action OnSettingsUpdated;
+    public static Action<string> OnSettingsUpdated;
     public static Action OnSettingsReset;
 
     public static bool Loaded { get; private set; }
@@ -87,7 +87,7 @@ public class SettingsManager : MonoBehaviour
             CurrentSettings = Settings.GetDefaultSettings();
             SaveSettings();
 
-            OnSettingsUpdated?.Invoke();
+            OnSettingsUpdated?.Invoke("all");
             return;
         }
 
@@ -105,7 +105,7 @@ public class SettingsManager : MonoBehaviour
             SaveSettings();
         }
 
-        OnSettingsUpdated?.Invoke();
+        OnSettingsUpdated?.Invoke("all");
     }
 #endif
 
@@ -233,7 +233,7 @@ public class SettingsManager : MonoBehaviour
 #endif
         if(notify)
         {
-            OnSettingsUpdated?.Invoke();
+            OnSettingsUpdated?.Invoke(name);
         }
     }
 
@@ -255,7 +255,7 @@ public class SettingsManager : MonoBehaviour
 #endif
         if(notify)
         {
-            OnSettingsUpdated?.Invoke();
+            OnSettingsUpdated?.Invoke(name);
         }
     }
 
@@ -279,7 +279,7 @@ public class SettingsManager : MonoBehaviour
 #endif
         if(notify)
         {
-            OnSettingsUpdated?.Invoke();
+            OnSettingsUpdated?.Invoke(name);
         }
     }
 
@@ -293,7 +293,7 @@ public class SettingsManager : MonoBehaviour
 
         if(notify)
         {
-            OnSettingsUpdated?.Invoke();
+            OnSettingsUpdated?.Invoke(name);
         }
     }
 
@@ -307,7 +307,7 @@ public class SettingsManager : MonoBehaviour
 #endif
         
         OnSettingsReset?.Invoke();
-        OnSettingsUpdated?.Invoke();
+        OnSettingsUpdated?.Invoke("all");
     }
 
 
@@ -324,7 +324,7 @@ public class SettingsManager : MonoBehaviour
         //Otherwise settings are handled through playerprefs instead
         LoadSettings();
 #else
-        OnSettingsUpdated?.Invoke();
+        OnSettingsUpdated?.Invoke("all");
 #endif
     }
 }

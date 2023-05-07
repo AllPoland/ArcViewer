@@ -57,10 +57,6 @@ public class ArcManager : MonoBehaviour
         Color redColor = redArcColor;
         Color blueColor = blueArcColor;
 
-        float alpha = SettingsManager.GetFloat("arcbrightness");
-        redColor.a = alpha;
-        blueColor.a = alpha;
-
         redArcMaterialProperties.SetColor("_BaseColor", redColor);
         blueArcMaterialProperties.SetColor("_BaseColor", blueColor);
 

@@ -7,7 +7,6 @@ public class GraphicSettingsUpdater : MonoBehaviour
     [SerializeField] private VolumeProfile mainBloomVolume;
     [SerializeField] private VolumeProfile backgroundBloomVolume;
     [SerializeField] private UniversalRenderPipelineAsset urpAsset;
-    // [SerializeField] private ScriptableRendererFeature ssaoFeature;
 
     private Camera mainCamera;
     private Bloom mainBloom;
@@ -16,57 +15,71 @@ public class GraphicSettingsUpdater : MonoBehaviour
     private float defaultBackgroundBloomStrength;
 
 
-    public void UpdateGraphicsSettings()
+    public void UpdateGraphicsSettings(string setting)
     {
-        bool vsync = SettingsManager.GetBool("vsync");
+        bool allSettings = setting == "all";
 
-        QualitySettings.vSyncCount = vsync ? 1 : 0;
-
-        if(!vsync)
+        if(allSettings || setting == "vsync" || setting == "framecap")
         {
-            int framecap = SettingsManager.GetInt("framecap");
+            bool vsync = SettingsManager.GetBool("vsync");
+            QualitySettings.vSyncCount = vsync ? 1 : 0;
+            if(vsync)
+            {
+                Application.targetFrameRate = -1;
+            }
+            else
+            {
+                int framecap = SettingsManager.GetInt("framecap");
 
-            //Value of -1 uncaps the framerate
-            if(framecap == 0 || framecap > 200) framecap = -1;
+                //Value of -1 uncaps the framerate
+                if(framecap <= 0 || framecap > 200) framecap = -1;
 
-            Application.targetFrameRate = framecap;
+                Application.targetFrameRate = framecap;
+            }
         }
-        else Application.targetFrameRate = -1;
 
-#if !UNITY_WEBGL
-        int antiAliasing = SettingsManager.GetInt("antialiasing");
-        mainCamera.allowMSAA = antiAliasing > 0;
-
-        switch(antiAliasing)
+#if !UNITY_WEBGL || UNITY_EDITOR
+        if(allSettings || setting == "antialiasing")
         {
-            case <= 0:
-                urpAsset.msaaSampleCount = 0;
-                break;
-            case 1:
-                urpAsset.msaaSampleCount = 2;
-                break;
-            case 2:
-                urpAsset.msaaSampleCount = 4;
-                break;
-            case >= 3:
-                urpAsset.msaaSampleCount = 8;
-                break;
+            int antiAliasing = SettingsManager.GetInt("antialiasing");
+            mainCamera.allowMSAA = antiAliasing > 0;
+
+            switch(antiAliasing)
+            {
+                case <= 0:
+                    urpAsset.msaaSampleCount = 0;
+                    break;
+                case 1:
+                    urpAsset.msaaSampleCount = 2;
+                    break;
+                case 2:
+                    urpAsset.msaaSampleCount = 4;
+                    break;
+                case >= 3:
+                    urpAsset.msaaSampleCount = 8;
+                    break;
+            }
         }
 #else
-        mainCamera.allowMSAA = false;
+        if(allSettings)
+        {
+            mainCamera.allowMSAA = false;
+        }
 #endif
 
-        // ssaoFeature.SetActive(SettingsManager.GetBool("ssao"));
-
 #if !UNITY_EDITOR
-        float mainBloomStrength = SettingsManager.GetFloat("bloom");
-        float backgroundBloomStrength = SettingsManager.GetFloat("backgroundbloom");
-
-        mainBloom.active = mainBloomStrength > 0;
-        backgroundBloom.active = backgroundBloomStrength > 0;
-
-        mainBloom.intensity.value = mainBloomStrength * defaultBloomStrength;
-        backgroundBloom.intensity.value = backgroundBloomStrength * defaultBackgroundBloomStrength;
+        if(allSettings || setting == "bloom")
+        {
+            float mainBloomStrength = SettingsManager.GetFloat("bloom");
+            mainBloom.active = mainBloomStrength > 0;
+            mainBloom.intensity.value = mainBloomStrength * defaultBloomStrength;
+        }
+        if(allSettings || setting == "backgroundbloom")
+        {
+            float backgroundBloomStrength = SettingsManager.GetFloat("backgroundbloom");
+            backgroundBloom.active = backgroundBloomStrength > 0;
+            backgroundBloom.intensity.value = backgroundBloomStrength * defaultBackgroundBloomStrength;
+        }
 #endif
     }
 
@@ -88,6 +101,6 @@ public class GraphicSettingsUpdater : MonoBehaviour
         }
 
         SettingsManager.OnSettingsUpdated += UpdateGraphicsSettings;
-        UpdateGraphicsSettings();
+        UpdateGraphicsSettings("all");
     }
 }
