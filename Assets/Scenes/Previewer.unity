@@ -7155,6 +7155,84 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 003fb4ae07687ae40aef0df32f4c5123, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  defaultBools:
+  - Name: randomhitsoundpitch
+    Value: 0
+  - Name: spatialhitsounds
+    Value: 0
+  - Name: simplenotes
+    Value: 0
+  - Name: moveanimations
+    Value: 1
+  - Name: rotateanimations
+    Value: 1
+  - Name: flipanimations
+    Value: 1
+  - Name: arcfadeanimation
+    Value: 1
+  - Name: arctextureanimation
+    Value: 1
+  - Name: vsync
+    Value: 1
+  - Name: dynamicsoundpriority
+    Value: 1
+  - Name: concurrentloading
+    Value: 1
+  defaultInts:
+  - Name: hitsound
+    Value: 0
+  - Name: arcdensity
+    Value: 60
+  - Name: camerafov
+    Value: 80
+  - Name: cameratilt
+    Value: 0
+  - Name: framecap
+    Value: 60
+  - Name: antialiasing
+    Value: 0
+  - Name: cachesize
+    Value: 3
+  defaultFloats:
+  - Name: musicvolume
+    Value: 0.5
+  - Name: hitsoundvolume
+    Value: 0.5
+  - Name: chainvolume
+    Value: 0.8
+  - Name: uiscale
+    Value: 1
+  - Name: wallopacity
+    Value: 0.5
+  - Name: arcbrightness
+    Value: 1
+  - Name: arcwidth
+    Value: 0.5
+  - Name: cameraposition
+    Value: -2
+  - Name: bloom
+    Value: 1
+  - Name: backgroundbloom
+    Value: 1
+  - Name: hitsoundbuffer
+    Value: 0.2
+  defaultColors:
+  - Name: leftnotecolor
+    Value: {r: 0.78431374, g: 0.078431375, b: 0.078431375, a: 1}
+  - Name: rightnotecolor
+    Value: {r: 0.15686275, g: 0.5568628, b: 0.8235294, a: 1}
+  - Name: lightcolor1
+    Value: {r: 0.85, g: 0.08499997, b: 0.08499997, a: 1}
+  - Name: lightcolor2
+    Value: {r: 0.1882353, g: 0.675294, b: 1, a: 1}
+  - Name: boostlightcolor1
+    Value: {r: 0, g: 0, b: 0, a: 1}
+  - Name: boostlightcolor2
+    Value: {r: 0, g: 0, b: 0, a: 1}
+  - Name: whitelightcolor
+    Value: {r: 1, g: 1, b: 1, a: 1}
+  - Name: wallcolor
+    Value: {r: 1, g: 0.18431373, b: 0.18431373, a: 1}
 --- !u!114 &288421083
 MonoBehaviour:
   m_ObjectHideFlags: 0

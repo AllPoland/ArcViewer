@@ -29,6 +29,11 @@ public class SettingsManager : MonoBehaviour
 
     private const string settingsFile = "UserSettings.json";
 
+    [SerializeField] private List<SerializedOption<bool>> defaultBools;
+    [SerializeField] private List<SerializedOption<int>> defaultInts;
+    [SerializeField] private List<SerializedOption<float>> defaultFloats;
+    [SerializeField] private List<SerializedOption<Color>> defaultColors;
+
     private bool saving;
 
 
@@ -202,7 +207,16 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-    public static void SetRule(string name, bool value)
+    public static Color GetColor(string name)
+    {
+        float r = GetFloat(name + ".r");
+        float g = GetFloat(name + ".g");
+        float b = GetFloat(name + ".b");
+        return new Color(r, g, b);
+    }
+
+
+    public static void SetRule(string name, bool value, bool notify = true)
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.SetInt(name, value ? 1 : 0);
@@ -217,11 +231,14 @@ public class SettingsManager : MonoBehaviour
             rules.Add(name, value);
         }
 #endif
-        OnSettingsUpdated?.Invoke();
+        if(notify)
+        {
+            OnSettingsUpdated?.Invoke();
+        }
     }
 
 
-    public static void SetRule(string name, int value)
+    public static void SetRule(string name, int value, bool notify = true)
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.SetInt(name, value);
@@ -236,16 +253,19 @@ public class SettingsManager : MonoBehaviour
             rules.Add(name, value);
         }
 #endif
-        OnSettingsUpdated?.Invoke();
+        if(notify)
+        {
+            OnSettingsUpdated?.Invoke();
+        }
     }
 
 
-    public static void SetRule(string name, float value)
+    public static void SetRule(string name, float value, bool notify = true)
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.SetFloat(name, value);
 #else
-        value = (float)Math.Round(value, 3); //Why tf does the compiler read value as a double here?
+        value = (float)Math.Round(value, 3);
 
         Dictionary<string, float> rules = CurrentSettings.Floats;
         if(rules.ContainsKey(name))
@@ -257,7 +277,24 @@ public class SettingsManager : MonoBehaviour
             rules.Add(name, value);
         }
 #endif
-        OnSettingsUpdated?.Invoke();
+        if(notify)
+        {
+            OnSettingsUpdated?.Invoke();
+        }
+    }
+
+
+    public static void SetRule(string name, Color value, bool notify = true)
+    {
+        //Color values need to be set as separate floats
+        SetRule(name + ".r", value.r, false);
+        SetRule(name + ".g", value.g, false);
+        SetRule(name + ".b", value.b, false);
+
+        if(notify)
+        {
+            OnSettingsUpdated?.Invoke();
+        }
     }
 
 
@@ -276,6 +313,12 @@ public class SettingsManager : MonoBehaviour
 
     private void Awake()
     {
+        //Update the default settings
+        Settings.DefaultSettings.Bools = Settings.SerializedOptionsToDictionary<bool>(defaultBools);
+        Settings.DefaultSettings.Ints = Settings.SerializedOptionsToDictionary<int>(defaultInts);
+        Settings.DefaultSettings.Floats = Settings.SerializedOptionsToDictionary<float>(defaultFloats);
+        Settings.DefaultSettings.AddColorRules(defaultColors);
+
 #if !UNITY_WEBGL || UNITY_EDITOR
         //Load settings from json if not running in WebGL
         //Otherwise settings are handled through playerprefs instead
@@ -295,52 +338,28 @@ public class Settings
     public Dictionary<string, float> Floats;
 
 
-    public static readonly Settings DefaultSettings = new Settings
+    public void AddColorRule(string name, Color color)
     {
-        Bools = new Dictionary<string, bool>
+        bool success = Floats.TryAdd(name + ".r", color.r);
+        success &= Floats.TryAdd(name + ".g", color.g);
+        success &= Floats.TryAdd(name + ".b", color.b);
+        if(!success)
         {
-            {"randomhitsoundpitch", false},
-            {"spatialhitsounds", false},
-            {"simplenotes", false},
-            {"moveanimations", true},
-            {"rotateanimations", true},
-            {"flipanimations", true},
-            {"arcfadeanimation", true},
-            {"arctextureanimation", true},
-            {"vsync", true},
-            {"ssao", true},
-            {"dynamicsoundpriority", true},
-            {"concurrentloading", true}
-        },
-
-        Ints = new Dictionary<string, int>
-        {
-            {"hitsound", 0},
-            {"arcdensity", 60},
-            {"camerafov", 80},
-            {"cameratilt", 0},
-            {"framecap", 60},
-            {"antialiasing", 0},
-            {"cachesize", 3}
-        },
-
-        Floats = new Dictionary<string, float>
-        {
-            {"musicvolume", 0.5f},
-            {"hitsoundvolume", 0.5f},
-            {"uiscale", 1f},
-            {"chainvolume", 0.8f},
-            {"wallopacity", 0.5f},
-            {"arcbrightness", 1f},
-            {"arcwidth", 0.5f},
-            {"cameraposition", -2},
-            {"bloom", 1},
-            {"backgroundbloom", 1},
-            {"hitsoundbuffer", 0.2f}
+            Debug.LogWarning($"Failed to add setting '{name}'. Is it a duplicate?");
         }
-    };
+    }
 
 
+    public void AddColorRules(IEnumerable<SerializedOption<Color>> colors)
+    {
+        foreach(SerializedOption<Color> color in colors)
+        {
+            AddColorRule(color.Name, color.Value);
+        }
+    }
+
+
+    public static Settings DefaultSettings = new Settings();
     public static Settings GetDefaultSettings()
     {
         //Provides a deep copy of the default settings I hate reference types I hate reference types I hate reference types I hate reference types I hate reference types
@@ -368,4 +387,29 @@ public class Settings
 
         return settings;
     }
+
+
+    public static Dictionary<string, T> SerializedOptionsToDictionary<T>(List<SerializedOption<T>> options)
+    {
+        Dictionary<string, T> dictionary = new Dictionary<string, T>();
+
+        foreach(SerializedOption<T> option in options)
+        {
+            bool success = dictionary.TryAdd(option.Name, option.Value);
+            if(!success)
+            {
+                Debug.LogWarning($"Failed to add setting '{option.Name}'. Is it a duplicate?");
+            }
+        }
+
+        return dictionary;
+    }
+}
+
+
+[Serializable]
+public class SerializedOption<T>
+{
+    public string Name;
+    public T Value;
 }
