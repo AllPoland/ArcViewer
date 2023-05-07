@@ -7,14 +7,16 @@ public class WallManager : MonoBehaviour
     [SerializeField] private GameObject wallParent;
 
     [SerializeField] private Material wallMaterial;
-    [SerializeField] private Color wallColor;
+    [SerializeField] public Color wallColor;
     [SerializeField, Range(0f, 1f)] private float wallLightness;
+    [SerializeField] private float edgeEmission;
 
     public List<Wall> Walls = new List<Wall>();
     public List<Wall> RenderedWalls = new List<Wall>();
 
     private ObjectManager objectManager;
     private MaterialPropertyBlock wallMaterialProperties;
+    private MaterialPropertyBlock wallEdgeProperties;
 
 
     public void ReloadWalls()
@@ -30,17 +32,12 @@ public class WallManager : MonoBehaviour
     {
         ClearRenderedWalls();
 
-        //Set the value of wall color directly
-        float h;
-        float s;
-        float v;
-
-        Color.RGBToHSV(wallColor, out h, out s, out v);
-        v = wallLightness;
-        Color newColor = Color.HSVToRGB(h, s, v);
-
+        Color newColor = wallColor.SetValue(wallLightness);
         newColor.a = SettingsManager.GetFloat("wallopacity");
         wallMaterialProperties.SetColor("_BaseColor", newColor);
+
+        wallEdgeProperties.SetColor("_BaseColor", newColor);
+        wallEdgeProperties.SetColor("_EmissionColor", newColor.SetValue(edgeEmission, true));
 
         UpdateWallVisuals(TimeManager.CurrentBeat);
     }
@@ -64,7 +61,8 @@ public class WallManager : MonoBehaviour
             //Wall scale only needs to be set once when it's created
             WallHandler handler = w.Visual.GetComponent<WallHandler>();
             handler.SetScale(new Vector3(w.Width, w.Height, wallLength));
-            handler.SetMaterial(wallMaterialProperties);
+            handler.SetProperties(wallMaterialProperties);
+            handler.SetEdgeProperties(wallEdgeProperties);
 
             RenderedWalls.Add(w);
         }
@@ -193,6 +191,7 @@ public class WallManager : MonoBehaviour
     private void Awake()
     {
         wallMaterialProperties = new MaterialPropertyBlock();
+        wallEdgeProperties = new MaterialPropertyBlock();
     }
 
 

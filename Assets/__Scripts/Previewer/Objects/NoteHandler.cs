@@ -25,18 +25,26 @@ public class NoteHandler : MonoBehaviour
 
     public void SetMaterial(Material newMaterial)
     {
-        if(newMaterial == meshRenderer.sharedMaterial) return;
-
         meshRenderer.sharedMaterial = newMaterial;
     }
 
 
-    public void SetArrowMaterial(Material newMaterial)
+    public void SetProperties(MaterialPropertyBlock propertyBlock)
     {
-        if(newMaterial == arrowMeshRenderer.sharedMaterial) return;
+        meshRenderer.SetPropertyBlock(propertyBlock);
+    }
 
-        arrowMeshRenderer.sharedMaterial = newMaterial;
-        dotMeshRenderer.sharedMaterial = newMaterial;
+
+    public void SetArrowProperties(MaterialPropertyBlock propertyBlock)
+    {
+        if(isArrow)
+        {
+            arrowMeshRenderer.SetPropertyBlock(propertyBlock);
+        }
+        else
+        {
+            dotMeshRenderer.SetPropertyBlock(propertyBlock);
+        }
     }
 
 

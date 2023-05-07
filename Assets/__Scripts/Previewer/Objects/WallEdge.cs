@@ -91,14 +91,14 @@ public class WallEdge : MonoBehaviour
         }
 
         scaleHandler.OnScaleUpdated += UpdateScale;
-        scaleHandler.OnPropertiesUpdated += UpdateProperties;
+        scaleHandler.OnEdgePropertiesUpdated += UpdateProperties;
     }
 
 
     private void OnDestroy()
     {
         scaleHandler.OnScaleUpdated -= UpdateScale;
-        scaleHandler.OnPropertiesUpdated -= UpdateProperties;
+        scaleHandler.OnEdgePropertiesUpdated -= UpdateProperties;
     }
 
 

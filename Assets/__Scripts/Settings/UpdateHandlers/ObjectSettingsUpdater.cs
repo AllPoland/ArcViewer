@@ -11,7 +11,7 @@ public class ObjectSettingsUpdater : MonoBehaviour
     public void UpdateObjectSettings()
     {
         noteManager.ClearRenderedNotes();
-        noteManager.UpdateNoteVisuals(TimeManager.CurrentBeat);
+        noteManager.UpdateMaterials();
 
         chainManager.ClearRenderedLinks();
         chainManager.UpdateChainVisuals(TimeManager.CurrentBeat);

@@ -17,18 +17,28 @@ public class NoteManager : MonoBehaviour
     [SerializeField] private Mesh chainHeadMesh;
 
     [Header("Materials")]
-    [SerializeField] private Material complexMaterialRed;
-    [SerializeField] private Material complexMaterialBlue;
-    [SerializeField] private Material simpleMaterialRed;
-    [SerializeField] private Material simpleMaterialBlue;
-    [SerializeField] private Material arrowMaterialRed;
-    [SerializeField] private Material arrowMaterialBlue;
+    [SerializeField] public Material complexMaterial;
+    [SerializeField] public Material simpleMaterial;
+    [SerializeField] public Color redNoteColor;
+    [SerializeField] public Color blueNoteColor;
+    [SerializeField] private float noteEmission;
+    [SerializeField] private float simpleNoteEmission;
+    [SerializeField, Range(0f, 1f)] private float arrowSaturation;
+    [SerializeField, Range(0f, 1f)] private float arrowBrightness;
+    [SerializeField, Range(0f, 1f)] private float arrowGlowSaturation;
+    [SerializeField] private float arrowEmission;
 
     public List<Note> Notes = new List<Note>();
     public List<Note> RenderedNotes = new List<Note>();
 
     public List<Bomb> Bombs = new List<Bomb>();
     public List<Bomb> RenderedBombs = new List<Bomb>();
+
+    //These are all public so ChainManager can access them
+    public MaterialPropertyBlock redNoteProperties;
+    public MaterialPropertyBlock blueNoteProperties;
+    public MaterialPropertyBlock redArrowProperties;
+    public MaterialPropertyBlock blueArrowProperties;
 
     private ObjectManager objectManager;
 
@@ -38,6 +48,27 @@ public class NoteManager : MonoBehaviour
         ClearRenderedNotes();
         notePool.SetPoolSize(40);
         bombPool.SetPoolSize(40);
+
+        UpdateMaterials();
+    }
+
+
+    public void UpdateMaterials()
+    {
+        ClearRenderedNotes();
+
+        redNoteProperties.SetColor("_BaseColor", redNoteColor);
+        blueNoteProperties.SetColor("_BaseColor", blueNoteColor);
+
+        float emission = objectManager.useSimpleNoteMaterial ? simpleNoteEmission : noteEmission;
+        redNoteProperties.SetColor("_EmissionColor", redNoteColor.SetValue(emission, true));
+        blueNoteProperties.SetColor("_EmissionColor", blueNoteColor.SetValue(emission, true));
+
+        redArrowProperties.SetColor("_BaseColor", redNoteColor.SetHSV(null, arrowSaturation, arrowBrightness));
+        blueArrowProperties.SetColor("_BaseColor", blueNoteColor.SetHSV(null, arrowSaturation, arrowBrightness));
+
+        redArrowProperties.SetColor("_EmissionColor", redNoteColor.SetHSV(null, arrowGlowSaturation, arrowEmission, true));
+        blueArrowProperties.SetColor("_EmissionColor", blueNoteColor.SetHSV(null, arrowGlowSaturation, arrowEmission, true));
 
         UpdateNoteVisuals(TimeManager.CurrentBeat);
     }
@@ -98,18 +129,12 @@ public class NoteManager : MonoBehaviour
             n.source = n.noteHandler.audioSource;
 
             n.noteHandler.SetMesh(n.IsChainHead ? chainHeadMesh : noteMesh);
-
             n.noteHandler.SetArrow(!n.IsDot);
-            n.noteHandler.SetArrowMaterial(n.Color == 0 ? arrowMaterialRed : arrowMaterialBlue);
 
-            if(objectManager.useSimpleNoteMaterial)
-            {
-                n.noteHandler.SetMaterial(n.Color == 0 ? simpleMaterialRed : simpleMaterialBlue);
-            }
-            else
-            {
-                n.noteHandler.SetMaterial(n.Color == 0 ? complexMaterialRed : complexMaterialBlue);
-            }
+            bool isRed = n.Color == 0;
+            n.noteHandler.SetMaterial(objectManager.useSimpleNoteMaterial ? simpleMaterial : complexMaterial);
+            n.noteHandler.SetProperties(isRed ? redNoteProperties : blueNoteProperties);
+            n.noteHandler.SetArrowProperties(isRed ? redArrowProperties : blueArrowProperties);
 
             n.Visual.SetActive(true);
             n.noteHandler.EnableVisual();
@@ -350,14 +375,14 @@ public class NoteManager : MonoBehaviour
 
     public static float? GetAngleSnap(BeatmapColorNote first, BeatmapColorNote second)
     {
-        if(!(first.d == 8 && second.d == 8) && (first.x == second.x || first.y == second.y))
+        bool hasDot = first.d == 8 || second.d == 8;
+        if(!hasDot && (first.x == second.x || first.y == second.y))
         {
             //Don't snap notes that are on the same row or column
             //But always snap dots
             return null;
         }
 
-        bool hasDot = first.d == 8 || second.d == 8;
         if(!(first.d == second.d || hasDot))
         {
             //Notes must have the same direction
@@ -434,6 +459,15 @@ public class NoteManager : MonoBehaviour
                 return (flipYHeightUnder, flipYHeightOver);
             }
         }
+    }
+
+
+    private void Awake()
+    {
+        redNoteProperties = new MaterialPropertyBlock();
+        blueNoteProperties = new MaterialPropertyBlock();
+        redArrowProperties = new MaterialPropertyBlock();
+        blueArrowProperties = new MaterialPropertyBlock();
     }
 
 

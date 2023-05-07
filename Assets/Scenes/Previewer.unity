@@ -9642,12 +9642,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chainLinkPool: {fileID: 726814134}
   linkParent: {fileID: 395449317}
-  complexMaterialRed: {fileID: 2100000, guid: 312d74011adf51f4e9515082ddbfc7b7, type: 2}
-  complexMaterialBlue: {fileID: 2100000, guid: 88e0e4c9f1f0ba84aaa5488e3e36962f, type: 2}
-  simpleMaterialRed: {fileID: 2100000, guid: dd516f5f7177efb4da46d849a0cec8eb, type: 2}
-  simpleMaterialBlue: {fileID: 2100000, guid: 2a6e5e4a63d77e448b411fbca71648e9, type: 2}
-  arrowMaterialRed: {fileID: 2100000, guid: 7df7e5bb80bf8ed499fb12b366089bb2, type: 2}
-  arrowMaterialBlue: {fileID: 2100000, guid: 6cac9258f6b502b45ab778e12656caef, type: 2}
 --- !u!1 &395744161
 GameObject:
   m_ObjectHideFlags: 0
@@ -13734,12 +13728,16 @@ MonoBehaviour:
   bombParent: {fileID: 415920783}
   noteMesh: {fileID: -5495902117074765545, guid: 451f7d8238b6959439f0b6fd60de0394, type: 3}
   chainHeadMesh: {fileID: 5568284985898634363, guid: 49f457745cdf35649af59745d3d90eca, type: 3}
-  complexMaterialRed: {fileID: 2100000, guid: 312d74011adf51f4e9515082ddbfc7b7, type: 2}
-  complexMaterialBlue: {fileID: 2100000, guid: 88e0e4c9f1f0ba84aaa5488e3e36962f, type: 2}
-  simpleMaterialRed: {fileID: 2100000, guid: dd516f5f7177efb4da46d849a0cec8eb, type: 2}
-  simpleMaterialBlue: {fileID: 2100000, guid: 2a6e5e4a63d77e448b411fbca71648e9, type: 2}
-  arrowMaterialRed: {fileID: 2100000, guid: 7df7e5bb80bf8ed499fb12b366089bb2, type: 2}
-  arrowMaterialBlue: {fileID: 2100000, guid: 6cac9258f6b502b45ab778e12656caef, type: 2}
+  complexMaterial: {fileID: 2100000, guid: 312d74011adf51f4e9515082ddbfc7b7, type: 2}
+  simpleMaterial: {fileID: 2100000, guid: dd516f5f7177efb4da46d849a0cec8eb, type: 2}
+  redNoteColor: {r: 0.78431374, g: 0.078431375, b: 0.078431375, a: 1}
+  blueNoteColor: {r: 0.15686275, g: 0.5568628, b: 0.8235294, a: 1}
+  noteEmission: 0.1
+  simpleNoteEmission: 0.3
+  arrowSaturation: 0.25
+  arrowBrightness: 0.8
+  arrowGlowSaturation: 0.6
+  arrowEmission: 2.5
 --- !u!1 &563649407
 GameObject:
   m_ObjectHideFlags: 0
@@ -26323,8 +26321,9 @@ MonoBehaviour:
   wallPool: {fileID: 1095058567}
   wallParent: {fileID: 1101988757}
   wallMaterial: {fileID: 2100000, guid: 4df8452f565dbf242ae5de0dca4cc133, type: 2}
-  wallColor: {r: 1, g: 0.18431373, b: 0.18431373, a: 0.5019608}
+  wallColor: {r: 1, g: 0.18431373, b: 0.18431373, a: 1}
   wallLightness: 0.2
+  edgeEmission: 7
 --- !u!1 &1106902563
 GameObject:
   m_ObjectHideFlags: 0

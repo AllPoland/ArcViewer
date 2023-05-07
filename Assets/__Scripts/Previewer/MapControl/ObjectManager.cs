@@ -272,8 +272,8 @@ public class ObjectManager : MonoBehaviour
         TimeManager.UpdateBpmEvents(difficulty);
         LoadMapObjects(difficulty.beatmapDifficulty, out noteManager.Notes, out noteManager.Bombs, out chainManager.Chains, out arcManager.Arcs, out wallManager.Walls);
 
-        chainManager.ReloadChains();
         noteManager.ReloadNotes();
+        chainManager.ReloadChains();
         arcManager.ReloadArcs();
         wallManager.ReloadWalls();
     }

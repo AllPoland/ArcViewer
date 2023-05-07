@@ -9,19 +9,9 @@ public class ChainManager : MonoBehaviour
     [Header("Object Parents")]
     [SerializeField] private GameObject linkParent;
 
-    [Header("Materials")]
-    [SerializeField] private Material complexMaterialRed;
-    [SerializeField] private Material complexMaterialBlue;
-    [SerializeField] private Material simpleMaterialRed;
-    [SerializeField] private Material simpleMaterialBlue;
-    [SerializeField] private Material arrowMaterialRed;
-    [SerializeField] private Material arrowMaterialBlue;
-
     public List<Chain> Chains = new List<Chain>();
     public List<ChainLink> ChainLinks = new List<ChainLink>();
     public List<ChainLink> RenderedChainLinks = new List<ChainLink>();
-
-    
 
     private ObjectManager objectManager;
 
@@ -138,16 +128,11 @@ public class ChainManager : MonoBehaviour
             cl.chainLinkHandler = cl.Visual.GetComponent<ChainLinkHandler>();
             cl.source = cl.chainLinkHandler.audioSource;
 
-            cl.chainLinkHandler.SetDotMaterial(cl.Color == 0 ? arrowMaterialRed : arrowMaterialBlue);
-
-            if(objectManager.useSimpleNoteMaterial)
-            {
-                cl.chainLinkHandler.SetMaterial(cl.Color == 0 ? simpleMaterialRed : simpleMaterialBlue);
-            }
-            else
-            {
-                cl.chainLinkHandler.SetMaterial(cl.Color == 0 ? complexMaterialRed : complexMaterialBlue);
-            }
+            NoteManager noteManager = objectManager.noteManager;
+            bool isRed = cl.Color == 0;
+            cl.chainLinkHandler.SetMaterial(objectManager.useSimpleNoteMaterial ? noteManager.simpleMaterial : noteManager.complexMaterial);
+            cl.chainLinkHandler.SetProperties(isRed ? noteManager.redNoteProperties : noteManager.blueNoteProperties);
+            cl.chainLinkHandler.SetDotProperties(isRed ? noteManager.redArrowProperties : noteManager.blueArrowProperties);
 
             cl.Visual.SetActive(true);
             cl.chainLinkHandler.EnableVisual();

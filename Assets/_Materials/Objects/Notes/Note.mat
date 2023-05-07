@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: RedNote
+  m_Name: Note
   m_Shader: {fileID: -6465566751694194690, guid: 80258e4e9b4a5264ba5ec405f90e8db1, type: 3}
   m_ValidKeywords:
   - _ENVIRONMENTREFLECTIONS_OFF
@@ -114,7 +114,7 @@ Material:
     - _ClearCoat: 0
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 1
-    - _CubemapBlur: 3.5
+    - _CubemapBlur: 2.5
     - _CubemapStrength: 5
     - _Cull: 2
     - _Cutoff: 0.5
@@ -122,7 +122,9 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _ENVIRONMENTREFLECTIONS_OFF: 1
+    - _EmissionSaturationMult: 1
     - _EnvironmentReflections: 1
+    - _FresnelStrength: 0.8
     - _Fresnel_Strength: 0.65
     - _GlossMapScale: 1
     - _Glossiness: 0.65
@@ -150,7 +152,7 @@ Material:
     - _Base_Color: {r: 0.78431374, g: 0.078431375, b: 0.078431375, a: 1}
     - _Color: {r: 0.78431374, g: 0.078431375, b: 0.078431375, a: 1}
     - _Emission: {r: 0.0776431, g: 0, b: 0, a: 1}
-    - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
+    - _EmissionColor: {r: 0.078431375, g: 0, b: 0, a: 1}
     - _Normal_Rotation: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
     - _Specular_Color: {r: 0, g: 0, b: 0, a: 0}

@@ -13,8 +13,8 @@ public class ArcManager : MonoBehaviour
     [SerializeField] private GameObject arcParent;
 
     [SerializeField] private Material arcMaterial;
-    [SerializeField] private Color redArcColor;
-    [SerializeField] private Color blueArcColor;
+    [SerializeField] public Color redArcColor;
+    [SerializeField] public Color blueArcColor;
 
     [SerializeField] private float arcEndFadeStart;
     [SerializeField] private float arcEndFadeEnd;

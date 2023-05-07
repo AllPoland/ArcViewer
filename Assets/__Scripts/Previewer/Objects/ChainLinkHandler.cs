@@ -18,11 +18,15 @@ public class ChainLinkHandler : MonoBehaviour
     }
 
 
-    public void SetDotMaterial(Material newMaterial)
+    public void SetProperties(MaterialPropertyBlock properties)
     {
-        if(newMaterial == dotMeshRenderer.sharedMaterial) return;
+        meshRenderer.SetPropertyBlock(properties);
+    }
 
-        dotMeshRenderer.sharedMaterial = newMaterial;
+
+    public void SetDotProperties(MaterialPropertyBlock properties)
+    {
+        dotMeshRenderer.SetPropertyBlock(properties);
     }
 
 
