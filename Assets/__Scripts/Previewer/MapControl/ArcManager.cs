@@ -283,10 +283,7 @@ public class ArcManager : MonoBehaviour
             textureOffset %= 1f;
         }
 
-        if(textureAnimation || fadeAnimation)
-        {
-            a.arcHandler.SetProperties(alpha, textureOffset);
-        }
+        a.arcHandler.SetProperties(alpha, textureOffset);
 
         if(objectManager.doMovementAnimation)
         {
