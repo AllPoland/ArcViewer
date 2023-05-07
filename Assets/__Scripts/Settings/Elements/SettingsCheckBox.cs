@@ -5,6 +5,7 @@ public class SettingsCheckBox : MonoBehaviour
 {
     [SerializeField] private string rule;
     [SerializeField] private bool hideInWebGL;
+    [SerializeField] private Optional<SerializedOption<bool>> requiredSetting = new Optional<SerializedOption<bool>>(new SerializedOption<bool>(), false);
 
     private Toggle toggle;
     
@@ -12,6 +13,16 @@ public class SettingsCheckBox : MonoBehaviour
     public void SetValue(bool value)
     {
         SettingsManager.SetRule(rule, value);
+    }
+
+
+    public void UpdateSettings(string changedSetting)
+    {
+        SerializedOption<bool> option = requiredSetting.Value;
+        if(changedSetting == "all" || changedSetting == option.Name)
+        {
+            toggle.interactable = option.Value == SettingsManager.GetBool(option.Name);
+        }
     }
 
 
@@ -29,6 +40,12 @@ public class SettingsCheckBox : MonoBehaviour
 
         toggle.isOn = SettingsManager.GetBool(rule);
         toggle.onValueChanged.AddListener(SetValue);
+
+        if(requiredSetting.Enabled)
+        {
+            SettingsManager.OnSettingsUpdated += UpdateSettings;
+            UpdateSettings("all");
+        }
     }
 
 
@@ -38,5 +55,6 @@ public class SettingsCheckBox : MonoBehaviour
         {
             toggle.onValueChanged.RemoveAllListeners();
         }
+        SettingsManager.OnSettingsUpdated -= UpdateSettings;
     }
 }

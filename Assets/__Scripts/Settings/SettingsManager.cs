@@ -408,7 +408,7 @@ public class Settings
 
 
 [Serializable]
-public class SerializedOption<T>
+public struct SerializedOption<T>
 {
     public string Name;
     public T Value;
