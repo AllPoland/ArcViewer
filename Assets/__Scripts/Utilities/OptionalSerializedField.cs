@@ -18,6 +18,7 @@ public struct Optional<T>
     public T Value => value;
 }
 
+#if UNITY_EDITOR
 [CustomPropertyDrawer(typeof(Optional<>))]
 public class OptionalPropertyDrawer : PropertyDrawer
 {
@@ -43,3 +44,4 @@ public class OptionalPropertyDrawer : PropertyDrawer
         EditorGUI.PropertyField(position, enabledProperty, GUIContent.none);
     }
 }
+#endif
