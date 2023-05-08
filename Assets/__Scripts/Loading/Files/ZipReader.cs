@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using UnityEngine;
 
 public class ZipReader : IMapDataLoader
@@ -175,7 +176,7 @@ public class ZipReader : IMapDataLoader
         string infoJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
         try
         {
-            return JsonUtility.FromJson<BeatmapInfo>(infoJson);
+            return JsonConvert.DeserializeObject<BeatmapInfo>(infoJson);
         }
         catch(Exception e)
         {

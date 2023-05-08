@@ -1,7 +1,8 @@
 using System;
 using UnityEngine;
 
-[Serializable] public class BeatmapInfo
+[Serializable]
+public class BeatmapInfo
 {
     //Version doesn't need to be internally stored.
     public string _songName;
@@ -20,6 +21,7 @@ using UnityEngine;
     public string _environmentName;
     public string _allDirectionsEnvironmentName;
     public float _songTimeOffset;
+    public CustomInfoData? _customData;
     public DifficultyBeatmapSet[] _difficultyBeatmapSets;
 
 
@@ -66,13 +68,21 @@ using UnityEngine;
         _environmentName = "",
         _allDirectionsEnvironmentName = "",
         _songTimeOffset = 0,
+        _customData = null,
         _difficultyBeatmapSets = new DifficultyBeatmapSet[0]
     };
 }
 
 
 [Serializable]
-public class DifficultyBeatmap
+public struct CustomInfoData
+{
+
+}
+
+
+[Serializable]
+public struct DifficultyBeatmap
 {
     public string _difficulty;
     public int _difficultyRank;
@@ -89,11 +99,30 @@ public class CustomDifficultyData
 {
     public string _difficultyLabel;
     public string[] _requirements;
+
+    public CustomDifficultyColor _colorLeft;
+    public CustomDifficultyColor _colorRight;
+    public CustomDifficultyColor _envColorLeft;
+    public CustomDifficultyColor _envColorRight;
+    public CustomDifficultyColor _envColorWhite;
+    public CustomDifficultyColor _envColorLeftBoost;
+    public CustomDifficultyColor _envColorRightBoost;
+    public CustomDifficultyColor _envColorWhiteBoost;
+    public CustomDifficultyColor _obstacleColor;
 }
 
 
 [Serializable]
-public class DifficultyBeatmapSet
+public class CustomDifficultyColor
+{
+    public float r;
+    public float g;
+    public float b;
+}
+
+
+[Serializable]
+public struct DifficultyBeatmapSet
 {
     public string _beatmapCharacteristicName;
     public DifficultyBeatmap[] _difficultyBeatmaps;

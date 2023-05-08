@@ -7498,11 +7498,13 @@ MonoBehaviour:
     Value: {r: 0.85, g: 0.08499997, b: 0.08499997, a: 1}
   - Name: lightcolor2
     Value: {r: 0.1882353, g: 0.675294, b: 1, a: 1}
+  - Name: whitelightcolor
+    Value: {r: 1, g: 1, b: 1, a: 1}
   - Name: boostlightcolor1
     Value: {r: 0.8235294, g: 0.08627451, b: 0.8509804, a: 1}
   - Name: boostlightcolor2
     Value: {r: 0, g: 1, b: 0.64705884, a: 1}
-  - Name: whitelightcolor
+  - Name: boostwhitelightcolor
     Value: {r: 1, g: 1, b: 1, a: 1}
   - Name: wallcolor
     Value: {r: 1, g: 0.18431373, b: 0.18431373, a: 1}
@@ -27203,7 +27205,8 @@ MonoBehaviour:
   wallParent: {fileID: 1101988757}
   wallMaterial: {fileID: 2100000, guid: 4df8452f565dbf242ae5de0dca4cc133, type: 2}
   wallLightness: 0.2
-  edgeEmission: 7
+  edgeSaturation: 0.85
+  edgeEmission: 6
 --- !u!1 &1106902563
 GameObject:
   m_ObjectHideFlags: 0
