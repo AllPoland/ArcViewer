@@ -260,12 +260,15 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-    public static void SetRule(string name, float value, bool notify = true)
+    public static void SetRule(string name, float value, bool notify = true, bool round = true)
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.SetFloat(name, value);
 #else
-        value = (float)Math.Round(value, 3);
+        if(round)
+        {
+            value = (float)Math.Round(value, 3);
+        }
 
         Dictionary<string, float> rules = CurrentSettings.Floats;
         if(rules.ContainsKey(name))
@@ -287,9 +290,9 @@ public class SettingsManager : MonoBehaviour
     public static void SetRule(string name, Color value, bool notify = true)
     {
         //Color values need to be set as separate floats
-        SetRule(name + ".r", value.r, false);
-        SetRule(name + ".g", value.g, false);
-        SetRule(name + ".b", value.b, false);
+        SetRule(name + ".r", value.r, false, false);
+        SetRule(name + ".g", value.g, false, false);
+        SetRule(name + ".b", value.b, false, false);
 
         if(notify)
         {
