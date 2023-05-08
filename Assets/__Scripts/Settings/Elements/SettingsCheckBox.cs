@@ -1,11 +1,15 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SettingsCheckBox : MonoBehaviour
 {
     [SerializeField] private string rule;
     [SerializeField] private bool hideInWebGL;
     [SerializeField] private Optional<SerializedOption<bool>> requiredSetting = new Optional<SerializedOption<bool>>(new SerializedOption<bool>(), false);
+    [SerializeField] private TextMeshProUGUI label;
+    [SerializeField] private Color enabledColor;
+    [SerializeField] private Color disabledColor;
 
     private Toggle toggle;
     
@@ -22,6 +26,7 @@ public class SettingsCheckBox : MonoBehaviour
         if(changedSetting == "all" || changedSetting == option.Name)
         {
             toggle.interactable = option.Value == SettingsManager.GetBool(option.Name);
+            label.color = toggle.interactable ? enabledColor : disabledColor;
         }
     }
 
