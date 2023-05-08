@@ -31,13 +31,13 @@ public class ColorPicker : MonoBehaviour
         }
     }
 
-    [SerializeField] private bool interactable;
+    [SerializeField] private bool _interactable;
     public bool Interactable
     {
-        get => interactable;
+        get => _interactable;
         set
         {
-            interactable = value;
+            _interactable = value;
             UpdateInteractable();
         }
     }
@@ -117,6 +117,11 @@ public class ColorPicker : MonoBehaviour
     {
         label.color = Interactable ? enabledTextColor : disabledTextColor;
         dropdownButton.interactable = Interactable;
+
+        if(opened)
+        {
+            SetOpen(false);
+        }
     }
 
 
@@ -149,12 +154,9 @@ public class ColorPicker : MonoBehaviour
     }
 
 
-    private void OnEnable()
+    private void Awake()
     {
-        if(!rectTransform)
-        {
-            rectTransform = GetComponent<RectTransform>();
-        }
+        rectTransform = GetComponent<RectTransform>();
 
         UpdateInteractable();
         SetOpen(false);

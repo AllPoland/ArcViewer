@@ -1,20 +1,16 @@
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 
-public class SettingsCheckBox : MonoBehaviour
+[RequireComponent(typeof(ColorPicker))]
+public class SettingsColorPicker : MonoBehaviour
 {
     [SerializeField] private string rule;
     [SerializeField] private bool hideInWebGL;
     [SerializeField] private Optional<SerializedOption<bool>> requiredSetting = new Optional<SerializedOption<bool>>(new SerializedOption<bool>(), false);
-    [SerializeField] private TextMeshProUGUI label;
-    [SerializeField] private Color enabledColor;
-    [SerializeField] private Color disabledColor;
 
-    private Toggle toggle;
-    
+    private ColorPicker colorPicker;
 
-    public void SetValue(bool value)
+
+    public void SetValue(Color value)
     {
         SettingsManager.SetRule(rule, value);
     }
@@ -25,8 +21,7 @@ public class SettingsCheckBox : MonoBehaviour
         SerializedOption<bool> option = requiredSetting.Value;
         if(changedSetting == "all" || changedSetting == option.Name)
         {
-            toggle.interactable = option.Value == SettingsManager.GetBool(option.Name);
-            label.color = toggle.interactable ? enabledColor : disabledColor;
+            colorPicker.Interactable = option.Value == SettingsManager.GetBool(option.Name);
         }
     }
 
@@ -41,13 +36,13 @@ public class SettingsCheckBox : MonoBehaviour
         }
 #endif
 
-        if(!toggle)
+        if(!colorPicker)
         {
-            toggle = GetComponent<Toggle>();
+            colorPicker = GetComponent<ColorPicker>();
         }
 
-        toggle.isOn = SettingsManager.GetBool(rule);
-        toggle.onValueChanged.AddListener(SetValue);
+        colorPicker.Value = SettingsManager.GetColor(rule);
+        colorPicker.OnValueChanged.AddListener(SetValue);
 
         if(requiredSetting.Enabled)
         {
@@ -59,9 +54,9 @@ public class SettingsCheckBox : MonoBehaviour
 
     private void OnDisable()
     {
-        if(toggle)
+        if(colorPicker)
         {
-            toggle.onValueChanged.RemoveAllListeners();
+            colorPicker.OnValueChanged.RemoveAllListeners();
         }
         SettingsManager.OnSettingsUpdated -= UpdateSettings;
     }

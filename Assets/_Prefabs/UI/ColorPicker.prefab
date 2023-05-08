@@ -61,7 +61,7 @@ MonoBehaviour:
   m_Material: {fileID: 2100000, guid: 48fe5df063b7ef64ab039cba5403238b, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_RaycastPadding: {x: 0, y: -5, z: 0, w: -5}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -206,6 +206,7 @@ MonoBehaviour:
   parentPicker: {fileID: 4512801155518517454}
   hueSlider: {fileID: 6988911511226039281}
   cursorImage: {fileID: 8387872358361862522}
+  saturationValueShader: {fileID: -6465566751694194690, guid: 5bfd0c6538974e64ab616dce89c1baf9, type: 3}
 --- !u!1 &4512801155097013141
 GameObject:
   m_ObjectHideFlags: 0
@@ -468,7 +469,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 648804ea348f66e4e836aa27c0a73629, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  interactable: 1
+  _interactable: 1
   enabledTextColor: {r: 1, g: 1, b: 1, a: 1}
   disabledTextColor: {r: 0.19607843, g: 0.2, b: 0.20784314, a: 1}
   label: {fileID: 4512801155101932983}
@@ -956,7 +957,19 @@ MonoBehaviour:
   m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 8188489182099974156}
+        m_TargetAssemblyTypeName: ColorInput, Assembly-CSharp
+        m_MethodName: SetHue
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1001 &4512801156374111449
 PrefabInstance:
   m_ObjectHideFlags: 0

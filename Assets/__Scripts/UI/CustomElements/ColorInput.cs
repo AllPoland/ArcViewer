@@ -4,15 +4,17 @@ using UnityEngine.UI;
 
 [RequireComponent(typeof(Image))]
 public class ColorInput : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
-{
+{ 
     [SerializeField] private ColorPicker parentPicker;
     [SerializeField] private Slider hueSlider;
     [SerializeField] private Image cursorImage;
+    [SerializeField] private Shader saturationValueShader;
 
     private Color color => parentPicker.Value;
     private float hue => parentPicker.HSVColor[0];
     private float saturation => parentPicker.HSVColor[1];
     private float value => parentPicker.HSVColor[2];
+    private Vector2 currentCursorValues = new Vector2();
 
     private RectTransform rectTransform;
     private Image image;
@@ -37,7 +39,9 @@ public class ColorInput : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     public void SetHue(float newHue)
     {
+        Vector2 cursorValues = currentCursorValues;
         parentPicker.SetHue(newHue);
+        SetGUI(newHue, cursorValues.x, cursorValues.y);
     }
 
 
@@ -54,7 +58,8 @@ public class ColorInput : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         image.materialForRendering.SetFloat("_Hue", h);
         hueSlider.SetValueWithoutNotify(h);
 
-        cursorRectTransform.anchoredPosition = new Vector2(s * pickerSize, v * pickerSize);
+        currentCursorValues = new Vector2(s, v);
+        cursorRectTransform.anchoredPosition = currentCursorValues * pickerSize;
     }
 
 
@@ -122,12 +127,14 @@ public class ColorInput : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     private void OnEnable()
     {
         UpdateColor(color);
+        parentPicker.OnValueChanged.AddListener(UpdateColor);
     }
 
 
     private void OnDisable()
     {
         clicked = false;
+        parentPicker.OnValueChanged.RemoveListener(UpdateColor);
     }
 
 
@@ -138,14 +145,9 @@ public class ColorInput : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         parentCanvas = GetComponentInParent<Canvas>();
         cursorRectTransform = cursorImage.GetComponent<RectTransform>();
 
-        parentPicker.SetHue(hueSlider.value);
-
         //Need to create a new material because propertyblocks don't work on images
-        material = Instantiate(image.material);
+        material = new Material(saturationValueShader);
         material.SetFloat("_Hue", hue);
         image.material = material;
-
-        hueSlider.onValueChanged.AddListener(SetHue);
-        parentPicker.OnValueChanged.AddListener(UpdateColor);
     }
 }
