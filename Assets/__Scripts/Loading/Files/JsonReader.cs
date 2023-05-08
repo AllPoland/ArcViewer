@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class JsonReader
 {
-    public static Regex VersionRx = new Regex(@"_?version""\s*:\s*""(\d\.?)*", RegexOptions.Compiled);
+    public static Regex VersionRx = new Regex(@"version""\s*:\s*""(\d\.?)*", RegexOptions.Compiled);
 
 
     public static async Task<BeatmapInfo> LoadInfoAsync(string location)

@@ -21,7 +21,7 @@ public class BeatmapInfo
     public string _environmentName;
     public string _allDirectionsEnvironmentName;
     public float _songTimeOffset;
-    public CustomInfoData? _customData;
+    public CustomInfoData _customData;
     public DifficultyBeatmapSet[] _difficultyBeatmapSets;
 
 
@@ -75,7 +75,7 @@ public class BeatmapInfo
 
 
 [Serializable]
-public struct CustomInfoData
+public class CustomInfoData
 {
 
 }
