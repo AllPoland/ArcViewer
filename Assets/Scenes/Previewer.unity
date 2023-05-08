@@ -1171,6 +1171,7 @@ GameObject:
   - component: {fileID: 40514598}
   - component: {fileID: 40514600}
   - component: {fileID: 40514599}
+  - component: {fileID: 40514601}
   m_Layer: 10
   m_Name: BottomLaser (4)
   m_TagString: Untagged
@@ -1206,7 +1207,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -1243,6 +1244,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 40514597}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &40514601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 40514597}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  id: 0
+  meshRenderer: {fileID: 40514599}
 --- !u!1 &44105846
 GameObject:
   m_ObjectHideFlags: 0
@@ -5841,6 +5857,7 @@ GameObject:
   - component: {fileID: 223129986}
   - component: {fileID: 223129988}
   - component: {fileID: 223129987}
+  - component: {fileID: 223129989}
   m_Layer: 10
   m_Name: LeftGlowWire
   m_TagString: Untagged
@@ -5876,7 +5893,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -5913,6 +5930,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 223129985}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &223129989
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 223129985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 2
+  id: 0
+  meshRenderer: {fileID: 223129987}
 --- !u!1 &226208893
 GameObject:
   m_ObjectHideFlags: 0
@@ -6399,6 +6431,7 @@ GameObject:
   - component: {fileID: 239470957}
   - component: {fileID: 239470959}
   - component: {fileID: 239470958}
+  - component: {fileID: 239470960}
   m_Layer: 10
   m_Name: BackLaser (4)
   m_TagString: Untagged
@@ -6434,7 +6467,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -6471,6 +6504,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 239470956}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &239470960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 239470956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  id: 0
+  meshRenderer: {fileID: 239470958}
 --- !u!1001 &246727020
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7586,6 +7634,7 @@ GameObject:
   - component: {fileID: 292695576}
   - component: {fileID: 292695579}
   - component: {fileID: 292695578}
+  - component: {fileID: 292695580}
   m_Layer: 10
   m_Name: ChevronRight
   m_TagString: Untagged
@@ -7621,7 +7670,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -7658,6 +7707,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 292695575}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &292695580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 292695575}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  id: 0
+  meshRenderer: {fileID: 292695578}
 --- !u!1 &294124497
 GameObject:
   m_ObjectHideFlags: 0
@@ -7752,6 +7816,7 @@ GameObject:
   - component: {fileID: 298541438}
   - component: {fileID: 298541440}
   - component: {fileID: 298541439}
+  - component: {fileID: 298541441}
   m_Layer: 10
   m_Name: BackLaser (4)
   m_TagString: Untagged
@@ -7787,7 +7852,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -7824,6 +7889,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 298541437}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &298541441
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 298541437}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  id: 0
+  meshRenderer: {fileID: 298541439}
 --- !u!1001 &300157070
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11579,6 +11659,7 @@ GameObject:
   - component: {fileID: 446088564}
   - component: {fileID: 446088566}
   - component: {fileID: 446088565}
+  - component: {fileID: 446088567}
   m_Layer: 10
   m_Name: BackLaser (3)
   m_TagString: Untagged
@@ -11614,7 +11695,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -11651,6 +11732,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 446088563}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &446088567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 446088563}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  id: 0
+  meshRenderer: {fileID: 446088565}
 --- !u!1 &448739038
 GameObject:
   m_ObjectHideFlags: 0
@@ -12421,6 +12517,7 @@ GameObject:
   - component: {fileID: 465141041}
   - component: {fileID: 465141043}
   - component: {fileID: 465141042}
+  - component: {fileID: 465141044}
   m_Layer: 10
   m_Name: BackLaser (2)
   m_TagString: Untagged
@@ -12456,7 +12553,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -12493,6 +12590,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 465141040}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &465141044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 465141040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  id: 0
+  meshRenderer: {fileID: 465141042}
 --- !u!1 &471886313
 GameObject:
   m_ObjectHideFlags: 0
@@ -13772,6 +13884,7 @@ GameObject:
   - component: {fileID: 530199661}
   - component: {fileID: 530199663}
   - component: {fileID: 530199662}
+  - component: {fileID: 530199664}
   m_Layer: 10
   m_Name: BottomLaser (3)
   m_TagString: Untagged
@@ -13807,7 +13920,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -13844,6 +13957,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 530199660}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &530199664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 530199660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  id: 0
+  meshRenderer: {fileID: 530199662}
 --- !u!1 &538061226
 GameObject:
   m_ObjectHideFlags: 0
@@ -14259,6 +14387,7 @@ GameObject:
   - component: {fileID: 551276220}
   - component: {fileID: 551276222}
   - component: {fileID: 551276221}
+  - component: {fileID: 551276223}
   m_Layer: 10
   m_Name: BackLaser (1)
   m_TagString: Untagged
@@ -14294,7 +14423,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -14331,6 +14460,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 551276219}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &551276223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 551276219}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  id: 0
+  meshRenderer: {fileID: 551276221}
 --- !u!1 &553573861
 GameObject:
   m_ObjectHideFlags: 0
@@ -14707,6 +14851,7 @@ GameObject:
   - component: {fileID: 566137375}
   - component: {fileID: 566137377}
   - component: {fileID: 566137376}
+  - component: {fileID: 566137378}
   m_Layer: 10
   m_Name: BuildingLight2
   m_TagString: Untagged
@@ -14742,7 +14887,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -14779,6 +14924,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 566137374}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &566137378
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 566137374}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 3
+  id: 0
+  meshRenderer: {fileID: 566137376}
 --- !u!1001 &572129453
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15163,6 +15323,7 @@ GameObject:
   - component: {fileID: 585656841}
   - component: {fileID: 585656843}
   - component: {fileID: 585656842}
+  - component: {fileID: 585656844}
   m_Layer: 10
   m_Name: BottomLaser (1)
   m_TagString: Untagged
@@ -15198,7 +15359,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -15235,6 +15396,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 585656840}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &585656844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 585656840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  id: 0
+  meshRenderer: {fileID: 585656842}
 --- !u!1 &585855163
 GameObject:
   m_ObjectHideFlags: 0
@@ -18809,6 +18985,7 @@ GameObject:
   - component: {fileID: 730936769}
   - component: {fileID: 730936771}
   - component: {fileID: 730936770}
+  - component: {fileID: 730936772}
   m_Layer: 10
   m_Name: BackLaser (1)
   m_TagString: Untagged
@@ -18844,7 +19021,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -18881,6 +19058,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 730936768}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &730936772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 730936768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  id: 0
+  meshRenderer: {fileID: 730936770}
 --- !u!1 &730988095
 GameObject:
   m_ObjectHideFlags: 0
@@ -20131,6 +20323,7 @@ GameObject:
   m_Component:
   - component: {fileID: 776929601}
   - component: {fileID: 776929603}
+  - component: {fileID: 776929612}
   - component: {fileID: 776929602}
   - component: {fileID: 776929604}
   - component: {fileID: 776929611}
@@ -20264,6 +20457,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 808e74b42a8b0e84c93c4bc814594dae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &776929612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 776929600}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d61301bce2d0e74ca28b5c55a2b49fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lightSaturation: 1
+  lightEmissionSaturation: 1
+  lightEmission: 4
 --- !u!1 &778404757
 GameObject:
   m_ObjectHideFlags: 0
@@ -20351,6 +20559,7 @@ GameObject:
   - component: {fileID: 779476037}
   - component: {fileID: 779476039}
   - component: {fileID: 779476038}
+  - component: {fileID: 779476040}
   m_Layer: 10
   m_Name: BottomLaser (3)
   m_TagString: Untagged
@@ -20386,7 +20595,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -20423,6 +20632,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 779476036}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &779476040
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 779476036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  id: 0
+  meshRenderer: {fileID: 779476038}
 --- !u!1 &779824638
 GameObject:
   m_ObjectHideFlags: 0
@@ -22446,6 +22670,7 @@ GameObject:
   - component: {fileID: 867158495}
   - component: {fileID: 867158497}
   - component: {fileID: 867158496}
+  - component: {fileID: 867158498}
   m_Layer: 10
   m_Name: RotatingLaser (2)
   m_TagString: Untagged
@@ -22481,7 +22706,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -22518,6 +22743,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 867158494}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &867158498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 867158494}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 3
+  id: 0
+  meshRenderer: {fileID: 867158496}
 --- !u!224 &867951165 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4378467592763974618, guid: f476c7c88fc2a8c48b018512b982bb8b, type: 3}
@@ -23687,6 +23927,7 @@ GameObject:
   - component: {fileID: 949072615}
   - component: {fileID: 949072617}
   - component: {fileID: 949072616}
+  - component: {fileID: 949072618}
   m_Layer: 10
   m_Name: RotatingLaser (1)
   m_TagString: Untagged
@@ -23722,7 +23963,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -23759,6 +24000,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 949072614}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &949072618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 949072614}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 2
+  id: 0
+  meshRenderer: {fileID: 949072616}
 --- !u!1 &957154594
 GameObject:
   m_ObjectHideFlags: 0
@@ -25188,6 +25444,7 @@ GameObject:
   - component: {fileID: 987981177}
   - component: {fileID: 987981180}
   - component: {fileID: 987981179}
+  - component: {fileID: 987981181}
   m_Layer: 10
   m_Name: BuildingLight2
   m_TagString: Untagged
@@ -25223,7 +25480,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -25260,6 +25517,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 987981176}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &987981181
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987981176}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 2
+  id: 0
+  meshRenderer: {fileID: 987981179}
 --- !u!1001 &988711614
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27218,6 +27490,7 @@ GameObject:
   - component: {fileID: 1106902564}
   - component: {fileID: 1106902567}
   - component: {fileID: 1106902566}
+  - component: {fileID: 1106902568}
   m_Layer: 10
   m_Name: BackLaser
   m_TagString: Untagged
@@ -27253,7 +27526,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -27290,6 +27563,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1106902563}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1106902568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1106902563}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  id: 0
+  meshRenderer: {fileID: 1106902566}
 --- !u!1 &1108268622
 GameObject:
   m_ObjectHideFlags: 0
@@ -29662,6 +29950,7 @@ GameObject:
   - component: {fileID: 1211418111}
   - component: {fileID: 1211418113}
   - component: {fileID: 1211418112}
+  - component: {fileID: 1211418114}
   m_Layer: 10
   m_Name: BottomLaser (4)
   m_TagString: Untagged
@@ -29697,7 +29986,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -29734,6 +30023,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1211418110}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1211418114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1211418110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  id: 0
+  meshRenderer: {fileID: 1211418112}
 --- !u!1 &1213493534
 GameObject:
   m_ObjectHideFlags: 0
@@ -29745,6 +30049,7 @@ GameObject:
   - component: {fileID: 1213493535}
   - component: {fileID: 1213493537}
   - component: {fileID: 1213493536}
+  - component: {fileID: 1213493538}
   m_Layer: 10
   m_Name: RotatingLaser
   m_TagString: Untagged
@@ -29780,7 +30085,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -29817,6 +30122,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1213493534}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1213493538
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213493534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 2
+  id: 0
+  meshRenderer: {fileID: 1213493536}
 --- !u!1 &1221464429
 GameObject:
   m_ObjectHideFlags: 0
@@ -29911,6 +30231,7 @@ GameObject:
   - component: {fileID: 1221595699}
   - component: {fileID: 1221595702}
   - component: {fileID: 1221595701}
+  - component: {fileID: 1221595703}
   m_Layer: 10
   m_Name: ChevronLeft
   m_TagString: Untagged
@@ -29946,7 +30267,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -29983,6 +30304,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1221595698}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1221595703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1221595698}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  id: 0
+  meshRenderer: {fileID: 1221595701}
 --- !u!1 &1222889974
 GameObject:
   m_ObjectHideFlags: 0
@@ -30764,6 +31100,7 @@ GameObject:
   - component: {fileID: 1276989599}
   - component: {fileID: 1276989601}
   - component: {fileID: 1276989600}
+  - component: {fileID: 1276989602}
   m_Layer: 10
   m_Name: BottomLaser
   m_TagString: Untagged
@@ -30799,7 +31136,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -30836,6 +31173,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1276989598}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1276989602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276989598}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  id: 0
+  meshRenderer: {fileID: 1276989600}
 --- !u!1 &1277346236 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4465115620828890657, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
@@ -31849,6 +32201,7 @@ GameObject:
   - component: {fileID: 1328303017}
   - component: {fileID: 1328303019}
   - component: {fileID: 1328303018}
+  - component: {fileID: 1328303020}
   m_Layer: 10
   m_Name: BottomLaser (2)
   m_TagString: Untagged
@@ -31884,7 +32237,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -31921,6 +32274,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1328303016}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1328303020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1328303016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  id: 0
+  meshRenderer: {fileID: 1328303018}
 --- !u!1 &1328309239
 GameObject:
   m_ObjectHideFlags: 0
@@ -31932,6 +32300,7 @@ GameObject:
   - component: {fileID: 1328309240}
   - component: {fileID: 1328309242}
   - component: {fileID: 1328309241}
+  - component: {fileID: 1328309243}
   m_Layer: 10
   m_Name: BottomLaser (2)
   m_TagString: Untagged
@@ -31967,7 +32336,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -32004,6 +32373,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1328309239}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1328309243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1328309239}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  id: 0
+  meshRenderer: {fileID: 1328309241}
 --- !u!1 &1329961718
 GameObject:
   m_ObjectHideFlags: 0
@@ -33074,6 +33458,7 @@ GameObject:
   - component: {fileID: 1375576563}
   - component: {fileID: 1375576565}
   - component: {fileID: 1375576564}
+  - component: {fileID: 1375576566}
   m_Layer: 10
   m_Name: BackLaser (3)
   m_TagString: Untagged
@@ -33109,7 +33494,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -33146,6 +33531,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1375576562}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1375576566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1375576562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  id: 0
+  meshRenderer: {fileID: 1375576564}
 --- !u!1 &1377213724
 GameObject:
   m_ObjectHideFlags: 0
@@ -33257,6 +33657,7 @@ GameObject:
   - component: {fileID: 1385204094}
   - component: {fileID: 1385204096}
   - component: {fileID: 1385204095}
+  - component: {fileID: 1385204097}
   m_Layer: 10
   m_Name: RotatingLaser (1)
   m_TagString: Untagged
@@ -33292,7 +33693,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -33329,6 +33730,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1385204093}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1385204097
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1385204093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 3
+  id: 0
+  meshRenderer: {fileID: 1385204095}
 --- !u!1001 &1386496878
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -34508,6 +34924,7 @@ GameObject:
   - component: {fileID: 1467404232}
   - component: {fileID: 1467404234}
   - component: {fileID: 1467404233}
+  - component: {fileID: 1467404235}
   m_Layer: 10
   m_Name: RotatingLaser
   m_TagString: Untagged
@@ -34543,7 +34960,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -34580,6 +34997,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1467404231}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1467404235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1467404231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 3
+  id: 0
+  meshRenderer: {fileID: 1467404233}
 --- !u!1 &1470726489 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4378467592763974619, guid: f476c7c88fc2a8c48b018512b982bb8b, type: 3}
@@ -37116,6 +37548,7 @@ GameObject:
   - component: {fileID: 1547633278}
   - component: {fileID: 1547633281}
   - component: {fileID: 1547633280}
+  - component: {fileID: 1547633282}
   m_Layer: 10
   m_Name: BuildingLight1
   m_TagString: Untagged
@@ -37151,7 +37584,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -37188,6 +37621,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1547633277}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1547633282
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1547633277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 2
+  id: 0
+  meshRenderer: {fileID: 1547633280}
 --- !u!1 &1554155466
 GameObject:
   m_ObjectHideFlags: 0
@@ -39464,6 +39912,7 @@ GameObject:
   - component: {fileID: 1683921360}
   - component: {fileID: 1683921362}
   - component: {fileID: 1683921361}
+  - component: {fileID: 1683921363}
   m_Layer: 10
   m_Name: RotatingLaser (3)
   m_TagString: Untagged
@@ -39499,7 +39948,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -39536,6 +39985,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1683921359}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1683921363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1683921359}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 2
+  id: 0
+  meshRenderer: {fileID: 1683921361}
 --- !u!114 &1687424028 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6536940767801351664, guid: 0d8d0c02ba6f730439f338a495c13696, type: 3}
@@ -40384,6 +40848,7 @@ GameObject:
   - component: {fileID: 1711202659}
   - component: {fileID: 1711202662}
   - component: {fileID: 1711202661}
+  - component: {fileID: 1711202663}
   m_Layer: 10
   m_Name: BottomLaser
   m_TagString: Untagged
@@ -40419,7 +40884,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -40456,6 +40921,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1711202658}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1711202663
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1711202658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  id: 0
+  meshRenderer: {fileID: 1711202661}
 --- !u!1 &1715443770
 GameObject:
   m_ObjectHideFlags: 0
@@ -41007,6 +41487,7 @@ GameObject:
   - component: {fileID: 1756220118}
   - component: {fileID: 1756220120}
   - component: {fileID: 1756220119}
+  - component: {fileID: 1756220121}
   m_Layer: 10
   m_Name: RotatingLaser (3)
   m_TagString: Untagged
@@ -41042,7 +41523,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -41079,6 +41560,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1756220117}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1756220121
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1756220117}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 3
+  id: 0
+  meshRenderer: {fileID: 1756220119}
 --- !u!1 &1759305718
 GameObject:
   m_ObjectHideFlags: 0
@@ -41249,6 +41745,7 @@ GameObject:
   - component: {fileID: 1762880372}
   - component: {fileID: 1762880374}
   - component: {fileID: 1762880373}
+  - component: {fileID: 1762880375}
   m_Layer: 10
   m_Name: BottomLaser (1)
   m_TagString: Untagged
@@ -41284,7 +41781,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -41321,6 +41818,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1762880371}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1762880375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1762880371}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  id: 0
+  meshRenderer: {fileID: 1762880373}
 --- !u!1 &1765938928
 GameObject:
   m_ObjectHideFlags: 0
@@ -41570,6 +42082,7 @@ GameObject:
   - component: {fileID: 1783726933}
   - component: {fileID: 1783726935}
   - component: {fileID: 1783726934}
+  - component: {fileID: 1783726936}
   m_Layer: 10
   m_Name: BackLaser
   m_TagString: Untagged
@@ -41605,7 +42118,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -41642,6 +42155,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1783726932}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1783726936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1783726932}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  id: 0
+  meshRenderer: {fileID: 1783726934}
 --- !u!1 &1791306654
 GameObject:
   m_ObjectHideFlags: 0
@@ -44193,6 +44721,7 @@ GameObject:
   - component: {fileID: 1879965857}
   - component: {fileID: 1879965859}
   - component: {fileID: 1879965858}
+  - component: {fileID: 1879965860}
   m_Layer: 10
   m_Name: BuildingLight1
   m_TagString: Untagged
@@ -44228,7 +44757,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -44265,6 +44794,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1879965856}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1879965860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1879965856}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 3
+  id: 0
+  meshRenderer: {fileID: 1879965858}
 --- !u!224 &1880332898 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5454505267562301017, guid: a82a95f943c1ff64294a6b6f83897df9, type: 3}
@@ -45735,6 +46279,7 @@ GameObject:
   - component: {fileID: 1934960484}
   - component: {fileID: 1934960486}
   - component: {fileID: 1934960485}
+  - component: {fileID: 1934960487}
   m_Layer: 10
   m_Name: BackLaser (2)
   m_TagString: Untagged
@@ -45770,7 +46315,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -45807,6 +46352,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1934960483}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1934960487
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1934960483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 4
+  id: 0
+  meshRenderer: {fileID: 1934960485}
 --- !u!1 &1935205301
 GameObject:
   m_ObjectHideFlags: 0
@@ -47424,6 +47984,7 @@ GameObject:
   - component: {fileID: 2008354081}
   - component: {fileID: 2008354083}
   - component: {fileID: 2008354082}
+  - component: {fileID: 2008354084}
   m_Layer: 10
   m_Name: RightGlowWire
   m_TagString: Untagged
@@ -47459,7 +48020,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -47496,6 +48057,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2008354080}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &2008354084
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2008354080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 3
+  id: 0
+  meshRenderer: {fileID: 2008354082}
 --- !u!114 &2015237851 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2798344712690395182, guid: 179fe14dd2016da4da51abec5b8fdb5d, type: 3}
@@ -49893,6 +50469,7 @@ GameObject:
   - component: {fileID: 2068385972}
   - component: {fileID: 2068385974}
   - component: {fileID: 2068385973}
+  - component: {fileID: 2068385975}
   m_Layer: 10
   m_Name: RotatingLaser (2)
   m_TagString: Untagged
@@ -49928,7 +50505,7 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
@@ -49965,6 +50542,21 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2068385971}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &2068385975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2068385971}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 2
+  id: 0
+  meshRenderer: {fileID: 2068385973}
 --- !u!1 &2068467174
 GameObject:
   m_ObjectHideFlags: 0

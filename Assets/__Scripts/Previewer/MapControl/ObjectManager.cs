@@ -288,7 +288,7 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public void UpdateColors(ColorPalette newColors)
+    public void UpdateColors()
     {
         HitSoundManager.ClearScheduledSounds();
         noteManager.UpdateMaterials();
@@ -544,7 +544,7 @@ public class ObjectManager : MonoBehaviour
     private void Start()
     {
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
-        ColorManager.OnColorsChanged += UpdateColors;
+        ColorManager.OnColorsChanged += (_) => UpdateColors();
         TimeManager.OnBeatChanged += UpdateBeat;
         TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }
