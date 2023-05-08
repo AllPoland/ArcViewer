@@ -13,8 +13,6 @@ public class ArcManager : MonoBehaviour
     [SerializeField] private GameObject arcParent;
 
     [SerializeField] private Material arcMaterial;
-    [SerializeField] public Color redArcColor;
-    [SerializeField] public Color blueArcColor;
 
     [SerializeField] private float arcEndFadeStart;
     [SerializeField] private float arcEndFadeEnd;
@@ -23,6 +21,9 @@ public class ArcManager : MonoBehaviour
     [SerializeField] private float arcAnimationSpeed;
 
     private static ObjectManager objectManager;
+
+    private Color redArcColor => NoteManager.RedNoteColor;
+    private Color blueArcColor => NoteManager.BlueNoteColor;
 
     private MaterialPropertyBlock redArcMaterialProperties;
     private MaterialPropertyBlock blueArcMaterialProperties;
@@ -54,11 +55,8 @@ public class ArcManager : MonoBehaviour
         blueArcMaterialProperties.SetFloat("_FadeEndPoint", fadeDist);
         blueArcMaterialProperties.SetFloat("_FadeTransitionLength", arcFadeTransitionLength);
 
-        Color redColor = redArcColor;
-        Color blueColor = blueArcColor;
-
-        redArcMaterialProperties.SetColor("_BaseColor", redColor);
-        blueArcMaterialProperties.SetColor("_BaseColor", blueColor);
+        redArcMaterialProperties.SetColor("_BaseColor", redArcColor);
+        blueArcMaterialProperties.SetColor("_BaseColor", blueArcColor);
 
         UpdateArcVisuals(TimeManager.CurrentBeat);
     }

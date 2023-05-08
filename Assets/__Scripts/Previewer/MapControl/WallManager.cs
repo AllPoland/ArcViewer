@@ -3,11 +3,12 @@ using UnityEngine;
 
 public class WallManager : MonoBehaviour
 {
+    public static Color WallColor => ColorManager.CurrentColors.WallColor;
+
     [SerializeField] private ObjectPool wallPool;
     [SerializeField] private GameObject wallParent;
 
     [SerializeField] private Material wallMaterial;
-    [SerializeField] public Color wallColor;
     [SerializeField, Range(0f, 1f)] private float wallLightness;
     [SerializeField] private float edgeEmission;
 
@@ -32,7 +33,10 @@ public class WallManager : MonoBehaviour
     {
         ClearRenderedWalls();
 
-        Color newColor = wallColor.SetValue(wallLightness);
+        float h, s, v;
+        Color.RGBToHSV(WallColor, out h, out s, out v);
+
+        Color newColor = WallColor.SetValue(wallLightness * v);
         newColor.a = SettingsManager.GetFloat("wallopacity");
         wallMaterialProperties.SetColor("_BaseColor", newColor);
 

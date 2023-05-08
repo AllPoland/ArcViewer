@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class NoteManager : MonoBehaviour
 {
+    public static Color RedNoteColor => ColorManager.CurrentColors.LeftNoteColor;
+    public static Color BlueNoteColor => ColorManager.CurrentColors.RightNoteColor;
+
     [Header("Object Pools")]
     [SerializeField] private ObjectPool notePool;
     [SerializeField] private ObjectPool bombPool;
@@ -19,8 +22,6 @@ public class NoteManager : MonoBehaviour
     [Header("Materials")]
     [SerializeField] public Material complexMaterial;
     [SerializeField] public Material simpleMaterial;
-    [SerializeField] public Color redNoteColor;
-    [SerializeField] public Color blueNoteColor;
     [SerializeField] private float noteEmission;
     [SerializeField] private float simpleNoteEmission;
     [SerializeField, Range(0f, 1f)] private float arrowSaturation;
@@ -57,18 +58,23 @@ public class NoteManager : MonoBehaviour
     {
         ClearRenderedNotes();
 
-        redNoteProperties.SetColor("_BaseColor", redNoteColor);
-        blueNoteProperties.SetColor("_BaseColor", blueNoteColor);
+        redNoteProperties.SetColor("_BaseColor", RedNoteColor);
+        blueNoteProperties.SetColor("_BaseColor", BlueNoteColor);
+
+        float redH, redS, redV;
+        float blueH, blueS, blueV;
+        Color.RGBToHSV(RedNoteColor, out redH, out redS, out redV);
+        Color.RGBToHSV(BlueNoteColor, out blueH, out blueS, out blueV);
 
         float emission = objectManager.useSimpleNoteMaterial ? simpleNoteEmission : noteEmission;
-        redNoteProperties.SetColor("_EmissionColor", redNoteColor.SetValue(emission, true));
-        blueNoteProperties.SetColor("_EmissionColor", blueNoteColor.SetValue(emission, true));
+        redNoteProperties.SetColor("_EmissionColor", RedNoteColor.SetValue(emission * redV, true));
+        blueNoteProperties.SetColor("_EmissionColor", BlueNoteColor.SetValue(emission * blueV, true));
 
-        redArrowProperties.SetColor("_BaseColor", redNoteColor.SetHSV(null, arrowSaturation, arrowBrightness));
-        blueArrowProperties.SetColor("_BaseColor", blueNoteColor.SetHSV(null, arrowSaturation, arrowBrightness));
+        redArrowProperties.SetColor("_BaseColor", RedNoteColor.SetHSV(null, arrowSaturation * redS, arrowBrightness * redV));
+        blueArrowProperties.SetColor("_BaseColor", BlueNoteColor.SetHSV(null, arrowSaturation * blueS, arrowBrightness * blueV));
 
-        redArrowProperties.SetColor("_EmissionColor", redNoteColor.SetHSV(null, arrowGlowSaturation, arrowEmission, true));
-        blueArrowProperties.SetColor("_EmissionColor", blueNoteColor.SetHSV(null, arrowGlowSaturation, arrowEmission, true));
+        redArrowProperties.SetColor("_EmissionColor", RedNoteColor.SetHSV(null, arrowGlowSaturation * redS, arrowEmission, true));
+        blueArrowProperties.SetColor("_EmissionColor", BlueNoteColor.SetHSV(null, arrowGlowSaturation * blueS, arrowEmission, true));
 
         UpdateNoteVisuals(TimeManager.CurrentBeat);
     }

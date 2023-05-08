@@ -288,6 +288,17 @@ public class ObjectManager : MonoBehaviour
     }
 
 
+    public void UpdateColors(ColorPalette newColors)
+    {
+        HitSoundManager.ClearScheduledSounds();
+        noteManager.UpdateMaterials();
+        chainManager.ClearRenderedLinks();
+        chainManager.UpdateChainVisuals(TimeManager.CurrentBeat);
+        arcManager.UpdateMaterials();
+        wallManager.UpdateMaterial();
+    }
+
+
     public void RescheduleHitsounds(bool playing)
     {
         if(!playing)
@@ -533,6 +544,7 @@ public class ObjectManager : MonoBehaviour
     private void Start()
     {
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
+        ColorManager.OnColorsChanged += UpdateColors;
         TimeManager.OnBeatChanged += UpdateBeat;
         TimeManager.OnPlayingChanged += RescheduleHitsounds;
     }
