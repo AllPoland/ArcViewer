@@ -25,9 +25,10 @@ public class ColorManager : MonoBehaviour
         "rightnotecolor",
         "lightcolor1",
         "lightcolor2",
+        "whitelightcolor",
         "boostlightcolor1",
         "boostlightcolor2",
-        "whitelightcolor",
+        "boostwhitelightcolor",
         "wallcolor"
     };
 
@@ -101,8 +102,8 @@ public class ColorManager : MonoBehaviour
         LightColor1 = new Color(0.85f, 0.085f, 0.085f),
         LightColor2 = new Color(0.1882353f, 0.675294f, 1f),
         WhiteLightColor = Color.white,
-        BoostLightColor1 = Color.black,
-        BoostLightColor2 = Color.black,
+        BoostLightColor1 = new Color(0.85f, 0.085f, 0.085f),
+        BoostLightColor2 = new Color(0.1882353f, 0.675294f, 1f),
         BoostWhiteLightColor = Color.white,
         WallColor = new Color(1f, 0.1882353f, 0.1882353f)
     };
