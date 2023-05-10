@@ -10998,7 +10998,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d61301bce2d0e74ca28b5c55a2b49fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightSaturation: 1
+  lightSaturation: 0.9
   lightEmissionSaturation: 0.9
   lightEmission: 5
 --- !u!1001 &401327584
@@ -14594,7 +14594,7 @@ MonoBehaviour:
   simpleMaterial: {fileID: 2100000, guid: dd516f5f7177efb4da46d849a0cec8eb, type: 2}
   noteEmission: 0.1
   simpleNoteEmission: 0.3
-  arrowSaturation: 0.4
+  arrowSaturation: 0.2
   arrowBrightness: 0.8
   arrowGlowSaturation: 0.8
   arrowEmission: 2
@@ -24538,7 +24538,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 400
+  far clip plane: 500
   field of view: 75
   orthographic: 0
   orthographic size: 5

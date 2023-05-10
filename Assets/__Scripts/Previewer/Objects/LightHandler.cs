@@ -34,7 +34,22 @@ public class LightHandler : MonoBehaviour
                 properties.SetColor("_EmissionColor", newColor.SetValue(eventArgs.emission * alpha, true));
                 meshRenderer.SetPropertyBlock(properties);
             }
-            glowRenderer.SetPropertyBlock(eventArgs.glowProperties);
+
+            bool enableGlow = eventArgs.glowProperties.GetFloat("_Alpha") > 0.001f;
+            SetGlowActive(enableGlow);
+            if(enableGlow)
+            {
+                glowRenderer.SetPropertyBlock(eventArgs.glowProperties);
+            }
+        }
+    }
+
+
+    private void SetGlowActive(bool active)
+    {
+        if(glowRenderer && glowRenderer.gameObject.activeInHierarchy != active)
+        {
+            glowRenderer.gameObject.SetActive(active);
         }
     }
 

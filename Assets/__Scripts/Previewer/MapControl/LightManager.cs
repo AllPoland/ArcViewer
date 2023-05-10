@@ -88,7 +88,7 @@ public class LightManager : MonoBehaviour
         {
             laserProperties = lightProperties,
             glowProperties = glowProperties,
-            emission = lightEmission,
+            emission = lightEmission * Mathf.Max(baseColor.a, 1f),
             type = type
         };
         OnLightPropertiesChanged?.Invoke(eventArgs);

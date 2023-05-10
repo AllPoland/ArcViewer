@@ -101,6 +101,9 @@ MonoBehaviour:
   glowRenderer: {fileID: 2610064369954602668}
   type: 0
   id: 0
+  OffColor:
+    enabled: 0
+    value: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &7814730254957287274
 GameObject:
   m_ObjectHideFlags: 0
@@ -112,7 +115,6 @@ GameObject:
   - component: {fileID: 3046434258201014597}
   - component: {fileID: 6403025846674899747}
   - component: {fileID: 2610064369954602668}
-  - component: {fileID: 295165608760890101}
   m_Layer: 11
   m_Name: LaserGlow
   m_TagString: Untagged
@@ -185,17 +187,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &295165608760890101
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7814730254957287274}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
