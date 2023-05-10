@@ -8,7 +8,7 @@ public class NoteManager : MonoBehaviour
     public static Color BlueNoteColor => ColorManager.CurrentColors.RightNoteColor;
 
     [Header("Object Pools")]
-    [SerializeField] private ObjectPool notePool;
+    [SerializeField] private ObjectPool<NoteHandler> notePool;
     [SerializeField] private ObjectPool bombPool;
 
     [Header("Object Parents")]
@@ -128,10 +128,10 @@ public class NoteManager : MonoBehaviour
 
         if(n.Visual == null)
         {
-            n.Visual = notePool.GetObject();
-            n.Visual.transform.SetParent(noteParent.transform);
+            n.noteHandler = notePool.GetObject();
+            n.Visual = n.noteHandler.gameObject;
 
-            n.noteHandler = n.Visual.GetComponent<NoteHandler>();
+            n.Visual.transform.SetParent(noteParent.transform);
             n.source = n.noteHandler.audioSource;
 
             n.noteHandler.SetMesh(n.IsChainHead ? chainHeadMesh : noteMesh);
@@ -184,7 +184,7 @@ public class NoteManager : MonoBehaviour
     private void ReleaseNote(Note n)
     {
         n.source.Stop();
-        notePool.ReleaseObject(n.Visual);
+        notePool.ReleaseObject(n.noteHandler);
 
         n.Visual = null;
         n.source = null;

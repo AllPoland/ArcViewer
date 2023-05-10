@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ObjectPool : MonoBehaviour
+public class ObjectPool<T> : MonoBehaviour where T : MonoBehaviour
 {
-    public List<GameObject> AvailableObjects = new List<GameObject>();
-    public List<GameObject> ActiveObjects = new List<GameObject>();
+    public List<T> AvailableObjects = new List<T>();
+    public List<T> ActiveObjects = new List<T>();
 
     public int PoolSize { get; private set; }
 
@@ -37,7 +37,7 @@ public class ObjectPool : MonoBehaviour
                     break;
                 }
                 
-                Destroy(AvailableObjects[i]);
+                Destroy(AvailableObjects[i].gameObject);
                 AvailableObjects.RemoveAt(i);
                 deleted++;
             }
@@ -47,14 +47,14 @@ public class ObjectPool : MonoBehaviour
             //Create as many objects as needed to fill the pool
             for(int i = 0; i < Mathf.Abs(difference); i++)
             {
-                GameObject newObject = CreateNewObject();
+                T newObject = CreateNewObject();
                 AvailableObjects.Add(newObject);
             }
         }
     }
 
 
-    private GameObject CreateNewObject()
+    private T CreateNewObject()
     {
         //Instantiated objects are set inactive by default
         //It's the caller's responsibility to activate the object, set its parent,
@@ -63,16 +63,21 @@ public class ObjectPool : MonoBehaviour
         newObject.transform.SetParent(transform);
         newObject.SetActive(false);
 
-        return newObject;
+        T newItem = newObject.GetComponent<T>();
+        if(!newItem)
+        {
+            throw new System.Exception($"The required component {typeof(T)} is not present on the prefab!");
+        }
+        return newItem;
     }
 
 
-    public GameObject GetObject()
+    public T GetObject()
     {
         if(AvailableObjects.Count > 0)
         {
             //There is an object available in the pool. Activate it and return it.
-            GameObject collectedObject = AvailableObjects[0];
+            T collectedObject = AvailableObjects[0];
 
             AvailableObjects.RemoveAt(0);
             ActiveObjects.Add(collectedObject);
@@ -82,7 +87,7 @@ public class ObjectPool : MonoBehaviour
 
         //There are no available objects in the pool, so a new one will have to be created
         //This will indefinitely increase the size of the pool until it's cleared or otherwise modified
-        GameObject newObject = CreateNewObject();
+        T newObject = CreateNewObject();
 
         ActiveObjects.Add(newObject);
         PoolSize++;
@@ -91,30 +96,29 @@ public class ObjectPool : MonoBehaviour
     }
 
 
-    public void ReleaseObject(GameObject gameObject)
+    public void ReleaseObject(T target)
     {
-        if(!ActiveObjects.Contains(gameObject))
+        if(!ActiveObjects.Contains(target))
         {
             //Oops haha how did that happen
-            if(!AvailableObjects.Contains(gameObject))
+            if(!AvailableObjects.Contains(target))
             {
                 //Only want to destroy objects that don't exist anywhere
-                Destroy(gameObject);
+                Destroy(target.gameObject);
             }
             else
             {
-                gameObject.transform.SetParent(transform);
-                gameObject.SetActive(false);
-                AvailableObjects.Add(gameObject);
+                target.gameObject.transform.SetParent(transform);
+                target.gameObject.SetActive(false);
             }
             return;
         }
 
-        gameObject.transform.SetParent(transform);
-        gameObject.SetActive(false);
+        target.gameObject.transform.SetParent(transform);
+        target.gameObject.SetActive(false);
 
-        ActiveObjects.Remove(gameObject);
-        AvailableObjects.Add(gameObject);
+        ActiveObjects.Remove(target);
+        AvailableObjects.Add(target);
     }
 
 

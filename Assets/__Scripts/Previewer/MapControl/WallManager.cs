@@ -5,9 +5,11 @@ public class WallManager : MonoBehaviour
 {
     public static Color WallColor => ColorManager.CurrentColors.WallColor;
 
-    [SerializeField] private ObjectPool wallPool;
+    [Header("Components")]
+    [SerializeField] private ObjectPool<WallHandler> wallPool;
     [SerializeField] private GameObject wallParent;
 
+    [Header("Parameters")]
     [SerializeField] private Material wallMaterial;
     [SerializeField, Range(0f, 1f)] private float wallLightness;
     [SerializeField, Range(0f, 1f)] private float edgeSaturation;
@@ -59,15 +61,16 @@ public class WallManager : MonoBehaviour
 
         if(w.Visual == null)
         {
-            w.Visual = wallPool.GetObject();
+            w.wallHandler = wallPool.GetObject();
+            w.Visual = w.wallHandler.gameObject;
+
             w.Visual.transform.SetParent(wallParent.transform);
             w.Visual.SetActive(true);
 
             //Wall scale only needs to be set once when it's created
-            WallHandler handler = w.Visual.GetComponent<WallHandler>();
-            handler.SetScale(new Vector3(w.Width, w.Height, wallLength));
-            handler.SetProperties(wallMaterialProperties);
-            handler.SetEdgeProperties(wallEdgeProperties);
+            w.wallHandler.SetScale(new Vector3(w.Width, w.Height, wallLength));
+            w.wallHandler.SetProperties(wallMaterialProperties);
+            w.wallHandler.SetEdgeProperties(wallEdgeProperties);
 
             RenderedWalls.Add(w);
         }
@@ -77,8 +80,9 @@ public class WallManager : MonoBehaviour
 
     private void ReleaseWall(Wall w)
     {
-        wallPool.ReleaseObject(w.Visual);
+        wallPool.ReleaseObject(w.wallHandler);
         w.Visual = null;
+        w.wallHandler = null;
     }
 
 
@@ -226,6 +230,7 @@ public class Wall : MapObject
 
     public float Width;
     public float Height;
+    public WallHandler wallHandler;
 
 
     public static Wall WallFromBeatmapObstacle(BeatmapObstacle o)

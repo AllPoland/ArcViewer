@@ -9,9 +9,11 @@ public class ArcManager : MonoBehaviour
     public List<Arc> Arcs = new List<Arc>();
     public List<Arc> RenderedArcs = new List<Arc>();
 
-    [SerializeField] private ObjectPool arcPool;
+    [Header("Components")]
+    [SerializeField] private ObjectPool<ArcHandler> arcPool;
     [SerializeField] private GameObject arcParent;
 
+    [Header("Parameters")]
     [SerializeField] private Material arcMaterial;
 
     [SerializeField] private float arcEndFadeStart;
@@ -232,11 +234,12 @@ public class ArcManager : MonoBehaviour
 
         if(a.Visual == null)
         {
-            a.Visual = arcPool.GetObject();
+            a.arcHandler = arcPool.GetObject();
+            a.Visual = a.arcHandler.gameObject;
+
             a.Visual.transform.SetParent(arcParent.transform);
             a.Visual.SetActive(true);
 
-            a.arcHandler = a.Visual.GetComponent<ArcHandler>();
             a.arcHandler.SetMaterial(arcMaterial, a.Color == 0 ? redArcMaterialProperties : blueArcMaterialProperties);
 
             a.CalculateBaseCurve();
@@ -293,7 +296,8 @@ public class ArcManager : MonoBehaviour
 
     private void ReleaseArc(Arc a)
     {
-        arcPool.ReleaseObject(a.Visual);
+        arcPool.ReleaseObject(a.arcHandler);
+        a.arcHandler = null;
         a.Visual = null;
     }
 

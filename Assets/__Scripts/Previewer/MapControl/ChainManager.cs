@@ -3,11 +3,7 @@ using UnityEngine;
 
 public class ChainManager : MonoBehaviour
 {
-    [Header("Pools")]
-    [SerializeField] private ObjectPool chainLinkPool;
-
-    [Header("Object Parents")]
-    [SerializeField] private GameObject linkParent;
+    [SerializeField] private ObjectPool<ChainLinkHandler> chainLinkPool;
 
     public List<Chain> Chains = new List<Chain>();
     public List<ChainLink> ChainLinks = new List<ChainLink>();
@@ -122,10 +118,10 @@ public class ChainManager : MonoBehaviour
 
         if(cl.Visual == null)
         {
-            cl.Visual = chainLinkPool.GetObject();
-            cl.Visual.transform.SetParent(linkParent.transform);
+            cl.chainLinkHandler = chainLinkPool.GetObject();
+            cl.Visual = cl.chainLinkHandler.gameObject;
 
-            cl.chainLinkHandler = cl.Visual.GetComponent<ChainLinkHandler>();
+            cl.Visual.transform.SetParent(transform);
             cl.source = cl.chainLinkHandler.audioSource;
 
             NoteManager noteManager = objectManager.noteManager;
@@ -153,7 +149,7 @@ public class ChainManager : MonoBehaviour
     private void ReleaseChainLink(ChainLink cl)
     {
         cl.source.Stop();
-        chainLinkPool.ReleaseObject(cl.Visual);
+        chainLinkPool.ReleaseObject(cl.chainLinkHandler);
 
         cl.Visual = null;
         cl.source = null;
