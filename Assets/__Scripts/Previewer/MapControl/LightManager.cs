@@ -19,6 +19,11 @@ public class LightManager : MonoBehaviour
     private static MaterialPropertyBlock lightProperties;
     private static MaterialPropertyBlock glowProperties;
 
+    private static readonly string[] lightSettings = new string[]
+    {
+        "lightglowbrightness"
+    };
+
     public List<LightEvent> backLaserEvents = new List<LightEvent>()
     {
         new LightEvent
@@ -98,7 +103,7 @@ public class LightManager : MonoBehaviour
     private void SetLightProperties(Color baseColor)
     {
         glowProperties.SetColor("_BaseColor", baseColor);
-        glowProperties.SetFloat("_Alpha", baseColor.a);
+        glowProperties.SetFloat("_Alpha", baseColor.a * SettingsManager.GetFloat("lightglowbrightness"));
         lightProperties.SetColor("_BaseColor", GetLightColor(baseColor));
         lightProperties.SetColor("_EmissionColor", GetLightEmission(baseColor));
     }
@@ -265,6 +270,15 @@ public class LightManager : MonoBehaviour
     }
 
 
+    public void UpdateSettings(string setting)
+    {
+        if(setting == "all" || lightSettings.Contains(setting))
+        {
+            UpdateLights(TimeManager.CurrentBeat);
+        }
+    }
+
+
     public void UpdateDifficulty(Difficulty newDifficulty)
     {
         if(newDifficulty.beatmapDifficulty.basicBeatMapEvents.Length == 0)
@@ -379,6 +393,7 @@ public class LightManager : MonoBehaviour
     {
         TimeManager.OnBeatChanged += UpdateLights;
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
         ColorManager.OnColorsChanged += (_) => UpdateColors();
     }
 
