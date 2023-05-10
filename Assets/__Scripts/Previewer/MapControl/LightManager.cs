@@ -72,10 +72,16 @@ public class LightManager : MonoBehaviour
 
     private void UpdateLightEventType(LightEventType type, List<LightEvent> events, float beat)
     {
-        LightEvent last = events.LastOrDefault(x => x.Beat <= beat);
-        LightEventValue value = last?.Value ?? LightEventValue.Off;
+        int lastIndex = events.FindLastIndex(x => x.Beat <= beat);
+        bool foundEvent = lastIndex >= 0;
 
-        Color baseColor = GetEventColor(value, last);
+        LightEvent currentEvent = foundEvent ? events[lastIndex] : null;
+        LightEventValue value = foundEvent ? currentEvent.Value : LightEventValue.Off;
+
+        bool hasNextEvent = lastIndex + 1 < events.Count;
+        LightEvent nextEvent = hasNextEvent ? events[lastIndex + 1] : null;
+
+        Color baseColor = GetEventColor(value, currentEvent, nextEvent);
         SetLightProperties(baseColor);
 
         LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
@@ -89,27 +95,62 @@ public class LightManager : MonoBehaviour
     }
 
 
-    private Color GetEventColor(LightEventValue value, LightEvent lightEvent)
+    private void SetLightProperties(Color baseColor)
+    {
+        glowProperties.SetColor("_BaseColor", baseColor);
+        glowProperties.SetFloat("_Alpha", baseColor.a);
+        lightProperties.SetColor("_BaseColor", GetLightColor(baseColor));
+        lightProperties.SetColor("_EmissionColor", GetLightEmission(baseColor));
+    }
+
+
+    private Color GetLightColor(Color baseColor)
+    {
+        float h, s, v;
+        Color.RGBToHSV(baseColor, out h, out s, out v);
+        Color newColor = baseColor.SetHSV(h, s * lightSaturation, v);
+        newColor.a = Mathf.Clamp(baseColor.a, 0f, 1f);
+        return newColor;
+    }
+
+
+    private Color GetLightEmission(Color baseColor)
+    {
+        //Alpha values below 1 will naturally reduce glowiness
+        float emission = lightEmission * Mathf.Max(baseColor.a, 1f);
+
+        float h, s;
+        Color.RGBToHSV(baseColor, out h, out s, out _);
+        Color newColor = baseColor.SetHSV(h, s * lightEmissionSaturation, emission, true);
+        newColor.a = Mathf.Clamp(baseColor.a, 0f, 1f);
+        return newColor;
+    }
+
+
+    private Color GetEventColor(LightEventValue value, LightEvent lightEvent, LightEvent nextEvent)
     {
         switch(value)
         {
             case LightEventValue.RedOn:
-                return lightColor1;
-            case LightEventValue.RedFlash:
+            case LightEventValue.RedTransition:
                 //We can be sure lightEvent isn't null because value would be set to Off
+                return GetOnColor(lightEvent, lightColor1, nextEvent);
+            case LightEventValue.RedFlash:
                 return GetFlashColor(lightEvent, lightColor1);
             case LightEventValue.RedFade:
                 return GetFadeColor(lightEvent, lightColor1);
 
             case LightEventValue.BlueOn:
-                return lightColor2;
+            case LightEventValue.BlueTransition:
+                return GetOnColor(lightEvent, lightColor2, nextEvent);
             case LightEventValue.BlueFlash:
                 return GetFlashColor(lightEvent, lightColor2);
             case LightEventValue.BlueFade:
                 return GetFadeColor(lightEvent, lightColor2);
 
             case LightEventValue.WhiteOn:
-                return whiteLightColor;
+            case LightEventValue.WhiteTransition:
+                return GetOnColor(lightEvent, whiteLightColor, nextEvent);
             case LightEventValue.WhiteFlash:
                 return GetFlashColor(lightEvent, whiteLightColor);
             case LightEventValue.WhiteFade:
@@ -122,29 +163,57 @@ public class LightManager : MonoBehaviour
     }
 
 
+    private Color GetEventBaseColor(LightEvent lightEvent)
+    {
+        Color baseColor = new Color();
+        switch(lightEvent.Value)
+        {
+            case LightEventValue.RedOn:
+            case LightEventValue.RedTransition:
+                baseColor = lightColor1;
+                break;
+            case LightEventValue.BlueOn:
+            case LightEventValue.BlueTransition:
+                baseColor = lightColor2;
+                break;
+            case LightEventValue.WhiteOn:
+            case LightEventValue.WhiteTransition:
+                baseColor = whiteLightColor;
+                break;
+            default:
+                return new Color(0f, 0f, 0f, 0f);
+        }
+        baseColor.a = lightEvent.FloatValue;
+        return baseColor;
+    }
+
+
+    private Color GetOnColor(LightEvent lightEvent, Color baseColor, LightEvent nextEvent)
+    {
+        baseColor.a = lightEvent.FloatValue;
+
+        if(nextEvent?.isTransition ?? false)
+        {
+            Color transitionColor = GetEventBaseColor(nextEvent);
+            float transitionTime = nextEvent.Beat - lightEvent.Beat;
+
+            float t = (TimeManager.CurrentBeat - lightEvent.Beat) / transitionTime;
+            baseColor = Color.Lerp(baseColor, transitionColor, Easings.Quad.InOut(t));
+        }
+
+        return baseColor;
+    }
+
+
     private Color GetFlashColor(LightEvent lightEvent, Color baseColor)
     {
-        const float flashIntensity = 1.3f;
-        const float flashTime = 0.1f;
-        const float flashDecayTime = 0.2f;
+        const float flashIntensity = 1.5f;
+        const float fadeTime = 0.5f;
 
-        float timeDifference = TimeManager.CurrentTime - lightEvent.Time;
-        if(timeDifference >= flashTime + flashDecayTime)
-        {
-            baseColor.a = 1f;
-        }
-        else if(timeDifference >= flashTime)
-        {
-            float t = (timeDifference - flashTime) / flashDecayTime;
-            baseColor.a = Mathf.Lerp(flashIntensity, 1f, Easings.Quad.InOut(t));
-        }
-        else if(timeDifference >= 0)
-        {
-            float t = timeDifference / flashTime;
-            baseColor.a = Mathf.Lerp(1f, flashIntensity, Easings.Quad.InOut(t));
-        }
-        else baseColor.a = 0f;
+        float floatValue = lightEvent.FloatValue;
+        float flashBrightness = floatValue * flashIntensity;
 
+        baseColor.a = GetV1TransitionAlpha(flashBrightness, floatValue, fadeTime, lightEvent.Time);
         return baseColor;
     }
 
@@ -152,21 +221,29 @@ public class LightManager : MonoBehaviour
     private Color GetFadeColor(LightEvent lightEvent, Color baseColor)
     {
         const float flashIntensity = 1.2f;
-        const float fadeTime = 0.4f;
+        const float fadeTime = 0.8f;
 
-        float timeDifference = TimeManager.CurrentTime - lightEvent.Time;
+        float floatValue = lightEvent.FloatValue;
+        float flashBrightness = floatValue * flashIntensity;
+
+        baseColor.a = GetV1TransitionAlpha(flashBrightness, 0f, fadeTime, lightEvent.Time);
+        return baseColor;
+    }
+
+
+    private float GetV1TransitionAlpha(float startAlpha, float endAlpha, float fadeTime, float eventTime)
+    {
+        float timeDifference = TimeManager.CurrentTime - eventTime;
         if(timeDifference >= fadeTime)
         {
-            baseColor.a = 0f;
+            return endAlpha;
         }
-        else if(timeDifference >= 0)
+        if(timeDifference >= 0)
         {
             float t = timeDifference / fadeTime;
-            baseColor.a = Mathf.Lerp(flashIntensity, fadeTime, Easings.Quad.InOut(t));
+            return Mathf.Lerp(startAlpha, endAlpha, Easings.Quad.Out(t));
         }
-        else baseColor.a = 0f;
-
-        return baseColor;
+        return 0f;
     }
 
 
@@ -185,34 +262,6 @@ public class LightManager : MonoBehaviour
     public void UpdateColors()
     {
         UpdateLights(TimeManager.CurrentBeat);
-    }
-
-
-    private void SetLightProperties(Color baseColor)
-    {
-        glowProperties.SetColor("_BaseColor", baseColor);
-        lightProperties.SetColor("_BaseColor", GetLightColor(baseColor));
-        lightProperties.SetColor("_EmissionColor", GetLightEmission(baseColor));
-    }
-
-
-    private Color GetLightColor(Color baseColor)
-    {
-        float h, s, v;
-        Color.RGBToHSV(baseColor, out h, out s, out v);
-        Color newColor = baseColor.SetHSV(h, s * lightSaturation, v);
-        newColor.a = Mathf.Clamp(baseColor.a, 0f, 1f);
-        return newColor;
-    }
-
-
-    private Color GetLightEmission(Color baseColor)
-    {
-        float h, s;
-        Color.RGBToHSV(baseColor, out h, out s, out _);
-        Color newColor = baseColor.SetHSV(h, s * lightEmissionSaturation, lightEmission * baseColor.a, true);
-        newColor.a = Mathf.Clamp(baseColor.a, 0f, 1f);
-        return newColor;
     }
 
 
@@ -236,7 +285,19 @@ public class LightManager : MonoBehaviour
             AddLightEvent(beatmapEvent);
         }
 
+        backLaserEvents = SortLightsByBeat(backLaserEvents);
+        ringEvents = SortLightsByBeat(ringEvents);
+        leftLaserEvents = SortLightsByBeat(leftLaserEvents);
+        rightLaserEvents = SortLightsByBeat(rightLaserEvents);
+        centerLightEvents = SortLightsByBeat(centerLightEvents);
+
         UpdateLights(TimeManager.CurrentBeat);
+    }
+
+
+    private static List<LightEvent> SortLightsByBeat(List<LightEvent> events)
+    {
+        return events.OrderBy(x => x.Beat).ToList();
     }
 
 
@@ -348,7 +409,9 @@ public class LightEvent
 
     public LightEventType Type;
     public LightEventValue Value;
-    public float FloatValue;
+    public float FloatValue = 1f;
+
+    public bool isTransition => Value == LightEventValue.RedTransition || Value == LightEventValue.BlueTransition || Value == LightEventValue.WhiteTransition;
 
 
     public static LightEvent LightEventFromBasicBeatmapEvent(BeatmapBasicBeatmapEvent beatmapEvent)
