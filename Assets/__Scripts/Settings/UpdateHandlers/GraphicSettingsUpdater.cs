@@ -5,14 +5,11 @@ using UnityEngine.Rendering.Universal;
 public class GraphicSettingsUpdater : MonoBehaviour
 {
     [SerializeField] private VolumeProfile mainBloomVolume;
-    [SerializeField] private VolumeProfile backgroundBloomVolume;
     [SerializeField] private UniversalRenderPipelineAsset urpAsset;
 
     private Camera mainCamera;
-    private Bloom mainBloom;
+    private Bloom bloom;
     private float defaultBloomStrength;
-    private Bloom backgroundBloom;
-    private float defaultBackgroundBloomStrength;
 
 
     public void UpdateGraphicsSettings(string setting)
@@ -71,14 +68,8 @@ public class GraphicSettingsUpdater : MonoBehaviour
         if(allSettings || setting == "bloom")
         {
             float mainBloomStrength = SettingsManager.GetFloat("bloom");
-            mainBloom.active = mainBloomStrength > 0;
-            mainBloom.intensity.value = mainBloomStrength * defaultBloomStrength;
-        }
-        if(allSettings || setting == "backgroundbloom")
-        {
-            float backgroundBloomStrength = SettingsManager.GetFloat("backgroundbloom");
-            backgroundBloom.active = backgroundBloomStrength > 0;
-            backgroundBloom.intensity.value = backgroundBloomStrength * defaultBackgroundBloomStrength;
+            bloom.active = mainBloomStrength > 0;
+            bloom.intensity.value = mainBloomStrength * defaultBloomStrength;
         }
 #endif
     }
@@ -88,16 +79,11 @@ public class GraphicSettingsUpdater : MonoBehaviour
     {   
         mainCamera = Camera.main;
 
-        bool foundMainBloom = mainBloomVolume.TryGet<Bloom>(out mainBloom);
-        bool foundBackgroundBloom = backgroundBloomVolume.TryGet<Bloom>(out backgroundBloom);
+        bool foundBloom = mainBloomVolume.TryGet<Bloom>(out bloom);
 
-        if(foundMainBloom)
+        if(foundBloom)
         {
-            defaultBloomStrength = mainBloom.intensity.value;
-        }
-        if(foundBackgroundBloom)
-        {
-            defaultBackgroundBloomStrength = backgroundBloom.intensity.value;
+            defaultBloomStrength = bloom.intensity.value;
         }
 
         SettingsManager.OnSettingsUpdated += UpdateGraphicsSettings;

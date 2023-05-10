@@ -15,12 +15,53 @@ public class LightManager : MonoBehaviour
     private static Color whiteLightColor => BoostActive ? colors.BoostWhiteLightColor : colors.WhiteLightColor;
 
     private static MaterialPropertyBlock lightProperties;
+    private static MaterialPropertyBlock glowProperties;
 
-    public List<LightEvent> backLaserEvents = new List<LightEvent>();
-    public List<LightEvent> ringEvents = new List<LightEvent>();
-    public List<LightEvent> leftLaserEvents = new List<LightEvent>();
-    public List<LightEvent> rightLaserEvents = new List<LightEvent>();
-    public List<LightEvent> centerLightEvents = new List<LightEvent>();
+    public List<LightEvent> backLaserEvents = new List<LightEvent>()
+    {
+        new LightEvent
+        {
+            Beat = 0f,
+            Type = LightEventType.BackLasers,
+            Value = LightEventValue.RedOn
+        }
+    };
+    public List<LightEvent> ringEvents = new List<LightEvent>()
+    {
+        new LightEvent
+        {
+            Beat = 0f,
+            Type = LightEventType.Rings,
+            Value = LightEventValue.BlueOn
+        }
+    };
+    public List<LightEvent> leftLaserEvents = new List<LightEvent>()
+    {
+        new LightEvent
+        {
+            Beat = 0f,
+            Type = LightEventType.LeftRotatingLasers,
+            Value = LightEventValue.RedOn
+        }
+    };
+    public List<LightEvent> rightLaserEvents = new List<LightEvent>()
+    {
+        new LightEvent
+        {
+            Beat = 0f,
+            Type = LightEventType.RightRotatingLasers,
+            Value = LightEventValue.RedOn
+        }
+    };
+    public List<LightEvent> centerLightEvents = new List<LightEvent>()
+    {
+        new LightEvent
+        {
+            Beat = 0f,
+            Type = LightEventType.CenterLights,
+            Value = LightEventValue.BlueOn
+        }
+    };
 
     [SerializeField, Range(0f, 1f)] private float lightSaturation;
     [SerializeField, Range(0f, 1f)] private float lightEmissionSaturation;
@@ -29,7 +70,7 @@ public class LightManager : MonoBehaviour
 
     private void UpdateLightEventType(LightEventType type, List<LightEvent> events, float beat)
     {
-        LightEvent last = events.FirstOrDefault(x => x.Beat <= beat);
+        LightEvent last = events.LastOrDefault(x => x.Beat <= beat);
         LightEventValue value = last?.Value ?? LightEventValue.Off;
 
         switch(value)
@@ -48,7 +89,8 @@ public class LightManager : MonoBehaviour
 
         LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
         {
-            properties = lightProperties,
+            laserProperties = lightProperties,
+            glowProperties = glowProperties,
             type = type
         };
         OnLightPropertiesChanged?.Invoke(eventArgs);
@@ -73,6 +115,7 @@ public class LightManager : MonoBehaviour
 
     private void SetLightProperties(Color baseColor)
     {
+        glowProperties.SetColor("_BaseColor", baseColor);
         lightProperties.SetColor("_BaseColor", GetLightColor(baseColor));
         lightProperties.SetColor("_EmissionColor", GetLightEmission(baseColor));
     }
@@ -92,7 +135,7 @@ public class LightManager : MonoBehaviour
     {
         float h, s;
         Color.RGBToHSV(baseColor, out h, out s, out _);
-        Color newColor = baseColor.SetHSV(h, s * lightEmissionSaturation, lightEmission, true);
+        Color newColor = baseColor.SetHSV(h, s * lightEmissionSaturation, lightEmission * baseColor.a, true);
         newColor.a = baseColor.a;
         return newColor;
     }
@@ -100,53 +143,6 @@ public class LightManager : MonoBehaviour
 
     public void UpdateDifficulty(Difficulty newDifficulty)
     {
-        //Temporary fill-in to just make everything static lights for now
-        backLaserEvents = new List<LightEvent>()
-        {
-            new LightEvent
-            {
-                Beat = 0f,
-                Type = LightEventType.BackLasers,
-                Value = LightEventValue.RedOn
-            }
-        };
-        ringEvents = new List<LightEvent>()
-        {
-            new LightEvent
-            {
-                Beat = 0f,
-                Type = LightEventType.Rings,
-                Value = LightEventValue.BlueOn
-            }
-        };
-        leftLaserEvents = new List<LightEvent>()
-        {
-            new LightEvent
-            {
-                Beat = 0f,
-                Type = LightEventType.LeftRotatingLasers,
-                Value = LightEventValue.BlueOn
-            }
-        };
-        rightLaserEvents = new List<LightEvent>()
-        {
-            new LightEvent
-            {
-                Beat = 0f,
-                Type = LightEventType.RightRotatingLasers,
-                Value = LightEventValue.BlueOn
-            }
-        };
-        centerLightEvents = new List<LightEvent>()
-        {
-            new LightEvent
-            {
-                Beat = 0f,
-                Type = LightEventType.CenterLights,
-                Value = LightEventValue.BlueOn
-            }
-        };
-
         UpdateLights(TimeManager.CurrentBeat);
     }
 
@@ -162,6 +158,7 @@ public class LightManager : MonoBehaviour
     private void Awake()
     {
         lightProperties = new MaterialPropertyBlock();
+        glowProperties = new MaterialPropertyBlock();
     }
 }
 
@@ -188,7 +185,8 @@ public class LightEvent
 
 public struct LightingPropertyEventArgs
 {
-    public MaterialPropertyBlock properties;
+    public MaterialPropertyBlock laserProperties;
+    public MaterialPropertyBlock glowProperties;
     public LightEventType type;
 }
 
