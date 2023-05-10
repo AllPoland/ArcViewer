@@ -22,6 +22,19 @@ public class BeatmapDifficultyV2
     }
 
 
+    public static readonly Dictionary<int, float> ValueToRotation = new Dictionary<int, float>
+    {
+        {0, -60f},
+        {1, -45f},
+        {2, -30f},
+        {3, -15f},
+        {4, 15f},
+        {5, 30f},
+        {6, 45f},
+        {7, 60f}
+    };
+
+
     public BeatmapDifficulty ConvertToV3()
     {
         BeatmapDifficulty converted = new BeatmapDifficulty
@@ -153,7 +166,7 @@ public class BeatmapDifficultyV2
                     {
                         b = e._time,
                         e = e._type - 14,  //Subtracting 14 from the type makes it line up with the expected 0 and 1 in V3 format
-                        r = e._floatValue
+                        r = ValueToRotation[Math.Clamp(e._value, 0, 7)]
                     }
                 );
             }
@@ -179,7 +192,7 @@ public class BeatmapDifficultyV2
                         b = e._time,
                         et = e._type,
                         i = e._value,
-                        f = e._floatValue
+                        f = e._floatValue ?? 1f
                     }
                 );
             }
@@ -243,7 +256,7 @@ public struct BeatmapEventV2
     public float _time;
     public int _type;
     public int _value;
-    public float _floatValue;
+    public float? _floatValue;
 }
 
 
