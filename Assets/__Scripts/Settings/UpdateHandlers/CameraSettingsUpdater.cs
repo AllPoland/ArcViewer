@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraSettingsUpdater : MonoBehaviour
 {
+    public static event Action OnCameraPositionUpdated;
+
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private List<Camera> affectedCameras;
 
@@ -18,6 +21,8 @@ public class CameraSettingsUpdater : MonoBehaviour
             cameraTransform.localPosition = new Vector3(cameraTransform.localPosition.x, cameraTransform.localPosition.y, cameraZ);
             //Camera tilt is flipped because positive x tilts down for some reason
             cameraTransform.eulerAngles = new Vector3(-cameraTilt, cameraTransform.eulerAngles.y, cameraTransform.eulerAngles.z);
+
+            OnCameraPositionUpdated?.Invoke();
         }
 
         if(allSettings || setting == "camerafov")

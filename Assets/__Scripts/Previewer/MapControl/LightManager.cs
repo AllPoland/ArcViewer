@@ -41,7 +41,7 @@ public class LightManager : MonoBehaviour
         {
             Beat = 0f,
             Type = LightEventType.LeftRotatingLasers,
-            Value = LightEventValue.RedOn
+            Value = LightEventValue.BlueOn
         }
     };
     public List<LightEvent> rightLaserEvents = new List<LightEvent>()
@@ -50,7 +50,7 @@ public class LightManager : MonoBehaviour
         {
             Beat = 0f,
             Type = LightEventType.RightRotatingLasers,
-            Value = LightEventValue.RedOn
+            Value = LightEventValue.BlueOn
         }
     };
     public List<LightEvent> centerLightEvents = new List<LightEvent>()
@@ -73,24 +73,31 @@ public class LightManager : MonoBehaviour
         LightEvent last = events.LastOrDefault(x => x.Beat <= beat);
         LightEventValue value = last?.Value ?? LightEventValue.Off;
 
+        Color baseColor = Color.black;
         switch(value)
         {
             case LightEventValue.BlueOn:
-                SetLightProperties(lightColor2);
+                baseColor = lightColor2;
                 break;
             case LightEventValue.RedOn:
-                SetLightProperties(lightColor1);
+                baseColor = lightColor1;
+                break;
+            case LightEventValue.WhiteOn:
+                baseColor = whiteLightColor;
                 break;
             case LightEventValue.Off:
             default:
-                SetLightProperties(new Color(0f, 0f, 0f, 0f));
+                baseColor = Color.black;
+                baseColor.a = 0f;
                 break;
         }
 
+        SetLightProperties(baseColor);
         LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
         {
             laserProperties = lightProperties,
             glowProperties = glowProperties,
+            emission = lightEmission,
             type = type
         };
         OnLightPropertiesChanged?.Invoke(eventArgs);
@@ -187,6 +194,7 @@ public struct LightingPropertyEventArgs
 {
     public MaterialPropertyBlock laserProperties;
     public MaterialPropertyBlock glowProperties;
+    public float emission;
     public LightEventType type;
 }
 

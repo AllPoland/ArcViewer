@@ -1,6 +1,5 @@
 using UnityEngine;
 
-[ExecuteInEditMode]
 public class LightHandler : MonoBehaviour
 {
     [Header("Components")]
@@ -10,13 +9,31 @@ public class LightHandler : MonoBehaviour
     [Header("Parameters")]
     [SerializeField] private LightEventType type;
     [SerializeField] private int id;
+    [SerializeField] private Optional<Color> OffColor;
+
+    private MaterialPropertyBlock properties;
 
 
     private void UpdateProperties(LightingPropertyEventArgs eventArgs)
     {
         if(eventArgs.type == type)
         {
-            meshRenderer.SetPropertyBlock(eventArgs.laserProperties);
+            if(!OffColor.Enabled)
+            {
+                meshRenderer.SetPropertyBlock(eventArgs.laserProperties);
+            }
+            else
+            {
+                //Used for lights that persist as physical elements when off
+                Color baseColor = eventArgs.laserProperties.GetColor("_BaseColor");
+                float alpha = baseColor.a;
+                baseColor.a = 1f;
+                Color newColor = Color.Lerp(baseColor, OffColor.Value, 1 - alpha);
+
+                properties.SetColor("_BaseColor", newColor);
+                properties.SetColor("_EmissionColor", newColor.SetValue(eventArgs.emission * alpha, true));
+                meshRenderer.SetPropertyBlock(properties);
+            }
             glowRenderer.SetPropertyBlock(eventArgs.glowProperties);
         }
     }
@@ -38,20 +55,27 @@ public class LightHandler : MonoBehaviour
     }
 
 
-    private void Update()
+    private void Awake()
     {
-        UpdateRotation();
+        if(OffColor.Enabled)
+        {
+            properties = new MaterialPropertyBlock();
+        }
     }
 
 
     private void OnEnable()
     {
         LightManager.OnLightPropertiesChanged += UpdateProperties;
+        CameraSettingsUpdater.OnCameraPositionUpdated += UpdateRotation;
+
+        UpdateRotation();
     }
 
 
     private void OnDisable()
     {
         LightManager.OnLightPropertiesChanged -= UpdateProperties;
+        CameraSettingsUpdater.OnCameraPositionUpdated -= UpdateRotation;
     }
 }
