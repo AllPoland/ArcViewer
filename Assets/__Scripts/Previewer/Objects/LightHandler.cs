@@ -27,11 +27,12 @@ public class LightHandler : MonoBehaviour
                 //Used for lights that persist as physical elements when off
                 Color baseColor = eventArgs.laserProperties.GetColor("_BaseColor");
                 float alpha = baseColor.a;
-                baseColor.a = 1f;
-                Color newColor = Color.Lerp(baseColor, OffColor.Value, 1 - alpha);
+                properties.SetColor("_EmissionColor", baseColor.SetValue(eventArgs.emission * alpha, true));
 
+                Color newColor = Color.Lerp(baseColor, OffColor.Value, 1 - alpha);
+                newColor.a = 1f;
                 properties.SetColor("_BaseColor", newColor);
-                properties.SetColor("_EmissionColor", newColor.SetValue(eventArgs.emission * alpha, true));
+
                 meshRenderer.SetPropertyBlock(properties);
             }
 
@@ -54,7 +55,7 @@ public class LightHandler : MonoBehaviour
     }
 
 
-    private void UpdateRotation()
+    public void UpdateGlowRotation()
     {
         if(!glowRenderer)
         {
@@ -82,15 +83,15 @@ public class LightHandler : MonoBehaviour
     private void OnEnable()
     {
         LightManager.OnLightPropertiesChanged += UpdateProperties;
-        CameraSettingsUpdater.OnCameraPositionUpdated += UpdateRotation;
+        CameraSettingsUpdater.OnCameraPositionUpdated += UpdateGlowRotation;
 
-        UpdateRotation();
+        UpdateGlowRotation();
     }
 
 
     private void OnDisable()
     {
         LightManager.OnLightPropertiesChanged -= UpdateProperties;
-        CameraSettingsUpdater.OnCameraPositionUpdated -= UpdateRotation;
+        CameraSettingsUpdater.OnCameraPositionUpdated -= UpdateGlowRotation;
     }
 }

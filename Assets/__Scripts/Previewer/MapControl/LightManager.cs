@@ -8,6 +8,7 @@ public class LightManager : MonoBehaviour
     public static bool BoostActive;
 
     public static event Action<LightingPropertyEventArgs> OnLightPropertiesChanged;
+    public static event Action<LaserSpeedEvent, LightEventType> OnLaserRotationsChanged;
 
     private static ColorPalette colors => ColorManager.CurrentColors;
     private static Color lightColor1 => BoostActive ? colors.BoostLightColor1 : colors.LightColor1;
@@ -24,55 +25,33 @@ public class LightManager : MonoBehaviour
         "lightglowbrightness"
     };
 
-    public List<LightEvent> backLaserEvents = new List<LightEvent>()
-    {
-        new LightEvent
-        {
-            Beat = 0f,
-            Type = LightEventType.BackLasers,
-            Value = LightEventValue.RedOn
-        }
-    };
-    public List<LightEvent> ringEvents = new List<LightEvent>()
-    {
-        new LightEvent
-        {
-            Beat = 0f,
-            Type = LightEventType.Rings,
-            Value = LightEventValue.BlueOn
-        }
-    };
-    public List<LightEvent> leftLaserEvents = new List<LightEvent>()
-    {
-        new LightEvent
-        {
-            Beat = 0f,
-            Type = LightEventType.LeftRotatingLasers,
-            Value = LightEventValue.BlueOn
-        }
-    };
-    public List<LightEvent> rightLaserEvents = new List<LightEvent>()
-    {
-        new LightEvent
-        {
-            Beat = 0f,
-            Type = LightEventType.RightRotatingLasers,
-            Value = LightEventValue.BlueOn
-        }
-    };
-    public List<LightEvent> centerLightEvents = new List<LightEvent>()
-    {
-        new LightEvent
-        {
-            Beat = 0f,
-            Type = LightEventType.CenterLights,
-            Value = LightEventValue.BlueOn
-        }
-    };
+    public List<LightEvent> backLaserEvents = new List<LightEvent>();
+    public List<LightEvent> ringEvents = new List<LightEvent>();
+    public List<LightEvent> leftLaserEvents = new List<LightEvent>();
+    public List<LightEvent> rightLaserEvents = new List<LightEvent>();
+    public List<LightEvent> centerLightEvents = new List<LightEvent>();
+
+    public List<LaserSpeedEvent> leftLaserSpeedEvents = new List<LaserSpeedEvent>();
+    public List<LaserSpeedEvent> rightLaserSpeedEvents = new List<LaserSpeedEvent>();
 
     [SerializeField, Range(0f, 1f)] private float lightSaturation;
     [SerializeField, Range(0f, 1f)] private float lightEmissionSaturation;
     [SerializeField] private float lightEmission;
+
+
+    public void UpdateLights(float beat)
+    {
+        BoostActive = boostEvents.LastOrDefault(x => x.b <= beat)?.o ?? false;
+
+        UpdateLightEventType(LightEventType.BackLasers, backLaserEvents, beat);
+        UpdateLightEventType(LightEventType.Rings, ringEvents, beat);
+        UpdateLightEventType(LightEventType.LeftRotatingLasers, leftLaserEvents, beat);
+        UpdateLightEventType(LightEventType.RightRotatingLasers, rightLaserEvents, beat);
+        UpdateLightEventType(LightEventType.CenterLights, centerLightEvents, beat);
+
+        UpdateLaserSpeedEventType(LightEventType.LeftRotationSpeed, leftLaserSpeedEvents, beat);
+        UpdateLaserSpeedEventType(LightEventType.RightRotationSpeed, rightLaserSpeedEvents, beat);
+    }
 
 
     private void UpdateLightEventType(LightEventType type, List<LightEvent> events, float beat)
@@ -97,6 +76,13 @@ public class LightManager : MonoBehaviour
             type = type
         };
         OnLightPropertiesChanged?.Invoke(eventArgs);
+    }
+
+
+    private void UpdateLaserSpeedEventType(LightEventType type, List<LaserSpeedEvent> events, float beat)
+    {
+        LaserSpeedEvent lastEvent = events.LastOrDefault(x => x.Beat <= beat);
+        OnLaserRotationsChanged?.Invoke(lastEvent, type);
     }
 
 
@@ -252,18 +238,6 @@ public class LightManager : MonoBehaviour
     }
 
 
-    public void UpdateLights(float beat)
-    {
-        BoostActive = boostEvents.LastOrDefault(x => x.b <= beat)?.o ?? false;
-
-        UpdateLightEventType(LightEventType.BackLasers, backLaserEvents, beat);
-        UpdateLightEventType(LightEventType.Rings, ringEvents, beat);
-        UpdateLightEventType(LightEventType.LeftRotatingLasers, leftLaserEvents, beat);
-        UpdateLightEventType(LightEventType.RightRotatingLasers, rightLaserEvents, beat);
-        UpdateLightEventType(LightEventType.CenterLights, centerLightEvents, beat);
-    }
-
-
     public void UpdateColors()
     {
         UpdateLights(TimeManager.CurrentBeat);
@@ -294,6 +268,9 @@ public class LightManager : MonoBehaviour
         rightLaserEvents.Clear();
         centerLightEvents.Clear();
 
+        leftLaserSpeedEvents.Clear();
+        rightLaserSpeedEvents.Clear();
+
         foreach(BeatmapBasicBeatmapEvent beatmapEvent in newDifficulty.beatmapDifficulty.basicBeatMapEvents)
         {
             AddLightEvent(beatmapEvent);
@@ -305,11 +282,16 @@ public class LightManager : MonoBehaviour
         rightLaserEvents = SortLightsByBeat(rightLaserEvents);
         centerLightEvents = SortLightsByBeat(centerLightEvents);
 
+        leftLaserSpeedEvents = SortLightsByBeat(leftLaserSpeedEvents);
+        rightLaserEvents = SortLightsByBeat(rightLaserEvents);
+
+        PopulateLaserRotationEventData();
+
         UpdateLights(TimeManager.CurrentBeat);
     }
 
 
-    private static List<LightEvent> SortLightsByBeat(List<LightEvent> events)
+    private static List<T> SortLightsByBeat<T>(List<T> events) where T : LightEvent
     {
         return events.OrderBy(x => x.Beat).ToList();
     }
@@ -335,6 +317,53 @@ public class LightManager : MonoBehaviour
             case LightEventType.CenterLights:
                 centerLightEvents.Add(newEvent);
                 break;
+            case LightEventType.LeftRotationSpeed:
+                leftLaserSpeedEvents.Add(new LaserSpeedEvent(newEvent));
+                break;
+            case LightEventType.RightRotationSpeed:
+                rightLaserSpeedEvents.Add(new LaserSpeedEvent(newEvent));
+                break;
+        }
+    }
+
+
+    private void PopulateLaserRotationEventData()
+    {
+        const int laserCount = 4;
+        foreach(LaserSpeedEvent speedEvent in leftLaserSpeedEvents)
+        {
+            speedEvent.PopulateRotationData(laserCount);
+        }
+
+        int i = 0;
+        foreach(LaserSpeedEvent speedEvent in rightLaserSpeedEvents)
+        {
+            if(i >= leftLaserSpeedEvents.Count)
+            {
+                speedEvent.PopulateRotationData(laserCount);
+                continue;
+            }
+
+            speedEvent.rotationValues = new List<LaserSpeedEvent.LaserRotationData>();
+            while(i < leftLaserSpeedEvents.Count)
+            {
+                //Find a left laser event (if any) that matches this event's beat
+                LaserSpeedEvent leftSpeedEvent = leftLaserSpeedEvents[i];
+
+                if(ObjectManager.CheckSameTime(speedEvent.Time, leftSpeedEvent.Time))
+                {
+                    //Events on the same time get the same parameters
+                    speedEvent.rotationValues.AddRange(leftSpeedEvent.rotationValues);
+                    break;
+                }
+                else if(leftSpeedEvent.Beat >= speedEvent.Beat)
+                {
+                    //We've passed this event's time, so there's no event sharing this beat
+                    speedEvent.PopulateRotationData(laserCount);
+                    break;
+                }
+                else i++;
+            }
         }
     }
 
@@ -386,6 +415,8 @@ public class LightManager : MonoBehaviour
                 Value = LightEventValue.BlueOn
             }
         };
+        leftLaserSpeedEvents = new List<LaserSpeedEvent>();
+        rightLaserSpeedEvents = new List<LaserSpeedEvent>();
     }
 
 
@@ -438,6 +469,52 @@ public class LightEvent
             Value = (LightEventValue)beatmapEvent.i,
             FloatValue = beatmapEvent.f
         };
+    }
+}
+
+
+public class LaserSpeedEvent : LightEvent
+{
+    //Lasers rotate at 20 degrees/sec multiplied by value
+    public float rotationSpeed => (int)Value * 20f;
+    public List<LaserRotationData> rotationValues;
+
+
+    public struct LaserRotationData
+    {
+        public float startPosition;
+        public bool direction;
+    }
+
+
+    public LaserSpeedEvent() {}
+
+    public LaserSpeedEvent(LightEvent baseEvent)
+    {
+        Beat = baseEvent.Beat;
+        Type = baseEvent.Type;
+        Value = baseEvent.Value;
+        FloatValue = baseEvent.FloatValue;
+    }
+
+
+    public void PopulateRotationData(int laserCount)
+    {
+        rotationValues = new List<LaserRotationData>();
+        for(int i = 0; i < laserCount; i++)
+        {
+            LaserRotationData newData = new LaserRotationData();
+            if((int)Value > 0)
+            {
+                newData.startPosition = UnityEngine.Random.Range(0f, 360f);
+                newData.direction = UnityEngine.Random.value >= 0.5f;
+            }
+            else
+            {
+                newData.startPosition = 0f;
+            }
+            rotationValues.Add(newData);
+        }
     }
 }
 
