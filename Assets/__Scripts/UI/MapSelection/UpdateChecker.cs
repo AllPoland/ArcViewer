@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -15,9 +16,9 @@ public class UpdateChecker : MonoBehaviour
     public const string VersionFile = "version.json";
     public static string LatestVersionPath => Path.Combine(Application.persistentDataPath, VersionFile);
 
-    public static Version LatestVersion;
-
     [SerializeField] private GameObject UpdateButton;
+
+    private string versionString;
 
 
     private static Version GetLatestKnownVersion()
@@ -31,7 +32,7 @@ public class UpdateChecker : MonoBehaviour
         try
         {
             string json = File.ReadAllText(versionPath);
-            return JsonUtility.FromJson<Version>(json);
+            return JsonConvert.DeserializeObject<Version>(json);
         }
         catch(Exception e)
         {
@@ -43,10 +44,11 @@ public class UpdateChecker : MonoBehaviour
 
     private static void SetLatestKnownVersion(Version knownVersion)
     {
+        knownVersion.CheckedTime = DateTime.Now;
         string versionPath = LatestVersionPath;
         try
         {
-            string json = JsonUtility.ToJson(knownVersion);
+            string json = JsonConvert.SerializeObject(knownVersion);
             File.WriteAllText(versionPath, json);
         }
         catch(Exception e)
@@ -70,9 +72,9 @@ public class UpdateChecker : MonoBehaviour
     public void ShowUpdateDialogue()
     {
         string dialogueMessage;
-        if(LatestVersion?.Name != null)
+        if(!string.IsNullOrEmpty(versionString))
         {
-            dialogueMessage = $"ArcViewer v{LatestVersion.Name} has released!\nWould you like to download it now?";
+            dialogueMessage = $"ArcViewer v{versionString} has released!\nWould you like to download it now?";
         }
         else
         {
@@ -82,50 +84,65 @@ public class UpdateChecker : MonoBehaviour
     }
 
 
-    public void UpdateVersion()
+    public void UpdateVersion(Version currentVersion, Version knownVersion, Version latestVersion, bool updateKnownVersion = true)
     {
-        Version currentVersion = new Version {Name = Application.version};
-        Version knownVersion = GetLatestKnownVersion();
-        if(knownVersion?.Name == null)
+        if(latestVersion?.Name == null)
         {
-            Debug.Log("Found no known latest version, using current app version.");
-            knownVersion = currentVersion;
+            //Didn't get the latest version for some reason, so assume we know what the latest is
+            latestVersion = knownVersion;
         }
+        versionString = latestVersion.Name;
 
-        if(LatestVersion?.Name == null)
-        {
-            //Failed to get the latest version for some reason, so just assume we know what the latest is
-            LatestVersion = knownVersion;
-        }
-        else if(knownVersion.IsEarlierThan(LatestVersion))
+        if(knownVersion.IsEarlierThan(latestVersion))
         {
             //A new update has released since we last checked
-            //Display a popup about it, even if we're multiple versions behind
-            Debug.Log($"Found new version! {LatestVersion.Name}");
-            knownVersion = LatestVersion;
-            if(currentVersion.IsEarlierThan(LatestVersion))
+            Debug.Log($"Found new version! {latestVersion.Name}");
+            if(currentVersion.IsEarlierThan(latestVersion))
             {
+                //Display a popup about the new update if we're out of date
                 ShowUpdateDialogue();
             }
         }
 
-        if(currentVersion.IsEarlierThan(knownVersion))
+        if(currentVersion.IsEarlierThan(latestVersion))
         {
-            //There's a newer version than the current version,
-            //Enable the update button that'll annoy the user smil
+            //There's a newer version than the current one,
+            //enable the update button that'll annoy the user smil
             Debug.Log($"App version {Application.version} is outdated! Latest is {knownVersion.Name}");
             UpdateButton.SetActive(true);
         }
         else Debug.Log($"App version {Application.version} is up to date!");
 
-        SetLatestKnownVersion(knownVersion);
+        if(updateKnownVersion)
+        {
+            SetLatestKnownVersion(latestVersion);
+        }
     }
 
 
     private IEnumerator CheckLatestVersionCoroutine()
     {
         UpdateButton.SetActive(false);
-        LatestVersion = null;
+        Debug.Log("Checking for updates.");
+
+        Version currentVersion = new Version {Name = Application.version};
+        Version knownVersion = GetLatestKnownVersion();
+        if(knownVersion?.Name == null)
+        {
+            Debug.Log("Found no known latest version, using current app version.");
+            knownVersion = currentVersion;
+            //Set this to a minimum datetime to ensure that the update is checked
+            knownVersion.CheckedTime = DateTime.MinValue;
+        }
+
+        TimeSpan timeSinceCheck = DateTime.Now - knownVersion.CheckedTime;
+        if(timeSinceCheck.TotalHours < 1f)
+        {
+            //Rate limit GitHub requests to one per hour
+            Debug.Log($"Version has recently been checked. Using stored version: {knownVersion.Name}");
+            UpdateVersion(currentVersion, knownVersion, null, false);
+            yield break;
+        }
 
         Debug.Log($"Checking GitHub for latest release from {LatestReleaseURL}");
         using UnityWebRequest uwr = UnityWebRequest.Get(LatestReleaseURL);
@@ -134,7 +151,7 @@ public class UpdateChecker : MonoBehaviour
         if(uwr.result != UnityWebRequest.Result.Success)
         {
             Debug.LogWarning($"Failed to get GitHub API response with error: {uwr.error}");
-            UpdateVersion();
+            UpdateVersion(currentVersion, knownVersion, null);
             yield break;
         }
         
@@ -142,7 +159,7 @@ public class UpdateChecker : MonoBehaviour
         if(string.IsNullOrEmpty(json))
         {
             Debug.LogWarning($"Failed to get text from GitHub api response!");
-            UpdateVersion();
+            UpdateVersion(currentVersion, knownVersion, null);
             yield break;
         }
 
@@ -154,23 +171,23 @@ public class UpdateChecker : MonoBehaviour
         catch(Exception e)
         {
             Debug.LogWarning($"Failed to parse GitHub api Response with error: {e.Message}, {e.StackTrace}");
-            UpdateVersion();
+            UpdateVersion(currentVersion, knownVersion, null);
             yield break;
         }
 
         if(string.IsNullOrEmpty(release.tag_name))
         {
             Debug.LogWarning($"Latest release has missing or empty tag name!");
-            UpdateVersion();
+            UpdateVersion(currentVersion, knownVersion, null);
             yield break;
         }
 
         //Trim out the extra stuff like "v" prefix and "-beta" suffix
         string versionText = release.tag_name.Split('-')[0].TrimStart('v');
-        LatestVersion = new Version {Name = versionText};
         Debug.Log($"Found latest version: {versionText}");
 
-        UpdateVersion();
+        Version latestVersion = new Version {Name = versionText};
+        UpdateVersion(currentVersion, knownVersion, latestVersion);
     }
 
 
@@ -189,6 +206,7 @@ public class UpdateChecker : MonoBehaviour
 public class Version
 {
     public string Name;
+    public DateTime CheckedTime;
 
 
     public bool IsEarlierThan(Version other)
