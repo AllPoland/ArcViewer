@@ -45,7 +45,7 @@ public class AudioManager : MonoBehaviour
         set
         {
 #if !UNITY_WEBGL || UNITY_EDITOR
-            if(value == 0)
+            if(value.Approximately(0f))
             {
                 //Can't set this to 0 because Log breaks
                 value = 0.0001f;
