@@ -26,7 +26,7 @@ public class RotatingLaserHandler : MonoBehaviour
         for(int i = 0; i < targets.Count; i++)
         {
             LightHandler target = targets[i];
-            if(i > laserSpeedEvent.rotationValues.Count)
+            if(i >= laserSpeedEvent.rotationValues.Count)
             {
                 Debug.LogWarning($"Not enough randomized laser values to accomodate {targets.Count} rotating lasers!");
                 SetLaserRotation(target, 0f);

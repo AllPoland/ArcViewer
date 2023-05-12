@@ -52,7 +52,7 @@ public class LightManager : MonoBehaviour
         UpdateLaserSpeedEventType(LightEventType.LeftRotationSpeed, leftLaserSpeedEvents, beat);
         UpdateLaserSpeedEventType(LightEventType.RightRotationSpeed, rightLaserSpeedEvents, beat);
 
-        RingManager.UpdateRingRotations(beat);
+        RingManager.UpdateRings();
     }
 
 
@@ -188,9 +188,9 @@ public class LightManager : MonoBehaviour
         if(nextEvent?.isTransition ?? false)
         {
             Color transitionColor = GetEventBaseColor(nextEvent);
-            float transitionTime = nextEvent.Beat - lightEvent.Beat;
+            float transitionTime = nextEvent.Time - lightEvent.Time;
 
-            float t = (TimeManager.CurrentBeat - lightEvent.Beat) / transitionTime;
+            float t = (TimeManager.CurrentTime - lightEvent.Time) / transitionTime;
             baseColor = Color.Lerp(baseColor, transitionColor, t);
         }
 
@@ -294,7 +294,7 @@ public class LightManager : MonoBehaviour
         RingManager.BigRingRotationEvents = SortLightsByBeat(RingManager.BigRingRotationEvents);
 
         PopulateLaserRotationEventData();
-        RingManager.PopulateRingRotationEventData();
+        RingManager.PopulateRingEventData();
 
         UpdateLights(TimeManager.CurrentBeat);
     }
@@ -335,6 +335,9 @@ public class LightManager : MonoBehaviour
                 RingManager.SmallRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
                 RingManager.BigRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
                 break;
+            case LightEventType.RingZoom:
+                RingManager.RingZoomEvents.Add(new RingZoomEvent(beatmapEvent));
+                break;
         }
     }
 
@@ -357,9 +360,10 @@ public class LightManager : MonoBehaviour
             }
 
             speedEvent.rotationValues = new List<LaserSpeedEvent.LaserRotationData>();
+
+            //Find a left laser event (if any) that matches this event's beat
             while(i < leftLaserSpeedEvents.Count)
             {
-                //Find a left laser event (if any) that matches this event's beat
                 LaserSpeedEvent leftSpeedEvent = leftLaserSpeedEvents[i];
 
                 if(ObjectManager.CheckSameTime(speedEvent.Time, leftSpeedEvent.Time))
@@ -371,10 +375,15 @@ public class LightManager : MonoBehaviour
                 else if(leftSpeedEvent.Beat >= speedEvent.Beat)
                 {
                     //We've passed this event's time, so there's no event sharing this beat
-                    speedEvent.PopulateRotationData(laserCount);
                     break;
                 }
                 else i++;
+            }
+
+            if(speedEvent.rotationValues.Count < laserCount)
+            {
+                //No left laser event was found on this beat, so randomize this event
+                speedEvent.PopulateRotationData(laserCount);
             }
         }
     }
@@ -438,8 +447,11 @@ public class LightManager : MonoBehaviour
 
     private void Start()
     {
+        //Using this event instead of BeatmapManager.OnDifficultyChanged
+        //ensures that bpm changes are loaded before precalculating event times
+        TimeManager.OnDifficultyBpmEventsLoaded += UpdateDifficulty;
         TimeManager.OnBeatChanged += UpdateLights;
-        BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
+
         SettingsManager.OnSettingsUpdated += UpdateSettings;
         ColorManager.OnColorsChanged += (_) => UpdateColors();
     }

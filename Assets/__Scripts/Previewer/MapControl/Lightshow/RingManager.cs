@@ -7,7 +7,10 @@ public class RingManager : MonoBehaviour
     public static List<RingRotationEvent> SmallRingRotationEvents = new List<RingRotationEvent>();
     public static List<RingRotationEvent> BigRingRotationEvents = new List<RingRotationEvent>();
 
+    public static List<RingZoomEvent> RingZoomEvents = new List<RingZoomEvent>();
+
     public static event Action<RingRotationEventArgs> OnRingRotationsChanged;
+    public static event Action<float> OnRingZoomPositionChanged;
 
     public const float SmallRingStartAngle = -45f;
     public const float SmallRingRotationAmount = 90f;
@@ -19,10 +22,19 @@ public class RingManager : MonoBehaviour
     public const float BigRingStep = 5f;
     public const float BigRingStartStep = 0f;
 
+    public const bool StartRingZoomParity = true;
 
-    public static void UpdateRingRotations(float beat)
+
+    public static void UpdateRings()
     {
-        int lastIndex = SmallRingRotationEvents.FindLastIndex(x => x.Beat <= beat);
+        UpdateRingRotations();
+        UpdateRingZoom();
+    }
+
+
+    private static void UpdateRingRotations()
+    {
+        int lastIndex = SmallRingRotationEvents.FindLastIndex(x => x.Beat <= TimeManager.CurrentBeat);
 
         RingRotationEventArgs eventArgs = new RingRotationEventArgs
         {
@@ -39,10 +51,28 @@ public class RingManager : MonoBehaviour
     }
 
 
-    public static void PopulateRingRotationEventData()
+    private static void UpdateRingZoom()
+    {
+        int lastIndex = RingZoomEvents.FindLastIndex(x => x.Beat <= TimeManager.CurrentBeat);
+        if(lastIndex < 0)
+        {
+            //No ring zoom has taken affect, set defaults
+            float defaultPosition = StartRingZoomParity ? 1f : 0f;
+            OnRingZoomPositionChanged?.Invoke(defaultPosition);
+            return;
+        }
+
+        RingZoomEvent current = RingZoomEvents[lastIndex];
+        OnRingZoomPositionChanged?.Invoke(current.GetRingDist(TimeManager.CurrentTime));
+    }
+
+
+    public static void PopulateRingEventData()
     {
         PopulateRingRotationEvents(ref SmallRingRotationEvents, SmallRingRotationAmount, SmallRingStep, SmallRingStartAngle, SmallRingStartStep);
         PopulateRingRotationEvents(ref BigRingRotationEvents, BigRingRotationAmount, BigRingStep, BigRingStartAngle, BigRingStartStep);
+
+        PopulateRingZoomEvents(ref RingZoomEvents);
     }
 
 
@@ -70,6 +100,27 @@ public class RingManager : MonoBehaviour
                 current.startStep = previous.GetEventStepAngle(rotationProgress);
 
                 current.RandomizeDirectionAndStep(previous.targetAngle, rotationAmount, maxStep);
+            }
+        }
+    }
+
+
+    private static void PopulateRingZoomEvents(ref List<RingZoomEvent> events)
+    {
+        for(int i = 0; i < events.Count; i++)
+        {
+            RingZoomEvent current = events[i];
+            if(i == 0)
+            {
+                current.IsFarParity = StartRingZoomParity;
+                current.startDistance = current.targetDistance;
+            }
+            else
+            {
+                RingZoomEvent previous = events[i - 1];
+
+                current.IsFarParity = !previous.IsFarParity;
+                current.startDistance = previous.GetRingDist(current.Time);
             }
         }
     }
@@ -143,6 +194,36 @@ public class RingRotationEvent : LightEvent
     public float GetEventStepAngle(float rotationProgress)
     {
         return Mathf.Lerp(startStep, step, rotationProgress);
+    }
+}
+
+
+public class RingZoomEvent : LightEvent
+{
+    public const float Speed = 1.5f;
+
+    public bool IsFarParity;
+    public float startDistance;
+    public float targetDistance => IsFarParity ? 1f : 0f;
+
+
+    public RingZoomEvent() {}
+
+    public RingZoomEvent(BeatmapBasicBeatmapEvent beatmapEvent)
+    {
+        Beat = beatmapEvent.b;
+        Type = (LightEventType)beatmapEvent.et;
+        Value = (LightEventValue)beatmapEvent.i;
+        FloatValue = beatmapEvent.f;
+    }
+
+
+    public float GetRingDist(float currentTime)
+    {
+        float timeDifference = currentTime - Time;
+        float zoomProgress = RingManager.GetRingEventProgress(timeDifference, Speed);
+
+        return Mathf.Lerp(startDistance, targetDistance, zoomProgress);
     }
 }
 

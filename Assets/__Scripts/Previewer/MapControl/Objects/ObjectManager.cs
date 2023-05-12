@@ -274,8 +274,6 @@ public class ObjectManager : MonoBehaviour
     {
         HitSoundManager.ClearScheduledSounds();
 
-        //Always ensure that bpm events are updated first so we don't get false time values on objects
-        TimeManager.UpdateBpmEvents(difficulty);
         LoadMapObjects(difficulty.beatmapDifficulty, out noteManager.Notes, out noteManager.Bombs, out chainManager.Chains, out arcManager.Arcs, out wallManager.Walls);
 
         noteManager.ReloadNotes();
@@ -549,10 +547,13 @@ public class ObjectManager : MonoBehaviour
 
     private void Start()
     {
-        BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
-        ColorManager.OnColorsChanged += (_) => UpdateColors();
+        //Using this event instead of BeatmapManager.OnDifficultyChanged
+        //ensures that bpm changes are loaded before precalculating object times
+        TimeManager.OnDifficultyBpmEventsLoaded += UpdateDifficulty;
         TimeManager.OnBeatChanged += UpdateBeat;
         TimeManager.OnPlayingChanged += RescheduleHitsounds;
+
+        ColorManager.OnColorsChanged += (_) => UpdateColors();
     }
 
 
