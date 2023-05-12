@@ -258,6 +258,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2885256795046646389}
+  - component: {fileID: 570621697612508238}
   m_Layer: 9
   m_Name: BigRing
   m_TagString: Untagged
@@ -288,6 +289,25 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &570621697612508238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2885256795046646394}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61fbe8346d21f26458f68200904aab62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bigRing: 1
+  id: 0
+  lightHandlers:
+  - {fileID: 513659921113899170}
+  - {fileID: 453623334813910656}
+  - {fileID: 462865627395977278}
+  - {fileID: 6049461643290430848}
 --- !u!1 &2885256795327507849
 GameObject:
   m_ObjectHideFlags: 0
@@ -384,7 +404,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3046434258201014597, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
       propertyPath: m_LocalScale.y
-      value: 7
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 3046434258201014597, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
       propertyPath: m_LocalRotation.w
@@ -496,6 +516,17 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
+--- !u!114 &6049461643290430848 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6313713894679119675, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
+  m_PrefabInstance: {fileID: 318295447257041595}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &6049461643290430849 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6313713894679119674, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
@@ -514,7 +545,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3046434258201014597, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
       propertyPath: m_LocalScale.y
-      value: 7
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 3046434258201014597, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
       propertyPath: m_LocalRotation.w
@@ -630,6 +661,17 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
+--- !u!114 &513659921113899170 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6313713894679119675, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
+  m_PrefabInstance: {fileID: 5818144599559202713}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &513659921113899171 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6313713894679119674, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
@@ -648,7 +690,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3046434258201014597, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
       propertyPath: m_LocalScale.y
-      value: 7
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 3046434258201014597, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
       propertyPath: m_LocalRotation.w
@@ -760,10 +802,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6313713894679119677, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
       propertyPath: m_Name
-      value: RingLight (2)
+      value: RingLight (1)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
+--- !u!114 &453623334813910656 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6313713894679119675, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
+  m_PrefabInstance: {fileID: 5896699899162214843}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &453623334813910657 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6313713894679119674, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
@@ -782,7 +835,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3046434258201014597, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
       propertyPath: m_LocalScale.y
-      value: 7
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 3046434258201014597, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
       propertyPath: m_LocalRotation.w
@@ -894,10 +947,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6313713894679119677, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
       propertyPath: m_Name
-      value: RingLight (1)
+      value: RingLight (2)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
+--- !u!114 &462865627395977278 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6313713894679119675, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
+  m_PrefabInstance: {fileID: 5904989319417886469}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c28dff889e571343b5e7e208c1f80d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &462865627395977279 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6313713894679119674, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
