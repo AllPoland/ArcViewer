@@ -30,8 +30,8 @@ public class RingHandler : MonoBehaviour
         if(current == null)
         {
             //No rotation event has influenced this ring, use defaults
-            float defaultAngle = bigRing ? LightManager.BigRingStartAngle : LightManager.SmallRingStartAngle;
-            float defaultStep = bigRing ? LightManager.BigRingStartStep : LightManager.SmallRingStartStep;
+            float defaultAngle = bigRing ? RingManager.BigRingStartAngle : RingManager.SmallRingStartAngle;
+            float defaultStep = bigRing ? RingManager.BigRingStartStep : RingManager.SmallRingStartStep;
             SetRotation(defaultAngle + (defaultStep * id));
             return;
         }
@@ -60,12 +60,12 @@ public class RingHandler : MonoBehaviour
 
     private void OnEnable()
     {
-        LightManager.OnRingRotationsChanged += UpdateRingRotations;
+        RingManager.OnRingRotationsChanged += UpdateRingRotations;
     }
 
 
     private void OnDisable()
     {
-        LightManager.OnRingRotationsChanged -= UpdateRingRotations;
+        RingManager.OnRingRotationsChanged -= UpdateRingRotations;
     }
 }

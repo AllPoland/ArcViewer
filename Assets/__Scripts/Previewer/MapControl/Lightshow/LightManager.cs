@@ -9,7 +9,6 @@ public class LightManager : MonoBehaviour
 
     public static event Action<LightingPropertyEventArgs> OnLightPropertiesChanged;
     public static event Action<LaserSpeedEvent, LightEventType> OnLaserRotationsChanged;
-    public static event Action<RingRotationEventArgs> OnRingRotationsChanged;
 
     private static ColorPalette colors => ColorManager.CurrentColors;
     private static Color lightColor1 => BoostActive ? colors.BoostLightColor1 : colors.LightColor1;
@@ -35,22 +34,9 @@ public class LightManager : MonoBehaviour
     public List<LaserSpeedEvent> leftLaserSpeedEvents = new List<LaserSpeedEvent>();
     public List<LaserSpeedEvent> rightLaserSpeedEvents = new List<LaserSpeedEvent>();
 
-    public List<RingRotationEvent> smallRingRotationEvents = new List<RingRotationEvent>();
-    public List<RingRotationEvent> bigRingRotationEvents = new List<RingRotationEvent>();
-
     [SerializeField, Range(0f, 1f)] private float lightSaturation;
     [SerializeField, Range(0f, 1f)] private float lightEmissionSaturation;
     [SerializeField] private float lightEmission;
-
-    public const float SmallRingStartAngle = -45f;
-    public const float SmallRingRotationAmount = 90f;
-    public const float SmallRingStep = 5f;
-    public const float SmallRingStartStep = 5f;
-
-    public const float BigRingStartAngle = -45f;
-    public const float BigRingRotationAmount = 45f;
-    public const float BigRingStep = 5f;
-    public const float BigRingStartStep = 0f;
 
 
     public void UpdateLights(float beat)
@@ -66,7 +52,7 @@ public class LightManager : MonoBehaviour
         UpdateLaserSpeedEventType(LightEventType.LeftRotationSpeed, leftLaserSpeedEvents, beat);
         UpdateLaserSpeedEventType(LightEventType.RightRotationSpeed, rightLaserSpeedEvents, beat);
 
-        UpdateRingRotations(beat);
+        RingManager.UpdateRingRotations(beat);
     }
 
 
@@ -99,25 +85,6 @@ public class LightManager : MonoBehaviour
     {
         LaserSpeedEvent lastEvent = events.LastOrDefault(x => x.Beat <= beat);
         OnLaserRotationsChanged?.Invoke(lastEvent, type);
-    }
-
-
-    private void UpdateRingRotations(float beat)
-    {
-        int lastIndex = smallRingRotationEvents.FindLastIndex(x => x.Beat <= beat);
-
-        RingRotationEventArgs eventArgs = new RingRotationEventArgs
-        {
-            events = smallRingRotationEvents,
-            currentEventIndex = lastIndex,
-            affectBigRings = false
-        };
-        OnRingRotationsChanged?.Invoke(eventArgs);
-
-        //Need to update big rings separately
-        eventArgs.events = bigRingRotationEvents;
-        eventArgs.affectBigRings = true;
-        OnRingRotationsChanged?.Invoke(eventArgs);
     }
 
 
@@ -306,8 +273,8 @@ public class LightManager : MonoBehaviour
         leftLaserSpeedEvents.Clear();
         rightLaserSpeedEvents.Clear();
 
-        smallRingRotationEvents.Clear();
-        bigRingRotationEvents.Clear();
+        RingManager.SmallRingRotationEvents.Clear();
+        RingManager.BigRingRotationEvents.Clear();
 
         foreach(BeatmapBasicBeatmapEvent beatmapEvent in newDifficulty.beatmapDifficulty.basicBeatMapEvents)
         {
@@ -323,11 +290,11 @@ public class LightManager : MonoBehaviour
         leftLaserSpeedEvents = SortLightsByBeat(leftLaserSpeedEvents);
         rightLaserEvents = SortLightsByBeat(rightLaserEvents);
         
-        smallRingRotationEvents = SortLightsByBeat(smallRingRotationEvents);
-        bigRingRotationEvents = SortLightsByBeat(bigRingRotationEvents);
+        RingManager.SmallRingRotationEvents = SortLightsByBeat(RingManager.SmallRingRotationEvents);
+        RingManager.BigRingRotationEvents = SortLightsByBeat(RingManager.BigRingRotationEvents);
 
         PopulateLaserRotationEventData();
-        PopulateRingRotationEventData();
+        RingManager.PopulateRingRotationEventData();
 
         UpdateLights(TimeManager.CurrentBeat);
     }
@@ -365,10 +332,9 @@ public class LightManager : MonoBehaviour
                 rightLaserSpeedEvents.Add(new LaserSpeedEvent(beatmapEvent));
                 break;
             case LightEventType.RingSpin:
-                smallRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
-                bigRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
+                RingManager.SmallRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
+                RingManager.BigRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
                 break;
-
         }
     }
 
@@ -409,42 +375,6 @@ public class LightManager : MonoBehaviour
                     break;
                 }
                 else i++;
-            }
-        }
-    }
-
-
-    private void PopulateRingRotationEventData()
-    {
-        PopulateRingRotationEvents(ref smallRingRotationEvents, SmallRingRotationAmount, SmallRingStep, SmallRingStartAngle, SmallRingStartStep);
-        PopulateRingRotationEvents(ref bigRingRotationEvents, BigRingRotationAmount, BigRingStep, BigRingStartAngle, BigRingStartStep);
-    }
-
-
-    private void PopulateRingRotationEvents(ref List<RingRotationEvent> events, float rotationAmount, float maxStep, float startRotation, float startStep)
-    {
-        for(int i = 0; i < events.Count; i++)
-        {
-            RingRotationEvent current = events[i];
-            if(i == 0)
-            {
-                //The first event should inherit the default starting positions
-                current.startAngle = startRotation;
-                current.startStep = startStep;
-                current.targetAngle = current.startAngle;
-                current.step = current.startStep;
-            }
-            else
-            {
-                //Subsequent events get starting values based on the current ring rotations
-                RingRotationEvent previous = events[i - 1];
-                float timeDifference = current.Time - previous.Time;
-                float rotationProgress = RingRotationEvent.GetRingRotationProgress(timeDifference);
-
-                current.startAngle = previous.GetEventAngle(rotationProgress);
-                current.startStep = previous.GetEventStepAngle(rotationProgress);
-
-                current.RandomizeDirectionAndStep(previous.targetAngle, rotationAmount, maxStep);
             }
         }
     }
@@ -501,8 +431,8 @@ public class LightManager : MonoBehaviour
         leftLaserSpeedEvents.Clear();
         rightLaserSpeedEvents.Clear();
 
-        smallRingRotationEvents.Clear();
-        bigRingRotationEvents.Clear();
+        RingManager.SmallRingRotationEvents.Clear();
+        RingManager.BigRingRotationEvents.Clear();
     }
 
 
@@ -525,20 +455,8 @@ public class LightManager : MonoBehaviour
 }
 
 
-public class LightEvent
+public class LightEvent : MapElement
 {
-    private float _beat;
-    public float Beat
-    {
-        get => _beat;
-        set
-        {
-            _beat = value;
-            Time = TimeManager.TimeFromBeat(_beat);
-        }
-    }
-    public float Time { get; private set; }
-
     public LightEventType Type;
     public LightEventValue Value;
     public float FloatValue = 1f;
@@ -560,7 +478,6 @@ public class LightEvent
 
 public class LaserSpeedEvent : LightEvent
 {
-    //Lasers rotate at 20 degrees/sec multiplied by value
     public float rotationSpeed => (int)Value * 20f;
     public List<LaserRotationData> rotationValues;
 
@@ -604,91 +521,12 @@ public class LaserSpeedEvent : LightEvent
 }
 
 
-public class RingRotationEvent : LightEvent
-{
-    public const float Speed = 2f;
-    public const int Prop = 1;
-    public const float FixedDeltaTime = 0.02f;
-    public const float FloatProp = FixedDeltaTime * Prop;
-
-    public float startAngle;
-    public float startStep;
-    public float targetAngle;
-    public float step;
-
-
-    public RingRotationEvent() {}
-
-    public RingRotationEvent(BeatmapBasicBeatmapEvent beatmapEvent)
-    {
-        Beat = beatmapEvent.b;
-        Type = (LightEventType)beatmapEvent.et;
-        Value = (LightEventValue)beatmapEvent.i;
-        FloatValue = beatmapEvent.f;
-    }
-
-
-    public void RandomizeDirectionAndStep(float start, float rotationAmount, float maxStep)
-    {
-        float rotation = UnityEngine.Random.value >= 0.5f ? rotationAmount : -rotationAmount;
-        targetAngle = start + rotation;
-        step = UnityEngine.Random.Range(-maxStep, maxStep);
-    }
-
-
-    public float StartInfluenceTime(int ringIndex)
-    {
-        //Returns the time where this event first starts affecting a given ring
-        return Time + (FloatProp * ringIndex);
-    }
-
-
-    public float GetRingAngle(float currentTime, int ringIndex)
-    {
-        float eventTimeDifference = currentTime - Time;
-        float ringTimeDifference = Mathf.Max(eventTimeDifference - (FloatProp * ringIndex), 0f);
-
-        float rotationProgress = GetRingRotationProgress(ringTimeDifference);
-
-        float angle = GetEventAngle(rotationProgress);
-        float step = GetEventStepAngle(rotationProgress);
-        return angle + (step * ringIndex);
-    }
-
-
-    public float GetEventAngle(float rotationProgress)
-    {
-        return Mathf.Lerp(startAngle, targetAngle, rotationProgress);
-    }
-
-
-    public float GetEventStepAngle(float rotationProgress)
-    {
-        return Mathf.Lerp(startStep, step, rotationProgress);
-    }
-
-
-    public static float GetRingRotationProgress(float timeDifference)
-    {
-        return 1f - Mathf.Pow(2f, -(timeDifference * Speed * 2f));
-    }
-}
-
-
-public struct LightingPropertyEventArgs
+public class LightingPropertyEventArgs
 {
     public MaterialPropertyBlock laserProperties;
     public MaterialPropertyBlock glowProperties;
     public float emission;
     public LightEventType type;
-}
-
-
-public class RingRotationEventArgs
-{
-    public List<RingRotationEvent> events;
-    public int currentEventIndex;
-    public bool affectBigRings;
 }
 
 

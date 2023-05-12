@@ -237,3 +237,19 @@ public class Difficulty
         else return rank.ToString();
     }
 }
+
+
+public class MapElement
+{
+    private float _beat;
+    public float Beat
+    {
+        get => _beat;
+        set
+        {
+            _beat = value;
+            Time = TimeManager.TimeFromBeat(_beat);
+        }
+    }
+    public float Time { get; private set; }
+}

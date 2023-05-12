@@ -566,20 +566,8 @@ public class ObjectManager : MonoBehaviour
 }
 
 
-public abstract class MapObject
-{
-    private float _beat;
-    public float Beat
-    {
-        get => _beat;
-        set
-        {
-            _beat = value;
-            Time = TimeManager.TimeFromBeat(_beat);
-        }
-    }
-    public float Time { get; private set; }
-    
+public abstract class MapObject : MapElement
+{   
     public GameObject Visual;
     public Vector2 Position;
 }
