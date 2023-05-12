@@ -68,6 +68,12 @@ public class LightHandler : MonoBehaviour
         lookDirection = glowRenderer.transform.TransformDirection(lookDirection);
 
         glowRenderer.transform.rotation = Quaternion.LookRotation(lookDirection, glowRenderer.transform.up);
+
+        //The x and z rotations can sometimes get nudged around and break things
+        Vector3 eulerAngles = glowRenderer.transform.localEulerAngles;
+        eulerAngles.x = 0f;
+        eulerAngles.z = 0f;
+        glowRenderer.transform.localEulerAngles = eulerAngles;
     }
 
 
