@@ -15,7 +15,7 @@ public class RingManager : MonoBehaviour
     public const float SmallRingStartAngle = -45f;
     public const float SmallRingRotationAmount = 90f;
     public const float SmallRingStep = 5f;
-    public const float SmallRingStartStep = 5f;
+    public const float SmallRingStartStep = 3f;
 
     public const float BigRingStartAngle = -45f;
     public const float BigRingRotationAmount = 45f;
