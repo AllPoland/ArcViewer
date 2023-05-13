@@ -31,18 +31,6 @@ public static class Extensions
        return v;
     }
  
- 
-    ///<summary>
-    ///Returns a vector with the opposite values of the x, y, and z components.
-    ///</summary>
-    public static Vector3 Invert(this Vector3 v)
-    {
-       v.x = -v.x;
-       v.y = -v.y;
-       v.z = -v.z;
-       return v;
-    }
- 
 
     ///<summary>
     ///Returns true if the values are very close. This is a more lenient version of Mathf.Approximately.

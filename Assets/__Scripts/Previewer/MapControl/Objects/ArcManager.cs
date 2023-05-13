@@ -109,7 +109,7 @@ public class ArcManager : MonoBehaviour
         Vector3 controlPointOffset = new Vector3(controlX, controlY, -controlZ);
         Vector3 headToMidControl = midPoint + controlPointOffset;
         //The second half of the arc uses a mirrored control point position
-        Vector3 midToTailControl = midPoint + controlPointOffset.Invert();
+        Vector3 midToTailControl = midPoint - controlPointOffset;
 
         if(pointCount % 2 == 0)
         {
