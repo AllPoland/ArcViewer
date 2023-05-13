@@ -80,19 +80,19 @@ public class EnvironmentLightingUpdater : MonoBehaviour
             {
                 default:
                 case 0:
-                    probe.resolution = 64;
+                    probe.resolution = 32;
                     break;
                 case 1:
-                    probe.resolution = 128;
+                    probe.resolution = 64;
                     break;
                 case 2:
-                    probe.resolution = 256;
+                    probe.resolution = 128;
                     break;
                 case 3:
-                    probe.resolution = 512;
+                    probe.resolution = 256;
                     break;
                 case 4:
-                    probe.resolution = 1024;
+                    probe.resolution = 512;
                     break;
             }
             UpdateReflection();
