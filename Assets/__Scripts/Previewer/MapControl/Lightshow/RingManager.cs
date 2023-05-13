@@ -88,7 +88,7 @@ public class RingManager : MonoBehaviour
         PopulateRingRotationEvents(ref SmallRingRotationEvents, SmallRingRotationAmount, SmallRingStep, SmallRingStartAngle, SmallRingStartStep);
         PopulateRingRotationEvents(ref BigRingRotationEvents, BigRingRotationAmount, BigRingStep, BigRingStartAngle, BigRingStartStep);
 
-        PopulateRingZoomEvents(ref RingZoomEvents);
+        PopulateRingZoomEvents();
     }
 
 
@@ -121,11 +121,11 @@ public class RingManager : MonoBehaviour
     }
 
 
-    private static void PopulateRingZoomEvents(ref List<RingZoomEvent> events)
+    private static void PopulateRingZoomEvents()
     {
-        for(int i = 0; i < events.Count; i++)
+        for(int i = 0; i < RingZoomEvents.Count; i++)
         {
-            RingZoomEvent current = events[i];
+            RingZoomEvent current = RingZoomEvents[i];
             if(i == 0)
             {
                 current.IsFarParity = StartRingZoomParity;
@@ -133,7 +133,7 @@ public class RingManager : MonoBehaviour
             }
             else
             {
-                RingZoomEvent previous = events[i - 1];
+                RingZoomEvent previous = RingZoomEvents[i - 1];
 
                 current.IsFarParity = !previous.IsFarParity;
                 current.startDistance = previous.GetRingDist(current.Time);
