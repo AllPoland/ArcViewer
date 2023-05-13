@@ -398,7 +398,12 @@ public class Settings
 
         foreach(SerializedOption<T> option in options)
         {
+#if UNITY_WEBGL
+            T value = option.ValueWebGL.Enabled ? option.ValueWebGL.Value : option.Value;
+            bool success = dictionary.TryAdd(option.Name, value);
+#else
             bool success = dictionary.TryAdd(option.Name, option.Value);
+#endif
             if(!success)
             {
                 Debug.LogWarning($"Failed to add setting '{option.Name}'. Is it a duplicate?");
@@ -415,4 +420,5 @@ public struct SerializedOption<T>
 {
     public string Name;
     public T Value;
+    public Optional<T> ValueWebGL;
 }

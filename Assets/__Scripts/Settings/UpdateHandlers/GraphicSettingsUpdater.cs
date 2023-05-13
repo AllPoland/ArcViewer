@@ -4,12 +4,11 @@ using UnityEngine.Rendering.Universal;
 
 public class GraphicSettingsUpdater : MonoBehaviour
 {
-    [SerializeField] private VolumeProfile mainBloomVolume;
+    [SerializeField] private Volume bloomVolume;
     [SerializeField] private UniversalRenderPipelineAsset urpAsset;
+    [SerializeField] private float defaultBloomStrength;
 
-    private Camera mainCamera;
     private Bloom bloom;
-    private float defaultBloomStrength;
 
 
     public void UpdateGraphicsSettings(string setting)
@@ -39,7 +38,7 @@ public class GraphicSettingsUpdater : MonoBehaviour
         if(allSettings || setting == "antialiasing")
         {
             int antiAliasing = SettingsManager.GetInt("antialiasing");
-            mainCamera.allowMSAA = antiAliasing > 0;
+            Camera.main.allowMSAA = antiAliasing > 0;
 
             switch(antiAliasing)
             {
@@ -60,30 +59,28 @@ public class GraphicSettingsUpdater : MonoBehaviour
 #else
         if(allSettings)
         {
-            mainCamera.allowMSAA = false;
+            Camera.main.allowMSAA = false;
         }
 #endif
 
-#if !UNITY_EDITOR
         if(allSettings || setting == "bloom")
         {
-            float mainBloomStrength = SettingsManager.GetFloat("bloom");
-            bloom.active = mainBloomStrength > 0;
-            bloom.intensity.value = mainBloomStrength * defaultBloomStrength;
+            bloom.intensity.value = defaultBloomStrength * SettingsManager.GetFloat("bloom");
+            bloom.active = bloom.intensity.value >= 0.001f;
         }
-#endif
     }
 
 
-    private void Start()
-    {   
-        mainCamera = Camera.main;
-
-        bool foundBloom = mainBloomVolume.TryGet<Bloom>(out bloom);
-
+    private void Awake()
+    {
+        bool foundBloom = bloomVolume.profile.TryGet<Bloom>(out bloom);
         if(foundBloom)
         {
             defaultBloomStrength = bloom.intensity.value;
+        }
+        else
+        {
+            Debug.LogWarning("Unable to find bloom post processing effect!");
         }
 
         SettingsManager.OnSettingsUpdated += UpdateGraphicsSettings;

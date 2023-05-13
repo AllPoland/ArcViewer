@@ -29,7 +29,7 @@ public class LightHandler : MonoBehaviour
                 float alpha = baseColor.a;
                 properties.SetColor("_EmissionColor", baseColor.SetValue(eventArgs.emission * alpha, true));
 
-                Color newColor = Color.Lerp(baseColor, OffColor.Value, 1 - alpha);
+                Color newColor = Color.Lerp(OffColor.Value, baseColor, alpha);
                 newColor.a = 1f;
                 properties.SetColor("_BaseColor", newColor);
 
