@@ -135,7 +135,7 @@ public class ErrorHandler : MonoBehaviour
     }
 
 
-    private void Awake()
+    private void OnEnable()
     {
         if(Instance != null && Instance != this)
         {

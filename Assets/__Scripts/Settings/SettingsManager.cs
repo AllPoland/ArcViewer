@@ -321,7 +321,7 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-    private void OnEnable()
+    private void Awake()
     {
         //Update the default settings
         Settings.DefaultSettings.Bools = Settings.SerializedOptionsToDictionary<bool>(defaultBools);
@@ -329,11 +329,10 @@ public class SettingsManager : MonoBehaviour
         Settings.DefaultSettings.Floats = Settings.SerializedOptionsToDictionary<float>(defaultFloats);
         Settings.DefaultSettings.AddColorRules(defaultColors);
 
-        SaveSettingsStatic = SaveSettings;
-
 #if !UNITY_WEBGL || UNITY_EDITOR
         //Load settings from json if not running in WebGL
         //Otherwise settings are handled through playerprefs instead
+        SaveSettingsStatic = SaveSettings;
         LoadSettings();
 #else
         OnSettingsUpdated?.Invoke("all");

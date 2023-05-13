@@ -6,7 +6,7 @@ public class StaticLightsWarning : MonoBehaviour
     [SerializeField] private GameObject panel;
 
 
-    public void UpdateSettings(string setting)
+    public void CheckShowWarning()
     {
         if(!SettingsManager.GetBool("staticlightswarningacknowledged"))
         {
@@ -38,15 +38,8 @@ public class StaticLightsWarning : MonoBehaviour
     }
 
 
-    private void Awake()
+    private void Start()
     {
-        //This is probably bad practice, but I want to make sure the warning is first in line
-        SettingsManager.OnSettingsUpdated += UpdateSettings;
-    }
-
-
-    private void OnDisable()
-    {
-        SettingsManager.OnSettingsUpdated -= UpdateSettings;
+        CheckShowWarning();
     }
 }
