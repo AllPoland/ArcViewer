@@ -5,10 +5,30 @@ using UnityEngine;
 
 public class LightManager : MonoBehaviour
 {
-    public static bool BoostActive;
+    private static bool _staticLights;
+    public static bool StaticLights
+    {
+        get => _staticLights || SettingsManager.GetBool("staticlights");
+        set
+        {
+            _staticLights = value;
+            OnStaticLightsChanged?.Invoke();
+        }
+    }
+
+    private static bool _boostActive;
+    public static bool BoostActive
+    {
+        get => _boostActive && !StaticLights;
+        set
+        {
+            _boostActive = value;
+        }
+    }
 
     public static event Action<LightingPropertyEventArgs> OnLightPropertiesChanged;
     public static event Action<LaserSpeedEvent, LightEventType> OnLaserRotationsChanged;
+    public static event Action OnStaticLightsChanged;
 
     private static ColorPalette colors => ColorManager.CurrentColors;
     private static Color lightColor1 => BoostActive ? colors.BoostLightColor1 : colors.LightColor1;
@@ -22,6 +42,7 @@ public class LightManager : MonoBehaviour
 
     private static readonly string[] lightSettings = new string[]
     {
+        "staticlights",
         "lightglowbrightness"
     };
 
@@ -41,6 +62,11 @@ public class LightManager : MonoBehaviour
 
     public void UpdateLights(float beat)
     {
+        if(StaticLights)
+        {
+            return;
+        }
+
         BoostActive = boostEvents.LastOrDefault(x => x.b <= beat)?.o ?? false;
 
         UpdateLightEventType(LightEventType.BackLasers, backLaserEvents, beat);
@@ -62,12 +88,18 @@ public class LightManager : MonoBehaviour
         bool foundEvent = lastIndex >= 0;
 
         LightEvent currentEvent = foundEvent ? events[lastIndex] : null;
-        LightEventValue value = foundEvent ? currentEvent.Value : LightEventValue.Off;
 
         bool hasNextEvent = lastIndex + 1 < events.Count;
         LightEvent nextEvent = hasNextEvent ? events[lastIndex + 1] : null;
 
-        Color baseColor = GetEventColor(value, currentEvent, nextEvent);
+        UpdateLightEvent(type, currentEvent, nextEvent);
+    }
+
+
+    private void UpdateLightEvent(LightEventType type, LightEvent lightEvent, LightEvent nextEvent)
+    {
+        LightEventValue value = lightEvent?.Value ?? LightEventValue.Off;
+        Color baseColor = GetEventColor(value, lightEvent, nextEvent);
         SetLightProperties(baseColor);
 
         LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
@@ -240,9 +272,59 @@ public class LightManager : MonoBehaviour
     }
 
 
-    public void UpdateColors()
+    private void SetStaticLayout()
     {
-        UpdateLights(TimeManager.CurrentBeat);
+        LightEvent backLasers = new LightEvent
+        {
+            Beat = 0f,
+            Type = LightEventType.BackLasers,
+            Value = LightEventValue.BlueOn
+        };
+        LightEvent rings = new LightEvent
+        {
+            Beat = 0f,
+            Type = LightEventType.Rings,
+            Value = LightEventValue.BlueOn
+        };
+        LightEvent leftLasers = new LightEvent
+        {
+            Beat = 0f,
+            Type = LightEventType.LeftRotatingLasers,
+            Value = LightEventValue.Off
+        };
+        LightEvent rightLasers = new LightEvent
+        {
+            Beat = 0f,
+            Type = LightEventType.RightRotatingLasers,
+            Value = LightEventValue.Off
+        };
+        LightEvent centerLights = new LightEvent
+        {
+            Beat = 0f,
+            Type = LightEventType.CenterLights,
+            Value = LightEventValue.BlueOn
+        };
+
+        UpdateLightEvent(LightEventType.BackLasers, backLasers, null);
+        UpdateLightEvent(LightEventType.Rings, rings, null);
+        UpdateLightEvent(LightEventType.LeftRotatingLasers, leftLasers, null);
+        UpdateLightEvent(LightEventType.RightRotatingLasers, rightLasers, null);
+        UpdateLightEvent(LightEventType.CenterLights, centerLights, null);
+
+        OnLaserRotationsChanged?.Invoke(null, LightEventType.LeftRotationSpeed);
+        OnLaserRotationsChanged?.Invoke(null, LightEventType.RightRotationSpeed);
+
+        RingManager.SetStaticRings();
+    }
+
+
+    public void UpdateLightParameters()
+    {
+        if(StaticLights)
+        {
+            SetStaticLayout();
+        }
+        else UpdateLights(TimeManager.CurrentBeat);
     }
 
 
@@ -250,7 +332,7 @@ public class LightManager : MonoBehaviour
     {
         if(setting == "all" || lightSettings.Contains(setting))
         {
-            UpdateLights(TimeManager.CurrentBeat);
+            UpdateLightParameters();
         }
     }
 
@@ -259,10 +341,10 @@ public class LightManager : MonoBehaviour
     {
         if(newDifficulty.beatmapDifficulty.basicBeatMapEvents.Length == 0)
         {
-            SetStaticLayout();
-            UpdateLights(TimeManager.CurrentBeat);
+            StaticLights = true;
             return;
         }
+        else StaticLights = false;
 
         backLaserEvents.Clear();
         ringEvents.Clear();
@@ -389,62 +471,6 @@ public class LightManager : MonoBehaviour
     }
 
 
-    private void SetStaticLayout()
-    {
-        backLaserEvents = new List<LightEvent>()
-        {
-            new LightEvent
-            {
-                Beat = 0f,
-                Type = LightEventType.BackLasers,
-                Value = LightEventValue.BlueOn
-            }
-        };
-        ringEvents = new List<LightEvent>()
-        {
-            new LightEvent
-            {
-                Beat = 0f,
-                Type = LightEventType.Rings,
-                Value = LightEventValue.BlueOn
-            }
-        };
-        leftLaserEvents = new List<LightEvent>()
-        {
-            new LightEvent
-            {
-                Beat = 0f,
-                Type = LightEventType.LeftRotatingLasers,
-                Value = LightEventValue.Off
-            }
-        };
-        rightLaserEvents = new List<LightEvent>()
-        {
-            new LightEvent
-            {
-                Beat = 0f,
-                Type = LightEventType.RightRotatingLasers,
-                Value = LightEventValue.Off
-            }
-        };
-        centerLightEvents = new List<LightEvent>()
-        {
-            new LightEvent
-            {
-                Beat = 0f,
-                Type = LightEventType.CenterLights,
-                Value = LightEventValue.BlueOn
-            }
-        };
-
-        leftLaserSpeedEvents.Clear();
-        rightLaserSpeedEvents.Clear();
-
-        RingManager.SmallRingRotationEvents.Clear();
-        RingManager.BigRingRotationEvents.Clear();
-    }
-
-
     private void Start()
     {
         //Using this event instead of BeatmapManager.OnDifficultyChanged
@@ -453,7 +479,10 @@ public class LightManager : MonoBehaviour
         TimeManager.OnBeatChanged += UpdateLights;
 
         SettingsManager.OnSettingsUpdated += UpdateSettings;
-        ColorManager.OnColorsChanged += (_) => UpdateColors();
+        ColorManager.OnColorsChanged += (_) => UpdateLightParameters();
+
+        OnStaticLightsChanged += UpdateLightParameters;
+        StaticLights = true;
     }
 
 
@@ -461,8 +490,6 @@ public class LightManager : MonoBehaviour
     {
         lightProperties = new MaterialPropertyBlock();
         glowProperties = new MaterialPropertyBlock();
-
-        SetStaticLayout();
     }
 }
 

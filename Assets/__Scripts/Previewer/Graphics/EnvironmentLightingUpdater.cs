@@ -1,33 +1,55 @@
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 public class EnvironmentLightingUpdater : MonoBehaviour
 {
-    public bool RealTimeReflections = false;
-
     [SerializeField] private ReflectionProbe probe;
     [SerializeField] private float defaultProbeIntensity;
     [SerializeField, Range(0f, 1f)] private float ambientLightBrightness;
 
     private static readonly string[] lightingSettings = new string[]
     {
-        "realtimereflections",
         "instantreflectionupdate",
         "reflectionquality",
         "lightreflectionbrightness"
     };
 
+    private int renderId;
+    private bool isRendering => !probe.IsFinishedRendering(renderId) && probe.timeSlicingMode != ReflectionProbeTimeSlicingMode.NoTimeSlicing;
+
 
     private void UpdateReflection()
     {
-        probe.RenderProbe();
+        renderId = probe.RenderProbe();
+    }
+
+
+    private IEnumerator UpdateStaticLightsCoroutine()
+    {
+        yield return new WaitUntil(() => !isRendering);
+        UpdateReflection();
+    }
+
+
+    public void UpdateStaticLights()
+    {
+        if(LightManager.StaticLights && probe.timeSlicingMode != ReflectionProbeTimeSlicingMode.NoTimeSlicing)
+        {
+            //Wait for the current rendering to finish so lighting correctly updates
+            StartCoroutine(UpdateStaticLightsCoroutine());
+        }
+        else
+        {
+            UpdateReflection();
+        }
     }
 
 
     public void UpdateBeat(float beat)
     {
-        if(RealTimeReflections)
+        if(!LightManager.StaticLights && probe.intensity > 0.001f)
         {
             UpdateReflection();
         }
@@ -50,9 +72,8 @@ public class EnvironmentLightingUpdater : MonoBehaviour
         if(setting == "all" || lightingSettings.Contains(setting))
         {
             probe.intensity = defaultProbeIntensity * SettingsManager.GetFloat("lightreflectionbrightness");
-            RealTimeReflections = probe.intensity > 0.001f && SettingsManager.GetBool("realtimereflections");
 
-            bool instantUpdate = RealTimeReflections && SettingsManager.GetBool("instantreflectionupdate");
+            bool instantUpdate = SettingsManager.GetBool("instantreflectionupdate");
             probe.timeSlicingMode = instantUpdate ? ReflectionProbeTimeSlicingMode.NoTimeSlicing : ReflectionProbeTimeSlicingMode.AllFacesAtOnce;
 
             switch(SettingsManager.GetInt("reflectionquality"))
@@ -76,6 +97,10 @@ public class EnvironmentLightingUpdater : MonoBehaviour
             }
             UpdateReflection();
         }
+        else if(setting == "staticlights")
+        {
+            UpdateStaticLights();
+        }
     }
 
 
@@ -84,6 +109,7 @@ public class EnvironmentLightingUpdater : MonoBehaviour
         TimeManager.OnBeatChanged += UpdateBeat;
         ColorManager.OnColorsChanged += UpdateColors;
         SettingsManager.OnSettingsUpdated += UpdateSettings;
+        LightManager.OnStaticLightsChanged += UpdateStaticLights;
 
         UpdateSettings("all");
     }
@@ -94,5 +120,6 @@ public class EnvironmentLightingUpdater : MonoBehaviour
         TimeManager.OnBeatChanged -= UpdateBeat;
         ColorManager.OnColorsChanged -= UpdateColors;
         SettingsManager.OnSettingsUpdated -= UpdateSettings;
+        LightManager.OnStaticLightsChanged -= UpdateStaticLights;
     }
 }
