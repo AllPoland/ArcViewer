@@ -40,6 +40,7 @@ public class LightManager : MonoBehaviour
     private static BeatmapColorBoostBeatmapEvent[] boostEvents => BeatmapManager.CurrentDifficulty.beatmapDifficulty.colorBoostBeatMapEvents;
 
     private static MaterialPropertyBlock lightProperties;
+    private static MaterialPropertyBlock persistentLightProperties;
     private static MaterialPropertyBlock glowProperties;
 
     private static readonly string[] lightSettings = new string[]
@@ -100,6 +101,7 @@ public class LightManager : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float lightSaturation;
     [SerializeField, Range(0f, 1f)] private float lightEmissionSaturation;
     [SerializeField] private float lightEmission;
+    [SerializeField] private Color platformColor;
 
 
     public void UpdateLights(float beat)
@@ -147,8 +149,8 @@ public class LightManager : MonoBehaviour
         LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
         {
             laserProperties = lightProperties,
+            persistentLaserProperties = persistentLightProperties,
             glowProperties = glowProperties,
-            emission = lightEmission * Mathf.Max(baseColor.a, 1f),
             type = type
         };
         OnLightPropertiesChanged?.Invoke(eventArgs);
@@ -166,30 +168,43 @@ public class LightManager : MonoBehaviour
     {
         glowProperties.SetColor("_BaseColor", baseColor);
         glowProperties.SetFloat("_Alpha", baseColor.a * SettingsManager.GetFloat("lightglowbrightness"));
-        lightProperties.SetColor("_BaseColor", GetLightColor(baseColor));
-        lightProperties.SetColor("_EmissionColor", GetLightEmission(baseColor));
+
+        Color lightColor = GetLightColor(baseColor);
+        Color emissionColor = GetLightEmission(baseColor);
+
+        persistentLightProperties.SetColor("_BaseColor", GetPersistentLightColor(lightColor));
+        persistentLightProperties.SetColor("_EmissionColor", emissionColor);
+
+        lightProperties.SetColor("_BaseColor", lightColor);
+        lightProperties.SetColor("_EmissionColor", emissionColor);
     }
 
 
     private Color GetLightColor(Color baseColor)
     {
-        float h, s, v;
-        Color.RGBToHSV(baseColor, out h, out s, out v);
-        Color newColor = baseColor.SetHSV(h, s * lightSaturation, v);
+        float s;
+        Color.RGBToHSV(baseColor, out _, out s, out _);
+        Color newColor = baseColor.SetSaturation(s * lightSaturation);
         newColor.a = Mathf.Clamp(baseColor.a, 0f, 1f);
+        return newColor;
+    }
+
+
+    private Color GetPersistentLightColor(Color baseColor)
+    {
+        Color newColor = Color.Lerp(platformColor, baseColor, baseColor.a);
+        newColor.a = 1f;
         return newColor;
     }
 
 
     private Color GetLightEmission(Color baseColor)
     {
-        //Alpha values below 1 will naturally reduce glowiness
-        float emission = lightEmission * Mathf.Max(baseColor.a, 1f);
+        float emission = lightEmission * baseColor.a;
 
         float h, s;
         Color.RGBToHSV(baseColor, out h, out s, out _);
         Color newColor = baseColor.SetHSV(h, s * lightEmissionSaturation, emission, true);
-        newColor.a = Mathf.Clamp(baseColor.a, 0f, 1f);
         return newColor;
     }
 
@@ -548,6 +563,7 @@ public class LightManager : MonoBehaviour
     private void Awake()
     {
         lightProperties = new MaterialPropertyBlock();
+        persistentLightProperties = new MaterialPropertyBlock();
         glowProperties = new MaterialPropertyBlock();
     }
 }
@@ -622,8 +638,8 @@ public class LaserSpeedEvent : LightEvent
 public class LightingPropertyEventArgs
 {
     public MaterialPropertyBlock laserProperties;
+    public MaterialPropertyBlock persistentLaserProperties;
     public MaterialPropertyBlock glowProperties;
-    public float emission;
     public LightEventType type;
 }
 

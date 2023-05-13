@@ -8,32 +8,20 @@ public class LightHandler : MonoBehaviour
 
     [Header("Parameters")]
     [SerializeField] private LightEventType type;
-    [SerializeField] private int id;
-    [SerializeField] private Optional<Color> OffColor;
-
-    private MaterialPropertyBlock properties;
+    [SerializeField] private bool persistent;
 
 
     private void UpdateProperties(LightingPropertyEventArgs eventArgs)
     {
         if(eventArgs.type == type)
         {
-            if(!OffColor.Enabled)
+            if(persistent)
             {
-                meshRenderer.SetPropertyBlock(eventArgs.laserProperties);
+                meshRenderer.SetPropertyBlock(eventArgs.persistentLaserProperties);
             }
             else
             {
-                //Used for lights that persist as physical elements when off
-                Color baseColor = eventArgs.laserProperties.GetColor("_BaseColor");
-                float alpha = baseColor.a;
-                properties.SetColor("_EmissionColor", baseColor.SetValue(eventArgs.emission * alpha, true));
-
-                Color newColor = Color.Lerp(OffColor.Value, baseColor, alpha);
-                newColor.a = 1f;
-                properties.SetColor("_BaseColor", newColor);
-
-                meshRenderer.SetPropertyBlock(properties);
+                meshRenderer.SetPropertyBlock(eventArgs.laserProperties);
             }
 
             bool enableGlow = eventArgs.glowProperties.GetFloat("_Alpha") > 0.001f;
@@ -74,15 +62,6 @@ public class LightHandler : MonoBehaviour
         eulerAngles.x = 0f;
         eulerAngles.z = 0f;
         glowRenderer.transform.localEulerAngles = eulerAngles;
-    }
-
-
-    private void Awake()
-    {
-        if(OffColor.Enabled)
-        {
-            properties = new MaterialPropertyBlock();
-        }
     }
 
 
