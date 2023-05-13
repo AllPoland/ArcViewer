@@ -6,7 +6,6 @@ using UnityEngine;
 public class TimeManager : MonoBehaviour
 {
     public static float BPM => BeatmapManager.Info._beatsPerMinute;
-    public static bool ForcePause;
     public static float TimeScale = 1f;
 
     public static List<BpmChange> BpmChanges = new List<BpmChange>();
@@ -21,7 +20,6 @@ public class TimeManager : MonoBehaviour
     public static float CurrentTime
     {
         get => _currentTime;
-        
         set
         {
             if(value >= SongLength)
@@ -105,13 +103,15 @@ public class TimeManager : MonoBehaviour
     public static float Progress
     {
         get => SongLength <= 0 ? 0 : CurrentTime / SongLength;
-
         set
         {
             CurrentTime = SongLength * Mathf.Clamp(value, 0, 1);
         }
     }
 
+
+    public static bool Scrubbing;
+    public static bool ForcePause;
 
     public static bool Playing { get; private set; }
     public static void SetPlaying(bool newPlaying)

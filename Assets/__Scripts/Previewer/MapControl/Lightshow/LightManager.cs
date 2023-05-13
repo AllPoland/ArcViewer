@@ -8,13 +8,15 @@ public class LightManager : MonoBehaviour
     private static bool _staticLights;
     public static bool StaticLights
     {
-        get => _staticLights || SettingsManager.GetBool("staticlights");
+        get => _staticLights || Scrubbing || SettingsManager.GetBool("staticlights");
         set
         {
             _staticLights = value;
             OnStaticLightsChanged?.Invoke();
         }
     }
+
+    private static bool Scrubbing => TimeManager.Scrubbing && SettingsManager.GetBool("staticlightswhilescrubbing");
 
     private static bool _boostActive;
     public static bool BoostActive
@@ -337,6 +339,21 @@ public class LightManager : MonoBehaviour
     }
 
 
+    public void UpdatePlaying(bool playing)
+    {
+        if(playing)
+        {
+            return;
+        }
+
+        if(Scrubbing)
+        {
+            SetStaticLayout();
+        }
+        else UpdateLightParameters();
+    }
+
+
     public void UpdateDifficulty(Difficulty newDifficulty)
     {
         if(newDifficulty.beatmapDifficulty.basicBeatMapEvents.Length == 0)
@@ -477,6 +494,7 @@ public class LightManager : MonoBehaviour
         //ensures that bpm changes are loaded before precalculating event times
         TimeManager.OnDifficultyBpmEventsLoaded += UpdateDifficulty;
         TimeManager.OnBeatChanged += UpdateLights;
+        TimeManager.OnPlayingChanged += UpdatePlaying;
 
         SettingsManager.OnSettingsUpdated += UpdateSettings;
         ColorManager.OnColorsChanged += (_) => UpdateLightParameters();
