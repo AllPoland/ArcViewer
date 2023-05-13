@@ -97,7 +97,7 @@ public class EnvironmentLightingUpdater : MonoBehaviour
             }
             UpdateReflection();
         }
-        else if(setting == "staticlights")
+        else if(setting == "staticlights" || setting == "lightglowbrightness")
         {
             UpdateStaticLights();
         }
