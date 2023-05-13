@@ -71,7 +71,7 @@ public class GraphicSettingsUpdater : MonoBehaviour
     }
 
 
-    private void Awake()
+    private void Start()
     {
         bool foundBloom = bloomVolume.profile.TryGet<Bloom>(out bloom);
         if(foundBloom)

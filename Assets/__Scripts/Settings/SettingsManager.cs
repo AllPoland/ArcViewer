@@ -17,13 +17,16 @@ public class SettingsManager : MonoBehaviour
         {
             _currentSettings = value;
 
-            // Using the Loaded paremeter avoids null checking every single time a setting is read
+            // Using the Loaded parameter avoids potentially expensive null checking
+            // every single time a setting is read
             Loaded = _currentSettings != null;
         }
     }
 
-    public static Action<string> OnSettingsUpdated;
-    public static Action OnSettingsReset;
+    public static event Action<string> OnSettingsUpdated;
+    public static event Action OnSettingsReset;
+
+    public static Action SaveSettingsStatic;
 
     public static bool Loaded { get; private set; }
 
@@ -69,7 +72,7 @@ public class SettingsManager : MonoBehaviour
     {
         if(saving)
         {
-            Debug.Log("Trying to save settings when already saving!");
+            Debug.LogWarning("Trying to save settings when already saving!");
             return;
         }
 
@@ -98,10 +101,12 @@ public class SettingsManager : MonoBehaviour
         }
         catch(Exception err)
         {
-            ErrorHandler.Instance?.ShowPopup(ErrorType.Error, "Failed to load settings! Reverting to default.");
             Debug.LogWarning($"Failed to load settings with error: {err.Message}, {err.StackTrace}");
-
             CurrentSettings = Settings.GetDefaultSettings();
+
+            //It *should* be impossible for this to happen on first startup, since the file wouldn't exist
+            //So the user will have already seen the static lights warning
+            SetRule("staticlightswarningacknowledged", true, false);
             SaveSettings();
         }
 
@@ -309,18 +314,22 @@ public class SettingsManager : MonoBehaviour
         CurrentSettings = Settings.GetDefaultSettings();
 #endif
         
+        //Make sure the static lights warning doesn't appear again
+        SetRule("staticlightswarningacknowledged", true, false);
         OnSettingsReset?.Invoke();
         OnSettingsUpdated?.Invoke("all");
     }
 
 
-    private void Awake()
+    private void OnEnable()
     {
         //Update the default settings
         Settings.DefaultSettings.Bools = Settings.SerializedOptionsToDictionary<bool>(defaultBools);
         Settings.DefaultSettings.Ints = Settings.SerializedOptionsToDictionary<int>(defaultInts);
         Settings.DefaultSettings.Floats = Settings.SerializedOptionsToDictionary<float>(defaultFloats);
         Settings.DefaultSettings.AddColorRules(defaultColors);
+
+        SaveSettingsStatic = SaveSettings;
 
 #if !UNITY_WEBGL || UNITY_EDITOR
         //Load settings from json if not running in WebGL

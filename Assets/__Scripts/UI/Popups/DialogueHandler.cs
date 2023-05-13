@@ -7,12 +7,13 @@ public class DialogueHandler : MonoBehaviour
     public static DialogueHandler Instance { get; private set; }
 
     public static List<DialogueBox> OpenBoxes = new List<DialogueBox>();
-    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy;
+    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy || Instance.staticLightsWarningPanel.activeInHierarchy;
     public static bool PopupActive => DialogueActive || Instance.sharePanel.activeInHierarchy || Instance.jumpSettingsPanel.activeInHierarchy;
 
     public GameObject infoPanel;
     public GameObject sharePanel;
     public GameObject jumpSettingsPanel;
+    public GameObject staticLightsWarningPanel;
 
     [SerializeField] private GameObject dialogueBoxPrefab;
 
@@ -64,6 +65,12 @@ public class DialogueHandler : MonoBehaviour
 
     private void DialogueKeybinds()
     {
+        if(staticLightsWarningPanel.activeInHierarchy)
+        {
+            //Don't use keybinds to exit the warning panel (it's important)
+            return;
+        }
+
         if(OpenBoxes.Count <= 0)
         {
             //No generic dialogue boxes, check for special dialogues
