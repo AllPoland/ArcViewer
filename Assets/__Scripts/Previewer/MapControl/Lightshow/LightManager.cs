@@ -48,6 +48,46 @@ public class LightManager : MonoBehaviour
         "lightglowbrightness"
     };
 
+    private static readonly string[] v2Environments = new string[]
+    {
+        "DefaultEnvironment",
+        "OriginsEnvironment",
+        "TriangleEnvironment",
+        "NiceEnvironment",
+        "BigMirrorEnvironment",
+        "DragonsEnvironment",
+        "KDAEnvironment",
+        "MonstercatEnvironment",
+        "CrabRaveEnvironment",
+        "PanicEnvironment",
+        "RocketEnvironment",
+        "GreenDayEnvironment",
+        "GreenDayGrenadeEnvironment",
+        "TimbalandEnvironment",
+        "FitBeatEnvironment",
+        "LinkinParkEnvironment",
+        "BTSEnvironment",
+        "KaleidoscopeEnvironment",
+        "InterscopeEnvironment",
+        "SkrillexEnvironment",
+        "BillieEnvironment",
+        "HalloweenEnvironment",
+        "GagaEnvironment"
+    };
+
+    private static readonly string[] v3Environments = new string[]
+    {
+        "WeaveEnvironment",
+        "PyroEnvironment",
+        "EDMEnvironment",
+        "TheSecondEnvironment",
+        "LizzoEnvironment",
+        "TheWeekndEnvironment",
+        "RockMixtapeEnvironment",
+        "Dragons2Environment",
+        "Panic2Environment"
+    };
+
     public List<LightEvent> backLaserEvents = new List<LightEvent>();
     public List<LightEvent> ringEvents = new List<LightEvent>();
     public List<LightEvent> leftLaserEvents = new List<LightEvent>();
@@ -356,7 +396,8 @@ public class LightManager : MonoBehaviour
 
     public void UpdateDifficulty(Difficulty newDifficulty)
     {
-        if(newDifficulty.beatmapDifficulty.basicBeatMapEvents.Length == 0)
+        string environmentName = BeatmapManager.Info._environmentName;
+        if(newDifficulty.beatmapDifficulty.basicBeatMapEvents.Length == 0 || v3Environments.Contains(environmentName))
         {
             StaticLights = true;
             return;
