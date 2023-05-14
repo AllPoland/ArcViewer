@@ -59,9 +59,10 @@ public class EnvironmentLightingUpdater : MonoBehaviour
     public void UpdateColors(ColorPalette newColors)
     {
         Color redColor = newColors.LightColor1.SetValue(ambientLightBrightness);
+        Color blueColor = newColors.LightColor2.SetValue(ambientLightBrightness);
         RenderSettings.ambientGroundColor = redColor;
-        RenderSettings.ambientEquatorColor = redColor;
-        RenderSettings.ambientSkyColor = newColors.LightColor2.SetValue(ambientLightBrightness);
+        RenderSettings.ambientEquatorColor = Color.Lerp(redColor, blueColor, 0.5f);
+        RenderSettings.ambientSkyColor = blueColor;
         DynamicGI.UpdateEnvironment();
         UpdateReflection();
     }
