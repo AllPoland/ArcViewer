@@ -146,6 +146,7 @@ public class MapLoader : MonoBehaviour
     {
         Loading = true;
 
+        url = System.Web.HttpUtility.UrlDecode(url);
 #if !UNITY_WEBGL || UNITY_EDITOR
         //Use the map id as the map key to avoid making requests to beatsaver for cached maps
         string cacheKey = string.IsNullOrEmpty(mapID) ? url : mapID;
