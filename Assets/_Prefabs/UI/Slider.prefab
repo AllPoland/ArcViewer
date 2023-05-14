@@ -352,12 +352,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 617aebf144dd54e48a53ea475a953ae4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  labelText: {fileID: 4378467592694498943}
+  valueLabel: {fileID: 4378467592694498943}
+  nameLabel: {fileID: 4378467592935618693}
   minOverride: 
   maxOverride: 
   rule: 
   integerValue: 0
   hideInWebGL: 0
+  realTimeUpdates: 1
+  requiredSetting:
+    enabled: 0
+    value:
+      Name: 
+      Value: 0
+      ValueWebGL:
+        enabled: 0
+        value: 0
+  enabledColor: {r: 1, g: 1, b: 1, a: 1}
+  disabledColor: {r: 0.19607843, g: 0.2, b: 0.20784314, a: 1}
 --- !u!1 &4378467592891346163
 GameObject:
   m_ObjectHideFlags: 0

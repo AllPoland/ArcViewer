@@ -9,15 +9,19 @@ public class UISettingsUpdater : MonoBehaviour
     private float defaultReferenceHeight;
 
 
-    public void UpdateUISettings()
+    public void UpdateUISettings(string setting)
     {
-        float newReferenceHeight = defaultReferenceHeight * (1 / SettingsManager.GetFloat("uiscale"));
-        if(newReferenceHeight != canvasScaler.referenceResolution.y)
+        bool allSettings = setting == "all";
+        if(allSettings || setting == "uiscale")
         {
+            float newReferenceHeight = defaultReferenceHeight * (1 / SettingsManager.GetFloat("uiscale"));
             canvasScaler.referenceResolution = new Vector2(canvasScaler.referenceResolution.x, newReferenceHeight);
         }
 
-        FileCache.MaxCacheSize = SettingsManager.GetInt("cachesize");
+        if(allSettings || setting == "cachesize")
+        {
+            FileCache.MaxCacheSize = SettingsManager.GetInt("cachesize");
+        }
     }
 
 
@@ -27,6 +31,6 @@ public class UISettingsUpdater : MonoBehaviour
         defaultReferenceHeight = canvasScaler.referenceResolution.y;
         SettingsManager.OnSettingsUpdated += UpdateUISettings;
 
-        UpdateUISettings();
+        UpdateUISettings("all");
     }
 }

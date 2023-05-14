@@ -10,27 +10,6 @@ public class ObjectPool : MonoBehaviour
 
     [SerializeField] GameObject prefab;
 
-    
-    public void ClearPool()
-    {
-        //This will delete every object in both the active and inactive pools
-        //Ideally it should only be called only when the pool is completely unneeded
-        //Other wise bad things will probably happen
-        foreach(GameObject gameObject in AvailableObjects)
-        {
-            Destroy(gameObject);
-        }
-        foreach(GameObject gameObject in ActiveObjects)
-        {
-            Destroy(gameObject);
-        }
-
-        AvailableObjects.Clear();
-        ActiveObjects.Clear();
-
-        PoolSize = 0;
-    }
-
 
     public void SetPoolSize(int newSize)
     {
@@ -144,7 +123,6 @@ public class ObjectPool : MonoBehaviour
         int actualSize = AvailableObjects.Count + ActiveObjects.Count;
         if(actualSize != PoolSize)
         {
-            Debug.Log("Deleting excess objects");
             AttemptMatchPoolSize();
         }
     }

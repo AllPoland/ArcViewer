@@ -60,7 +60,7 @@ public class DifficultyLoader
 
                 //Yielding is a dumb and inconsistent way of allowing the loading text to update
                 await Task.Yield();
-                Difficulty newDifficulty = await LoadDifficultyAsync(beatmap, setCharacteristic, directory, archive);
+                Difficulty newDifficulty = await LoadDifficultyArchive(beatmap, setCharacteristic, directory, archive);
                 if(newDifficulty == null) continue;
 
                 difficulties.Add(newDifficulty);
@@ -89,7 +89,6 @@ public class DifficultyLoader
         MapLoader.LoadingMessage = "Loading difficulties";
 
         List<Task<Difficulty>> difficultyTasks = new List<Task<Difficulty>>();
-        List<string> difficultyFilenames = new List<string>();
         foreach(DifficultyBeatmapSet set in info._difficultyBeatmapSets)
         {
             string characteristicName = set._beatmapCharacteristicName;
@@ -108,9 +107,8 @@ public class DifficultyLoader
                 if(!string.IsNullOrEmpty(directory))
                 {
                     //Loading map from directory
-                    Task<Difficulty> newDiffTask = Task.Run(() => LoadDifficultyConcurrent(beatmap, setCharacteristic, directory));
+                    Task<Difficulty> newDiffTask = Task.Run(() => LoadDifficulty(beatmap, setCharacteristic, directory));
                     difficultyTasks.Add(newDiffTask);
-                    difficultyFilenames.Add(filename);
                     continue;
                 }
 
@@ -120,9 +118,8 @@ public class DifficultyLoader
                 {
                     //Read the byte array now because reading from the same ziparchive on multiple threads breaks shit
                     byte[] diffData = FileUtil.StreamToBytes(diffStream);
-                    Task<Difficulty> newDiffTask = Task.Run(() => LoadDifficultyConcurrent(beatmap, setCharacteristic, null, diffData));
+                    Task<Difficulty> newDiffTask = Task.Run(() => LoadDifficulty(beatmap, setCharacteristic, null, diffData));
                     difficultyTasks.Add(newDiffTask);
-                    difficultyFilenames.Add(filename);
                 }
                 else
                 {
@@ -130,17 +127,6 @@ public class DifficultyLoader
                 }
             }
             Debug.Log($"Added {set._difficultyBeatmaps.Length} difficulties in characteristic {characteristicName}.");
-        }
-
-        if(difficultyTasks.Count != difficultyFilenames.Count)
-        {
-            Debug.LogWarning($"Different amount of tasks and filenames listed! This shouldn't happen.");
-
-            //Ensure there are at least as many filenames listed as tasks to avoid fatal errors
-            while(difficultyFilenames.Count < difficultyTasks.Count)
-            {
-                difficultyFilenames.Add("{UnknownFile}");
-            }
         }
 
         await Task.WhenAll(difficultyTasks.ToArray());
@@ -151,7 +137,7 @@ public class DifficultyLoader
             Task<Difficulty> task = difficultyTasks[i];
             if(task.Result == null)
             {
-                Debug.LogWarning($"Failed to load difficulty from {difficultyFilenames[i]}!");
+                Debug.LogWarning($"Failed to load difficulty from task {i}!");
             }
             else
             {
@@ -168,32 +154,27 @@ public class DifficultyLoader
 #pragma warning restore 1998
 
 
-    private static async Task<Difficulty> LoadDifficultyAsync(DifficultyBeatmap beatmap, DifficultyCharacteristic characteristic, string directory = null, ZipArchive archive = null)
+    private static async Task<Difficulty> LoadDifficultyArchive(DifficultyBeatmap beatmap, DifficultyCharacteristic characteristic, string directory = null, ZipArchive archive = null)
     {
-        Difficulty difficulty;
         if(!string.IsNullOrEmpty(directory))
         {
-            difficulty = await JsonReader.LoadDifficultyAsync(directory, beatmap);
+            return await LoadDifficulty(beatmap, characteristic, directory);
         }
         else if(archive != null)
         {
-            difficulty = ZipReader.GetDifficulty(archive, beatmap);
+            using Stream diffStream = archive.GetEntryCaseInsensitive(beatmap._beatmapFilename).Open();
+            byte[] diffData = FileUtil.StreamToBytes(diffStream);
+            return await LoadDifficulty(beatmap, characteristic, null, diffData);
         }
-        else difficulty = null;
-
-        if(difficulty == null)
+        else
         {
             Debug.LogWarning($"Unable to load {beatmap._beatmapFilename}!");
             return null;
         }
-
-        difficulty.characteristic = characteristic;
-        FillCustomDifficultyData(ref difficulty, beatmap);
-        return difficulty;
     }
 
 
-    private static async Task<Difficulty> LoadDifficultyConcurrent(DifficultyBeatmap beatmap, DifficultyCharacteristic characteristic, string directory = null, byte[] diffData = null)
+    private static async Task<Difficulty> LoadDifficulty(DifficultyBeatmap beatmap, DifficultyCharacteristic characteristic, string directory = null, byte[] diffData = null)
     {
         Difficulty difficulty;
         if(!string.IsNullOrEmpty(directory))
@@ -222,5 +203,40 @@ public class DifficultyLoader
     {
         difficulty.requirements = beatmap._customData?._requirements ?? new string[0];
         difficulty.Label = beatmap._customData?._difficultyLabel ?? Difficulty.DiffLabelFromRank(difficulty.difficultyRank);
+        difficulty.colors = ColorPaletteFromCustomData(beatmap._customData);
+    }
+
+
+    public static NullableColorPalette ColorPaletteFromCustomData(CustomDifficultyData _customData)
+    {
+        if(_customData == null)
+        {
+            return null;
+        }
+
+        return new NullableColorPalette
+        {
+            LeftNoteColor = ColorFromCustomDifficultyColor(_customData?._colorLeft),
+            RightNoteColor = ColorFromCustomDifficultyColor(_customData?._colorRight),
+            LightColor1 = ColorFromCustomDifficultyColor(_customData?._envColorLeft),
+            LightColor2 = ColorFromCustomDifficultyColor(_customData?._envColorRight),
+            WhiteLightColor = ColorFromCustomDifficultyColor(_customData?._envColorWhite),
+            BoostLightColor1 = ColorFromCustomDifficultyColor(_customData?._envColorLeftBoost),
+            BoostLightColor2 = ColorFromCustomDifficultyColor(_customData?._envColorRightBoost),
+            BoostWhiteLightColor = ColorFromCustomDifficultyColor(_customData?._envColorWhiteBoost),
+            WallColor = ColorFromCustomDifficultyColor(_customData?._obstacleColor)
+        };
+    }
+
+
+    public static Color? ColorFromCustomDifficultyColor(CustomDifficultyColor diffColor)
+    {
+        if(diffColor == null)
+        {
+            return null;
+        }
+
+        CustomDifficultyColor color = (CustomDifficultyColor)diffColor;
+        return new Color(color.r, color.g, color.b);
     }
 }

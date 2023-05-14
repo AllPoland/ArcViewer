@@ -9,6 +9,7 @@ public class TooltipDisplay : MonoBehaviour
     [SerializeField] private GameObject tooltipContainer;
     [SerializeField] private TextMeshProUGUI tooltipText;
     [SerializeField] private float heightOffset;
+    [SerializeField] private float topHeightOffset;
     [SerializeField] private float screenPadding;
 
     private Canvas parentCanvas;
@@ -56,6 +57,7 @@ public class TooltipDisplay : MonoBehaviour
         anchor.y = 0;
         containerTransform.anchorMax = anchor;
         containerTransform.anchorMin = anchor;
+        containerTransform.pivot = new Vector2(containerTransform.pivot.x, anchor.y);
     }
 
 
@@ -64,6 +66,7 @@ public class TooltipDisplay : MonoBehaviour
         anchor.y = 1;
         containerTransform.anchorMax = anchor;
         containerTransform.anchorMin = anchor;
+        containerTransform.pivot = new Vector2(containerTransform.pivot.x, anchor.y);
     }
 
 
@@ -88,11 +91,10 @@ public class TooltipDisplay : MonoBehaviour
     private void UpdatePosition()
     {
         Vector2 containerPosition = containerTransform.anchoredPosition;
-
         Vector2 mousePosition = Input.mousePosition / parentCanvas.scaleFactor;
-        float height = containerTransform.sizeDelta.y + heightOffset;
         
         //Align the tooltip below the cursor unless it would be off-screen
+        float height = containerTransform.sizeDelta.y + heightOffset;
         if(mousePosition.y - height >= screenPadding)
         {
             AlignBottom();
@@ -101,7 +103,7 @@ public class TooltipDisplay : MonoBehaviour
         else
         {
             AlignTop();
-            containerPosition.y = heightOffset;
+            containerPosition.y = topHeightOffset;
         }
 
         //Align the tooltip to so the cursor is on the left side unless it would be off-screen

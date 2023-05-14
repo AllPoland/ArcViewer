@@ -3,16 +3,35 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using UnityEngine;
 
-public class ZipReader
+public class ZipReader : IMapDataLoader
 {
-    public static async Task<LoadedMap> MapFromZipArchiveAsync(ZipArchive archive)
+    public ZipArchive Archive;
+    public Stream ArchiveStream;
+
+
+    public ZipReader(ZipArchive archive, Stream archiveStream = null)
+    {
+        Archive = archive;
+        ArchiveStream = archiveStream;
+    }
+
+
+    public ZipReader()
+    {
+        Archive = null;
+        ArchiveStream = null;
+    }
+
+
+    public async Task<LoadedMap> GetMap()
     {
 #if !UNITY_WEBGL || UNITY_EDITOR
-        LoadedMapData mapData = await Task.Run(() => MapDataFromZipArchiveAsync(archive));
+        LoadedMapData mapData = await Task.Run(() => GetMapData());
 #else
-        LoadedMapData mapData = await MapDataFromZipArchiveAsync(archive);
+        LoadedMapData mapData = await GetMapData();
 #endif
         if(mapData.Info == null)
         {
@@ -28,7 +47,7 @@ public class ZipReader
         BeatmapInfo info = mapData.Info;
 
         string songFilename = info._songFilename ?? "";
-        using Stream songStream = archive.GetEntryCaseInsensitive(songFilename)?.Open();
+        using Stream songStream = Archive.GetEntryCaseInsensitive(songFilename)?.Open();
         if(songStream == null)
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Song file not found!");
@@ -62,7 +81,7 @@ public class ZipReader
 
         byte[] coverImageData = new byte[0];
         string coverFilename = info._coverImageFilename ?? "";
-        using Stream coverImageStream = archive.GetEntryCaseInsensitive(coverFilename)?.Open();
+        using Stream coverImageStream = Archive.GetEntryCaseInsensitive(coverFilename)?.Open();
         if(coverImageStream == null)
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Cover image not found!");
@@ -82,13 +101,13 @@ public class ZipReader
     }
 
 
-    public static async Task<LoadedMapData> MapDataFromZipArchiveAsync(ZipArchive archive)
+    public async Task<LoadedMapData> GetMapData()
     {
         BeatmapInfo info = null;
 
         MapLoader.LoadingMessage = "Loading Info.dat";
         await Task.Yield();
-        info = GetInfoData(archive);
+        info = GetInfoData(Archive);
 
         if(info == null)
         {
@@ -103,13 +122,20 @@ public class ZipReader
             Debug.LogWarning("Info lists no difficulty sets!");
             return LoadedMapData.Empty;
         }
-        List<Difficulty> difficulties = await DifficultyLoader.GetDifficultiesAsync(info, archive);
+        List<Difficulty> difficulties = await DifficultyLoader.GetDifficultiesAsync(info, Archive);
 
         return new LoadedMapData(info, difficulties);
     }
 
 
-    public static BeatmapInfo GetInfoData(ZipArchive archive)
+    public void Dispose()
+    {
+        Archive?.Dispose();
+        ArchiveStream?.Dispose();
+    }
+
+
+    private static BeatmapInfo GetInfoData(ZipArchive archive)
     {
         Stream infoData = null;
 
@@ -150,7 +176,7 @@ public class ZipReader
         string infoJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
         try
         {
-            return JsonUtility.FromJson<BeatmapInfo>(infoJson);
+            return JsonConvert.DeserializeObject<BeatmapInfo>(infoJson);
         }
         catch(Exception e)
         {

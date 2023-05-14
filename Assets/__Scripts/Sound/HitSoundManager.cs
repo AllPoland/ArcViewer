@@ -34,7 +34,7 @@ public class HitSoundManager : MonoBehaviour
         set
         {
             value = (float)System.Math.Round(value, 2);
-            if(value == 0)
+            if(value.Approximately(0f))
             {
                 value = 0.0001f;
             }
@@ -193,7 +193,7 @@ public class ScheduledSound
 
         //Account for time scale and sound offset
         float timeDifference = (time - currentTime) / TimeSyncHandler.TimeScale;
-        float scheduleIn = timeDifference + HitSoundManager.SoundOffset;
+        float scheduleIn = timeDifference + (HitSoundManager.SoundOffset / source.pitch);
 
         if(!scheduled && timeDifference <= 0)
         {

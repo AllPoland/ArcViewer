@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -5,20 +7,20 @@ public class SettingsTabUpdater : MonoBehaviour
 {
     [SerializeField] private SettingsMenu settingsMenu;
     [SerializeField] private TextMeshProUGUI titleText;
-    [SerializeField] private GameObject generalMenu;
-    [SerializeField] private GameObject visualsMenu;
-    [SerializeField] private GameObject graphicsMenu;
-    [SerializeField] private GameObject advancedMenu;
+    [SerializeField] private List<SettingsTabObject> tabObjects;
 
 
     public void UpdateTab(SettingsTab newTab)
     {
         titleText.text = newTab.ToString();
 
-        generalMenu.SetActive(newTab == SettingsTab.General);
-        visualsMenu.SetActive(newTab == SettingsTab.Visuals);
-        graphicsMenu.SetActive(newTab == SettingsTab.Graphics);
-        advancedMenu.SetActive(newTab == SettingsTab.Advanced);
+        foreach(SettingsTabObject tabObject in tabObjects)
+        {
+            if(tabObject.Object)
+            {
+                tabObject.Object.SetActive(newTab == tabObject.Tab);
+            }
+        }
     }
 
 
@@ -26,4 +28,22 @@ public class SettingsTabUpdater : MonoBehaviour
     {
         settingsMenu.OnTabUpdated += UpdateTab;
     }
+}
+
+
+[Serializable]
+public struct SettingsTabObject
+{
+    public SettingsTab Tab;
+    public GameObject Object;
+}
+
+
+public enum SettingsTab
+{
+    General,
+    Visuals,
+    Graphics,
+    Colors,
+    Advanced
 }

@@ -22,6 +22,7 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
         clicking = true;
 
         //Force the song to pause if it's playing
+        TimeManager.Scrubbing = true;
         TimeManager.ForcePause = TimeManager.Playing;
 
         TimeManager.SetPlaying(false);
@@ -33,6 +34,7 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
 
     public void OnPointerUp(PointerEventData eventData)
     {
+        TimeManager.Scrubbing = false;
         if(TimeManager.ForcePause && TimeManager.Progress < 1)
         {
             TimeManager.ForcePause = false;

@@ -65,12 +65,12 @@ public class SpeedSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
     private void Update()
     {
-        if(Input.GetMouseButtonDown(0) && hovered)
+        if(hovered && Input.GetMouseButtonDown(0))
         {
             //Weird hack since IPointerDownHandler doesn't include children in raycast for some reason
             clicked = true;
         }
-        else if(clicked && Input.GetMouseButtonUp(0))
+        else if(clicked && !Input.GetMouseButton(0))
         {
             clicked = false;
             HideSlider();

@@ -6,7 +6,6 @@ using UnityEngine;
 public class TimeManager : MonoBehaviour
 {
     public static float BPM => BeatmapManager.Info._beatsPerMinute;
-    public static bool ForcePause;
     public static float TimeScale = 1f;
 
     public static List<BpmChange> BpmChanges = new List<BpmChange>();
@@ -14,12 +13,13 @@ public class TimeManager : MonoBehaviour
     public static event Action<float> OnBeatChanged;
     public static event Action<bool> OnPlayingChanged;
 
+    public static event Action<Difficulty> OnDifficultyBpmEventsLoaded;
+
     private static float SongLength => AudioManager.GetSongLength();
     private static float _currentTime = 0;
     public static float CurrentTime
     {
         get => _currentTime;
-        
         set
         {
             if(value >= SongLength)
@@ -103,13 +103,15 @@ public class TimeManager : MonoBehaviour
     public static float Progress
     {
         get => SongLength <= 0 ? 0 : CurrentTime / SongLength;
-
         set
         {
             CurrentTime = SongLength * Mathf.Clamp(value, 0, 1);
         }
     }
 
+
+    public static bool Scrubbing;
+    public static bool ForcePause;
 
     public static bool Playing { get; private set; }
     public static void SetPlaying(bool newPlaying)
@@ -136,12 +138,19 @@ public class TimeManager : MonoBehaviour
     }
 
 
-    public static void UpdateBpmEvents(Difficulty diff)
+    public static void UpdateDifficulty(Difficulty difficulty)
+    {
+        UpdateBpmEvents(difficulty);
+        OnDifficultyBpmEventsLoaded?.Invoke(difficulty);
+    }
+
+
+    private static void UpdateBpmEvents(Difficulty difficulty)
     {
         BpmChanges.Clear();
 
         List<BeatmapBpmEvent> bpmEvents = new List<BeatmapBpmEvent>();
-        bpmEvents.AddRange(diff.beatmapDifficulty.bpmEvents);
+        bpmEvents.AddRange(difficulty.beatmapDifficulty.bpmEvents);
         //Events must be ordered by beat for this to work (they almost always are but just gotta be safe)
         bpmEvents = bpmEvents.OrderBy(x => x.b).ToList();
 
@@ -183,17 +192,11 @@ public class TimeManager : MonoBehaviour
     }
 
 
-    private void OnEnable()
+    private void Start()
     {
         BeatmapManager.OnBeatmapInfoChanged += UpdateInfo;
+        BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
         UIStateManager.OnUIStateChanged += UpdateUIState;
-    }
-
-
-    private void OnDisable()
-    {
-        BeatmapManager.OnBeatmapInfoChanged -= UpdateInfo;
-        UIStateManager.OnUIStateChanged -= UpdateUIState;
     }
 }
 

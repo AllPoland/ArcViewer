@@ -6,24 +6,30 @@ using TMPro;
 
 public class SettingsSlider : MonoBehaviour, IPointerUpHandler
 {
-    [SerializeField] private TextMeshProUGUI labelText;
+    [SerializeField] private TextMeshProUGUI valueLabel;
+    [SerializeField] private TextMeshProUGUI nameLabel;
     [SerializeField] private string minOverride;
     [SerializeField] private string maxOverride;
     [SerializeField] private string rule;
     [SerializeField] private bool integerValue;
     [SerializeField] private bool hideInWebGL;
     [SerializeField] private bool realTimeUpdates = true;
+    [SerializeField] private Optional<SerializedOption<bool>> requiredSetting;
+
+    [Space]
+    [SerializeField] private Color enabledColor;
+    [SerializeField] private Color disabledColor;
 
     private Slider slider;
 
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        UpdateSettings(slider.value);
+        SetValue(slider.value);
     }
 
 
-    public void UpdateSettings(float value)
+    public void SetValue(float value)
     {
         if(!integerValue)
         {
@@ -33,17 +39,30 @@ public class SettingsSlider : MonoBehaviour, IPointerUpHandler
     }
 
 
+    public void UpdateSettings(string changedSetting)
+    {
+        SerializedOption<bool> option = requiredSetting.Value;
+        if(changedSetting == "all" || changedSetting == option.Name)
+        {
+            slider.interactable = option.Value == SettingsManager.GetBool(option.Name);
+            Color textColor = slider.interactable ? enabledColor : disabledColor;
+            valueLabel.color = textColor;
+            nameLabel.color = textColor;
+        }
+    }
+
+
     public void UpdateText(float value)
     {
         if(value > slider.maxValue - 0.005 && maxOverride != "")
         {
-            labelText.text = maxOverride;
+            valueLabel.text = maxOverride;
         }
         else if(value < slider.minValue + 0.005 && minOverride != "")
         {
-            labelText.text = minOverride;
+            valueLabel.text = minOverride;
         }
-        else labelText.text = Math.Round(value, 2).ToString();  
+        else valueLabel.text = Math.Round(value, 2).ToString();  
     }
 
 
@@ -78,13 +97,23 @@ public class SettingsSlider : MonoBehaviour, IPointerUpHandler
 
         if(realTimeUpdates)
         {
-            slider.onValueChanged.AddListener(UpdateSettings);
+            slider.onValueChanged.AddListener(SetValue);
+        }
+
+        if(requiredSetting.Enabled)
+        {
+            SettingsManager.OnSettingsUpdated += UpdateSettings;
+            UpdateSettings("all");
         }
     }
 
 
     private void OnDisable()
     {
-        slider?.onValueChanged?.RemoveAllListeners();
+        if(slider)
+        {
+            slider.onValueChanged.RemoveAllListeners();
+        }
+        SettingsManager.OnSettingsUpdated -= UpdateSettings;
     }
 }

@@ -8,7 +8,7 @@ public class SkipButton : MonoBehaviour
 
     public void Skip(float amount)
     {
-        if(TimeManager.ForcePause)
+        if(TimeManager.Scrubbing)
         {
             return;
         }

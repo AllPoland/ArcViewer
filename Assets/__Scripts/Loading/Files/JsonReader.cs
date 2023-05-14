@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Linq;
 using Newtonsoft.Json;
@@ -7,6 +8,9 @@ using UnityEngine;
 
 public class JsonReader
 {
+    public static Regex VersionRx = new Regex(@"version""\s*:\s*""(\d\.?)*", RegexOptions.Compiled);
+
+
     public static async Task<BeatmapInfo> LoadInfoAsync(string location)
     {
         Debug.Log("Loading text from Info.dat");
@@ -74,30 +78,25 @@ public class JsonReader
     public static BeatmapDifficulty ParseBeatmapFromJson(string json, string filename = "{UnknownDifficulty}")
     {
         BeatmapDifficulty difficulty = new BeatmapDifficulty();
-        BeatmapVersion beatmapVersion;
-
-        try
-        {
-            beatmapVersion = JsonConvert.DeserializeObject<BeatmapVersion>(json);
-        }
-        catch(Exception err)
-        {
-            Debug.LogWarning($"Unable to parse difficulty version from {filename} with error: {err.Message}, {err.StackTrace}.");
-            return difficulty;
-        }
 
         try
         {
             string[] v3Versions = {"3.0.0", "3.1.0", "3.2.0"};
             string[] v2Versions = {"2.0.0", "2.2.0", "2.5.0", "2.6.0"};
 
-            if(v3Versions.Contains(beatmapVersion.version))
+            Match match = VersionRx.Match(json);
+
+            //Get only the version number
+            string versionNumber = match.Value.Split('"').Last();
+            Debug.Log($"{filename} is version: {versionNumber}");
+
+            //Search for a matching version and parse the correct map format
+            if(v3Versions.Contains(versionNumber))
             {
-                //Parse the difficulty file
                 Debug.Log($"Parsing {filename} in V3 format.");
                 difficulty = JsonConvert.DeserializeObject<BeatmapDifficulty>(json);
             }
-            else if(v2Versions.Contains(beatmapVersion._version))
+            else if(v2Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V2 format.");
 
@@ -107,7 +106,7 @@ public class JsonReader
             }
             else
             {
-                Debug.LogWarning($"Unable to match map version for {filename}. The map is either broken or in an unsupported version.");
+                Debug.LogWarning($"Unable to match map version for {filename}. The map has either a missing or unsupported version.");
 
                 Debug.Log($"Trying to fallback load {filename} in V3 format.");
                 BeatmapDifficulty v3Diff = JsonConvert.DeserializeObject<BeatmapDifficulty>(json);

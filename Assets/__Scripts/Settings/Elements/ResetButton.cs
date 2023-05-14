@@ -4,7 +4,7 @@ public class ResetButton : MonoBehaviour
 {
     public void ShowDialogue()
     {
-        DialogueHandler.ShowDialogueBox(DialogueBoxType.YesNo, "Are you sure you want to reset your settings?\nThis can't be undone!", ResetSettings);
+        DialogueHandler.ShowDialogueBox(DialogueBoxType.YesNo, "Are you sure you want to reset all settings?\nThis can't be undone!", ResetSettings);
     }
 
 

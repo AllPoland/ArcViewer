@@ -3,16 +3,24 @@ using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class FileReader : MonoBehaviour
+public class FileReader : IMapDataLoader
 {
+    public string Directory;
+
+
+    public FileReader(string directory)
+    {
+        Directory = directory;
+    }
+
 //Suppress warnings about a lack of await when building for WebGL
 #pragma warning disable 1998
-    public static async Task<LoadedMap> LoadMapDirectoryAsync(string directory)
+    public async Task<LoadedMap> GetMap()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
         throw new System.NotImplementedException("Loading from directory doesn't work in WebGL!");
 #else
-        LoadedMapData mapData = await LoadMapDataDirectoryAsync(directory);
+        LoadedMapData mapData = await GetMapData();
         if(mapData.Info == null)
         {
             //Failed to load info
@@ -29,7 +37,7 @@ public class FileReader : MonoBehaviour
         BeatmapInfo info = mapData.Info;
 
         MapLoader.LoadingMessage = "Loading song.";
-        string audioDirectory = Path.Combine(directory, info._songFilename);
+        string audioDirectory = Path.Combine(Directory, info._songFilename);
         AudioClip song = await AudioFileHandler.LoadAudioDirectory(audioDirectory);
         if(song == null)
         {
@@ -41,7 +49,7 @@ public class FileReader : MonoBehaviour
         Debug.Log("Loading cover image.");
         MapLoader.LoadingMessage = "Loading cover image.";
 
-        string coverImageDirectory = Path.Combine(directory, info._coverImageFilename);
+        string coverImageDirectory = Path.Combine(Directory, info._coverImageFilename);
         byte[] coverImageData = await Task.Run(() => LoadCoverImageData(coverImageDirectory));
 
         return new LoadedMap(mapData, coverImageData, song);
@@ -50,11 +58,11 @@ public class FileReader : MonoBehaviour
 #pragma warning restore 1998
 
 
-    public static async Task<LoadedMapData> LoadMapDataDirectoryAsync(string directory)
+    public async Task<LoadedMapData> GetMapData()
     {
         Debug.Log("Loading info.");
         MapLoader.LoadingMessage = "Loading Info.dat";
-        BeatmapInfo info = await Task.Run(() => LoadInfoAsync(directory));
+        BeatmapInfo info = await Task.Run(() => LoadInfoAsync(Directory));
 
         if(info == null)
         {
@@ -63,9 +71,15 @@ public class FileReader : MonoBehaviour
         }
 
         Debug.Log("Loading difficulties.");
-        List<Difficulty> difficulties = await Task.Run(() => DifficultyLoader.GetDifficultiesAsync(info, directory));
+        List<Difficulty> difficulties = await Task.Run(() => DifficultyLoader.GetDifficultiesAsync(info, Directory));
 
         return new LoadedMapData(info, difficulties);
+    }
+
+
+    public void Dispose()
+    {
+        //Nothing to dispose here
     }
 
 

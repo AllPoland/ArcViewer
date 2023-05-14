@@ -4,90 +4,86 @@ using UnityEngine.Rendering.Universal;
 
 public class GraphicSettingsUpdater : MonoBehaviour
 {
-    [SerializeField] private VolumeProfile mainBloomVolume;
-    [SerializeField] private VolumeProfile backgroundBloomVolume;
+    [SerializeField] private Volume bloomVolume;
     [SerializeField] private UniversalRenderPipelineAsset urpAsset;
-    // [SerializeField] private ScriptableRendererFeature ssaoFeature;
+    [SerializeField] private float defaultBloomStrength;
 
-    private Camera mainCamera;
-    private Bloom mainBloom;
-    private float defaultBloomStrength;
-    private Bloom backgroundBloom;
-    private float defaultBackgroundBloomStrength;
+    private Bloom bloom;
 
 
-    public void UpdateGraphicsSettings()
+    public void UpdateGraphicsSettings(string setting)
     {
-        bool vsync = SettingsManager.GetBool("vsync");
+        bool allSettings = setting == "all";
 
-        QualitySettings.vSyncCount = vsync ? 1 : 0;
-
-        if(!vsync)
+        if(allSettings || setting == "vsync" || setting == "framecap")
         {
-            int framecap = SettingsManager.GetInt("framecap");
+            bool vsync = SettingsManager.GetBool("vsync");
+            QualitySettings.vSyncCount = vsync ? 1 : 0;
+            if(vsync)
+            {
+                Application.targetFrameRate = -1;
+            }
+            else
+            {
+                int framecap = SettingsManager.GetInt("framecap");
 
-            //Value of -1 uncaps the framerate
-            if(framecap == 0 || framecap > 200) framecap = -1;
+                //Value of -1 uncaps the framerate
+                if(framecap <= 0 || framecap > 200) framecap = -1;
 
-            Application.targetFrameRate = framecap;
+                Application.targetFrameRate = framecap;
+            }
         }
-        else Application.targetFrameRate = -1;
 
-#if !UNITY_WEBGL
-        int antiAliasing = SettingsManager.GetInt("antialiasing");
-        mainCamera.allowMSAA = antiAliasing > 0;
-
-        switch(antiAliasing)
+#if !UNITY_WEBGL || UNITY_EDITOR
+        if(allSettings || setting == "antialiasing")
         {
-            case <= 0:
-                urpAsset.msaaSampleCount = 0;
-                break;
-            case 1:
-                urpAsset.msaaSampleCount = 2;
-                break;
-            case 2:
-                urpAsset.msaaSampleCount = 4;
-                break;
-            case >= 3:
-                urpAsset.msaaSampleCount = 8;
-                break;
+            int antiAliasing = SettingsManager.GetInt("antialiasing");
+            Camera.main.allowMSAA = antiAliasing > 0;
+
+            switch(antiAliasing)
+            {
+                case <= 0:
+                    urpAsset.msaaSampleCount = 0;
+                    break;
+                case 1:
+                    urpAsset.msaaSampleCount = 2;
+                    break;
+                case 2:
+                    urpAsset.msaaSampleCount = 4;
+                    break;
+                case >= 3:
+                    urpAsset.msaaSampleCount = 8;
+                    break;
+            }
         }
 #else
-        mainCamera.allowMSAA = false;
+        if(allSettings)
+        {
+            Camera.main.allowMSAA = false;
+        }
 #endif
 
-        // ssaoFeature.SetActive(SettingsManager.GetBool("ssao"));
-
-#if !UNITY_EDITOR
-        float mainBloomStrength = SettingsManager.GetFloat("bloom");
-        float backgroundBloomStrength = SettingsManager.GetFloat("backgroundbloom");
-
-        mainBloom.active = mainBloomStrength > 0;
-        backgroundBloom.active = backgroundBloomStrength > 0;
-
-        mainBloom.intensity.value = mainBloomStrength * defaultBloomStrength;
-        backgroundBloom.intensity.value = backgroundBloomStrength * defaultBackgroundBloomStrength;
-#endif
+        if(allSettings || setting == "bloom")
+        {
+            bloom.intensity.value = defaultBloomStrength * SettingsManager.GetFloat("bloom");
+            bloom.active = bloom.intensity.value >= 0.001f;
+        }
     }
 
 
     private void Start()
-    {   
-        mainCamera = Camera.main;
-
-        bool foundMainBloom = mainBloomVolume.TryGet<Bloom>(out mainBloom);
-        bool foundBackgroundBloom = backgroundBloomVolume.TryGet<Bloom>(out backgroundBloom);
-
-        if(foundMainBloom)
+    {
+        bool foundBloom = bloomVolume.profile.TryGet<Bloom>(out bloom);
+        if(foundBloom)
         {
-            defaultBloomStrength = mainBloom.intensity.value;
+            defaultBloomStrength = bloom.intensity.value;
         }
-        if(foundBackgroundBloom)
+        else
         {
-            defaultBackgroundBloomStrength = backgroundBloom.intensity.value;
+            Debug.LogWarning("Unable to find bloom post processing effect!");
         }
 
         SettingsManager.OnSettingsUpdated += UpdateGraphicsSettings;
-        UpdateGraphicsSettings();
+        UpdateGraphicsSettings("all");
     }
 }

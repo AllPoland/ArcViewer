@@ -212,9 +212,10 @@ public class Difficulty
     public float SpawnOffset;
     public string Label;
     public string[] requirements;
+    public NullableColorPalette colors;
 
 
-    public static Difficulty Empty = new Difficulty
+    public static Difficulty Empty => new Difficulty
     {
         characteristic = DifficultyCharacteristic.Unknown,
         difficultyRank = DifficultyRank.ExpertPlus,
@@ -222,7 +223,8 @@ public class Difficulty
         NoteJumpSpeed = 0,
         SpawnOffset = 0,
         Label = "Expert+",
-        requirements = new string[0]
+        requirements = new string[0],
+        colors = null
     };
 
 
@@ -234,4 +236,20 @@ public class Difficulty
         }
         else return rank.ToString();
     }
+}
+
+
+public class MapElement
+{
+    private float _beat;
+    public float Beat
+    {
+        get => _beat;
+        set
+        {
+            _beat = value;
+            Time = TimeManager.TimeFromBeat(_beat);
+        }
+    }
+    public float Time { get; private set; }
 }
