@@ -23,7 +23,15 @@ public class EnumPicker : MonoBehaviour
 
     [SerializeField] private Button leftButton;
     [SerializeField] private Button rightButton;
+    [SerializeField] private TextMeshProUGUI labelText;
     [SerializeField] private TextMeshProUGUI valueText;
+    [SerializeField] private Image valueContainerImage;
+    
+    [Space]
+    [SerializeField] private Color enabledTextColor;
+    [SerializeField] private Color disabledTextColor;
+    [SerializeField] private Sprite enabledPanelSprite;
+    [SerializeField] private Sprite disabledPanelSprite;
 
     private int maxValue => ValueNames.Length - 1;
 
@@ -46,6 +54,19 @@ public class EnumPicker : MonoBehaviour
     {
         _value = Mathf.Clamp(value, 0, maxValue);
         UpdateElements();
+    }
+
+
+    public void SetInteractable(bool interactable)
+    {
+        leftButton.interactable = interactable;
+        rightButton.interactable = interactable;
+
+        Color textColor = interactable ? enabledTextColor : disabledTextColor;
+        labelText.color = textColor;
+        valueText.color = textColor;
+
+        valueContainerImage.sprite = interactable ? enabledPanelSprite : disabledPanelSprite;
     }
 
 

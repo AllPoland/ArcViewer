@@ -8,21 +8,30 @@ public class EnvironmentLightingUpdater : MonoBehaviour
     [SerializeField] private ReflectionProbe probe;
     [SerializeField] private float defaultProbeIntensity;
     [SerializeField, Range(0f, 1f)] private float ambientLightBrightness;
+    [SerializeField, Range(0f, 1f)] private float noReflectionAmbientBrightness;
+    [SerializeField, Range(0f, 1f)] private float ambientLightSaturation;
 
     private static readonly string[] lightingSettings = new string[]
     {
+        "dynamicreflections",
         "instantreflectionupdate",
         "reflectionquality",
-        "lightreflectionbrightness"
+        "lightreflectionbrightness",
+        "ambientlightbrightness"
     };
 
+    private bool dynamicReflections;
     private int renderId;
-    private bool isRendering => !probe.IsFinishedRendering(renderId) && probe.timeSlicingMode != ReflectionProbeTimeSlicingMode.NoTimeSlicing;
+    private bool isRendering => dynamicReflections && !probe.IsFinishedRendering(renderId) && probe.timeSlicingMode != ReflectionProbeTimeSlicingMode.NoTimeSlicing;
+    private float ambientBrightness => (dynamicReflections ? ambientLightBrightness : noReflectionAmbientBrightness) * SettingsManager.GetFloat("ambientlightbrightness");
 
 
     private void UpdateReflection()
     {
-        renderId = probe.RenderProbe();
+        if(dynamicReflections)
+        {
+            renderId = probe.RenderProbe();
+        }
     }
 
 
@@ -35,14 +44,21 @@ public class EnvironmentLightingUpdater : MonoBehaviour
 
     public void UpdateStaticLights()
     {
-        if(LightManager.StaticLights && probe.timeSlicingMode != ReflectionProbeTimeSlicingMode.NoTimeSlicing)
+        if(dynamicReflections)
         {
-            //Wait for the current rendering to finish so lighting correctly updates
-            StartCoroutine(UpdateStaticLightsCoroutine());
+            if(LightManager.StaticLights && probe.timeSlicingMode != ReflectionProbeTimeSlicingMode.NoTimeSlicing)
+            {
+                //Wait for the current rendering to finish so lighting correctly updates
+                StartCoroutine(UpdateStaticLightsCoroutine());
+            }
+            else
+            {
+                UpdateReflection();
+            }
         }
         else
         {
-            UpdateReflection();
+            UpdateColors(ColorManager.CurrentColors);
         }
     }
 
@@ -56,14 +72,20 @@ public class EnvironmentLightingUpdater : MonoBehaviour
     }
 
 
-    public void UpdateColors(ColorPalette newColors)
+    private void SetGradient(ColorPalette colors, float brightness)
     {
-        Color redColor = newColors.LightColor1.SetValue(ambientLightBrightness);
-        Color blueColor = newColors.LightColor2.SetValue(ambientLightBrightness);
+        Color redColor = colors.LightColor1.SetHSV(null, ambientLightSaturation, ambientBrightness);
+        Color blueColor = colors.LightColor2.SetHSV(null, ambientLightSaturation, ambientBrightness);
         RenderSettings.ambientGroundColor = redColor;
         RenderSettings.ambientEquatorColor = Color.Lerp(redColor, blueColor, 0.5f);
         RenderSettings.ambientSkyColor = blueColor;
         DynamicGI.UpdateEnvironment();
+    }
+
+
+    public void UpdateColors(ColorPalette newColors)
+    {
+        SetGradient(newColors, ambientBrightness);
         UpdateReflection();
     }
 
@@ -72,31 +94,39 @@ public class EnvironmentLightingUpdater : MonoBehaviour
     {
         if(setting == "all" || lightingSettings.Contains(setting))
         {
-            probe.intensity = defaultProbeIntensity * SettingsManager.GetFloat("lightreflectionbrightness");
-
-            bool instantUpdate = SettingsManager.GetBool("instantreflectionupdate");
-            probe.timeSlicingMode = instantUpdate ? ReflectionProbeTimeSlicingMode.NoTimeSlicing : ReflectionProbeTimeSlicingMode.AllFacesAtOnce;
-
-            switch(SettingsManager.GetInt("reflectionquality"))
+            dynamicReflections = SettingsManager.GetBool("dynamicreflections");
+            if(dynamicReflections)
             {
-                default:
-                case 0:
-                    probe.resolution = 32;
-                    break;
-                case 1:
-                    probe.resolution = 64;
-                    break;
-                case 2:
-                    probe.resolution = 128;
-                    break;
-                case 3:
-                    probe.resolution = 256;
-                    break;
-                case 4:
-                    probe.resolution = 512;
-                    break;
+                probe.intensity = defaultProbeIntensity * SettingsManager.GetFloat("lightreflectionbrightness");
+
+                bool instantUpdate = SettingsManager.GetBool("instantreflectionupdate");
+                probe.timeSlicingMode = instantUpdate ? ReflectionProbeTimeSlicingMode.NoTimeSlicing : ReflectionProbeTimeSlicingMode.AllFacesAtOnce;
+
+                switch(SettingsManager.GetInt("reflectionquality"))
+                {
+                    default:
+                    case 0:
+                        probe.resolution = 32;
+                        break;
+                    case 1:
+                        probe.resolution = 64;
+                        break;
+                    case 2:
+                        probe.resolution = 128;
+                        break;
+                    case 3:
+                        probe.resolution = 256;
+                        break;
+                    case 4:
+                        probe.resolution = 512;
+                        break;
+                }
             }
-            UpdateReflection();
+            else
+            {
+                probe.intensity = 0f;
+            }
+            UpdateColors(ColorManager.CurrentColors);
         }
         else if(setting == "staticlights" || setting == "lightglowbrightness")
         {
