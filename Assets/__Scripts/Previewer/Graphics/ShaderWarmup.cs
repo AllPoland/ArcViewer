@@ -4,8 +4,7 @@ using UnityEngine;
 public class ShaderWarmup : MonoBehaviour
 {
     [SerializeField] private GameObject loadingPanel;
-    [SerializeField] private GameObject shaderObjects;
-    [SerializeField] private GameObject shaderUI;
+    [SerializeField] private ShaderVariantCollection[] shaderCollections;
 
 
     private IEnumerator WarmupShadersCoroutine()
@@ -15,17 +14,12 @@ public class ShaderWarmup : MonoBehaviour
         yield return null;
         yield return null;
 
-        //Hack to force shaders to warm up by rendering a bunch of objects with the shaders
-        shaderObjects.SetActive(true);
-        shaderUI.SetActive(true);
+        foreach(ShaderVariantCollection collection in shaderCollections)
+        {
+            collection.WarmUp();
+            yield return null;
+        }
 
-        //Wait a few more frames to make sure the objects render
-        yield return null;
-        yield return null;
-        yield return null;
-
-        shaderObjects.SetActive(false);
-        Destroy(shaderObjects);
         gameObject.SetActive(false);
         Destroy(gameObject);
     }
