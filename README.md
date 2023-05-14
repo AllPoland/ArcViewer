@@ -8,7 +8,11 @@ An open source 3D Beat Saber map previewer, designed to give users an accurate r
 
 - **V3 map support** including arcs, chains, angle offset (diagonal dots), V3 wall shenanigans, and official BPM changes
 
+- **Lighting support** including V1 and V2 lighting events, represented on one environment
+
 - **Highly customizable** with a range of settings to modify hitsounds, graphics, visuals, and camera settings
+
+- **Custom colors** from each map's environment, mapper set colors, or your own customizable colors
 
 - **Adjustable playback** including options to change playback speed and jump settings
 
@@ -19,9 +23,7 @@ These features aren't included yet, but are very likely to be added in the futur
 
 - 360/90 degree gamemode support (currently just displays as a regular map without rotation events)
 
-- Basic lighting support (V1 and V2 events on a single environment)
-
-- Basic chroma and custom color support (note and light colors, chroma color events)
+- Basic chroma support (chroma color events)
 
 ## Unplanned Features
 These features aren't included, and most likely never will be. If you ask for these I will unceremoniously tell you no.
