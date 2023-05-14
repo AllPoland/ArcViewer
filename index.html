@@ -75,13 +75,13 @@
     document.querySelector("#unity-loading-bar").style.display = "block";
 
     var gameInstance = createUnityInstance(document.querySelector("#unity-canvas"), {
-      dataUrl: "Build/ArcViewer.data",
-      frameworkUrl: "Build/ArcViewer.framework.js",
-      codeUrl: "Build/ArcViewer.wasm",
+      dataUrl: "Build/ArcViewer.data.gz",
+      frameworkUrl: "Build/ArcViewer.framework.js.gz",
+      codeUrl: "Build/ArcViewer.wasm.gz",
       streamingAssetsUrl: "StreamingAssets",
       companyName: "AllPolanDev",
       productName: "ArcViewer",
-      productVersion: "0.2.5",
+      productVersion: "0.3.0",
         // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
       }, (progress) => {
