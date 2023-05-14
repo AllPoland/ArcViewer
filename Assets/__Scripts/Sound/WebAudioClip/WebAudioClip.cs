@@ -28,6 +28,9 @@ public class WebAudioClip : IDisposable
 
     public void Dispose()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        Stop();
+#endif
         WebAudioController.DisposeClip(clipId);
     }
 
