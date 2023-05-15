@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 public class UIStateManager
 {
@@ -6,11 +7,11 @@ public class UIStateManager
     public static UIState CurrentState
     {
         get => _currentState;
-
         set
         {
             _currentState = value;
-            OnUIStateChanged?.Invoke(value);
+            Debug.Log($"UI state {_currentState}");
+            OnUIStateChanged?.Invoke(_currentState);
         }
     }
 
