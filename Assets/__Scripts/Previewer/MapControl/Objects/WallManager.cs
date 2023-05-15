@@ -12,6 +12,7 @@ public class WallManager : MonoBehaviour
     [Header("Parameters")]
     [SerializeField] private Material wallMaterial;
     [SerializeField, Range(0f, 1f)] private float wallLightness;
+    [SerializeField] private float wallEmission;
     [SerializeField, Range(0f, 1f)] private float edgeSaturation;
     [SerializeField] private float edgeEmission;
 
@@ -42,6 +43,7 @@ public class WallManager : MonoBehaviour
         Color newColor = WallColor.SetValue(wallLightness * v);
         newColor.a = SettingsManager.GetFloat("wallopacity");
         wallMaterialProperties.SetColor("_BaseColor", newColor);
+        wallMaterialProperties.SetColor("_EmissionColor", newColor.SetValue(wallEmission));
 
         wallEdgeProperties.SetColor("_BaseColor", newColor.SetSaturation(s * edgeSaturation));
         wallEdgeProperties.SetColor("_EmissionColor", newColor.SetHSV(h, s * edgeSaturation, edgeEmission, true));

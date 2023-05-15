@@ -21,16 +21,15 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Bomb
-  m_Shader: {fileID: -6465566751694194690, guid: a4af4af1e37e0e1458b48051e4ec8856, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 80258e4e9b4a5264ba5ec405f90e8db1, type: 3}
   m_ValidKeywords:
   - _ENVIRONMENTREFLECTIONS_OFF
   - _SPECULARHIGHLIGHTS_OFF
-  m_InvalidKeywords:
-  - _RECEIVE_SHADOWS_OFF
+  m_InvalidKeywords: []
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2000
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -104,8 +103,8 @@ Material:
     - _CastShadows: 0
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
-    - _CubemapBlur: 0.5
-    - _CubemapStrength: 1.8
+    - _CubemapBlur: 1.4
+    - _CubemapStrength: 5
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
@@ -113,6 +112,7 @@ Material:
     - _DstBlend: 0
     - _ENVIRONMENTREFLECTIONS_OFF: 1
     - _EnvironmentReflections: 1
+    - _FresnelStrength: 0.25
     - _GlossMapScale: 1
     - _Glossiness: 0.7
     - _GlossyReflections: 0
@@ -135,7 +135,7 @@ Material:
     - _ZWrite: 1
     - _ZWriteControl: 0
     m_Colors:
-    - _BaseColor: {r: 0.122641504, g: 0.11627803, b: 0.11627803, a: 1}
+    - _BaseColor: {r: 0.5, g: 0.48431373, b: 0.48431373, a: 1}
     - _Base_Color: {r: 0.14150941, g: 0.14150941, b: 0.14150941, a: 1}
     - _Color: {r: 0.122641504, g: 0.11627803, b: 0.11627803, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
