@@ -68,6 +68,11 @@ public class GraphicSettingsUpdater : MonoBehaviour
             bloom.intensity.value = defaultBloomStrength * SettingsManager.GetFloat("bloom");
             bloom.active = bloom.intensity.value >= 0.001f;
         }
+
+        if(allSettings || setting == "renderscale")
+        {
+            urpAsset.renderScale = Mathf.Clamp(SettingsManager.GetFloat("renderscale"), 0.5f, 2f);
+        }
     }
 
 
