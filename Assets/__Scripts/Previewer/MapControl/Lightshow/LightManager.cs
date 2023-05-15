@@ -446,6 +446,8 @@ public class LightManager : MonoBehaviour
         RingManager.SmallRingRotationEvents.Clear();
         RingManager.BigRingRotationEvents.Clear();
 
+        RingManager.RingZoomEvents.Clear();
+
         foreach(BeatmapBasicBeatmapEvent beatmapEvent in newDifficulty.beatmapDifficulty.basicBeatMapEvents)
         {
             AddLightEvent(beatmapEvent);
@@ -462,6 +464,8 @@ public class LightManager : MonoBehaviour
         
         RingManager.SmallRingRotationEvents = SortLightsByBeat(RingManager.SmallRingRotationEvents);
         RingManager.BigRingRotationEvents = SortLightsByBeat(RingManager.BigRingRotationEvents);
+
+        RingManager.RingZoomEvents = SortLightsByBeat(RingManager.RingZoomEvents);
 
         PopulateLaserRotationEventData();
         RingManager.PopulateRingEventData();
