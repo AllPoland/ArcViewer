@@ -21,6 +21,27 @@ public class Easings
     }
 
 
+    public class Expo
+    {
+        public static float In(float x)
+        {
+            return x == 0 ? 0 : Mathf.Pow(2, 10 * x - 10);
+        }
+
+        public static float Out(float x)
+        {
+            return x == 1 ? 1 : 1 - Mathf.Pow(2, -10 * x);
+        }
+
+        public static float InOut(float x)
+        {
+            return x == 0 ? 0 : x == 1 ? 1 :
+                x < 0.5 ? Mathf.Pow(2, 20 * x - 10) / 2 :
+                (2 - Mathf.Pow(2, -20 * x + 10)) / 2;
+        }
+    }
+
+
     public class Quad
     {
         public static float In(float x)

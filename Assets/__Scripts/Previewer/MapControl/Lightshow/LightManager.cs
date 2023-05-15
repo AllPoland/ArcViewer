@@ -32,6 +32,8 @@ public class LightManager : MonoBehaviour
     public static event Action<LaserSpeedEvent, LightEventType> OnLaserRotationsChanged;
     public static event Action OnStaticLightsChanged;
 
+    public const float FlashIntensity = 1.2f;
+
     private static ColorPalette colors => ColorManager.CurrentColors;
     private static Color lightColor1 => BoostActive ? colors.BoostLightColor1 : colors.LightColor1;
     private static  Color lightColor2 => BoostActive ? colors.BoostLightColor2 : colors.LightColor2;
@@ -289,42 +291,47 @@ public class LightManager : MonoBehaviour
 
     private Color GetFlashColor(LightEvent lightEvent, Color baseColor)
     {
-        const float flashIntensity = 1.5f;
-        const float fadeTime = 0.5f;
+        const float fadeTime = 0.6f;
 
         float floatValue = lightEvent.FloatValue;
-        float flashBrightness = floatValue * flashIntensity;
-
-        baseColor.a = GetV1TransitionAlpha(flashBrightness, floatValue, fadeTime, lightEvent.Time);
+        float timeDifference = TimeManager.CurrentTime - lightEvent.Time;
+        if(timeDifference >= fadeTime)
+        {
+            baseColor.a = floatValue;
+        }
+        else
+        {
+            float t = timeDifference / fadeTime;
+            float flashBrightness = floatValue * FlashIntensity;
+            baseColor.a = Mathf.Lerp(flashBrightness, floatValue, Easings.Cubic.Out(t));
+        }
         return baseColor;
     }
 
 
     private Color GetFadeColor(LightEvent lightEvent, Color baseColor)
     {
-        const float flashIntensity = 1.2f;
-        const float fadeTime = 0.8f;
+        const float fadeTime = 1.5f;
 
         float floatValue = lightEvent.FloatValue;
-        float flashBrightness = floatValue * flashIntensity;
-
-        baseColor.a = GetV1TransitionAlpha(flashBrightness, 0f, fadeTime, lightEvent.Time);
+        float timeDifference = TimeManager.CurrentTime - lightEvent.Time;
+        if(timeDifference >= fadeTime)
+        {
+            baseColor.a = 0f;
+        }
+        else
+        {
+            float t = timeDifference / fadeTime;
+            float flashBrightness = floatValue * FlashIntensity;
+            baseColor.a = Mathf.Lerp(flashBrightness, 0f, Easings.Expo.Out(t));
+        }
         return baseColor;
     }
 
 
     private float GetV1TransitionAlpha(float startAlpha, float endAlpha, float fadeTime, float eventTime)
     {
-        float timeDifference = TimeManager.CurrentTime - eventTime;
-        if(timeDifference >= fadeTime)
-        {
-            return endAlpha;
-        }
-        if(timeDifference >= 0)
-        {
-            float t = timeDifference / fadeTime;
-            return Mathf.Lerp(startAlpha, endAlpha, Easings.Quad.Out(t));
-        }
+        
         return 0f;
     }
 
