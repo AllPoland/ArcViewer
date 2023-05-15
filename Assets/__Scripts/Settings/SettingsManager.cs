@@ -37,6 +37,8 @@ public class SettingsManager : MonoBehaviour
     [SerializeField] private List<SerializedOption<float>> defaultFloats;
     [SerializeField] private List<SerializedOption<Color>> defaultColors;
 
+
+#if !UNITY_WEBGL || UNITY_EDITOR
     private bool saving;
 
 
@@ -46,7 +48,6 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-#if !UNITY_WEBGL || UNITY_EDITOR
     private IEnumerator SaveSettingsCoroutine()
     {
         saving = true;
@@ -119,7 +120,11 @@ public class SettingsManager : MonoBehaviour
     {
         bool value;
 #if UNITY_WEBGL && !UNITY_EDITOR
-        //Use player prefs for WebGL
+        if(CurrentSettings.Bools.TryGetValue(name, out value))
+        {
+            return value;
+        }
+
         //Use ints for bools since PlayerPrefs can't store them
         int defaultValue = 0;
         if(Settings.DefaultSettings.Bools.TryGetValue(name, out value))
@@ -127,7 +132,14 @@ public class SettingsManager : MonoBehaviour
             defaultValue = value ? 1 : 0;
         }
 
-        return PlayerPrefs.GetInt(name, defaultValue) > 0;
+        //Save the setting to memory so we can avoid expensive PlayerPrefs calls
+        value = PlayerPrefs.GetInt(name, defaultValue) > 0;
+        if(!CurrentSettings.Bools.TryAdd(name, value))
+        {
+            Debug.LogWarning($"Failed to save setting {name} to memory!");
+        }
+
+        return value;
 #else
         if(!Loaded)
         {
@@ -152,14 +164,26 @@ public class SettingsManager : MonoBehaviour
     {
         int value;
 #if UNITY_WEBGL && !UNITY_EDITOR
-        //Use player prefs for WebGL
+        if(CurrentSettings.Ints.TryGetValue(name, out value))
+        {
+            return value;
+        }
+
+        //Value hasn't been loaded yet
         int defaultValue = 0;
         if(Settings.DefaultSettings.Ints.TryGetValue(name, out value))
         {
             defaultValue = value;
         }
 
-        return PlayerPrefs.GetInt(name, defaultValue);
+        //Save the setting to memory so we can avoid expensive PlayerPrefs calls
+        value = PlayerPrefs.GetInt(name, defaultValue);
+        if(!CurrentSettings.Ints.TryAdd(name, value))
+        {
+            Debug.LogWarning($"Failed to save setting {name} to memory!");
+        }
+
+        return value;
 #else
         if(!Loaded)
         {
@@ -184,14 +208,26 @@ public class SettingsManager : MonoBehaviour
     {
         float value;
 #if UNITY_WEBGL && !UNITY_EDITOR
-        //Use player prefs for WebGL
-        float defaultValue = 0;
+        if(CurrentSettings.Floats.TryGetValue(name, out value))
+        {
+            return value;
+        }
+
+        //Value hasn't been loaded yet
+        float defaultValue = 0f;
         if(Settings.DefaultSettings.Floats.TryGetValue(name, out value))
         {
             defaultValue = value;
         }
 
-        return PlayerPrefs.GetFloat(name, defaultValue);
+        //Save the setting to memory so we can avoid expensive PlayerPrefs calls
+        value = PlayerPrefs.GetFloat(name, defaultValue);
+        if(!CurrentSettings.Floats.TryAdd(name, value))
+        {
+            Debug.LogWarning($"Failed to save setting {name} to memory!");
+        }
+
+        return value;
 #else
         if(!Loaded)
         {
@@ -207,7 +243,7 @@ public class SettingsManager : MonoBehaviour
         {
             return value;
         }
-        else return 0;
+        else return 0f;
 #endif
     }
 
@@ -223,9 +259,6 @@ public class SettingsManager : MonoBehaviour
 
     public static void SetRule(string name, bool value, bool notify = true)
     {
-#if UNITY_WEBGL && !UNITY_EDITOR
-        PlayerPrefs.SetInt(name, value ? 1 : 0);
-#else
         Dictionary<string, bool> rules = CurrentSettings.Bools;
         if(rules.ContainsKey(name))
         {
@@ -235,7 +268,11 @@ public class SettingsManager : MonoBehaviour
         {
             rules.Add(name, value);
         }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        PlayerPrefs.SetInt(name, value ? 1 : 0);
 #endif
+
         if(notify)
         {
             OnSettingsUpdated?.Invoke(name);
@@ -245,9 +282,6 @@ public class SettingsManager : MonoBehaviour
 
     public static void SetRule(string name, int value, bool notify = true)
     {
-#if UNITY_WEBGL && !UNITY_EDITOR
-        PlayerPrefs.SetInt(name, value);
-#else
         Dictionary<string, int> rules = CurrentSettings.Ints;
         if(rules.ContainsKey(name))
         {
@@ -257,7 +291,11 @@ public class SettingsManager : MonoBehaviour
         {
             rules.Add(name, value);
         }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        PlayerPrefs.SetInt(name, value);
 #endif
+
         if(notify)
         {
             OnSettingsUpdated?.Invoke(name);
@@ -267,9 +305,6 @@ public class SettingsManager : MonoBehaviour
 
     public static void SetRule(string name, float value, bool notify = true, bool round = true)
     {
-#if UNITY_WEBGL && !UNITY_EDITOR
-        PlayerPrefs.SetFloat(name, value);
-#else
         if(round)
         {
             value = (float)Math.Round(value, 3);
@@ -284,7 +319,11 @@ public class SettingsManager : MonoBehaviour
         {
             rules.Add(name, value);
         }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        PlayerPrefs.SetFloat(name, value);
 #endif
+
         if(notify)
         {
             OnSettingsUpdated?.Invoke(name);
@@ -310,6 +349,7 @@ public class SettingsManager : MonoBehaviour
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.DeleteAll();
+        CurrentSettings = new Settings();
 #else
         CurrentSettings = Settings.GetDefaultSettings();
 #endif
@@ -335,6 +375,7 @@ public class SettingsManager : MonoBehaviour
         SaveSettingsStatic = SaveSettings;
         LoadSettings();
 #else
+        CurrentSettings = new Settings();
         OnSettingsUpdated?.Invoke("all");
 #endif
     }
@@ -347,6 +388,14 @@ public class Settings
     public Dictionary<string, bool> Bools;
     public Dictionary<string, int> Ints;
     public Dictionary<string, float> Floats;
+
+
+    public Settings()
+    {
+        Bools = new Dictionary<string, bool>();
+        Ints = new Dictionary<string, int>();
+        Floats = new Dictionary<string, float>();
+    }
 
 
     public void AddColorRule(string name, Color color)
