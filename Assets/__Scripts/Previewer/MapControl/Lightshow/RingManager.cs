@@ -23,12 +23,13 @@ public class RingManager : MonoBehaviour
     public const float BigRingStartStep = 0f;
 
     public const bool StartRingZoomParity = true;
+    public const float StartRingZoomPosition = StartRingZoomParity ? 1f : 0f;
 
 
     public static void UpdateRings()
     {
-        UpdateRingRotations();
         UpdateRingZoom();
+        UpdateRingRotations();
     }
 
 
@@ -63,18 +64,23 @@ public class RingManager : MonoBehaviour
         eventArgs.affectBigRings = true;
         OnRingRotationsChanged?.Invoke(eventArgs);
 
-        OnRingZoomPositionChanged?.Invoke(StartRingZoomParity ? 1f : 0f);
+        OnRingZoomPositionChanged?.Invoke(StartRingZoomPosition);
     }
 
 
     private static void UpdateRingZoom()
     {
+        if(RingZoomEvents.Count == 0)
+        {
+            OnRingZoomPositionChanged?.Invoke(StartRingZoomPosition);
+            return;
+        }
+
         int lastIndex = RingZoomEvents.FindLastIndex(x => x.Beat <= TimeManager.CurrentBeat);
         if(lastIndex < 0)
         {
             //No ring zoom has taken affect, set defaults
-            float defaultPosition = StartRingZoomParity ? 1f : 0f;
-            OnRingZoomPositionChanged?.Invoke(defaultPosition);
+            OnRingZoomPositionChanged?.Invoke(StartRingZoomPosition);
             return;
         }
 
