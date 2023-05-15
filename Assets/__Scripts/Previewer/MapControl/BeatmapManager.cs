@@ -186,8 +186,8 @@ public class BeatmapManager : MonoBehaviour
         if(newState != UIState.Previewer)
         {
             Difficulties.Clear();
+            Info = BeatmapInfo.Empty;
             CurrentDifficulty = Difficulty.Empty;
-            Info = new BeatmapInfo();
         }
     }
 
