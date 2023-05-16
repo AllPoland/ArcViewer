@@ -22,41 +22,6 @@
       <div id="unity-progress-bar-full"></div>
     </div>
   </div>
-  <script>
-    const isSafari = navigator.userAgent.toLowerCase().indexOf('safari') !== -1 && navigator.userAgent.toLowerCase().indexOf('chrome') === -1;
-
-    var isFullScreen = false;
-    function handleWindowKeydownEvent(event = {}) {
-      if(event.code === 'F11') {
-        event.preventDefault();
-        if(isFullScreen) {
-          isFullScreen = false;
-          if (document.cancelFullScreen) {
-            document.cancelFullScreen();
-          } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-          } else if (document.webkitCancelFullScreen) {
-            document.webkitCancelFullScreen();
-          } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-          }
-        } else {
-          const canvasElement = document.getElementById("unity-canvas");
-          if(!canvasElement) return;
-          if (canvasElement.requestFullScreen) {
-            canvasElement.requestFullScreen();
-          } else if (canvasElement.mozRequestFullScreen) {
-            canvasElement.mozRequestFullScreen();
-          } else if (canvasElement.webkitRequestFullScreen) {
-            canvasElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
-          } else if (canvasElement.msRequestFullscreen) {
-            canvasElement.msRequestFullscreen();
-          }
-        }
-      }
-    }
-    window.addEventListener('keydown', handleWindowKeydownEvent);
-  </script>
   <script src="TemplateData/Scripts/oggdecode.js"></script>
   <script src="Build/{{{ LOADER_FILENAME }}}"></script>
   <script>
@@ -77,7 +42,8 @@
 
     document.querySelector("#unity-loading-bar").style.display = "block";
 
-    var gameInstance = createUnityInstance(document.querySelector("#unity-canvas"), {
+    var gameInstance = null;
+    createUnityInstance(document.querySelector("#unity-canvas"), {
       dataUrl: "Build/{{{ DATA_FILENAME }}}",
       frameworkUrl: "Build/{{{ FRAMEWORK_FILENAME }}}",
 #if USE_WASM
@@ -99,9 +65,50 @@
         document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
       }).then((unityInstance) => {
         document.querySelector("#unity-loading-bar").style.display = "none";
+        gameInstance = unityInstance;
       }).catch((message) => {
         alert(message);
       });
+  </script>
+  <script>
+    const isSafari = navigator.userAgent.toLowerCase().indexOf('safari') !== -1 && navigator.userAgent.toLowerCase().indexOf('chrome') === -1;
+
+    function ToggleFullscreen() {
+      if(!document.fullscreenEnabled) return;
+
+      if(document.fullscreenElement) {
+        if (document.cancelFullScreen) {
+          document.cancelFullScreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.webkitCancelFullScreen) {
+          document.webkitCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+        gameInstance.SendMessage("FullScreenButton", "UpdateButton", 0);
+      } else {
+        const canvasElement = document.getElementById("unity-canvas");
+        if(!canvasElement) return;
+        if (canvasElement.requestFullScreen) {
+          canvasElement.requestFullScreen();
+        } else if (canvasElement.mozRequestFullScreen) {
+          canvasElement.mozRequestFullScreen();
+        } else if (canvasElement.webkitRequestFullScreen) {
+          canvasElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        } else if (canvasElement.msRequestFullscreen) {
+          canvasElement.msRequestFullscreen();
+        }
+      }
+    }
+
+    function HandleWindowKeydownEvent(event = {}) {
+      if(event.code === 'F11') {
+        event.preventDefault();
+        ToggleFullscreen();
+      }
+    }
+    window.addEventListener('keydown', HandleWindowKeydownEvent);
   </script>
 </body>
 
