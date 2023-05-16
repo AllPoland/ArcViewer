@@ -47,17 +47,14 @@ public class UrlArgHandler : MonoBehaviour
     private static float startTime;
     private static DifficultyCharacteristic? mode;
     private static DifficultyRank? diffRank;
+    private static bool noProxy;
 
     [SerializeField] private MapLoader mapLoader;
 
 
     public void LoadMapFromParameters(string parameters)
     {
-        mapID = "";
-        mapURL = "";
-        startTime = 0;
-        mode = null;
-        diffRank = null;
+        ResetArguments();
 
         if(MapLoader.Loading) return;
 
@@ -82,8 +79,6 @@ public class UrlArgHandler : MonoBehaviour
             string name = elements[0];
             string value = elements[1];
 
-            //Define this bool here because for some reason each case shares scope
-            bool success = false;
             switch(name)
             {
                 case "id":
@@ -93,19 +88,20 @@ public class UrlArgHandler : MonoBehaviour
                     mapURL = value;
                     break;
                 case "t":
-                    success = float.TryParse(value, out startTime);
-                    if(!success) startTime = 0;
+                    if(!float.TryParse(value, out startTime)) startTime = 0;
                     break;
                 case "mode":
                     DifficultyCharacteristic parsedMode;
-                    success = Enum.TryParse(value, true, out parsedMode);
-                    mode = success ? parsedMode : null;
+                    mode = Enum.TryParse(value, true, out parsedMode) ? parsedMode : null;
                     break;
                 case "difficulty":
                     DifficultyRank parsedRank;
-                    success = Enum.TryParse(value, true, out parsedRank);
-                    diffRank = success ? parsedRank : null;
+                    diffRank = Enum.TryParse(value, true, out parsedRank) ? parsedRank : null;
                     break;
+                case "noProxy":
+                    noProxy = bool.TryParse(value, out noProxy) ? noProxy : false;
+                    break;
+
             }
         }
 
@@ -119,7 +115,7 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
-            StartCoroutine(mapLoader.LoadMapURLCoroutine(mapURL));
+            StartCoroutine(mapLoader.LoadMapURLCoroutine(mapURL, null, noProxy));
             LoadedMapURL = mapURL;
 
             autoLoad = true;
@@ -173,6 +169,17 @@ public class UrlArgHandler : MonoBehaviour
             BeatmapManager.CurrentDifficulty = difficulty ?? difficulties.Last();
         }
         MapLoader.OnMapLoaded -= SetDifficulty;
+    }
+
+
+    public void ResetArguments()
+    {
+        mapID = "";
+        mapURL = "";
+        startTime = 0;
+        mode = null;
+        diffRank = null;
+        noProxy = false;
     }
 
 

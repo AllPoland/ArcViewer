@@ -6,7 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Networking;
+using UnityEngine.Networking; //Used in WebGL
 
 public class MapLoader : MonoBehaviour
 {
@@ -142,7 +142,7 @@ public class MapLoader : MonoBehaviour
 #endif
 
 
-    public IEnumerator LoadMapURLCoroutine(string url, string mapID = null)
+    public IEnumerator LoadMapURLCoroutine(string url, string mapID = null, bool noProxy = false)
     {
         Loading = true;
 
@@ -163,7 +163,7 @@ public class MapLoader : MonoBehaviour
         Debug.Log($"Downloading map data from: {url}");
         LoadingMessage = "Downloading map";
 
-        using Task<Stream> downloadTask = WebLoader.LoadMapURL(url);
+        using Task<Stream> downloadTask = WebLoader.LoadMapURL(url, noProxy);
         yield return new WaitUntil(() => downloadTask.IsCompleted);
 
         Stream zipStream = downloadTask.Result;
