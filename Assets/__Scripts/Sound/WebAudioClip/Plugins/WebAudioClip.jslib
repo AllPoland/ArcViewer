@@ -5,6 +5,7 @@ mergeInto(LibraryManager.library, {
     this.clips = {};
     this.soundStartTimes = {};
     this.soundOffsets = {};
+    this.clipPlaying = {};
 
     this.playing = false;
     this.volume = volume;
@@ -83,13 +84,20 @@ mergeInto(LibraryManager.library, {
       this.gainNode.gain.exponentialRampToValueAtTime(this.volume, this.audioCtx.currentTime + 0.1);
     }
 
+    //Make sure the clip stops entirely
     const clip = this.clips[id];
+    if(this.clipPlaying[id]) {
+      clip.stop();
+      clip.disconnect(this.gainNode);
+    }
 
     //Create a new clip to play because apparently once it plays it's forfeit
     const newClip = this.audioCtx.createBufferSource();
 
     newClip.buffer = clip.buffer;
     newClip.playbackRate.value = this.playbackSpeed;
+
+    this.audioCtx.resume();
 
     let startTime = time + this.soundOffsets[id];
     if(startTime >= 0) {
@@ -109,12 +117,12 @@ mergeInto(LibraryManager.library, {
     }
     newClip.connect(this.gainNode);
 
-    delete(this.clips[id]);
+    delete(clip);
     this.clips[id] = newClip;
+    this.clipPlaying[id] = true;
+
     this.soundStartTimes[id] = time;
     this.lastPlayed = this.audioCtx.currentTime;
-
-    this.audioCtx.resume();
     this.playing = true;
   },
 
@@ -129,13 +137,16 @@ mergeInto(LibraryManager.library, {
     const clip = this.clips[id];
     this.playing = false;
     setTimeout(function() {
-      clip.stop();
-      clip.disconnect(this.gainNode);
-
       //Don't stop the context if we've started playing again
       //This is pretty common when scrubbing through the track
       if(!this.playing) {
         this.audioCtx.suspend();
+
+        if(this.clipPlaying[id]) {
+          clip.stop();
+          clip.disconnect(this.gainNode);
+          this.clipPlaying[id] = false;
+        }
       }
     }, 100);
   },
