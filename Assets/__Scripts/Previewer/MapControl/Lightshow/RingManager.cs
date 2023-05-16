@@ -108,8 +108,8 @@ public class RingManager : MonoBehaviour
                 //The first event should inherit the default starting positions
                 current.startAngle = startRotation;
                 current.startStep = startStep;
-                current.targetAngle = current.startAngle;
-                current.step = current.startStep;
+
+                current.RandomizeDirectionAndStep(startRotation, rotationAmount, maxStep);
             }
             else
             {
@@ -134,8 +134,8 @@ public class RingManager : MonoBehaviour
             RingZoomEvent current = RingZoomEvents[i];
             if(i == 0)
             {
-                current.IsFarParity = StartRingZoomParity;
-                current.startDistance = current.targetDistance;
+                current.IsFarParity = !StartRingZoomParity;
+                current.startDistance = StartRingZoomPosition;
             }
             else
             {

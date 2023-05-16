@@ -34,7 +34,7 @@ mergeInto(LibraryManager.library, {
     delete(this.soundOffsets[id]);
   },
 
-  UploadData: function(id, data, dataLength, gameObjectName, methodName) {
+  UploadData: function(id, data, dataLength, isOgg, gameObjectName, methodName) {
     //Convert the C# byte[] to an arraybuffer for audio decoding
     const byteArray = new Uint8Array(dataLength);
     for(var i = 0; i < dataLength; i++) {
@@ -44,7 +44,13 @@ mergeInto(LibraryManager.library, {
     gameObjectName = UTF8ToString(gameObjectName);
     methodName = UTF8ToString(methodName);
 
-    this.audioCtx.decodeAudioData(byteArray.buffer,
+    let decodeFunction = (data, callback, errorCallback) => this.audioCtx.decodeAudioData(data, callback, errorCallback);
+    if(isOgg && isSafari) {
+      console.log("Using custom OggDecode module for Safari.");
+      decodeFunction = (data, callback, errorCallback) => this.audioCtx.decodeOggData(data, callback, errorCallback);
+    }
+
+    decodeFunction(byteArray.buffer,
       (decodedData) => {
         const newClip = this.audioCtx.createBufferSource();
         newClip.buffer = decodedData;

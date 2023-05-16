@@ -144,8 +144,7 @@ public class LightManager : MonoBehaviour
 
     private void UpdateLightEvent(LightEventType type, LightEvent lightEvent, LightEvent nextEvent)
     {
-        LightEventValue value = lightEvent?.Value ?? LightEventValue.Off;
-        Color baseColor = GetEventColor(value, lightEvent, nextEvent);
+        Color baseColor = GetEventColor(lightEvent, nextEvent);
         SetLightProperties(baseColor);
 
         LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
@@ -211,14 +210,18 @@ public class LightManager : MonoBehaviour
     }
 
 
-    private Color GetEventColor(LightEventValue value, LightEvent lightEvent, LightEvent nextEvent)
+    private Color GetEventColor(LightEvent lightEvent, LightEvent nextEvent)
     {
-        switch(value)
+        if(lightEvent == null)
+        {
+            return Color.clear;
+        }
+
+        switch(lightEvent.Value)
         {
             case LightEventValue.RedOn:
             case LightEventValue.RedTransition:
-                //We can be sure lightEvent isn't null because value would be set to Off
-                return GetOnColor(lightEvent, lightColor1, nextEvent);
+                return GetStandardEventColor(lightEvent, lightColor1, nextEvent);
             case LightEventValue.RedFlash:
                 return GetFlashColor(lightEvent, lightColor1);
             case LightEventValue.RedFade:
@@ -226,7 +229,7 @@ public class LightManager : MonoBehaviour
 
             case LightEventValue.BlueOn:
             case LightEventValue.BlueTransition:
-                return GetOnColor(lightEvent, lightColor2, nextEvent);
+                return GetStandardEventColor(lightEvent, lightColor2, nextEvent);
             case LightEventValue.BlueFlash:
                 return GetFlashColor(lightEvent, lightColor2);
             case LightEventValue.BlueFade:
@@ -234,22 +237,23 @@ public class LightManager : MonoBehaviour
 
             case LightEventValue.WhiteOn:
             case LightEventValue.WhiteTransition:
-                return GetOnColor(lightEvent, whiteLightColor, nextEvent);
+                return GetStandardEventColor(lightEvent, whiteLightColor, nextEvent);
             case LightEventValue.WhiteFlash:
                 return GetFlashColor(lightEvent, whiteLightColor);
             case LightEventValue.WhiteFade:
                 return GetFadeColor(lightEvent, whiteLightColor);
 
             case LightEventValue.Off:
+                return GetStandardEventColor(lightEvent, Color.clear, nextEvent);
             default:
-                return new Color(0f, 0f, 0f, 0f);
+                return Color.clear;
         }
     }
 
 
     private Color GetEventBaseColor(LightEvent lightEvent)
     {
-        Color baseColor = new Color();
+        Color baseColor;
         switch(lightEvent.Value)
         {
             case LightEventValue.RedOn:
@@ -265,18 +269,29 @@ public class LightManager : MonoBehaviour
                 baseColor = whiteLightColor;
                 break;
             default:
-                return new Color(0f, 0f, 0f, 0f);
+                return Color.clear;
         }
         baseColor.a = lightEvent.FloatValue;
         return baseColor;
     }
 
 
-    private Color GetOnColor(LightEvent lightEvent, Color baseColor, LightEvent nextEvent)
+    private Color GetStandardEventColor(LightEvent lightEvent, Color baseColor, LightEvent nextEvent)
     {
-        baseColor.a = lightEvent.FloatValue;
+        bool transition = nextEvent?.isTransition ?? false;
 
-        if(nextEvent?.isTransition ?? false)
+        if(lightEvent.Value != LightEventValue.Off)
+        {
+            baseColor.a = lightEvent.FloatValue;
+        }
+        else
+        {
+            //Off events inherit the color they transition to
+            baseColor = transition ? GetEventBaseColor(nextEvent) : baseColor;
+            baseColor.a = 0f;
+        }
+
+        if(transition)
         {
             Color transitionColor = GetEventBaseColor(nextEvent);
             float transitionTime = nextEvent.Time - lightEvent.Time;
@@ -326,13 +341,6 @@ public class LightManager : MonoBehaviour
             baseColor.a = Mathf.Lerp(flashBrightness, 0f, Easings.Expo.Out(t));
         }
         return baseColor;
-    }
-
-
-    private float GetV1TransitionAlpha(float startAlpha, float endAlpha, float fadeTime, float eventTime)
-    {
-        
-        return 0f;
     }
 
 
@@ -438,6 +446,8 @@ public class LightManager : MonoBehaviour
         RingManager.SmallRingRotationEvents.Clear();
         RingManager.BigRingRotationEvents.Clear();
 
+        RingManager.RingZoomEvents.Clear();
+
         foreach(BeatmapBasicBeatmapEvent beatmapEvent in newDifficulty.beatmapDifficulty.basicBeatMapEvents)
         {
             AddLightEvent(beatmapEvent);
@@ -454,6 +464,8 @@ public class LightManager : MonoBehaviour
         
         RingManager.SmallRingRotationEvents = SortLightsByBeat(RingManager.SmallRingRotationEvents);
         RingManager.BigRingRotationEvents = SortLightsByBeat(RingManager.BigRingRotationEvents);
+
+        RingManager.RingZoomEvents = SortLightsByBeat(RingManager.RingZoomEvents);
 
         PopulateLaserRotationEventData();
         RingManager.PopulateRingEventData();

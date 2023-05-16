@@ -45,11 +45,7 @@ public class FullscreenButton : MonoBehaviour, IPointerDownHandler
 
     private void UpdateButton()
     {
-        Sprite newSprite = isFullscreen ? noFullscreenSprite : fullscreenSprite;
-        if(newSprite != buttonImage.sprite)
-        {
-            buttonImage.sprite = newSprite;
-        }
+        buttonImage.sprite = isFullscreen ? noFullscreenSprite : fullscreenSprite;
     }
 
 

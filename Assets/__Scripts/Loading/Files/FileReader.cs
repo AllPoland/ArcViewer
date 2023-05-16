@@ -36,7 +36,9 @@ public class FileReader : IMapDataLoader
 
         BeatmapInfo info = mapData.Info;
 
-        MapLoader.LoadingMessage = "Loading song.";
+        Debug.Log("Loading audio file.");
+        MapLoader.LoadingMessage = "Loading song";
+
         string audioDirectory = Path.Combine(Directory, info._songFilename);
         AudioClip song = await AudioFileHandler.LoadAudioDirectory(audioDirectory);
         if(song == null)
@@ -47,7 +49,7 @@ public class FileReader : IMapDataLoader
         }
 
         Debug.Log("Loading cover image.");
-        MapLoader.LoadingMessage = "Loading cover image.";
+        MapLoader.LoadingMessage = "Loading cover image";
 
         string coverImageDirectory = Path.Combine(Directory, info._coverImageFilename);
         byte[] coverImageData = await Task.Run(() => LoadCoverImageData(coverImageDirectory));

@@ -3,9 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
-#if !UNITY_WEBGL || UNITY_EDITOR
 using Winista.Mime;
-#endif
 
 public class AudioFileHandler
 {
@@ -13,7 +11,7 @@ public class AudioFileHandler
     private static AudioUploadState uploadState;
 
 
-    public static async Task<WebAudioClip> WebAudioClipFromStream(MemoryStream stream)
+    public static async Task<WebAudioClip> WebAudioClipFromStream(MemoryStream stream, string filename)
     {
         WebAudioClip newClip = null;
         try
@@ -22,7 +20,11 @@ public class AudioFileHandler
             newClip = new WebAudioClip();
 
             byte[] data = stream.ToArray();
-            newClip.SetData(data, ClipUploadResultCallback);
+            bool isOgg = filename.EndsWith(".ogg", StringComparison.InvariantCultureIgnoreCase)
+                || filename.EndsWith(".egg", StringComparison.InvariantCultureIgnoreCase)
+                || GetAudioTypeFromData(data) == AudioType.OGGVORBIS;
+
+            newClip.SetData(data, isOgg, ClipUploadResultCallback);
             uploadState = AudioUploadState.uploading;
 
             while(uploadState == AudioUploadState.uploading)
@@ -91,15 +93,15 @@ public class AudioFileHandler
     public static async Task<AudioType> GetAudioTypeFromFile(string fileName, string directory = "")
     {
         AudioType type = AudioType.UNKNOWN;
-        if(fileName.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase) || fileName.EndsWith(".egg", StringComparison.OrdinalIgnoreCase))
+        if(fileName.EndsWith(".ogg", StringComparison.InvariantCultureIgnoreCase) || fileName.EndsWith(".egg", StringComparison.InvariantCultureIgnoreCase))
         {
             type = AudioType.OGGVORBIS;
         }
-        else if(fileName.EndsWith(".wav", StringComparison.OrdinalIgnoreCase))
+        else if(fileName.EndsWith(".wav", StringComparison.InvariantCultureIgnoreCase))
         {
             type = AudioType.WAV;
         }
-        else if(fileName.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+        else if(fileName.EndsWith(".mp3", StringComparison.InvariantCultureIgnoreCase))
         {
             type = AudioType.MPEG;
         }
@@ -129,30 +131,6 @@ public class AudioFileHandler
     }
 
 
-    public static AudioType GetAudioTypeFromData(byte[] data)
-    {
-        MimeTypes mimeTypes = new MimeTypes();
-
-        MimeType type = mimeTypes.GetMimeType(data);
-
-        Debug.Log($"Audio is mime type {type.Name}");
-
-        switch(type.Name)
-        {
-            case "audio/wav":
-            case "audio/x-wav":
-                return AudioType.WAV;
-            case "audio/ogg":
-            case "application/x-ogg":
-                return AudioType.OGGVORBIS;
-            case "audio/mpeg":
-                return AudioType.MPEG;
-            default:
-                return AudioType.UNKNOWN;
-        }
-    }
-
-
     public static async Task<AudioClip> GetAudioFromFile(string path, AudioType type)
     {
         if(!File.Exists(path))
@@ -170,7 +148,7 @@ public class AudioFileHandler
 
             using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(uri, type))
             {
-                Debug.Log("Loading audio file.");
+                Debug.Log("Getting AudioClip from file.");
                 audioUwr.SendWebRequest();
 
                 while(!audioUwr.isDone) await Task.Yield();
@@ -194,4 +172,28 @@ public class AudioFileHandler
         return song;
     }
 #endif
+
+
+    public static AudioType GetAudioTypeFromData(byte[] data)
+    {
+        MimeTypes mimeTypes = new MimeTypes();
+
+        MimeType type = mimeTypes.GetMimeType(data);
+
+        Debug.Log($"Audio is mime type {type.Name}");
+
+        switch(type.Name)
+        {
+            case "audio/wav":
+            case "audio/x-wav":
+                return AudioType.WAV;
+            case "audio/ogg":
+            case "application/x-ogg":
+                return AudioType.OGGVORBIS;
+            case "audio/mpeg":
+                return AudioType.MPEG;
+            default:
+                return AudioType.UNKNOWN;
+        }
+    }
 }
