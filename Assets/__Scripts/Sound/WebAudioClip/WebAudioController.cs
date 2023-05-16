@@ -14,7 +14,7 @@ public class WebAudioController : MonoBehaviour
     public static extern void DisposeClip(int id);
     
     [DllImport("__Internal")]
-    public static extern void UploadData(int id, byte[] data, int dataLength, string gameObjectName, string methodName);
+    public static extern void UploadData(int id, byte[] data, int dataLength, bool isOgg, string gameObjectName, string methodName);
 
     [DllImport("__Internal")]
     public static extern void SetOffset(int id, float offset);
@@ -94,10 +94,10 @@ public class WebAudioController : MonoBehaviour
     }
 
 
-    public static void SetDataClip(int id, byte[] data, Action<int> callbackMethod = null)
+    public static void SetDataClip(int id, byte[] data, bool isOgg, Action<int> callbackMethod = null)
     {
         callback = callbackMethod;
-        UploadData(id, data, data.Length, instance.name, "AudioDataCallback");
+        UploadData(id, data, data.Length, isOgg, instance.name, "AudioDataCallback");
     }
 
 

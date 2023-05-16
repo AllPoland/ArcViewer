@@ -23,38 +23,41 @@
     </div>
   </div>
   <script>
+    const isSafari = navigator.userAgent.toLowerCase().indexOf('safari') !== -1 && navigator.userAgent.toLowerCase().indexOf('chrome') === -1;
+
     var isFullScreen = false;
     function handleWindowKeydownEvent(event = {}) {
-        if(event.code === 'F11') {
-            event.preventDefault();
-            if(isFullScreen) {
-                isFullScreen = false;
-                if (document.cancelFullScreen) {
-                    document.cancelFullScreen();
-                } else if (document.mozCancelFullScreen) {
-                    document.mozCancelFullScreen();
-                } else if (document.webkitCancelFullScreen) {
-                    document.webkitCancelFullScreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
-                }
-            } else {
-              const canvasElement = document.getElementById("unity-canvas");
-              if(!canvasElement) return;
-              if (canvasElement.requestFullScreen) {
-                  canvasElement.requestFullScreen();
-              } else if (canvasElement.mozRequestFullScreen) {
-                  canvasElement.mozRequestFullScreen();
-              } else if (canvasElement.webkitRequestFullScreen) {
-                  canvasElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
-              } else if (canvasElement.msRequestFullscreen) {
-                  canvasElement.msRequestFullscreen();
-            }
-            }
+      if(event.code === 'F11') {
+        event.preventDefault();
+        if(isFullScreen) {
+          isFullScreen = false;
+          if (document.cancelFullScreen) {
+            document.cancelFullScreen();
+          } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+          } else if (document.webkitCancelFullScreen) {
+            document.webkitCancelFullScreen();
+          } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+          }
+        } else {
+          const canvasElement = document.getElementById("unity-canvas");
+          if(!canvasElement) return;
+          if (canvasElement.requestFullScreen) {
+            canvasElement.requestFullScreen();
+          } else if (canvasElement.mozRequestFullScreen) {
+            canvasElement.mozRequestFullScreen();
+          } else if (canvasElement.webkitRequestFullScreen) {
+            canvasElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+          } else if (canvasElement.msRequestFullscreen) {
+            canvasElement.msRequestFullscreen();
+          }
         }
+      }
     }
     window.addEventListener('keydown', handleWindowKeydownEvent);
   </script>
+  <script src="TemplateData/Scripts/oggdecode.js"></script>
   <script src="Build/{{{ LOADER_FILENAME }}}"></script>
   <script>
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {

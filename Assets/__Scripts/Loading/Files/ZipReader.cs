@@ -46,6 +46,10 @@ public class ZipReader : IMapDataLoader
 
         BeatmapInfo info = mapData.Info;
 
+        Debug.Log("Loading audio file.");
+        MapLoader.LoadingMessage = "Loading song";
+        await Task.Yield();
+
         string songFilename = info._songFilename ?? "";
         using Stream songStream = Archive.GetEntryCaseInsensitive(songFilename)?.Open();
         if(songStream == null)
@@ -66,7 +70,7 @@ public class ZipReader : IMapDataLoader
 #if !UNITY_WEBGL || UNITY_EDITOR
         AudioClip song = await AudioClipFromMemoryStream(songData, songFilename);
 #else
-        WebAudioClip song = await AudioFileHandler.WebAudioClipFromStream(songData);
+        WebAudioClip song = await AudioFileHandler.WebAudioClipFromStream(songData, songFilename);
 #endif
         if(song == null)
         {
@@ -75,8 +79,8 @@ public class ZipReader : IMapDataLoader
             return LoadedMap.Empty;
         }
 
-        MapLoader.LoadingMessage = "Loading cover image";
         Debug.Log("Loading cover image.");
+        MapLoader.LoadingMessage = "Loading cover image";
         await Task.Yield();
 
         byte[] coverImageData = new byte[0];
@@ -234,6 +238,7 @@ public class ZipReader : IMapDataLoader
     private static async Task<AudioClip> AudioClipFromMemoryStream(MemoryStream stream, string songFilename)
     {
         //Write song data to a tempfile so it can be loaded through a uwr
+        Debug.Log($"Writing {songFilename} to temp file.");
         using TempFile songFile = new TempFile();
         await File.WriteAllBytesAsync(songFile.Path, stream.ToArray());
 
