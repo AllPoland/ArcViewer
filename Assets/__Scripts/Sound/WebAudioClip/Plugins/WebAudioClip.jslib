@@ -89,6 +89,7 @@ mergeInto(LibraryManager.library, {
     if(this.clipPlaying[id]) {
       clip.stop();
       clip.disconnect(this.gainNode);
+      this.audioCtx.suspend();
     }
 
     //Create a new clip to play because apparently once it plays it's forfeit
