@@ -10,10 +10,8 @@ public class ChainManager : MapElementManager<ChainLink>
     public void ReloadChains()
     {
         ClearRenderedVisuals();
-        chainLinkPool.SetPoolSize(60);
 
         Objects.Clear();
-
         foreach(Chain c in Chains)
         {
             CreateChainLinks(c);

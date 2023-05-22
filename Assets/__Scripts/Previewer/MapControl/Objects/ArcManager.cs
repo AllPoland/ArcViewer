@@ -28,8 +28,6 @@ public class ArcManager : MapElementManager<Arc>
     public void ReloadArcs()
     {
         ClearRenderedVisuals();
-        arcPool.SetPoolSize(20);
-
         UpdateMaterials();
     }
 

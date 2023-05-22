@@ -21,8 +21,6 @@ public class WallManager : MapElementManager<Wall>
     public void ReloadWalls()
     {
         ClearRenderedVisuals();
-        wallPool.SetPoolSize(40);
-
         UpdateVisuals();
     }
 

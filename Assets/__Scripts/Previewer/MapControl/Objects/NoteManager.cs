@@ -33,8 +33,6 @@ public class NoteManager : MapElementManager<Note>
     public void ReloadNotes()
     {
         ClearRenderedVisuals();
-        notePool.SetPoolSize(40);
-
         UpdateMaterials();
     }
 

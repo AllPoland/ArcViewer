@@ -8,7 +8,6 @@ public class BombManager : MapElementManager<Bomb>
     public void ReloadBombs()
     {
         ClearRenderedVisuals();
-        bombPool.SetPoolSize(40);
         UpdateVisuals();
     }
 

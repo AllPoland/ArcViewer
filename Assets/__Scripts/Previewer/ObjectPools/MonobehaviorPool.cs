@@ -9,6 +9,7 @@ public class ObjectPool<T> : MonoBehaviour where T : MonoBehaviour
     public int PoolSize { get; private set; }
 
     [SerializeField] GameObject prefab;
+    [SerializeField] private int startSize;
 
 
     public void SetPoolSize(int newSize)
@@ -127,5 +128,11 @@ public class ObjectPool<T> : MonoBehaviour where T : MonoBehaviour
         {
             AttemptMatchPoolSize();
         }
+    }
+
+
+    private void Start()
+    {
+        SetPoolSize(startSize);
     }
 }
