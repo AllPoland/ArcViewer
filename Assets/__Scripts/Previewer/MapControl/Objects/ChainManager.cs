@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class ChainManager : MapElementManager<ChainLink>
 {
     [SerializeField] private ObjectPool<ChainLinkHandler> chainLinkPool;
 
-    public List<Chain> Chains = new List<Chain>();
+    public MapElementList<Chain> Chains = new MapElementList<Chain>();
 
 
     public void ReloadChains()
@@ -19,7 +18,7 @@ public class ChainManager : MapElementManager<ChainLink>
         {
             CreateChainLinks(c);
         }
-        Objects = ObjectManager.SortObjectsByBeat(Objects);
+        Objects.SortElementsByBeat();
 
         UpdateVisuals();
     }
@@ -179,7 +178,13 @@ public class ChainManager : MapElementManager<ChainLink>
             return;
         }
 
-        for(int i = GetStartIndex(TimeManager.CurrentTime); i < Objects.Count; i++)
+        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        if(startIndex < 0)
+        {
+            return;
+        }
+
+        for(int i = startIndex; i < Objects.Count; i++)
         {
             //Update each link's position
             ChainLink cl = Objects[i];

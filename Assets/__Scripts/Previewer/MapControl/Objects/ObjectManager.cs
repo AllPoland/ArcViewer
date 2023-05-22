@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -67,12 +66,6 @@ public class ObjectManager : MonoBehaviour
     };
 
     public float BehindCameraTime => TimeFromWorldspace(behindCameraZ);
-
-
-    public static List<T> SortObjectsByBeat<T>(List<T> objects) where T : MapObject
-    {
-        return objects.OrderBy(x => x.Beat).ToList();
-    }
 
 
     public static bool CheckSameBeat(float beat1, float beat2)
@@ -330,7 +323,7 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public static void LoadMapObjects(BeatmapDifficulty beatmapDifficulty, out List<Note> notes, out List<Bomb> bombs, out List<Chain> chains, out List<Arc> arcs, out List<Wall> walls)
+    public static void LoadMapObjects(BeatmapDifficulty beatmapDifficulty, out MapElementList<Note> notes, out MapElementList<Bomb> bombs, out MapElementList<Chain> chains, out MapElementList<Arc> arcs, out MapElementList<Wall> walls)
     {
         // split arcs into heads and tails for easier processing
         List<BeatmapSliderEnd> beatmapSliderHeads = new List<BeatmapSliderEnd>();
@@ -384,11 +377,11 @@ public class ObjectManager : MonoBehaviour
         allObjects.AddRange(beatmapSliderTails);
         allObjects = allObjects.OrderBy(x => x.b).ToList();
 
-        notes = new List<Note>();
-        bombs = new List<Bomb>();
-        chains = new List<Chain>();
-        arcs = new List<Arc>();
-        walls = new List<Wall>();
+        notes = new MapElementList<Note>();
+        bombs = new MapElementList<Bomb>();
+        chains = new MapElementList<Chain>();
+        arcs = new MapElementList<Arc>();
+        walls = new MapElementList<Wall>();
 
         List<BeatmapObject> sameBeatObjects = new List<BeatmapObject>();
         for(int i = 0; i < allObjects.Count; i++)
@@ -606,7 +599,7 @@ public abstract class BaseSlider : MapObject
 
 public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
 {
-    public List<T> Objects = new List<T>();
+    public MapElementList<T> Objects = new MapElementList<T>();
     public List<T> RenderedObjects = new List<T>();
 
     public ObjectManager objectManager => ObjectManager.Instance;
@@ -615,9 +608,6 @@ public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
     public abstract bool VisualInSpawnRange(T visual);
     public abstract void ReleaseVisual(T visual);
     public abstract void UpdateVisuals();
-
-    private int LastStartIndex = 0;
-    private float LastStartTime = 0f;
 
 
     public virtual void ClearOutsideVisuals()
@@ -644,31 +634,5 @@ public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
     }
 
 
-    public int GetStartIndex(float currentTime)
-    {
-        if(currentTime < LastStartTime)
-        {
-            //We've gone back in time, so restart the search from the beginning
-            LastStartIndex = 0;
-        }
-        LastStartTime = currentTime;
-
-        while(LastStartIndex < Objects.Count)
-        {
-            if(VisualInSpawnRange(Objects[LastStartIndex]))
-            {
-                //We've found the first object in range
-                return LastStartIndex;
-            }
-            else if(Objects[LastStartIndex].Time > currentTime)
-            {
-                //We've gone past the search range
-                break;
-            }
-            
-            LastStartIndex++;
-        }
-
-        return LastStartIndex;
-    }
+    public int GetStartIndex(float currentTime) => Objects.GetFirstIndex(currentTime, VisualInSpawnRange);
 }

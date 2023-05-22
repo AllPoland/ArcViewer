@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class RingManager : MonoBehaviour
 {
-    public static List<RingRotationEvent> SmallRingRotationEvents = new List<RingRotationEvent>();
-    public static List<RingRotationEvent> BigRingRotationEvents = new List<RingRotationEvent>();
+    public static MapElementList<RingRotationEvent> SmallRingRotationEvents = new MapElementList<RingRotationEvent>();
+    public static MapElementList<RingRotationEvent> BigRingRotationEvents = new MapElementList<RingRotationEvent>();
 
-    public static List<RingZoomEvent> RingZoomEvents = new List<RingZoomEvent>();
+    public static MapElementList<RingZoomEvent> RingZoomEvents = new MapElementList<RingZoomEvent>();
 
     public static event Action<RingRotationEventArgs> OnRingRotationsChanged;
     public static event Action<float> OnRingZoomPositionChanged;
@@ -35,7 +35,7 @@ public class RingManager : MonoBehaviour
 
     private static void UpdateRingRotations()
     {
-        int lastIndex = SmallRingRotationEvents.FindLastIndex(x => x.Beat <= TimeManager.CurrentBeat);
+        int lastIndex = SmallRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= TimeManager.CurrentBeat);
 
         RingRotationEventArgs eventArgs = new RingRotationEventArgs
         {
@@ -60,7 +60,7 @@ public class RingManager : MonoBehaviour
             return;
         }
 
-        int lastIndex = RingZoomEvents.FindLastIndex(x => x.Beat <= TimeManager.CurrentBeat);
+        int lastIndex = RingZoomEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= TimeManager.CurrentBeat);
         if(lastIndex < 0)
         {
             //No ring zoom has taken affect, set defaults
@@ -98,7 +98,7 @@ public class RingManager : MonoBehaviour
     }
 
 
-    private static void PopulateRingRotationEvents(ref List<RingRotationEvent> events, float rotationAmount, float maxStep, float startRotation, float startStep)
+    private static void PopulateRingRotationEvents(ref MapElementList<RingRotationEvent> events, float rotationAmount, float maxStep, float startRotation, float startStep)
     {
         for(int i = 0; i < events.Count; i++)
         {

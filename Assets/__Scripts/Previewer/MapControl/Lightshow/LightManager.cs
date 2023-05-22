@@ -91,14 +91,14 @@ public class LightManager : MonoBehaviour
         "Panic2Environment"
     };
 
-    public List<LightEvent> backLaserEvents = new List<LightEvent>();
-    public List<LightEvent> ringEvents = new List<LightEvent>();
-    public List<LightEvent> leftLaserEvents = new List<LightEvent>();
-    public List<LightEvent> rightLaserEvents = new List<LightEvent>();
-    public List<LightEvent> centerLightEvents = new List<LightEvent>();
+    public MapElementList<LightEvent> backLaserEvents = new MapElementList<LightEvent>();
+    public MapElementList<LightEvent> ringEvents = new MapElementList<LightEvent>();
+    public MapElementList<LightEvent> leftLaserEvents = new MapElementList<LightEvent>();
+    public MapElementList<LightEvent> rightLaserEvents = new MapElementList<LightEvent>();
+    public MapElementList<LightEvent> centerLightEvents = new MapElementList<LightEvent>();
 
-    public List<LaserSpeedEvent> leftLaserSpeedEvents = new List<LaserSpeedEvent>();
-    public List<LaserSpeedEvent> rightLaserSpeedEvents = new List<LaserSpeedEvent>();
+    public MapElementList<LaserSpeedEvent> leftLaserSpeedEvents = new MapElementList<LaserSpeedEvent>();
+    public MapElementList<LaserSpeedEvent> rightLaserSpeedEvents = new MapElementList<LaserSpeedEvent>();
 
     [SerializeField, Range(0f, 1f)] private float lightSaturation;
     [SerializeField, Range(0f, 1f)] private float lightEmissionSaturation;
@@ -115,22 +115,22 @@ public class LightManager : MonoBehaviour
 
         BoostActive = boostEvents.LastOrDefault(x => x.b <= beat)?.o ?? false;
 
-        UpdateLightEventType(LightEventType.BackLasers, backLaserEvents, beat);
-        UpdateLightEventType(LightEventType.Rings, ringEvents, beat);
-        UpdateLightEventType(LightEventType.LeftRotatingLasers, leftLaserEvents, beat);
-        UpdateLightEventType(LightEventType.RightRotatingLasers, rightLaserEvents, beat);
-        UpdateLightEventType(LightEventType.CenterLights, centerLightEvents, beat);
+        UpdateLightEventType(LightEventType.BackLasers, backLaserEvents);
+        UpdateLightEventType(LightEventType.Rings, ringEvents);
+        UpdateLightEventType(LightEventType.LeftRotatingLasers, leftLaserEvents);
+        UpdateLightEventType(LightEventType.RightRotatingLasers, rightLaserEvents);
+        UpdateLightEventType(LightEventType.CenterLights, centerLightEvents);
 
-        UpdateLaserSpeedEventType(LightEventType.LeftRotationSpeed, leftLaserSpeedEvents, beat);
-        UpdateLaserSpeedEventType(LightEventType.RightRotationSpeed, rightLaserSpeedEvents, beat);
+        UpdateLaserSpeedEventType(LightEventType.LeftRotationSpeed, leftLaserSpeedEvents);
+        UpdateLaserSpeedEventType(LightEventType.RightRotationSpeed, rightLaserSpeedEvents);
 
         RingManager.UpdateRings();
     }
 
 
-    private void UpdateLightEventType(LightEventType type, List<LightEvent> events, float beat)
+    private void UpdateLightEventType(LightEventType type, MapElementList<LightEvent> events)
     {
-        int lastIndex = events.FindLastIndex(x => x.Beat <= beat);
+        int lastIndex = events.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
         bool foundEvent = lastIndex >= 0;
 
         LightEvent currentEvent = foundEvent ? events[lastIndex] : null;
@@ -158,9 +158,12 @@ public class LightManager : MonoBehaviour
     }
 
 
-    private void UpdateLaserSpeedEventType(LightEventType type, List<LaserSpeedEvent> events, float beat)
+    private void UpdateLaserSpeedEventType(LightEventType type, MapElementList<LaserSpeedEvent> events)
     {
-        LaserSpeedEvent lastEvent = events.LastOrDefault(x => x.Beat <= beat);
+        int lastIndex = events.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
+        bool foundEvent = lastIndex >= 0;
+
+        LaserSpeedEvent lastEvent = foundEvent ? events[lastIndex] : null;
         OnLaserRotationsChanged?.Invoke(lastEvent, type);
     }
 
@@ -453,30 +456,24 @@ public class LightManager : MonoBehaviour
             AddLightEvent(beatmapEvent);
         }
 
-        backLaserEvents = SortLightsByBeat(backLaserEvents);
-        ringEvents = SortLightsByBeat(ringEvents);
-        leftLaserEvents = SortLightsByBeat(leftLaserEvents);
-        rightLaserEvents = SortLightsByBeat(rightLaserEvents);
-        centerLightEvents = SortLightsByBeat(centerLightEvents);
+        backLaserEvents.SortElementsByBeat();
+        ringEvents.SortElementsByBeat();
+        leftLaserEvents.SortElementsByBeat();
+        rightLaserEvents.SortElementsByBeat();
+        centerLightEvents.SortElementsByBeat();
 
-        leftLaserSpeedEvents = SortLightsByBeat(leftLaserSpeedEvents);
-        rightLaserEvents = SortLightsByBeat(rightLaserEvents);
+        leftLaserSpeedEvents.SortElementsByBeat();
+        rightLaserEvents.SortElementsByBeat();
         
-        RingManager.SmallRingRotationEvents = SortLightsByBeat(RingManager.SmallRingRotationEvents);
-        RingManager.BigRingRotationEvents = SortLightsByBeat(RingManager.BigRingRotationEvents);
+        RingManager.SmallRingRotationEvents.SortElementsByBeat();
+        RingManager.BigRingRotationEvents.SortElementsByBeat();
 
-        RingManager.RingZoomEvents = SortLightsByBeat(RingManager.RingZoomEvents);
+        RingManager.RingZoomEvents.SortElementsByBeat();
 
         PopulateLaserRotationEventData();
         RingManager.PopulateRingEventData();
 
         UpdateLights(TimeManager.CurrentBeat);
-    }
-
-
-    private static List<T> SortLightsByBeat<T>(List<T> events) where T : LightEvent
-    {
-        return events.OrderBy(x => x.Beat).ToList();
     }
 
 

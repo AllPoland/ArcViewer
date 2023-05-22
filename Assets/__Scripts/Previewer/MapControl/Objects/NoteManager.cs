@@ -194,7 +194,13 @@ public class NoteManager : MapElementManager<Note>
             return;
         }
 
-        for(int i = GetStartIndex(TimeManager.CurrentTime); i < Objects.Count; i++)
+        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        if(startIndex < 0)
+        {
+            return;
+        }
+
+        for(int i = startIndex; i < Objects.Count; i++)
         {
             //Update each note's position
             Note n = Objects[i];

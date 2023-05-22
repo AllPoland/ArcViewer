@@ -51,14 +51,20 @@ public class BombManager : MapElementManager<Bomb>
 
     public override void UpdateVisuals()
     {
+        ClearOutsideVisuals();
+
         if(Objects.Count == 0)
         {
             return;
         }
 
-        ClearOutsideVisuals();
+        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        if(startIndex < 0)
+        {
+            return;
+        }
 
-        for(int i = GetStartIndex(TimeManager.CurrentTime); i < Objects.Count; i++)
+        for(int i = startIndex; i < Objects.Count; i++)
         {
             Bomb b = Objects[i];
             if(objectManager.CheckInSpawnRange(b.Time, true))

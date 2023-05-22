@@ -96,8 +96,14 @@ public class WallManager : MapElementManager<Wall>
             return;
         }
 
+        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        if(startIndex < 0)
+        {
+            return;
+        }
+
         float lastBeat = 0;
-        for(int i = GetStartIndex(TimeManager.CurrentTime); i < Objects.Count; i++)
+        for(int i = startIndex; i < Objects.Count; i++)
         {
             //Update each wall's position
             Wall w = Objects[i];
