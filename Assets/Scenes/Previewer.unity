@@ -8086,6 +8086,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 415920784}
+  - component: {fileID: 415920785}
   m_Layer: 0
   m_Name: Bombs
   m_TagString: Untagged
@@ -8108,6 +8109,19 @@ Transform:
   m_Father: {fileID: 776929601}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &415920785
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 415920783}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75ca9f39822894d488b36ccfba6bc7b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bombPool: {fileID: 505201299}
 --- !u!1 &422520095
 GameObject:
   m_ObjectHideFlags: 0
@@ -10137,9 +10151,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   notePool: {fileID: 1540820444}
-  bombPool: {fileID: 505201299}
-  noteParent: {fileID: 553573861}
-  bombParent: {fileID: 415920783}
   noteMesh: {fileID: -5495902117074765545, guid: 451f7d8238b6959439f0b6fd60de0394, type: 3}
   chainHeadMesh: {fileID: 5568284985898634363, guid: 49f457745cdf35649af59745d3d90eca, type: 3}
   complexMaterial: {fileID: 2100000, guid: 312d74011adf51f4e9515082ddbfc7b7, type: 2}
@@ -14151,6 +14162,7 @@ MonoBehaviour:
   behindCameraZ: -5
   objectFloorOffset: -0.6
   noteManager: {fileID: 553573863}
+  bombManager: {fileID: 415920785}
   wallManager: {fileID: 1101988759}
   chainManager: {fileID: 395449319}
   arcManager: {fileID: 716710649}
@@ -14190,10 +14202,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49bc897db11f064409a05629c45927af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  noteManager: {fileID: 553573863}
-  chainManager: {fileID: 395449319}
-  arcManager: {fileID: 716710649}
-  wallManager: {fileID: 1101988759}
 --- !u!114 &776929610
 MonoBehaviour:
   m_ObjectHideFlags: 0

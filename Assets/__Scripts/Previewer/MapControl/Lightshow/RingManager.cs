@@ -52,22 +52,6 @@ public class RingManager : MonoBehaviour
     }
 
 
-    public static void SetStaticRings()
-    {
-        RingRotationEventArgs eventArgs = new RingRotationEventArgs
-        {
-            events = new List<RingRotationEvent>(),
-            currentEventIndex = -1,
-            affectBigRings = false
-        };
-        OnRingRotationsChanged?.Invoke(eventArgs);
-        eventArgs.affectBigRings = true;
-        OnRingRotationsChanged?.Invoke(eventArgs);
-
-        OnRingZoomPositionChanged?.Invoke(StartRingZoomPosition);
-    }
-
-
     private static void UpdateRingZoom()
     {
         if(RingZoomEvents.Count == 0)
@@ -86,6 +70,22 @@ public class RingManager : MonoBehaviour
 
         RingZoomEvent current = RingZoomEvents[lastIndex];
         OnRingZoomPositionChanged?.Invoke(current.GetRingDist(TimeManager.CurrentTime));
+    }
+
+
+    public static void SetStaticRings()
+    {
+        RingRotationEventArgs eventArgs = new RingRotationEventArgs
+        {
+            events = new List<RingRotationEvent>(),
+            currentEventIndex = -1,
+            affectBigRings = false
+        };
+        OnRingRotationsChanged?.Invoke(eventArgs);
+        eventArgs.affectBigRings = true;
+        OnRingRotationsChanged?.Invoke(eventArgs);
+
+        OnRingZoomPositionChanged?.Invoke(StartRingZoomPosition);
     }
 
 

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Easings
 {
-    public class Sine
+    public static class Sine
     {
         public static float In(float x)
         {
@@ -21,7 +21,7 @@ public class Easings
     }
 
 
-    public class Expo
+    public static class Expo
     {
         public static float In(float x)
         {
@@ -35,14 +35,18 @@ public class Easings
 
         public static float InOut(float x)
         {
-            return x == 0 ? 0 : x == 1 ? 1 :
-                x < 0.5 ? Mathf.Pow(2, 20 * x - 10) / 2 :
-                (2 - Mathf.Pow(2, -20 * x + 10)) / 2;
+            return x == 0
+                ? 0
+                : x == 1
+                ? 1
+                : x < 0.5
+                ? Mathf.Pow(2, 20 * x - 10) / 2
+                : (2 - Mathf.Pow(2, -20 * x + 10)) / 2;
         }
     }
 
 
-    public class Quad
+    public static class Quad
     {
         public static float In(float x)
         {
@@ -61,7 +65,7 @@ public class Easings
     }
 
 
-    public class Cubic
+    public static class Cubic
     {
         public static float In(float x)
         {
@@ -80,7 +84,7 @@ public class Easings
     }
 
 
-    public class Quart
+    public static class Quart
     {
         public static float In(float x)
         {
@@ -95,6 +99,31 @@ public class Easings
         public static float InOut(float x)
         {
             return x < 0.5 ? 8 * x * x * x * x : 1 - Mathf.Pow(-2 * x + 2, 4) / 2;
+        }
+    }
+
+
+    public static class Back
+    {
+        private const float c1 = 1.70158f;
+        private const float c2 = c1 * 1.525f;
+        private const float c3 = c1 + 1f;
+
+        public static float In(float x)
+        {
+            return c3 * x * x * x - c1 * x * x;
+        }
+
+        public static float Out(float x)
+        {
+            return 1 + c3 * Mathf.Pow(x - 1, 3) + c1 * Mathf.Pow(x - 1, 2);
+        }
+
+        public static float InOut(float x)
+        {
+            return x < 0.5
+                ? (Mathf.Pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
+                : (Mathf.Pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
         }
     }
 }

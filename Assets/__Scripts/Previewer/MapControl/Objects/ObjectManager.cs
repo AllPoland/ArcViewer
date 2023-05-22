@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -15,6 +16,7 @@ public class ObjectManager : MonoBehaviour
 
     [Header("Managers")]
     public NoteManager noteManager;
+    public BombManager bombManager;
     public WallManager wallManager;
     public ChainManager chainManager;
     public ArcManager arcManager;
@@ -274,7 +276,7 @@ public class ObjectManager : MonoBehaviour
     {
         HitSoundManager.ClearScheduledSounds();
 
-        LoadMapObjects(difficulty.beatmapDifficulty, out noteManager.Notes, out noteManager.Bombs, out chainManager.Chains, out arcManager.Arcs, out wallManager.Walls);
+        LoadMapObjects(difficulty.beatmapDifficulty, out noteManager.Objects, out bombManager.Objects, out chainManager.Chains, out arcManager.Objects, out wallManager.Objects);
 
         noteManager.ReloadNotes();
         chainManager.ReloadChains();
@@ -285,19 +287,22 @@ public class ObjectManager : MonoBehaviour
 
     public void UpdateBeat(float currentBeat)
     {
-        noteManager.UpdateNoteVisuals(currentBeat);
-        wallManager.UpdateWallVisuals(currentBeat);
-        chainManager.UpdateChainVisuals(currentBeat);
-        arcManager.UpdateArcVisuals(currentBeat);
+        noteManager.UpdateVisuals();
+        bombManager.UpdateVisuals();
+        wallManager.UpdateVisuals();
+        chainManager.UpdateVisuals();
+        arcManager.UpdateVisuals();
     }
 
 
     public void UpdateColors()
     {
         HitSoundManager.ClearScheduledSounds();
+
         noteManager.UpdateMaterials();
-        chainManager.ClearRenderedLinks();
-        chainManager.UpdateChainVisuals(TimeManager.CurrentBeat);
+        chainManager.ClearRenderedVisuals();
+        chainManager.UpdateVisuals();
+
         arcManager.UpdateMaterials();
         wallManager.UpdateMaterial();
     }
@@ -596,4 +601,74 @@ public abstract class BaseSlider : MapObject
 
     public int Color;
     public Vector2 TailPosition;
+}
+
+
+public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
+{
+    public List<T> Objects = new List<T>();
+    public List<T> RenderedObjects = new List<T>();
+
+    public ObjectManager objectManager => ObjectManager.Instance;
+
+    public abstract void UpdateVisual(T visual);
+    public abstract bool VisualInSpawnRange(T visual);
+    public abstract void ReleaseVisual(T visual);
+    public abstract void UpdateVisuals();
+
+    private int LastStartIndex = 0;
+    private float LastStartTime = 0f;
+
+
+    public virtual void ClearOutsideVisuals()
+    {
+        for(int i = RenderedObjects.Count - 1; i >= 0; i--)
+        {
+            T visual = RenderedObjects[i];
+            if(!VisualInSpawnRange(visual))
+            {
+                ReleaseVisual(visual);
+                RenderedObjects.Remove(visual);
+            }
+        }
+    }
+
+
+    public void ClearRenderedVisuals()
+    {
+        foreach(T visual in RenderedObjects)
+        {
+            ReleaseVisual(visual);
+        }
+        RenderedObjects.Clear();
+    }
+
+
+    public int GetStartIndex(float currentTime)
+    {
+        if(currentTime < LastStartTime)
+        {
+            //We've gone back in time, so restart the search from the beginning
+            LastStartIndex = 0;
+        }
+        LastStartTime = currentTime;
+
+        while(LastStartIndex < Objects.Count)
+        {
+            if(VisualInSpawnRange(Objects[LastStartIndex]))
+            {
+                //We've found the first object in range
+                return LastStartIndex;
+            }
+            else if(Objects[LastStartIndex].Time > currentTime)
+            {
+                //We've gone past the search range
+                break;
+            }
+            
+            LastStartIndex++;
+        }
+
+        return LastStartIndex;
+    }
 }

@@ -1,45 +1,27 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ChainManager : MonoBehaviour
+public class ChainManager : MapElementManager<ChainLink>
 {
     [SerializeField] private ObjectPool<ChainLinkHandler> chainLinkPool;
 
     public List<Chain> Chains = new List<Chain>();
-    public List<ChainLink> ChainLinks = new List<ChainLink>();
-    public List<ChainLink> RenderedChainLinks = new List<ChainLink>();
-
-    private ObjectManager objectManager;
 
 
     public void ReloadChains()
     {
-        ClearRenderedLinks();
+        ClearRenderedVisuals();
         chainLinkPool.SetPoolSize(60);
 
-        ChainLinks.Clear();
+        Objects.Clear();
 
         foreach(Chain c in Chains)
         {
             CreateChainLinks(c);
         }
-        ChainLinks = ObjectManager.SortObjectsByBeat(ChainLinks);
+        Objects = ObjectManager.SortObjectsByBeat(Objects);
 
-        UpdateChainVisuals(TimeManager.CurrentBeat);
-    }
-
-
-
-    public static Vector2 QuadBezierPoint(Vector2 p0, Vector2 p1, Vector2 p2, float t)
-    {
-        return (Mathf.Pow(1 - t, 2) * p0) + (2 * (1 - t) * t * p1) + (Mathf.Pow(t, 2) * p2);
-    }
-
-
-    public static float AngleOnQuadBezier(Vector2 p0, Vector2 p1, Vector2 p2, float t)
-    {
-        Vector2 derivative = (2 * (1 - t) * (p1 - p0)) + (2 * t * (p2 - p1));
-        return Mathf.Rad2Deg * Mathf.Atan2(derivative.x, -derivative.y);
+        UpdateVisuals();
     }
 
 
@@ -67,7 +49,7 @@ public class ChainManager : MonoBehaviour
 
             //Calculate position based on the chain's bezier curve
             float t = timeProgress * c.Squish;
-            Vector2 linkPos = QuadBezierPoint(startPos, midPoint, endPos, t);
+            Vector2 linkPos = PointOnQuadBezier(startPos, midPoint, endPos, t);
             float linkAngle = AngleOnQuadBezier(startPos, midPoint, endPos, t);
 
             ChainLink newLink = new ChainLink
@@ -77,12 +59,12 @@ public class ChainManager : MonoBehaviour
                 Color = c.Color,
                 Angle = linkAngle
             };
-            ChainLinks.Add(newLink);
+            Objects.Add(newLink);
         }
     }
 
 
-    public void UpdateLinkVisual(ChainLink cl)
+    public override void UpdateVisual(ChainLink cl)
     {
         float reactionTime = BeatmapManager.ReactionTime;
         float jumpTime = TimeManager.CurrentTime + reactionTime;
@@ -138,7 +120,7 @@ public class ChainManager : MonoBehaviour
                 HitSoundManager.ScheduleHitsound(cl.Time, cl.source);
             }
 
-            RenderedChainLinks.Add(cl);
+            RenderedObjects.Add(cl);
         }
 
         cl.Visual.transform.localPosition = worldPos;
@@ -146,7 +128,13 @@ public class ChainManager : MonoBehaviour
     }
 
 
-    private void ReleaseChainLink(ChainLink cl)
+    public override bool VisualInSpawnRange(ChainLink cl)
+    {
+        return objectManager.CheckInSpawnRange(cl.Time);
+    }
+
+
+    public override void ReleaseVisual(ChainLink cl)
     {
         cl.source.Stop();
         chainLinkPool.ReleaseObject(cl.chainLinkHandler);
@@ -157,31 +145,11 @@ public class ChainManager : MonoBehaviour
     }
 
 
-    public void ClearRenderedLinks()
+    public override void ClearOutsideVisuals()
     {
-        if(RenderedChainLinks.Count <= 0)
+        for(int i = RenderedObjects.Count - 1; i >= 0; i--)
         {
-            return;
-        }
-
-        foreach(ChainLink cl in RenderedChainLinks)
-        {
-            ReleaseChainLink(cl);
-        }
-        RenderedChainLinks.Clear();
-    }
-
-
-    public void ClearOutsideLinks()
-    {
-        if(RenderedChainLinks.Count <= 0)
-        {
-            return;
-        }
-
-        for(int i = RenderedChainLinks.Count - 1; i >= 0; i--)
-        {
-            ChainLink cl = RenderedChainLinks[i];
+            ChainLink cl = RenderedObjects[i];
             if(!objectManager.CheckInSpawnRange(cl.Time))
             {
                 if(cl.source.isPlaying)
@@ -191,8 +159,8 @@ public class ChainManager : MonoBehaviour
                     continue;
                 }
 
-                ReleaseChainLink(cl);
-                RenderedChainLinks.Remove(cl);
+                ReleaseVisual(cl);
+                RenderedObjects.Remove(cl);
             }
             else if(!cl.chainLinkHandler.Visible)
             {
@@ -202,35 +170,31 @@ public class ChainManager : MonoBehaviour
     }
 
 
-    public void UpdateChainVisuals(float beat)
+    public override void UpdateVisuals()
     {
-        ClearOutsideLinks();
+        ClearOutsideVisuals();
 
-        if(ChainLinks.Count <= 0)
+        if(Objects.Count == 0)
         {
             return;
         }
 
-        int firstLink = ChainLinks.FindIndex(x => objectManager.CheckInSpawnRange(x.Time));
-        if(firstLink >= 0)
+        for(int i = GetStartIndex(TimeManager.CurrentTime); i < Objects.Count; i++)
         {
-            for(int i = firstLink; i < ChainLinks.Count; i++)
+            //Update each link's position
+            ChainLink cl = Objects[i];
+            if(objectManager.CheckInSpawnRange(cl.Time))
             {
-                //Update each link's position
-                ChainLink cl = ChainLinks[i];
-                if(objectManager.CheckInSpawnRange(cl.Time))
-                {
-                    UpdateLinkVisual(cl);
-                }
-                else break;
+                UpdateVisual(cl);
             }
+            else break;
         }
     }
 
 
     public void RescheduleHitsounds()
     {
-        foreach(ChainLink cl in RenderedChainLinks)
+        foreach(ChainLink cl in RenderedObjects)
         {
             if(cl.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0 && SettingsManager.GetFloat("chainvolume") > 0)
             {
@@ -240,9 +204,16 @@ public class ChainManager : MonoBehaviour
     }
 
 
-    private void Start()
+    public static Vector2 PointOnQuadBezier(Vector2 p0, Vector2 p1, Vector2 p2, float t)
     {
-        objectManager = ObjectManager.Instance;
+        return (Mathf.Pow(1 - t, 2) * p0) + (2 * (1 - t) * t * p1) + (Mathf.Pow(t, 2) * p2);
+    }
+
+
+    public static float AngleOnQuadBezier(Vector2 p0, Vector2 p1, Vector2 p2, float t)
+    {
+        Vector2 derivative = (2 * (1 - t) * (p1 - p0)) + (2 * t * (p2 - p1));
+        return Mathf.Rad2Deg * Mathf.Atan2(derivative.x, -derivative.y);
     }
 }
 
