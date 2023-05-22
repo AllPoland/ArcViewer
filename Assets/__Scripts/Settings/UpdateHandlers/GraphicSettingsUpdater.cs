@@ -76,6 +76,12 @@ public class GraphicSettingsUpdater : MonoBehaviour
         {
             urpAsset.renderScale = Mathf.Clamp(SettingsManager.GetFloat("renderscale"), 0.5f, 2f);
         }
+
+        if(allSettings || setting == "upscaling")
+        {
+            bool useUpscaling = SettingsManager.GetBool("upscaling");
+            urpAsset.upscalingFilter = useUpscaling ? UpscalingFilterSelection.FSR : UpscalingFilterSelection.Auto;
+        }
     }
 
 
