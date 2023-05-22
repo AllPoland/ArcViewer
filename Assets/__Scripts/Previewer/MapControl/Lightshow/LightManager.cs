@@ -39,8 +39,6 @@ public class LightManager : MonoBehaviour
     private static  Color lightColor2 => BoostActive ? colors.BoostLightColor2 : colors.LightColor2;
     private static Color whiteLightColor => BoostActive ? colors.BoostWhiteLightColor : colors.WhiteLightColor;
 
-    private static BeatmapColorBoostBeatmapEvent[] boostEvents => BeatmapManager.CurrentDifficulty.beatmapDifficulty.colorBoostBeatMapEvents;
-
     private static MaterialPropertyBlock lightProperties;
     private static MaterialPropertyBlock persistentLightProperties;
     private static MaterialPropertyBlock glowProperties;
@@ -91,6 +89,8 @@ public class LightManager : MonoBehaviour
         "Panic2Environment"
     };
 
+    private static MapElementList<BoostEvent> boostEvents = new MapElementList<BoostEvent>();
+
     public MapElementList<LightEvent> backLaserEvents = new MapElementList<LightEvent>();
     public MapElementList<LightEvent> ringEvents = new MapElementList<LightEvent>();
     public MapElementList<LightEvent> leftLaserEvents = new MapElementList<LightEvent>();
@@ -113,7 +113,8 @@ public class LightManager : MonoBehaviour
             return;
         }
 
-        BoostActive = boostEvents.LastOrDefault(x => x.b <= beat)?.o ?? false;
+        int lastBoostEvent = boostEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= beat);
+        BoostActive = lastBoostEvent >= 0 ? boostEvents[lastBoostEvent].Value : false;
 
         UpdateLightEventType(LightEventType.BackLasers, backLaserEvents);
         UpdateLightEventType(LightEventType.Rings, ringEvents);
@@ -437,6 +438,13 @@ public class LightManager : MonoBehaviour
         }
         else StaticLights = false;
 
+        boostEvents.Clear();
+        foreach(BeatmapColorBoostBeatmapEvent beatmapBoostEvent in newDifficulty.beatmapDifficulty.colorBoostBeatMapEvents)
+        {
+            boostEvents.Add(new BoostEvent(beatmapBoostEvent));
+        }
+        boostEvents.SortElementsByBeat();
+
         backLaserEvents.Clear();
         ringEvents.Clear();
         leftLaserEvents.Clear();
@@ -647,6 +655,19 @@ public class LaserSpeedEvent : LightEvent
             }
             rotationValues.Add(newData);
         }
+    }
+}
+
+
+public class BoostEvent : MapElement
+{
+    public bool Value;
+
+
+    public BoostEvent(BeatmapColorBoostBeatmapEvent beatmapBoostEvent)
+    {
+        Beat = beatmapBoostEvent.b;
+        Value = beatmapBoostEvent.o;
     }
 }
 
