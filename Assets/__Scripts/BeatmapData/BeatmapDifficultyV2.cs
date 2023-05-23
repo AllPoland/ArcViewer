@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 [Serializable]
 public class BeatmapDifficultyV2
@@ -155,6 +156,7 @@ public class BeatmapDifficultyV2
         List<BeatmapRotationEvent> rotationEvents = new List<BeatmapRotationEvent>();
         List<BeatmapBasicBeatmapEvent> basicBeatmapEvents = new List<BeatmapBasicBeatmapEvent>();
         List<BeatmapColorBoostBeatmapEvent> colorBoostBeatmapEvents = new List<BeatmapColorBoostBeatmapEvent>();
+        List<BeatmapBpmEvent> bpmEvents = new List<BeatmapBpmEvent>();
         foreach(BeatmapEventV2 e in _events)
         {
             if(e._type == 14 || e._type == 15)
@@ -182,6 +184,24 @@ public class BeatmapDifficultyV2
                     }
                 );
             }
+            else if(e._type == 100)
+            {
+                if(e._floatValue == null)
+                {
+                    Debug.LogWarning("V2 BPM event has no _floatValue!");
+                }
+                else
+                {
+                    bpmEvents.Add
+                    (
+                        new BeatmapBpmEvent
+                        {
+                            b = e._time,
+                            m = (float)e._floatValue
+                        }
+                    );
+                }
+            }
             else
             {
                 //Other event
@@ -200,6 +220,7 @@ public class BeatmapDifficultyV2
         converted.rotationEvents = rotationEvents.ToArray();
         converted.basicBeatMapEvents = basicBeatmapEvents.ToArray();
         converted.colorBoostBeatMapEvents = colorBoostBeatmapEvents.ToArray();
+        converted.bpmEvents = bpmEvents.ToArray();
 
         return converted;
     }
