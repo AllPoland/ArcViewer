@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public class MapElement
 {
@@ -20,7 +21,9 @@ public class MapElement
 
 public class MapElementList<T> : IEnumerable<T> where T : MapElement
 {
-    public List<T> Elements;
+    public bool IsSorted { get; private set; }
+
+    private List<T> Elements;
 
     private int lastStartIndex;
     private float lastStartTime;
@@ -28,6 +31,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     public MapElementList()
     {
         Elements = new List<T>();
+        IsSorted = true;
         lastStartIndex = 0;
         lastStartTime = 0f;
     }
@@ -35,14 +39,40 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     public MapElementList(List<T> convertList)
     {
         Elements = convertList;
+        IsSorted = Count <= 0;
         lastStartIndex = 0;
         lastStartTime = 0f;
     }
 
     public int Count => Elements.Count;
-    public void Add(T item) => Elements.Add(item);
-    public void AddRange(IEnumerable<T> collection) => Elements.AddRange(collection);
-    public void Clear() => Elements.Clear();
+
+
+    public void Add(T item)
+    {
+        //If the new item is in order, don't wanna bother resorting the whole list
+        IsSorted = Count == 0 || (IsSorted && item.Beat >= Elements.Last().Beat);
+        Elements.Add(item);
+    }
+
+
+    public void AddRange(IEnumerable<T> collection)
+    {
+        foreach(T item in collection)
+        {
+            //Use the custom Add() to tell if the list is sorted
+            Add(item);
+        }
+    }
+
+
+    public void Clear()
+    {
+        Elements.Clear();
+        //The elements are technically sorted if there are none :smil
+        IsSorted = true;
+    }
+
+
     public T this[int i]
     {
         get => Elements[i];
@@ -61,12 +91,19 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     public void SortElementsByBeat()
     {
         Elements = Elements.OrderBy(x => x.Beat).ToList();
+        IsSorted = true;
     }
 
 
     public int GetFirstIndex(float currentTime, CheckInRangeDelegate checkMethod)
     {
-        if(Elements.Count == 0)
+        if(!IsSorted)
+        {
+            Debug.LogWarning("Trying to find an index in an unsorted list!");
+            SortElementsByBeat();
+        }
+
+        if(Count == 0)
         {
             return -1;
         }
@@ -78,7 +115,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
         }
         lastStartTime = currentTime;
 
-        for(int i = lastStartIndex; i < Elements.Count; i++)
+        for(int i = lastStartIndex; i < Count; i++)
         {
             lastStartIndex = i;
 
@@ -100,6 +137,12 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
 
     public int GetLastIndex(float currentTime, CheckInRangeDelegate checkMethod)
     {
+        if(!IsSorted)
+        {
+            Debug.LogWarning("Trying to find an index in an unsorted list!");
+            SortElementsByBeat();
+        }
+
         if(Elements.Count == 0)
         {
             return -1;
