@@ -29,9 +29,7 @@ public class UIUpdater : MonoBehaviour
         previewScreen.SetActive(newState == UIState.Previewer);
         background.SetActive(newState == UIState.MapSelection);
         
-        DialogueHandler.Instance.SetInfoPanelActive(false);
-        DialogueHandler.Instance.SetSharePanelActive(false);
-        DialogueHandler.Instance.SetJumpSettingsPanelActive(false);
+        DialogueHandler.ClearExtraPopups();
     }
 
 
