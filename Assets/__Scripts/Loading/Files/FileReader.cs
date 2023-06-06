@@ -18,7 +18,7 @@ public class FileReader : IMapDataLoader
     public async Task<LoadedMap> GetMap()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-        throw new System.NotImplementedException("Loading from directory doesn't work in WebGL!");
+        throw new System.InvalidOperationException("Loading from directory doesn't work in WebGL!");
 #else
         LoadedMapData mapData = await GetMapData();
         if(mapData.Info == null)
@@ -57,11 +57,13 @@ public class FileReader : IMapDataLoader
         return new LoadedMap(mapData, coverImageData, song);
 #endif
     }
-#pragma warning restore 1998
 
 
     public async Task<LoadedMapData> GetMapData()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        throw new System.InvalidOperationException("Loading from directory doesn't work in WebGL!");
+#else
         Debug.Log("Loading info.");
         MapLoader.LoadingMessage = "Loading Info.dat";
         BeatmapInfo info = await Task.Run(() => LoadInfoAsync(Directory));
@@ -76,6 +78,7 @@ public class FileReader : IMapDataLoader
         List<Difficulty> difficulties = await Task.Run(() => DifficultyLoader.GetDifficultiesAsync(info, Directory));
 
         return new LoadedMapData(info, difficulties);
+#endif
     }
 
 
@@ -87,6 +90,9 @@ public class FileReader : IMapDataLoader
 
     private static async Task<BeatmapInfo> LoadInfoAsync(string directory)
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        throw new System.InvalidOperationException("Loading from directory doesn't work in WebGL!");
+#else
         string infoPath = Path.Combine(directory, "Info.dat");
 
         BeatmapInfo info = await JsonReader.LoadInfoAsync(infoPath);
@@ -94,11 +100,15 @@ public class FileReader : IMapDataLoader
 
         Debug.Log($"Loaded info for {info._songAuthorName} - {info._songName}, mapped by {info._levelAuthorName}");
         return info;
+#endif
     }
 
 
     private static byte[] LoadCoverImageData(string directory)
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        throw new System.InvalidOperationException("Loading from directory doesn't work in WebGL!");
+#else
         using Stream coverImageStream = FileUtil.ReadFileData(directory);
         if(coverImageStream != null)
         {
@@ -110,5 +120,6 @@ public class FileReader : IMapDataLoader
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Cover image not found!");
             return null;
         }
+#endif
     }
 }

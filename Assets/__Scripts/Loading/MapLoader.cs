@@ -275,6 +275,47 @@ public class MapLoader : MonoBehaviour
     }
 
 
+    public void LoadMapDirectory(string directory)
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        throw new InvalidOperationException("Loading from directory doesn't work on WebGL!");
+#else
+
+        if(directory.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+        {
+            if(!File.Exists(directory))
+            {
+                ErrorHandler.Instance.ShowPopup(ErrorType.Error, "That file doesn't exist!");
+                Debug.LogWarning("Trying to load a map from a file that doesn't exist!");
+                return;
+            }
+
+            LoadMapZip(directory);
+            HotReloader.loadedMapPath = directory;
+            return;
+        }
+
+        if(directory.EndsWith(".dat", StringComparison.OrdinalIgnoreCase))
+        {
+            //User is trying to load an unzipped map, get the parent directory
+            DirectoryInfo parentDir = Directory.GetParent(directory);
+            directory = parentDir.FullName;
+        }
+
+        if(!Directory.Exists(directory))
+        {
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "That directory doesn't exist!");
+            Debug.LogWarning("Trying to load a map from a directory that doesn't exist!");
+            return;
+        }
+
+        FileReader fileReader = new FileReader(directory);
+        StartCoroutine(LoadMapFileCoroutine(fileReader));
+        HotReloader.loadedMapPath = directory;
+#endif
+    }
+
+
     public void LoadMapInput(string input)
     {
         if(DialogueHandler.DialogueActive)
@@ -322,38 +363,7 @@ public class MapLoader : MonoBehaviour
         ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Invalid URL!");
 #else
         UrlArgHandler.LoadedMapURL = null;
-
-        if(input.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-        {
-            if(!File.Exists(input))
-            {
-                ErrorHandler.Instance.ShowPopup(ErrorType.Error, "That file doesn't exist!");
-                Debug.LogWarning("Trying to load a map from a file that doesn't exist!");
-                return;
-            }
-
-            LoadMapZip(input);
-            HotReloader.loadedMapPath = input;
-            return;
-        }
-
-        if(input.EndsWith(".dat", StringComparison.OrdinalIgnoreCase))
-        {
-            //User is trying to load an unzipped map, get the parent directory
-            DirectoryInfo parentDir = Directory.GetParent(input);
-            input = parentDir.FullName;
-        }
-
-        if(!Directory.Exists(input))
-        {
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "That directory doesn't exist!");
-            Debug.LogWarning("Trying to load a map from a directory that doesn't exist!");
-            return;
-        }
-
-        FileReader fileReader = new FileReader(input);
-        StartCoroutine(LoadMapFileCoroutine(fileReader));
-        HotReloader.loadedMapPath = input;
+        LoadMapDirectory(input);
 #endif
     }
 

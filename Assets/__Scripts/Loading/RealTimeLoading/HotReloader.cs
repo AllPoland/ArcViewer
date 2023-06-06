@@ -120,7 +120,7 @@ public class HotReloader : MonoBehaviour
     public void ReloadMap()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-        throw new InvalidOperationException("Hot reloading doesn't work in browser!");
+        throw new InvalidOperationException("Hot reloading doesn't work in WebGL!");
 #else
         if(Loading)
         {
