@@ -38,7 +38,7 @@ public class ArcManager : MapElementManager<Arc>
 
         //Sets the distance that arcs should fade out
         const float closeFadeDist = 0f;
-        const float fadeDistMultiplier = 0.9f;
+        const float fadeDistMultiplier = 0.8f;
         float fadeDist = BeatmapManager.JumpDistance / 2 * fadeDistMultiplier;
 
         redArcMaterialProperties.SetFloat("_FadeStartPoint", closeFadeDist);
@@ -91,8 +91,8 @@ public class ArcManager : MapElementManager<Arc>
             }
             else
             {
-                const float fadeSpeedMult = 0.85f;
-                float fullAlphaPos = BeatmapManager.JumpDistance * fadeSpeedMult;
+                const float fullAlphaTime = 0.8f;
+                float fullAlphaPos = BeatmapManager.JumpDistance / 2 * fullAlphaTime;
                 alpha *= 1f - Mathf.Clamp(zDist / fullAlphaPos, 0f, 1f);
             }
         }
