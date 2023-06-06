@@ -275,6 +275,8 @@ public class ObjectManager : MonoBehaviour
         chainManager.ReloadChains();
         arcManager.ReloadArcs();
         wallManager.ReloadWalls();
+
+        MapStats.UpdateNpsAndSpsValues();
     }
 
 

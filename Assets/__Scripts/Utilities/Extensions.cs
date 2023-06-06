@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO.Compression;
 using UnityEngine;
 
@@ -33,12 +34,33 @@ public static class Extensions
  
 
     ///<summary>
+    ///Acts as a wrapper for System.Math.Round() because the method is dumb and annoying and uses weird casting.
+    ///</summary>
+    public static float Round(this float f, int digits = 0)
+    {
+        return (float)Math.Round(f, digits);
+    }
+
+
+    ///<summary>
     ///Returns true if the values are very close. This is a more lenient version of Mathf.Approximately.
     ///</summary>
     public static bool Approximately(this float f, float x)
     {
         float diff = Mathf.Abs(f - x);
         return diff < 0.00001f;
+    }
+
+
+    ///<summary>
+    ///Removes any objects from the list matching the predicate, but only searching forward, with the search ending on the first object that doesn't match.
+    ///</summary>
+    public static void RemoveAllForward<T>(this List<T> list, Predicate<T> match)
+    {
+        while(list.Count > 0 && match(list[0]))
+        {
+            list.RemoveAt(0);
+        }
     }
 
 
