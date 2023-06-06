@@ -36,7 +36,7 @@ public class LightManager : MonoBehaviour
 
     private static ColorPalette colors => ColorManager.CurrentColors;
     private static Color lightColor1 => BoostActive ? colors.BoostLightColor1 : colors.LightColor1;
-    private static  Color lightColor2 => BoostActive ? colors.BoostLightColor2 : colors.LightColor2;
+    private static Color lightColor2 => BoostActive ? colors.BoostLightColor2 : colors.LightColor2;
     private static Color whiteLightColor => BoostActive ? colors.BoostWhiteLightColor : colors.WhiteLightColor;
 
     private static MaterialPropertyBlock lightProperties;
