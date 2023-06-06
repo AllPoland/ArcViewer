@@ -2,18 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class NoteManager : MonoBehaviour
+public class NoteManager : MapElementManager<Note>
 {
     public static Color RedNoteColor => ColorManager.CurrentColors.LeftNoteColor;
     public static Color BlueNoteColor => ColorManager.CurrentColors.RightNoteColor;
 
-    [Header("Object Pools")]
     [SerializeField] private ObjectPool<NoteHandler> notePool;
-    [SerializeField] private ObjectPool bombPool;
-
-    [Header("Object Parents")]
-    [SerializeField] private GameObject noteParent;
-    [SerializeField] private GameObject bombParent;
 
     [Header("Meshes")]
     [SerializeField] private Mesh noteMesh;
@@ -29,34 +23,23 @@ public class NoteManager : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float arrowGlowSaturation;
     [SerializeField] private float arrowEmission;
 
-    public List<Note> Notes = new List<Note>();
-    public List<Note> RenderedNotes = new List<Note>();
-
-    public List<Bomb> Bombs = new List<Bomb>();
-    public List<Bomb> RenderedBombs = new List<Bomb>();
-
     //These are all public so ChainManager can access them
     public MaterialPropertyBlock redNoteProperties;
     public MaterialPropertyBlock blueNoteProperties;
     public MaterialPropertyBlock redArrowProperties;
     public MaterialPropertyBlock blueArrowProperties;
 
-    private ObjectManager objectManager;
-
 
     public void ReloadNotes()
     {
-        ClearRenderedNotes();
-        notePool.SetPoolSize(40);
-        bombPool.SetPoolSize(40);
-
+        ClearRenderedVisuals();
         UpdateMaterials();
     }
 
 
     public void UpdateMaterials()
     {
-        ClearRenderedNotes();
+        ClearRenderedVisuals();
 
         redNoteProperties.SetColor("_BaseColor", RedNoteColor);
         blueNoteProperties.SetColor("_BaseColor", BlueNoteColor);
@@ -76,11 +59,11 @@ public class NoteManager : MonoBehaviour
         redArrowProperties.SetColor("_EmissionColor", RedNoteColor.SetHSV(null, arrowGlowSaturation * redS, arrowEmission, true));
         blueArrowProperties.SetColor("_EmissionColor", BlueNoteColor.SetHSV(null, arrowGlowSaturation * blueS, arrowEmission, true));
 
-        UpdateNoteVisuals(TimeManager.CurrentBeat);
+        UpdateVisuals();
     }
 
 
-    public void UpdateNoteVisual(Note n)
+    public override void UpdateVisual(Note n)
     {
         float reactionTime = BeatmapManager.ReactionTime;
 
@@ -131,7 +114,7 @@ public class NoteManager : MonoBehaviour
             n.noteHandler = notePool.GetObject();
             n.Visual = n.noteHandler.gameObject;
 
-            n.Visual.transform.SetParent(noteParent.transform);
+            n.Visual.transform.SetParent(transform);
             n.source = n.noteHandler.audioSource;
 
             n.noteHandler.SetMesh(n.IsChainHead ? chainHeadMesh : noteMesh);
@@ -150,7 +133,7 @@ public class NoteManager : MonoBehaviour
                 HitSoundManager.ScheduleHitsound(n.Time, n.source);
             }
 
-            RenderedNotes.Add(n);
+            RenderedObjects.Add(n);
         }
 
         n.Visual.transform.localPosition = worldPos;
@@ -158,30 +141,13 @@ public class NoteManager : MonoBehaviour
     }
 
 
-    public void UpdateBombVisual(Bomb b)
+    public override bool VisualInSpawnRange(Note n)
     {
-        float worldDist = objectManager.GetZPosition(b.Time);
-
-        Vector3 worldPos = new Vector3(b.Position.x, b.Position.y, worldDist);
-
-        if(objectManager.doMovementAnimation)
-        {
-            worldPos.y = objectManager.GetObjectY(b.StartY, worldPos.y, b.Time);
-        }
-
-        if(b.Visual == null)
-        {
-            b.Visual = bombPool.GetObject();
-            b.Visual.transform.SetParent(bombParent.transform);
-            b.Visual.SetActive(true);
-
-            RenderedBombs.Add(b);
-        }
-        b.Visual.transform.localPosition = worldPos;
+        return objectManager.CheckInSpawnRange(n.Time);
     }
 
 
-    private void ReleaseNote(Note n)
+    public override void ReleaseVisual(Note n)
     {
         n.source.Stop();
         notePool.ReleaseObject(n.noteHandler);
@@ -192,121 +158,62 @@ public class NoteManager : MonoBehaviour
     }
 
 
-    private void ReleaseBomb(Bomb b)
+    public override void ClearOutsideVisuals()
     {
-        bombPool.ReleaseObject(b.Visual);
-        b.Visual = null;
-    }
-
-
-    public void ClearOutsideNotes()
-    {
-        if(RenderedNotes.Count > 0)
+        for(int i = RenderedObjects.Count - 1; i >= 0; i--)
         {
-            for(int i = RenderedNotes.Count - 1; i >= 0; i--)
+            Note n = RenderedObjects[i];
+            if(!objectManager.CheckInSpawnRange(n.Time))
             {
-                Note n = RenderedNotes[i];
-                if(!objectManager.CheckInSpawnRange(n.Time))
+                if(n.source.isPlaying)
                 {
-                    if(n.source.isPlaying)
-                    {
-                        //Only clear the visual elements if the hitsound is still playing
-                        n.noteHandler.DisableVisual();
-                        continue;
-                    }
+                    //Only clear the visual elements if the hitsound is still playing
+                    n.noteHandler.DisableVisual();
+                    continue;
+                }
 
-                    ReleaseNote(n);
-                    RenderedNotes.Remove(n);
-                }
-                else if(!n.noteHandler.Visible)
-                {
-                    n.noteHandler.EnableVisual();
-                }
+                ReleaseVisual(n);
+                RenderedObjects.Remove(n);
             }
-        }
-
-        if(RenderedBombs.Count > 0)
-        {
-            for(int i = RenderedBombs.Count - 1; i >= 0; i--)
+            else if(!n.noteHandler.Visible)
             {
-                Bomb b = RenderedBombs[i];
-                if(!objectManager.CheckInSpawnRange(b.Time, true))
-                {
-                    ReleaseBomb(b);
-                    RenderedBombs.Remove(b);
-                }
+                n.noteHandler.EnableVisual();
             }
         }
     }
 
 
-    public void ClearRenderedNotes()
+    public override void UpdateVisuals()
     {
-        //Clear all rendered notes
-        if(RenderedNotes.Count > 0)
+        ClearOutsideVisuals();
+
+        if(Objects.Count == 0)
         {
-            foreach(Note n in RenderedNotes)
-            {
-                ReleaseNote(n);
-            }
-            RenderedNotes.Clear();
+            return;
         }
 
-        if(RenderedBombs.Count > 0)
+        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        if(startIndex < 0)
         {
-            foreach(Bomb b in RenderedBombs)
-            {
-                ReleaseBomb(b);
-            }
-            RenderedBombs.Clear();
-        }
-    }
-
-
-    public void UpdateNoteVisuals(float beat)
-    {
-        ClearOutsideNotes();
-
-        if(Notes.Count > 0)
-        {
-            int firstNote = Notes.FindIndex(x => objectManager.CheckInSpawnRange(x.Time));
-            if(firstNote >= 0)
-            {
-                for(int i = firstNote; i < Notes.Count; i++)
-                {
-                    //Update each note's position
-                    Note n = Notes[i];
-                    if(objectManager.CheckInSpawnRange(n.Time))
-                    {
-                        UpdateNoteVisual(n);
-                    }
-                    else break;
-                }
-            }
+            return;
         }
 
-        if(Bombs.Count > 0)
+        for(int i = startIndex; i < Objects.Count; i++)
         {
-            int firstBomb = Bombs.FindIndex(x => objectManager.CheckInSpawnRange(x.Time, true));
-            if(firstBomb >= 0)
+            //Update each note's position
+            Note n = Objects[i];
+            if(objectManager.CheckInSpawnRange(n.Time))
             {
-                for(int i = firstBomb; i < Bombs.Count; i++)
-                {
-                    Bomb b = Bombs[i];
-                    if(objectManager.CheckInSpawnRange(b.Time, true))
-                    {
-                        UpdateBombVisual(b);
-                    }
-                    else break;
-                }
+                UpdateVisual(n);
             }
+            else break;
         }
     }
 
 
     public void RescheduleHitsounds()
     {
-        foreach(Note n in RenderedNotes)
+        foreach(Note n in RenderedObjects)
         {
             if(n.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0)
             {
@@ -391,7 +298,7 @@ public class NoteManager : MonoBehaviour
 
         if(!(first.d == second.d || hasDot))
         {
-            //Notes must have the same direction
+            //Objects must have the same direction
             return null;
         }
 
@@ -475,12 +382,6 @@ public class NoteManager : MonoBehaviour
         redArrowProperties = new MaterialPropertyBlock();
         blueArrowProperties = new MaterialPropertyBlock();
     }
-
-
-    private void Start()
-    {
-        objectManager = ObjectManager.Instance;
-    }
 }
 
 
@@ -509,23 +410,6 @@ public class Note : HitSoundEmitter
             Angle = n.customData?.angle ?? angle,
             FlipStartX = position.x,
             IsDot = n.d == 8
-        };
-    }
-}
-
-
-public class Bomb : MapObject
-{
-    public float StartY;
-
-    public static Bomb BombFromBeatmapBombNote(BeatmapBombNote b)
-    {
-        Vector2 position = ObjectManager.CalculateObjectPosition(b.x, b.y, b.customData?.coordinates);
-
-        return new Bomb
-        {
-            Beat = b.b,
-            Position = position
         };
     }
 }

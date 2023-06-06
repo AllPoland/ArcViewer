@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class WebLoader : MonoBehaviour
+public class WebLoader
 {
     public const string CorsProxy = "https://cors.bsmg.dev/";
 
@@ -25,15 +25,15 @@ public class WebLoader : MonoBehaviour
     {
         if(WhitelistURLs.Any(x => url.StartsWith(x)))
         {
-            //The requested domain has CORS headers, so no need for a proxy
             return url;
         }
 
+        Debug.Log($"Downloading via CORS proxy.");
         return CorsProxy + url;
     }
 
 
-    public static async Task<Stream> LoadMapURL(string url)
+    public static async Task<Stream> LoadMapURL(string url, bool noProxy)
     {
         await Task.Yield();
 
@@ -42,23 +42,30 @@ public class WebLoader : MonoBehaviour
         if(!url.EndsWith(".zip"))
         {
             ErrorHandler.Instance?.QueuePopup(ErrorType.Error, "The url doesn't link to a zip!");
-            Debug.Log("Attempted to load a map from a non-zip url.");
+            Debug.LogWarning("Attempted to load a map from a non-zip url.");
             return stream;
         }
 
-        stream = await StreamFromURL(url);
+        stream = await StreamFromURL(url, noProxy);
 
         return stream;
     }
 
 
-    public static async Task<MemoryStream> StreamFromURL(string url)
+    public static async Task<MemoryStream> StreamFromURL(string url, bool noProxy)
     {
         MapLoader.Progress = 0;
         DownloadSize = 0;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-        url = GetCorsURL(url);
+        if(!noProxy)
+        {
+            url = GetCorsURL(url);
+        }
+        else
+        {
+            Debug.Log("CORS proxy is disabled.");
+        }
 #endif
 
         try

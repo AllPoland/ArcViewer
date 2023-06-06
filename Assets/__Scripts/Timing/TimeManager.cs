@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class TimeManager : MonoBehaviour
 {
-    public static float BPM => BeatmapManager.Info._beatsPerMinute;
+    public static float BaseBPM => BeatmapManager.Info._beatsPerMinute;
     public static float TimeScale = 1f;
 
     public static List<BpmChange> BpmChanges = new List<BpmChange>();
@@ -48,14 +48,14 @@ public class TimeManager : MonoBehaviour
         {
             if(BpmChanges.Count == 0)
             {
-                return BPM;
+                return BaseBPM;
             }
 
             BpmChange lastChange = BpmChanges.FindLast(x => x.Beat < CurrentBeat);
             if(lastChange.BPM <= 0)
             {
                 //Failsafe in the event that no BPM change is found
-                return BPM;
+                return BaseBPM;
             }
             return lastChange.BPM;
         }
@@ -66,7 +66,7 @@ public class TimeManager : MonoBehaviour
     {
         if(BpmChanges.Count == 0)
         {
-            return RawTimeFromBeat(beat, BPM);
+            return RawTimeFromBeat(beat, BaseBPM);
         }
 
         BpmChange lastChange = BpmChanges.FindLast(x => x.Beat < beat);
@@ -78,7 +78,7 @@ public class TimeManager : MonoBehaviour
     {
         if(BpmChanges.Count == 0)
         {
-            return RawBeatFromTime(time, BPM);
+            return RawBeatFromTime(time, BaseBPM);
         }
 
         BpmChange lastChange = BpmChanges.FindLast(x => x.Time < time);
@@ -157,7 +157,7 @@ public class TimeManager : MonoBehaviour
         //Calculate the time of each change and populate the BpmChanges list
         float currentTime = 0;
         float lastBeat = 0;
-        float lastBpm = BPM;
+        float lastBpm = BaseBPM;
         foreach(BeatmapBpmEvent bpmEvent in bpmEvents)
         {
             currentTime += RawTimeFromBeat(bpmEvent.b - lastBeat, lastBpm);

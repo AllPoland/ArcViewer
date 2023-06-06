@@ -8,11 +8,12 @@ public class DialogueHandler : MonoBehaviour
 
     public static List<DialogueBox> OpenBoxes = new List<DialogueBox>();
     public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy || Instance.staticLightsWarningPanel.activeInHierarchy;
-    public static bool PopupActive => DialogueActive || Instance.sharePanel.activeInHierarchy || Instance.jumpSettingsPanel.activeInHierarchy;
+    public static bool PopupActive => DialogueActive || Instance.sharePanel.activeInHierarchy || Instance.jumpSettingsPanel.activeInHierarchy || Instance.statsPanel.activeInHierarchy;
 
     public GameObject infoPanel;
     public GameObject sharePanel;
     public GameObject jumpSettingsPanel;
+    public GameObject statsPanel;
     public GameObject staticLightsWarningPanel;
 
     [SerializeField] private GameObject dialogueBoxPrefab;
@@ -51,6 +52,12 @@ public class DialogueHandler : MonoBehaviour
     }
 
 
+    public void SetStatsPanelActive(bool active)
+    {
+        statsPanel.SetActive(active);
+    }
+
+
     public static void ClearDialogueBoxes()
     {
         for(int i = OpenBoxes.Count - 1; i >= 0; i--)
@@ -58,8 +65,16 @@ public class DialogueHandler : MonoBehaviour
             OpenBoxes[i].Close();
         }
 
+        ClearExtraPopups();
+    }
+
+
+    public static void ClearExtraPopups()
+    {
         Instance.SetInfoPanelActive(false);
         Instance.SetSharePanelActive(false);
+        Instance.SetJumpSettingsPanelActive(false);
+        Instance.SetStatsPanelActive(false);
     }
 
 
@@ -91,6 +106,12 @@ public class DialogueHandler : MonoBehaviour
                 if(jumpSettingsPanel.activeInHierarchy)
                 {
                     SetJumpSettingsPanelActive(false);
+                    return;
+                }
+
+                if(statsPanel.activeInHierarchy)
+                {
+                    SetStatsPanelActive(false);
                     return;
                 }
             }

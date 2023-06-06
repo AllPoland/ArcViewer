@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using UnityEngine;
 
-public class WallManager : MonoBehaviour
+public class WallManager : MapElementManager<Wall>
 {
     public static Color WallColor => ColorManager.CurrentColors.WallColor;
 
@@ -10,32 +9,25 @@ public class WallManager : MonoBehaviour
     [SerializeField] private GameObject wallParent;
 
     [Header("Parameters")]
-    [SerializeField] private Material wallMaterial;
     [SerializeField, Range(0f, 1f)] private float wallLightness;
     [SerializeField] private float wallEmission;
     [SerializeField, Range(0f, 1f)] private float edgeSaturation;
     [SerializeField] private float edgeEmission;
 
-    public List<Wall> Walls = new List<Wall>();
-    public List<Wall> RenderedWalls = new List<Wall>();
-
-    private ObjectManager objectManager;
     private MaterialPropertyBlock wallMaterialProperties;
     private MaterialPropertyBlock wallEdgeProperties;
 
 
     public void ReloadWalls()
     {
-        ClearRenderedWalls();
-        wallPool.SetPoolSize(40);
-
-        UpdateWallVisuals(TimeManager.CurrentBeat);
+        ClearRenderedVisuals();
+        UpdateVisuals();
     }
 
 
     public void UpdateMaterial()
     {
-        ClearRenderedWalls();
+        ClearRenderedVisuals();
 
         float h, s, v;
         Color.RGBToHSV(WallColor, out h, out s, out v);
@@ -48,11 +40,11 @@ public class WallManager : MonoBehaviour
         wallEdgeProperties.SetColor("_BaseColor", newColor.SetSaturation(s * edgeSaturation));
         wallEdgeProperties.SetColor("_EmissionColor", newColor.SetHSV(h, s * edgeSaturation, edgeEmission, true));
 
-        UpdateWallVisuals(TimeManager.CurrentBeat);
+        UpdateVisuals();
     }
 
 
-    public void UpdateWallVisual(Wall w)
+    public override void UpdateVisual(Wall w)
     {
         float wallLength = objectManager.WorldSpaceFromTime(w.DurationTime);
 
@@ -69,18 +61,23 @@ public class WallManager : MonoBehaviour
             w.Visual.transform.SetParent(wallParent.transform);
             w.Visual.SetActive(true);
 
-            //Wall scale only needs to be set once when it's created
             w.wallHandler.SetScale(new Vector3(w.Width, w.Height, wallLength));
             w.wallHandler.SetProperties(wallMaterialProperties);
             w.wallHandler.SetEdgeProperties(wallEdgeProperties);
 
-            RenderedWalls.Add(w);
+            RenderedObjects.Add(w);
         }
         w.Visual.transform.localPosition = new Vector3(w.Position.x, w.Position.y, worldDist);
     }
 
 
-    private void ReleaseWall(Wall w)
+    public override bool VisualInSpawnRange(Wall w)
+    {
+        return objectManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime);
+    }
+
+
+    public override void ReleaseVisual(Wall w)
     {
         wallPool.ReleaseObject(w.wallHandler);
         w.Visual = null;
@@ -88,68 +85,37 @@ public class WallManager : MonoBehaviour
     }
 
 
-    public void ClearOutsideWalls()
+    public override void UpdateVisuals()
     {
-        if(RenderedWalls.Count <= 0)
+        ClearOutsideVisuals();
+
+        if(Objects.Count == 0)
         {
             return;
         }
 
-        for(int i = RenderedWalls.Count - 1; i >= 0; i--)
+        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        if(startIndex < 0)
         {
-            Wall w = RenderedWalls[i];
-            if(!objectManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime))
+            return;
+        }
+
+        float lastBeat = 0;
+        for(int i = startIndex; i < Objects.Count; i++)
+        {
+            //Update each wall's position
+            Wall w = Objects[i];
+            if(objectManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime))
             {
-                ReleaseWall(w);
-                RenderedWalls.Remove(w);
+                UpdateVisual(w);
+                lastBeat = w.Beat + w.DurationBeats;
             }
-        }
-    }
-
-
-    public void ClearRenderedWalls()
-    {
-        if(RenderedWalls.Count <= 0)
-        {
-            return;
-        }
-
-        foreach(Wall w in RenderedWalls)
-        {
-            ReleaseWall(w);
-        }
-        RenderedWalls.Clear();
-    }
-
-
-    public void UpdateWallVisuals(float beat)
-    {
-        ClearOutsideWalls();
-
-        if(Walls.Count <= 0)
-        {
-            return;
-        }
-
-        int firstWall = Walls.FindIndex(x => objectManager.DurationObjectInSpawnRange(x.Time, x.Time + x.DurationTime));
-        if(firstWall >= 0)
-        {
-            float lastBeat = 0;
-            for(int i = firstWall; i < Walls.Count; i++)
+            else if(w.DurationBeats <= w.Beat - lastBeat)
             {
-                //Update each wall's position
-                Wall w = Walls[i];
-                if(objectManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime))
-                {
-                    UpdateWallVisual(w);
-                    lastBeat = w.Beat + w.DurationBeats;
-                }
-                else if(w.DurationBeats <= w.Beat - lastBeat)
-                {
-                    //Continue looping if this wall overlaps in time with another
-                    //This avoids edge cases where two walls that are close, with one ending before the other causes later walls to not update
-                    break;
-                }
+                //Continue looping if this wall overlaps in time with another
+                //This avoids edge cases where two walls that overlap,
+                //with one starting and ending before the other, causes later walls to not update
+                break;
             }
         }
     }
@@ -203,12 +169,6 @@ public class WallManager : MonoBehaviour
     {
         wallMaterialProperties = new MaterialPropertyBlock();
         wallEdgeProperties = new MaterialPropertyBlock();
-    }
-
-
-    private void Start()
-    {
-        objectManager = ObjectManager.Instance;
     }
 }
 

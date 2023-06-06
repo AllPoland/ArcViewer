@@ -8,14 +8,13 @@ public class ObjectPool : MonoBehaviour
 
     public int PoolSize { get; private set; }
 
-    [SerializeField] GameObject prefab;
+    [SerializeField] private GameObject prefab;
+    [SerializeField] private int startSize;
 
 
     public void SetPoolSize(int newSize)
     {
         //This will set the target size of the pool, adding or removing objects as necessary to reach that size
-        //This is much safer than ClearPool() because it will not remove objects in ActiveObjects
-        //Instead, it will continue removing objects from AvailableObjects as they are released until the target size is reached
         PoolSize = newSize;
         AttemptMatchPoolSize();
     }
@@ -125,5 +124,11 @@ public class ObjectPool : MonoBehaviour
         {
             AttemptMatchPoolSize();
         }
+    }
+
+
+    private void Start()
+    {
+        SetPoolSize(startSize);
     }
 }

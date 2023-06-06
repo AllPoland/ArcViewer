@@ -15,6 +15,7 @@ public class ObjectManager : MonoBehaviour
 
     [Header("Managers")]
     public NoteManager noteManager;
+    public BombManager bombManager;
     public WallManager wallManager;
     public ChainManager chainManager;
     public ArcManager arcManager;
@@ -65,12 +66,6 @@ public class ObjectManager : MonoBehaviour
     };
 
     public float BehindCameraTime => TimeFromWorldspace(behindCameraZ);
-
-
-    public static List<T> SortObjectsByBeat<T>(List<T> objects) where T : MapObject
-    {
-        return objects.OrderBy(x => x.Beat).ToList();
-    }
 
 
     public static bool CheckSameBeat(float beat1, float beat2)
@@ -274,30 +269,35 @@ public class ObjectManager : MonoBehaviour
     {
         HitSoundManager.ClearScheduledSounds();
 
-        LoadMapObjects(difficulty.beatmapDifficulty, out noteManager.Notes, out noteManager.Bombs, out chainManager.Chains, out arcManager.Arcs, out wallManager.Walls);
+        LoadMapObjects(difficulty.beatmapDifficulty, out noteManager.Objects, out bombManager.Objects, out chainManager.Chains, out arcManager.Objects, out wallManager.Objects);
 
         noteManager.ReloadNotes();
         chainManager.ReloadChains();
         arcManager.ReloadArcs();
         wallManager.ReloadWalls();
+
+        MapStats.UpdateNpsAndSpsValues();
     }
 
 
     public void UpdateBeat(float currentBeat)
     {
-        noteManager.UpdateNoteVisuals(currentBeat);
-        wallManager.UpdateWallVisuals(currentBeat);
-        chainManager.UpdateChainVisuals(currentBeat);
-        arcManager.UpdateArcVisuals(currentBeat);
+        noteManager.UpdateVisuals();
+        bombManager.UpdateVisuals();
+        wallManager.UpdateVisuals();
+        chainManager.UpdateVisuals();
+        arcManager.UpdateVisuals();
     }
 
 
     public void UpdateColors()
     {
         HitSoundManager.ClearScheduledSounds();
+
         noteManager.UpdateMaterials();
-        chainManager.ClearRenderedLinks();
-        chainManager.UpdateChainVisuals(TimeManager.CurrentBeat);
+        chainManager.ClearRenderedVisuals();
+        chainManager.UpdateVisuals();
+
         arcManager.UpdateMaterials();
         wallManager.UpdateMaterial();
     }
@@ -325,7 +325,7 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public static void LoadMapObjects(BeatmapDifficulty beatmapDifficulty, out List<Note> notes, out List<Bomb> bombs, out List<Chain> chains, out List<Arc> arcs, out List<Wall> walls)
+    public static void LoadMapObjects(BeatmapDifficulty beatmapDifficulty, out MapElementList<Note> notes, out MapElementList<Bomb> bombs, out MapElementList<Chain> chains, out MapElementList<Arc> arcs, out MapElementList<Wall> walls)
     {
         // split arcs into heads and tails for easier processing
         List<BeatmapSliderEnd> beatmapSliderHeads = new List<BeatmapSliderEnd>();
@@ -379,11 +379,11 @@ public class ObjectManager : MonoBehaviour
         allObjects.AddRange(beatmapSliderTails);
         allObjects = allObjects.OrderBy(x => x.b).ToList();
 
-        notes = new List<Note>();
-        bombs = new List<Bomb>();
-        chains = new List<Chain>();
-        arcs = new List<Arc>();
-        walls = new List<Wall>();
+        notes = new MapElementList<Note>();
+        bombs = new MapElementList<Bomb>();
+        chains = new MapElementList<Chain>();
+        arcs = new MapElementList<Arc>();
+        walls = new MapElementList<Wall>();
 
         List<BeatmapObject> sameBeatObjects = new List<BeatmapObject>();
         for(int i = 0; i < allObjects.Count; i++)
@@ -596,4 +596,45 @@ public abstract class BaseSlider : MapObject
 
     public int Color;
     public Vector2 TailPosition;
+}
+
+
+public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
+{
+    public MapElementList<T> Objects = new MapElementList<T>();
+    public List<T> RenderedObjects = new List<T>();
+
+    public ObjectManager objectManager => ObjectManager.Instance;
+
+    public abstract void UpdateVisual(T visual);
+    public abstract bool VisualInSpawnRange(T visual);
+    public abstract void ReleaseVisual(T visual);
+    public abstract void UpdateVisuals();
+
+
+    public virtual void ClearOutsideVisuals()
+    {
+        for(int i = RenderedObjects.Count - 1; i >= 0; i--)
+        {
+            T visual = RenderedObjects[i];
+            if(!VisualInSpawnRange(visual))
+            {
+                ReleaseVisual(visual);
+                RenderedObjects.Remove(visual);
+            }
+        }
+    }
+
+
+    public void ClearRenderedVisuals()
+    {
+        foreach(T visual in RenderedObjects)
+        {
+            ReleaseVisual(visual);
+        }
+        RenderedObjects.Clear();
+    }
+
+
+    public int GetStartIndex(float currentTime) => Objects.GetFirstIndex(currentTime, VisualInSpawnRange);
 }

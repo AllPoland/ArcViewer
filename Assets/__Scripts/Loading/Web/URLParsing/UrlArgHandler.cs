@@ -44,71 +44,60 @@ public class UrlArgHandler : MonoBehaviour
 
     private static string mapID;
     private static string mapURL;
+    private static string mapPath;
     private static float startTime;
     private static DifficultyCharacteristic? mode;
     private static DifficultyRank? diffRank;
+    private static bool noProxy;
 
     [SerializeField] private MapLoader mapLoader;
 
 
-    public void LoadMapFromParameters(string parameters)
+    private void ParseParameter(string parameter)
     {
-        mapID = "";
-        mapURL = "";
-        startTime = 0;
-        mode = null;
-        diffRank = null;
-
-        if(MapLoader.Loading) return;
-
-        //Remove the ? from the start of the parameters
-        parameters = parameters.TrimStart('?');
-
-        string[] args = parameters.Split('&');
-        if(args.Length <= 0) return;
-
-        for(int i = 0; i < args.Length; i++)
+        string[] args = parameter.Split('=');
+        if(args.Length != 2)
         {
-            string arg = args[i];
-
-            //Check for a single = in the argument
-            if(arg.Count(x => x == '=') != 1)
-            {
-                continue;
-            }
-
-            //Split the argument into its name and value
-            string[] elements = arg.Split('=');
-            string name = elements[0];
-            string value = elements[1];
-
-            //Define this bool here because for some reason each case shares scope
-            bool success = false;
-            switch(name)
-            {
-                case "id":
-                    mapID = value;
-                    break;
-                case "url":
-                    mapURL = value;
-                    break;
-                case "t":
-                    success = float.TryParse(value, out startTime);
-                    if(!success) startTime = 0;
-                    break;
-                case "mode":
-                    DifficultyCharacteristic parsedMode;
-                    success = Enum.TryParse(value, true, out parsedMode);
-                    mode = success ? parsedMode : null;
-                    break;
-                case "difficulty":
-                    DifficultyRank parsedRank;
-                    success = Enum.TryParse(value, true, out parsedRank);
-                    diffRank = success ? parsedRank : null;
-                    break;
-            }
+            //A parameter should always have a single `=`, leading to two args
+            return;
         }
 
+        string name = args[0];
+        string value = args[1];
+        switch(name)
+        {
+            case "id":
+                mapID = value;
+                break;
+            case "url":
+                mapURL = value;
+                break;
+            case "t":
+                if(!float.TryParse(value, out startTime)) startTime = 0;
+                break;
+            case "mode":
+                DifficultyCharacteristic parsedMode;
+                mode = Enum.TryParse(value, true, out parsedMode) ? parsedMode : null;
+                break;
+            case "difficulty":
+                DifficultyRank parsedRank;
+                diffRank = Enum.TryParse(value, true, out parsedRank) ? parsedRank : null;
+                break;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            case "noProxy":
+                noProxy = bool.TryParse(value, out noProxy) ? noProxy : false;
+                break;
+#else
+            case "path":
+                mapPath = value;
+                break;
+#endif
+        }
+    }
+
+
+    private void ApplyArguments()
+    {
         bool autoLoad = false;
         if(!string.IsNullOrEmpty(mapID))
         {
@@ -119,11 +108,18 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
-            StartCoroutine(mapLoader.LoadMapURLCoroutine(mapURL));
+            StartCoroutine(mapLoader.LoadMapURLCoroutine(mapURL, null, noProxy));
             LoadedMapURL = mapURL;
 
             autoLoad = true;
         }
+#if !UNITY_WEBGL || UNITY_EDITOR
+        else if(!string.IsNullOrEmpty(mapPath))
+        {
+            mapLoader.LoadMapDirectory(mapPath);
+            autoLoad = true;
+        }
+#endif
 
         if(autoLoad)
         {
@@ -138,6 +134,54 @@ public class UrlArgHandler : MonoBehaviour
                 MapLoader.OnMapLoaded += SetDifficulty;
             }
         }
+    }
+
+
+    public void LoadMapFromURLParameters(string parameters)
+    {
+        ResetArguments();
+
+        if(MapLoader.Loading)
+        {
+            return;
+        }
+
+        //URL arguments start with a `?`
+        parameters = parameters.TrimStart('?');
+
+        string[] args = parameters.Split('&');
+        if(args.Length <= 0) return;
+
+        for(int i = 0; i < args.Length; i++)
+        {
+            ParseParameter(args[i]);
+        }
+
+        ApplyArguments();
+    }
+
+
+    public void LoadMapFromCommandLineParameters(string[] parameters)
+    {
+        ResetArguments();
+
+        if(MapLoader.Loading)
+        {
+            return;
+        }
+
+        if(parameters.Length <= 1)
+        {
+            //The first parameter is always the app name, so it shouldn't be counted
+            return;
+        }
+
+        for(int i = 1; i < parameters.Length; i++)
+        {
+            ParseParameter(parameters[i]);
+        }
+
+        ApplyArguments();
     }
 
 
@@ -173,6 +217,18 @@ public class UrlArgHandler : MonoBehaviour
             BeatmapManager.CurrentDifficulty = difficulty ?? difficulties.Last();
         }
         MapLoader.OnMapLoaded -= SetDifficulty;
+    }
+
+
+    public void ResetArguments()
+    {
+        mapID = "";
+        mapURL = "";
+        mapPath = "";
+        startTime = 0;
+        mode = null;
+        diffRank = null;
+        noProxy = false;
     }
 
 
@@ -238,10 +294,19 @@ public class UrlArgHandler : MonoBehaviour
 
         if(!string.IsNullOrEmpty(parameters))
         {
-            LoadMapFromParameters(parameters);
+            LoadMapFromURLParameters(parameters);
         }
 
         BeatmapManager.OnBeatmapInfoChanged += UpdateMapTitle;
+#else
+        try
+        {
+            LoadMapFromCommandLineParameters(Environment.GetCommandLineArgs());
+        }
+        catch(NotSupportedException)
+        {
+            Debug.LogWarning("The system doesn't support command-line arguments!");
+        }
 #endif
         MapLoader.OnLoadingFailed += ClearSubscriptions;
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateLoadedDifficulty;

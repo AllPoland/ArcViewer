@@ -27,7 +27,7 @@ public class MapDirectoryInput : MonoBehaviour
             {
                 //URL contains one question mark, which means it has parameters
                 string parameters = MapDirectory.Split('?').Last();
-                urlArgHandler.LoadMapFromParameters(parameters);
+                urlArgHandler.LoadMapFromURLParameters(parameters);
                 return;
             }
         }

@@ -1,13 +1,9 @@
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class ArcManager : MonoBehaviour
+public class ArcManager : MapElementManager<Arc>
 {
     public static float ArcSegmentDensity => SettingsManager.GetInt("arcdensity");
-
-    public List<Arc> Arcs = new List<Arc>();
-    public List<Arc> RenderedArcs = new List<Arc>();
 
     [Header("Components")]
     [SerializeField] private ObjectPool<ArcHandler> arcPool;
@@ -22,8 +18,6 @@ public class ArcManager : MonoBehaviour
     [SerializeField] private float headlessArcFadeBeats;
     [SerializeField] private float arcAnimationSpeed;
 
-    private static ObjectManager objectManager;
-
     private Color redArcColor => NoteManager.RedNoteColor;
     private Color blueArcColor => NoteManager.BlueNoteColor;
 
@@ -33,20 +27,18 @@ public class ArcManager : MonoBehaviour
 
     public void ReloadArcs()
     {
-        ClearRenderedArcs();
-        arcPool.SetPoolSize(20);
-
+        ClearRenderedVisuals();
         UpdateMaterials();
     }
 
 
     public void UpdateMaterials()
     {
-        ClearRenderedArcs();
+        ClearRenderedVisuals();
 
         //Sets the distance that arcs should fade out
         const float closeFadeDist = 0f;
-        const float fadeDistMultiplier = 0.9f;
+        const float fadeDistMultiplier = 0.8f;
         float fadeDist = BeatmapManager.JumpDistance / 2 * fadeDistMultiplier;
 
         redArcMaterialProperties.SetFloat("_FadeStartPoint", closeFadeDist);
@@ -60,7 +52,123 @@ public class ArcManager : MonoBehaviour
         redArcMaterialProperties.SetColor("_BaseColor", redArcColor);
         blueArcMaterialProperties.SetColor("_BaseColor", blueArcColor);
 
-        UpdateArcVisuals(TimeManager.CurrentBeat);
+        UpdateVisuals();
+    }
+
+
+    public override void UpdateVisual(Arc a)
+    {
+        float zDist = objectManager.GetZPosition(a.Time);
+
+        if(a.Visual == null)
+        {
+            a.arcHandler = arcPool.GetObject();
+            a.Visual = a.arcHandler.gameObject;
+
+            a.Visual.transform.SetParent(arcParent.transform);
+            a.Visual.SetActive(true);
+
+            a.arcHandler.SetMaterial(arcMaterial, a.Color == 0 ? redArcMaterialProperties : blueArcMaterialProperties);
+
+            a.CalculateBaseCurve();
+            a.arcHandler.SetArcPoints(a.BaseCurve);
+            a.arcHandler.SetGradient(a.CurveLength, arcEndFadeStart, arcEndFadeEnd);
+            a.arcHandler.SetWidth(SettingsManager.GetFloat("arcwidth") / 2);
+
+            RenderedObjects.Add(a);
+        }
+
+        bool fadeAnimation = SettingsManager.GetBool("arcfadeanimation");
+        bool textureAnimation = SettingsManager.GetBool("arctextureanimation");
+
+        float alpha = SettingsManager.GetFloat("arcbrightness");
+        if(fadeAnimation)
+        {
+            if(!a.HasHeadAttachment)
+            {
+                float beatDifference = TimeManager.CurrentBeat - a.Beat;
+                alpha *= Mathf.Clamp(beatDifference / headlessArcFadeBeats, 0f, 1f);
+            }
+            else
+            {
+                const float fullAlphaTime = 0.8f;
+                float fullAlphaPos = BeatmapManager.JumpDistance / 2 * fullAlphaTime;
+                alpha *= 1f - Mathf.Clamp(zDist / fullAlphaPos, 0f, 1f);
+            }
+        }
+
+        //This arbitrary starting value is just a default for when animations are disabled
+        //I picked this because it's a fairly balanced, decent looking variation
+        float textureOffset = 0.509f;
+        if(textureAnimation)
+        {
+            float timeDifference = TimeManager.CurrentTime - a.Time;
+            float startValue = a.Beat + a.HeadAngle + a.Position.x + a.Position.y;
+            textureOffset = startValue + (timeDifference * arcAnimationSpeed);
+            textureOffset %= 1f;
+        }
+
+        a.arcHandler.SetProperties(alpha, textureOffset);
+
+        if(objectManager.doMovementAnimation)
+        {
+            float headOffsetY = objectManager.GetObjectY(a.HeadStartY, a.Position.y, a.Time) - a.Position.y;
+            float tailOffsetY = objectManager.GetObjectY(a.TailStartY, a.TailPosition.y, a.TailTime) - a.TailPosition.y;
+
+            a.arcHandler.SetArcPoints(GetArcSpawnAnimationOffset(a.BaseCurve, headOffsetY, tailOffsetY)); // arc visuals get reset on settings change, so fine to only update in here
+        }
+
+        a.Visual.transform.localPosition = new Vector3(0, 0, zDist);
+    }
+
+
+    public override bool VisualInSpawnRange(Arc a)
+    {
+        return objectManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false, false);
+    }
+
+
+    public override void ReleaseVisual(Arc a)
+    {
+        arcPool.ReleaseObject(a.arcHandler);
+        a.arcHandler = null;
+        a.Visual = null;
+    }
+
+
+    public override void UpdateVisuals()
+    {
+        ClearOutsideVisuals();
+
+        if(Objects.Count == 0)
+        {
+            return;
+        }
+
+        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        if(startIndex < 0)
+        {
+            return;
+        }
+
+        float lastBeat = 0;
+        for(int i = startIndex; i < Objects.Count; i++)
+        {
+            Arc a = Objects[i];
+            if(objectManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false, false))
+            {
+                UpdateVisual(a);
+                lastBeat = a.TailBeat;
+            }
+            else if(a.TailBeat - a.Beat <= a.Beat - lastBeat)
+            {
+                //Continue looping if this arc overlaps in time with another
+                //This avoids edge cases where two arcs that overlap,
+                //with one starting and ending before the other, causes later arcs to not update
+                //Yes this is the same exact logic as walls
+                break;
+            }
+        }
     }
 
 
@@ -147,7 +255,7 @@ public class ArcManager : MonoBehaviour
     public static Vector3[] GetArcBaseCurve(Arc a)
     {
         float duration = Mathf.Abs(a.TailTime - a.Time);
-        float length = objectManager.WorldSpaceFromTime(duration);
+        float length = ObjectManager.Instance.WorldSpaceFromTime(duration);
 
         Vector3 p0 = new Vector3(a.Position.x, a.Position.y, 0);
         Vector3 p1 = new Vector3(a.HeadControlPoint.x, a.HeadControlPoint.y, 0);
@@ -228,157 +336,10 @@ public class ArcManager : MonoBehaviour
     }
 
 
-    public void UpdateArcVisual(Arc a)
-    {
-        float zDist = objectManager.GetZPosition(a.Time);
-
-        if(a.Visual == null)
-        {
-            a.arcHandler = arcPool.GetObject();
-            a.Visual = a.arcHandler.gameObject;
-
-            a.Visual.transform.SetParent(arcParent.transform);
-            a.Visual.SetActive(true);
-
-            a.arcHandler.SetMaterial(arcMaterial, a.Color == 0 ? redArcMaterialProperties : blueArcMaterialProperties);
-
-            a.CalculateBaseCurve();
-            a.arcHandler.SetArcPoints(a.BaseCurve);
-            a.arcHandler.SetGradient(a.CurveLength, arcEndFadeStart, arcEndFadeEnd);
-            a.arcHandler.SetWidth(SettingsManager.GetFloat("arcwidth") / 2);
-
-            RenderedArcs.Add(a);
-        }
-
-        bool fadeAnimation = SettingsManager.GetBool("arcfadeanimation");
-        bool textureAnimation = SettingsManager.GetBool("arctextureanimation");
-
-        float alpha = SettingsManager.GetFloat("arcbrightness");
-        if(fadeAnimation)
-        {
-            if(!a.HasHeadAttachment)
-            {
-                float beatDifference = TimeManager.CurrentBeat - a.Beat;
-                alpha *= Mathf.Clamp(beatDifference / headlessArcFadeBeats, 0f, 1f);
-            }
-            else
-            {
-                const float fadeSpeedMult = 0.85f;
-                float fullAlphaPos = BeatmapManager.JumpDistance * fadeSpeedMult;
-                alpha *= 1f - Mathf.Clamp(zDist / fullAlphaPos, 0f, 1f);
-            }
-        }
-
-        //This arbitrary starting value is just a default for when animations are disabled
-        //I picked this because it's a fairly balanced, decent looking variation
-        float textureOffset = 0.509f;
-        if(textureAnimation)
-        {
-            float timeDifference = TimeManager.CurrentTime - a.Time;
-            float startValue = a.Beat + a.HeadAngle + a.Position.x + a.Position.y;
-            textureOffset = startValue + (timeDifference * arcAnimationSpeed);
-            textureOffset %= 1f;
-        }
-
-        a.arcHandler.SetProperties(alpha, textureOffset);
-
-        if(objectManager.doMovementAnimation)
-        {
-            float headOffsetY = objectManager.GetObjectY(a.HeadStartY, a.Position.y, a.Time) - a.Position.y;
-            float tailOffsetY = objectManager.GetObjectY(a.TailStartY, a.TailPosition.y, a.TailTime) - a.TailPosition.y;
-
-            a.arcHandler.SetArcPoints(GetArcSpawnAnimationOffset(a.BaseCurve, headOffsetY, tailOffsetY)); // arc visuals get reset on settings change, so fine to only update in here
-        }
-
-        a.Visual.transform.localPosition = new Vector3(0, 0, zDist);
-    }
-
-
-    private void ReleaseArc(Arc a)
-    {
-        arcPool.ReleaseObject(a.arcHandler);
-        a.arcHandler = null;
-        a.Visual = null;
-    }
-
-
-    public void ClearOutsideArcs()
-    {
-        if(RenderedArcs.Count <= 0)
-        {
-            return;
-        }
-
-        for(int i = RenderedArcs.Count - 1; i >= 0; i--)
-        {
-            Arc a = RenderedArcs[i];
-            if(!objectManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false, false))
-            {
-                ReleaseArc(a);
-                RenderedArcs.Remove(a);
-            }
-        }
-    }
-
-
-    public void UpdateArcVisuals(float beat)
-    {
-        ClearOutsideArcs();
-
-        if(Arcs.Count <= 0)
-        {
-            return;
-        }
-
-        int firstArc = Arcs.FindIndex(x => objectManager.DurationObjectInSpawnRange(x.Time, x.TailTime, false, false));
-        if(firstArc >= 0)
-        {
-            float lastBeat = 0;
-            for(int i = firstArc; i < Arcs.Count; i++)
-            {
-                Arc a = Arcs[i];
-                if(objectManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false, false))
-                {
-                    UpdateArcVisual(a);
-                    lastBeat = a.TailBeat;
-                }
-                else if(a.TailBeat - a.Beat <= a.Beat - lastBeat)
-                {
-                    //Continue looping if this arc overlaps in time with another
-                    //This avoids edge cases where two arcs that are close, with one ending before the other causes later arcs to not update
-                    //Yes this is the same exact logic as walls
-                    break;
-                }
-            }
-        }
-    }
-
-
-    public void ClearRenderedArcs()
-    {
-        if(RenderedArcs.Count <= 0)
-        {
-            return;
-        }
-
-        foreach(Arc a in RenderedArcs)
-        {
-            ReleaseArc(a);
-        }
-        RenderedArcs.Clear();
-    }
-
-
     private void Awake()
     {
         redArcMaterialProperties = new MaterialPropertyBlock();
         blueArcMaterialProperties = new MaterialPropertyBlock();
-    }
-
-
-    private void Start()
-    {
-        objectManager = ObjectManager.Instance;
     }
 }
 

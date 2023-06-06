@@ -65,8 +65,9 @@ public class JumpSettingsPanel : MonoBehaviour
         }
 
         //Force update the visuals when jump settings are changed
+        //Duration objects need to be remade to account for Z scaling
         ObjectManager.Instance.arcManager.UpdateMaterials();
-        ObjectManager.Instance.wallManager.ClearRenderedWalls();
+        ObjectManager.Instance.wallManager.ClearRenderedVisuals();
         ObjectManager.Instance.UpdateBeat(TimeManager.CurrentBeat);
     }
 

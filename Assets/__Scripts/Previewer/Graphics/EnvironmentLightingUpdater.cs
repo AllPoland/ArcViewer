@@ -35,7 +35,7 @@ public class EnvironmentLightingUpdater : MonoBehaviour
     }
 
 
-    private IEnumerator UpdateStaticLightsCoroutine()
+    private IEnumerator ForceUpdateReflectionsCoroutine()
     {
         yield return new WaitUntil(() => !isRendering);
         UpdateReflection();
@@ -49,7 +49,7 @@ public class EnvironmentLightingUpdater : MonoBehaviour
             if(LightManager.StaticLights && probe.timeSlicingMode != ReflectionProbeTimeSlicingMode.NoTimeSlicing)
             {
                 //Wait for the current rendering to finish so lighting correctly updates
-                StartCoroutine(UpdateStaticLightsCoroutine());
+                StartCoroutine(ForceUpdateReflectionsCoroutine());
             }
             else
             {
@@ -59,6 +59,15 @@ public class EnvironmentLightingUpdater : MonoBehaviour
         else
         {
             UpdateColors(ColorManager.CurrentColors);
+        }
+    }
+
+
+    public void UpdatePlaying(bool playing)
+    {
+        if(!playing && !LightManager.StaticLights && probe.timeSlicingMode != ReflectionProbeTimeSlicingMode.NoTimeSlicing)
+        {
+            StartCoroutine(ForceUpdateReflectionsCoroutine());
         }
     }
 
@@ -138,6 +147,7 @@ public class EnvironmentLightingUpdater : MonoBehaviour
     private void Start()
     {
         TimeManager.OnBeatChanged += UpdateBeat;
+        TimeManager.OnPlayingChanged += UpdatePlaying;
         ColorManager.OnColorsChanged += UpdateColors;
         SettingsManager.OnSettingsUpdated += UpdateSettings;
         LightManager.OnStaticLightsChanged += UpdateStaticLights;
@@ -149,6 +159,7 @@ public class EnvironmentLightingUpdater : MonoBehaviour
     private void OnDestroy()
     {
         TimeManager.OnBeatChanged -= UpdateBeat;
+        TimeManager.OnPlayingChanged -= UpdatePlaying;
         ColorManager.OnColorsChanged -= UpdateColors;
         SettingsManager.OnSettingsUpdated -= UpdateSettings;
         LightManager.OnStaticLightsChanged -= UpdateStaticLights;

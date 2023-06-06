@@ -5,8 +5,8 @@ using UnityEngine.Networking;
 
 public class BeatSaverHandler
 {
-    public const string BeatSaverURL = "https://api.beatsaver.com/";
-    public const string MapDirect = "maps/id/";
+    private const string beatSaverApiURL = "https://api.beatsaver.com/";
+    private const string mapDirect = "maps/id/";
 
 
     public static async Task<string> GetBeatSaverMapURL(string mapID)
@@ -28,7 +28,7 @@ public class BeatSaverHandler
 
     public static async Task<string> GetApiResponse(string mapID)
     {
-        string url = string.Concat(BeatSaverURL, MapDirect, mapID);
+        string url = string.Concat(beatSaverApiURL, mapDirect, mapID);
 
         try
         {
