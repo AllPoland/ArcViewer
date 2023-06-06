@@ -17,6 +17,7 @@ public class ChainManager : MapElementManager<ChainLink>
             CreateChainLinks(c);
         }
         Objects.SortElementsByBeat();
+        Objects.ResetStartIndex();
 
         UpdateVisuals();
     }

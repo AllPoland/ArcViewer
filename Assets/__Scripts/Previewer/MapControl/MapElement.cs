@@ -95,6 +95,12 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     }
 
 
+    public void ResetStartIndex()
+    {
+        lastStartIndex = 0;
+    }
+
+
     public int GetFirstIndex(float currentTime, CheckInRangeDelegate checkMethod)
     {
         if(!IsSorted)
