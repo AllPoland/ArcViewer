@@ -47,7 +47,7 @@ public static class MapStats
     public static void UpdateNpsAndSpsValues()
     {
         //The amount of beats where notes are considered to be part of the same swing
-        const float sliderPrecision = 1 / 10;
+        const float sliderPrecision = 1f / 9f;
 
         //Reset values to re-evaluate
         SwingCount = 0;
@@ -71,6 +71,9 @@ public static class MapStats
         List<float> prevNotes8 = new List<float>();
         List<float> prevNotes4 = new List<float>();
 
+        //Need to keep peak windows consistent through BPM changes
+        float beatTime = TimeManager.RawTimeFromBeat(1f, TimeManager.BaseBPM);
+
         List<Note> notes = noteManager.Objects;
         Note previousRedNote = null;
         Note previousBlueNote = null;
@@ -92,34 +95,34 @@ public static class MapStats
             Note previousNote = isRed ? previousRedNote : previousBlueNote;
             bool hasPreviousNote = previousNote != null;
             float previousBeat = hasPreviousNote ? previousNote.Beat : Mathf.NegativeInfinity;
+            float previousTime = hasPreviousNote ? previousNote.Time : Mathf.NegativeInfinity;
 
             bool sameAngle = hasPreviousNote
-                && ((currentNote.IsDot || previousNote.IsDot)
-                || previousNote.Angle.Approximately(currentNote.Angle));
+                && ( (currentNote.IsDot || previousNote.IsDot)
+                    || previousNote.Angle.Approximately(currentNote.Angle) );
 
-            if(!currentNote.Beat.Approximately(previousBeat) && (currentNote.Beat - previousBeat > sliderPrecision || !sameAngle))
+            if(!ObjectManager.CheckSameTime(currentNote.Time, previousTime) && (currentNote.Beat - previousBeat > sliderPrecision || !sameAngle))
             {
                 //This note counts as a new swing
                 SwingCount++;
-                prevSwings16.Add(currentNote.Beat);
-                prevSwings8.Add(currentNote.Beat);
-                prevSwings4.Add(currentNote.Beat);
+                prevSwings16.Add(currentNote.Time);
+                prevSwings8.Add(currentNote.Time);
+                prevSwings4.Add(currentNote.Time);
             }
-            else Debug.Log($"Note on beat {currentNote.Beat} is part of another swing.");
 
             //Every note counts as a note, obviously
-            prevNotes16.Add(currentNote.Beat);
-            prevNotes8.Add(currentNote.Beat);
-            prevNotes4.Add(currentNote.Beat);
+            prevNotes16.Add(currentNote.Time);
+            prevNotes8.Add(currentNote.Time);
+            prevNotes4.Add(currentNote.Time);
 
             //Clear any notes and swings outside of peak ranges
-            prevSwings16.RemoveAllForward(x => x < currentNote.Beat - 16);
-            prevSwings8.RemoveAllForward(x => x < currentNote.Beat - 8);
-            prevSwings4.RemoveAllForward(x => x < currentNote.Beat - 4);
+            prevSwings16.RemoveAllForward(x => x < currentNote.Time - (16 * beatTime));
+            prevSwings8.RemoveAllForward(x => x < currentNote.Time - (8 * beatTime));
+            prevSwings4.RemoveAllForward(x => x < currentNote.Time - (4 * beatTime));
 
-            prevNotes16.RemoveAllForward(x => x < currentNote.Beat - 16);
-            prevNotes8.RemoveAllForward(x => x < currentNote.Beat - 8);
-            prevNotes4.RemoveAllForward(x => x < currentNote.Beat - 4);
+            prevNotes16.RemoveAllForward(x => x < currentNote.Time - (16 * beatTime));
+            prevNotes8.RemoveAllForward(x => x < currentNote.Time - (8 * beatTime));
+            prevNotes4.RemoveAllForward(x => x < currentNote.Time - (4 * beatTime));
 
             //If the new peaks are higher than previous, update them
             SwingCountPeak16 = Mathf.Max(prevSwings16.Count, SwingCountPeak16);
@@ -139,13 +142,13 @@ public static class MapStats
         }
 
         //Calculate actual SPS and NPS values for peaks
-        SpsPeak16 = ((float)SwingCountPeak16 / TimeManager.RawTimeFromBeat(16f, TimeManager.BaseBPM)).Round(roundDigits);
-        SpsPeak8 = ((float)SwingCountPeak8 / TimeManager.RawTimeFromBeat(8f, TimeManager.BaseBPM)).Round(roundDigits);
-        SpsPeak4 = ((float)SwingCountPeak4 / TimeManager.RawTimeFromBeat(4f, TimeManager.BaseBPM)).Round(roundDigits);
+        SpsPeak16 = ((float)SwingCountPeak16 / (16 * beatTime)).Round(roundDigits);
+        SpsPeak8 = ((float)SwingCountPeak8 / (8 * beatTime)).Round(roundDigits);
+        SpsPeak4 = ((float)SwingCountPeak4 / (4 * beatTime)).Round(roundDigits);
 
-        NpsPeak16 = ((float)NoteCountPeak16 / TimeManager.RawTimeFromBeat(16f, TimeManager.BaseBPM)).Round(roundDigits);
-        NpsPeak8 = ((float)NoteCountPeak8 / TimeManager.RawTimeFromBeat(8f, TimeManager.BaseBPM)).Round(roundDigits);
-        NpsPeak4 = ((float)NoteCountPeak4 / TimeManager.RawTimeFromBeat(4f, TimeManager.BaseBPM)).Round(roundDigits);
+        NpsPeak16 = ((float)NoteCountPeak16 / (16 * beatTime)).Round(roundDigits);
+        NpsPeak8 = ((float)NoteCountPeak8 / (8 * beatTime)).Round(roundDigits);
+        NpsPeak4 = ((float)NoteCountPeak4 / (4 * beatTime)).Round(roundDigits);
 
         OnStatsUpdated?.Invoke();
     }
