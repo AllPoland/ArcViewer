@@ -104,8 +104,7 @@ public class ArcManager : MapElementManager<Arc>
         {
             float timeDifference = TimeManager.CurrentTime - a.Time;
             float startValue = a.Beat + a.HeadAngle + a.Position.x + a.Position.y;
-            textureOffset = startValue + (timeDifference * arcAnimationSpeed);
-            textureOffset %= 1f;
+            textureOffset = (startValue % 1f) + (timeDifference * arcAnimationSpeed);
         }
 
         a.arcHandler.SetProperties(alpha, textureOffset);

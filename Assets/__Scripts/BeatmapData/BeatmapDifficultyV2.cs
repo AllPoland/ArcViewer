@@ -81,7 +81,6 @@ public class BeatmapDifficultyV2
         converted.colorNotes = colorNotes.ToArray();
         converted.bombNotes = bombNotes.ToArray();
 
-
         List<BeatmapObstacle> obstacles = new List<BeatmapObstacle>();
         foreach(BeatmapObstacleV2 o in _obstacles)
         {
@@ -127,7 +126,6 @@ public class BeatmapDifficultyV2
         }
         converted.obstacles = obstacles.ToArray();
 
-
         List<BeatmapSlider> sliders = new List<BeatmapSlider>();
         foreach(BeatmapSliderV2 s in _sliders)
         {
@@ -151,7 +149,6 @@ public class BeatmapDifficultyV2
             );
         }
         converted.sliders = sliders.ToArray();
-
 
         List<BeatmapRotationEvent> rotationEvents = new List<BeatmapRotationEvent>();
         List<BeatmapBasicBeatmapEvent> basicBeatmapEvents = new List<BeatmapBasicBeatmapEvent>();
