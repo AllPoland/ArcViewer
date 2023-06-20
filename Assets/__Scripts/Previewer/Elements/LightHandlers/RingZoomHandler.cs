@@ -3,20 +3,17 @@ using UnityEngine;
 
 public class RingZoomHandler : MonoBehaviour
 {
-    [SerializeField] private float closeRingDist;
-    [SerializeField] private float farRingDist;
-    [SerializeField] private float startRingPos;
+    [SerializeField] private float firstRingPos;
 
     private List<Transform> rings = new List<Transform>();
 
 
-    public void UpdateRingZoom(float zoomPosition)
+    public void UpdateRingZoom(float step)
     {
-        float ringDistance = Mathf.Lerp(closeRingDist, farRingDist, zoomPosition);
         for(int i = 0; i < rings.Count; i++)
         {
             Transform ring = rings[i];
-            float ringPosition = startRingPos + (ringDistance * i);
+            float ringPosition = firstRingPos + (step * i);
             ring.localPosition = GetTargetPosition(ring, ringPosition);
         }
     }

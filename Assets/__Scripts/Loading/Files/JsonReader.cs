@@ -6,7 +6,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 
-public class JsonReader
+public static class JsonReader
 {
     public static Regex VersionRx = new Regex(@"version""\s*:\s*""(\d\.?)*", RegexOptions.Compiled);
 

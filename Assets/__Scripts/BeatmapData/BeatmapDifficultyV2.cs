@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEngine;
 
 [Serializable]
@@ -165,7 +166,7 @@ public class BeatmapDifficultyV2
                     {
                         b = e._time,
                         e = e._type - 14,  //Subtracting 14 from the type makes it line up with the expected 0 and 1 in V3 format
-                        r = ValueToRotation[Math.Clamp(e._value, 0, 7)]
+                        r = e._customData?._rotation ?? ValueToRotation[Math.Clamp(e._value, 0, 7)]
                     }
                 );
             }
@@ -209,7 +210,8 @@ public class BeatmapDifficultyV2
                         b = e._time,
                         et = e._type,
                         i = e._value,
-                        f = e._floatValue ?? 1f
+                        f = e._floatValue ?? 1f,
+                        customData = e._customData?.ConvertToV3() ?? null
                     }
                 );
             }
@@ -275,6 +277,8 @@ public struct BeatmapEventV2
     public int _type;
     public int _value;
     public float? _floatValue;
+
+    public BeatmapCustomEventDataV2 _customData;
 }
 
 
@@ -323,6 +327,50 @@ public class BeatmapCustomObstacleDataV2 : BeatmapCustomObjectDataV2
         {
             coordinates = _position,
             size = _scale
+        };
+    }
+}
+
+
+[Serializable]
+public class BeatmapCustomEventDataV2
+{
+    [JsonConverter(typeof(LightIDConverter))]
+    public List<int> _lightID;
+    public float[] _color;
+    public string _easing;
+    public string _lerpType;
+
+    //Laser speed specific data
+    public bool? _lockPosition;
+
+    //Ring specific data
+    public string _nameFilter;
+    public float? _rotation;
+    public float? _step;
+    public float? _prop;
+
+    //Shared by both rings and lasers
+    public float? _speed;
+    public float? _preciseSpeed;
+    public int? _direction;
+
+
+    public BeatmapCustomBasicEventData ConvertToV3()
+    {
+        return new BeatmapCustomBasicEventData
+        {
+            lightID = _lightID,
+            color = _color,
+            easing = _easing,
+            lerpType = _lerpType,
+            lockRotation = _lockPosition,
+            nameFilter = _nameFilter,
+            rotation = _rotation,
+            step = _step,
+            prop = _prop,
+            speed = _preciseSpeed ?? _speed,
+            direction = _direction
         };
     }
 }
