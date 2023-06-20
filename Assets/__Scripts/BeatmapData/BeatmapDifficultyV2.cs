@@ -155,8 +155,9 @@ public class BeatmapDifficultyV2
         List<BeatmapBasicBeatmapEvent> basicBeatmapEvents = new List<BeatmapBasicBeatmapEvent>();
         List<BeatmapColorBoostBeatmapEvent> colorBoostBeatmapEvents = new List<BeatmapColorBoostBeatmapEvent>();
         List<BeatmapBpmEvent> bpmEvents = new List<BeatmapBpmEvent>();
-        foreach(BeatmapEventV2 e in _events)
+        for(int i = 0; i < _events.Length; i++)
         {
+            BeatmapEventV2 e = _events[i];
             if(e._type == 14 || e._type == 15)
             {
                 //Rotation event
@@ -203,17 +204,46 @@ public class BeatmapDifficultyV2
             else
             {
                 //Other event
-                basicBeatmapEvents.Add
-                (
-                    new BeatmapBasicBeatmapEvent
+                BeatmapBasicBeatmapEvent newEvent = new BeatmapBasicBeatmapEvent
+                {
+                    b = e._time,
+                    et = e._type,
+                    i = e._value,
+                    f = e._floatValue ?? 1f,
+                    customData = e._customData?.ConvertToV3() ?? null
+                };
+                basicBeatmapEvents.Add(newEvent);
+
+                if(e._customData?._lightGradient != null)
+                {
+                    //Light gradients need to be converted to transition events
+                    BeatmapChromaGradientV2 gradient = e._customData._lightGradient;
+
+                    //The v3 event will always have custom data if the v2 event does
+                    newEvent.customData.color = gradient._startColor;
+                    newEvent.customData.easing = gradient._easing;
+
+                    float endBeat = e._time + gradient._duration;
+                    int nextEventIndex = Array.FindIndex(_events, i, x => x._type == e._type);
+                    if(nextEventIndex >= 0 && endBeat >= _events[nextEventIndex]._time)
                     {
-                        b = e._time,
-                        et = e._type,
-                        i = e._value,
-                        f = e._floatValue ?? 1f,
-                        customData = e._customData?.ConvertToV3() ?? null
+                        //Don't allow the transition to overlap with the next event
+                        endBeat = _events[nextEventIndex]._time - 0.001f;
                     }
-                );
+
+                    BeatmapBasicBeatmapEvent newTransitionEvent = new BeatmapBasicBeatmapEvent
+                    {
+                        b = e._time + gradient._duration,
+                        et = e._type,
+                        i = 4,    //Event type 4 is a transition event - color doesn't matter
+                        f = 1f,
+                        customData = new BeatmapCustomBasicEventData
+                        {
+                            color = gradient._endColor
+                        }
+                    };
+                    basicBeatmapEvents.Add(newTransitionEvent);
+                }
             }
         }
         converted.rotationEvents = rotationEvents.ToArray();
@@ -355,6 +385,8 @@ public class BeatmapCustomEventDataV2
     public float? _preciseSpeed;
     public int? _direction;
 
+    public BeatmapChromaGradientV2 _lightGradient;
+
 
     public BeatmapCustomBasicEventData ConvertToV3()
     {
@@ -373,4 +405,13 @@ public class BeatmapCustomEventDataV2
             direction = _direction
         };
     }
+}
+
+
+public class BeatmapChromaGradientV2
+{
+    public float _duration;
+    public float[] _startColor;
+    public float[] _endColor;
+    public string _easing;
 }
