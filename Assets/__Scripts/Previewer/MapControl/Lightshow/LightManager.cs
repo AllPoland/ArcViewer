@@ -151,7 +151,6 @@ public class LightManager : MonoBehaviour
         LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
         {
             laserProperties = lightProperties,
-            persistentLaserProperties = persistentLightProperties,
             glowProperties = glowProperties,
             type = type
         };
@@ -174,14 +173,8 @@ public class LightManager : MonoBehaviour
         glowProperties.SetColor("_BaseColor", baseColor);
         glowProperties.SetFloat("_Alpha", baseColor.a * SettingsManager.GetFloat("lightglowbrightness"));
 
-        Color lightColor = GetLightColor(baseColor);
-        Color emissionColor = GetLightEmission(baseColor);
-
-        persistentLightProperties.SetColor("_BaseColor", GetPersistentLightColor(lightColor));
-        persistentLightProperties.SetColor("_EmissionColor", emissionColor);
-
-        lightProperties.SetColor("_BaseColor", lightColor);
-        lightProperties.SetColor("_EmissionColor", emissionColor);
+        lightProperties.SetColor("_BaseColor", GetLightColor(baseColor));
+        lightProperties.SetColor("_EmissionColor", GetLightEmission(baseColor));
     }
 
 
@@ -191,14 +184,6 @@ public class LightManager : MonoBehaviour
         Color.RGBToHSV(baseColor, out _, out s, out _);
         Color newColor = baseColor.SetSaturation(s * lightSaturation);
         newColor.a = Mathf.Clamp(baseColor.a, 0f, 1f);
-        return newColor;
-    }
-
-
-    private Color GetPersistentLightColor(Color baseColor)
-    {
-        Color newColor = Color.Lerp(platformColor, baseColor, baseColor.a);
-        newColor.a = 1f;
         return newColor;
     }
 
@@ -321,13 +306,8 @@ public class LightManager : MonoBehaviour
         const float fadeTime = 0.6f;
         Color baseColor = GetEventBaseColor(lightEvent);
 
-        float floatValue = lightEvent.FloatValue;
         float timeDifference = TimeManager.CurrentTime - lightEvent.Time;
-        if(timeDifference >= fadeTime)
-        {
-            baseColor.a = floatValue;
-        }
-        else
+        if(timeDifference < fadeTime)
         {
             float t = timeDifference / fadeTime;
             baseColor.a *= Mathf.Lerp(FlashIntensity, 1f, Easings.Cubic.Out(t));
@@ -656,6 +636,12 @@ public class LightEvent : MapElement
     }
 
 
+    public bool AffectsID(int id)
+    {
+        return LightIDs.Count == 0 || LightIDs.Contains(id);
+    }
+
+
     private static Color ColorFromCustomDataColor(float[] eventColor)
     {
         Color newColor = Color.black;
@@ -796,7 +782,6 @@ public class BoostEvent : MapElement
 public class LightingPropertyEventArgs
 {
     public MaterialPropertyBlock laserProperties;
-    public MaterialPropertyBlock persistentLaserProperties;
     public MaterialPropertyBlock glowProperties;
     public LightEventType type;
 }

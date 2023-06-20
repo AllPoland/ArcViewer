@@ -8,21 +8,14 @@ public class LightHandler : MonoBehaviour
 
     [Header("Parameters")]
     [SerializeField] private LightEventType type;
-    [SerializeField] private bool persistent;
+    [SerializeField] private int id;
 
 
     private void UpdateProperties(LightingPropertyEventArgs eventArgs)
     {
         if(eventArgs.type == type)
         {
-            if(persistent)
-            {
-                meshRenderer.SetPropertyBlock(eventArgs.persistentLaserProperties);
-            }
-            else
-            {
-                meshRenderer.SetPropertyBlock(eventArgs.laserProperties);
-            }
+            meshRenderer.SetPropertyBlock(eventArgs.laserProperties);
 
             bool enableGlow = eventArgs.glowProperties.GetFloat("_Alpha") > 0.001f;
             SetGlowActive(enableGlow);
