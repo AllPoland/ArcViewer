@@ -50,6 +50,7 @@ public class RingManager : MonoBehaviour
 
         //Need to update big rings separately
         eventArgs.events = BigRingRotationEvents;
+        eventArgs.currentEventIndex = BigRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= TimeManager.CurrentBeat);
         eventArgs.affectBigRings = true;
         OnRingRotationsChanged?.Invoke(eventArgs);
     }

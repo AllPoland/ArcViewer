@@ -503,8 +503,15 @@ public class LightManager : MonoBehaviour
                 rightLaserSpeedEvents.Add(new LaserSpeedEvent(beatmapEvent));
                 break;
             case LightEventType.RingSpin:
-                RingManager.SmallRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
-                RingManager.BigRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
+                //Account for name filters for rotation events that only effect big/small rings
+                if(string.IsNullOrEmpty(beatmapEvent.customData?.nameFilter) || beatmapEvent.customData.nameFilter == "SmallTrackLaneRings")
+                {
+                    RingManager.SmallRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
+                }
+                if(string.IsNullOrEmpty(beatmapEvent.customData?.nameFilter) || beatmapEvent.customData.nameFilter == "BigTrackLaneRings")
+                {
+                    RingManager.BigRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
+                }
                 break;
             case LightEventType.RingZoom:
                 RingManager.RingZoomEvents.Add(new RingZoomEvent(beatmapEvent));
