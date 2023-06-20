@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -224,7 +225,18 @@ public class BeatmapDifficultyV2
                     newEvent.customData.easing = gradient._easing;
 
                     float endBeat = e._time + gradient._duration;
-                    int nextEventIndex = Array.FindIndex(_events, i, x => x._type == e._type);
+                    int nextEventIndex = Array.FindIndex(_events, i, x =>
+                        x._type == e._type
+                        && (
+                            //This technically leads to a rare issue where one lightID might have to end early
+                            //but another doesn't, and both will end early anyway
+                            //It's my belief that this issue is so rare and unnoticeable, and is
+                            //due to lighter error so it doesn't matter
+                            x._customData?._lightID == null
+                            || x._customData._lightID.Any(y => e._customData._lightID.Contains(y))
+                        )
+                    );
+        
                     if(nextEventIndex >= 0 && endBeat >= _events[nextEventIndex]._time)
                     {
                         //Don't allow the transition to overlap with the next event
@@ -239,7 +251,8 @@ public class BeatmapDifficultyV2
                         f = 1f,
                         customData = new BeatmapCustomBasicEventData
                         {
-                            color = gradient._endColor
+                            color = gradient._endColor,
+                            lightID = e._customData._lightID
                         }
                     };
                     basicBeatmapEvents.Add(newTransitionEvent);

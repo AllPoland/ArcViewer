@@ -61,6 +61,12 @@ public class RingHandler : MonoBehaviour
     private void OnEnable()
     {
         RingManager.OnRingRotationsChanged += UpdateRingRotations;
+
+        //Automate lightID assignment for ring lights
+        for(int i = 0; i < lightHandlers.Count; i++)
+        {
+            lightHandlers[i].id = i + 1 + (id * lightHandlers.Count);
+        }
     }
 
 

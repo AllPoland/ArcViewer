@@ -7,22 +7,64 @@ public class LightHandler : MonoBehaviour
     [SerializeField] private MeshRenderer glowRenderer;
 
     [Header("Parameters")]
-    [SerializeField] private LightEventType type;
-    [SerializeField] private int id;
+    [SerializeField] public LightEventType type;
+    [SerializeField] public int id;
+
+    private MaterialPropertyBlock laserProperties;
+    private MaterialPropertyBlock glowProperties;
 
 
-    private void UpdateProperties(LightingPropertyEventArgs eventArgs)
+    private void UpdateLight(LightingPropertyEventArgs eventArgs)
     {
-        if(eventArgs.type == type)
+        if(eventArgs.type != type)
         {
-            meshRenderer.SetPropertyBlock(eventArgs.laserProperties);
+            return;
+        }
 
-            bool enableGlow = eventArgs.glowProperties.GetFloat("_Alpha") > 0.001f;
-            SetGlowActive(enableGlow);
-            if(enableGlow)
+        if(eventArgs.lightEvent?.AffectsID(id) ?? true && (eventArgs.nextEvent?.AffectsID(id) ?? true))
+        {
+            //The current event and next events affect this id, so no need to recalculate anything
+            //This will always be the case in vanilla lightshows without lightID
+            UpdateProperties(eventArgs.laserProperties, eventArgs.glowProperties);
+        }
+        else
+        {
+            //Either the current event or the next don't affect this ID
+            //Find the last event that does - if any, and apply color based on that
+            int startIndex = Mathf.Clamp(eventArgs.eventIndex, 0, eventArgs.eventList.Count - 1);
+            int lastIndex = eventArgs.eventList.FindLastIndex(startIndex, x => x.AffectsID(id));
+
+            Color baseColor = Color.clear;
+            if(lastIndex >= 0)
             {
-                glowRenderer.SetPropertyBlock(eventArgs.glowProperties);
+                LightEvent lightEvent = eventArgs.eventList[lastIndex];
+
+                //Find the next event that affects this id to check for transition events
+                startIndex = Mathf.Min(lastIndex + 1, eventArgs.eventList.Count - 1);
+                int nextIndex = eventArgs.eventList.FindIndex(startIndex, x => x.AffectsID(id));
+    
+                LightEvent nextEvent = nextIndex >= 0 ? eventArgs.eventList[nextIndex] : null;
+
+                baseColor = LightManager.GetEventColor(lightEvent, nextEvent);
             }
+
+            //The fact that this has to route to the LightManager instance is yucky
+            //but I don't know what to do about it so haha ball
+            eventArgs.sender.SetLightProperties(baseColor, ref laserProperties, ref glowProperties);
+            UpdateProperties(laserProperties, glowProperties);
+        }
+    }
+
+
+    private void UpdateProperties(MaterialPropertyBlock newLaserProperties, MaterialPropertyBlock newGlowProperties)
+    {
+        meshRenderer.SetPropertyBlock(newLaserProperties);
+
+        bool enableGlow = newGlowProperties.GetFloat("_Alpha") > 0.001f;
+        SetGlowActive(enableGlow);
+        if(enableGlow)
+        {
+            glowRenderer.SetPropertyBlock(newGlowProperties);
         }
     }
 
@@ -58,9 +100,16 @@ public class LightHandler : MonoBehaviour
     }
 
 
+    private void Awake()
+    {
+        laserProperties = new MaterialPropertyBlock();
+        glowProperties = new MaterialPropertyBlock();
+    }
+
+
     private void OnEnable()
     {
-        LightManager.OnLightPropertiesChanged += UpdateProperties;
+        LightManager.OnLightPropertiesChanged += UpdateLight;
         CameraSettingsUpdater.OnCameraPositionUpdated += UpdateGlowRotation;
 
         UpdateGlowRotation();
@@ -69,7 +118,7 @@ public class LightHandler : MonoBehaviour
 
     private void OnDisable()
     {
-        LightManager.OnLightPropertiesChanged -= UpdateProperties;
+        LightManager.OnLightPropertiesChanged -= UpdateLight;
         CameraSettingsUpdater.OnCameraPositionUpdated -= UpdateGlowRotation;
     }
 }
