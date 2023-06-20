@@ -118,6 +118,21 @@ public static class Extensions
     }
 
 
+    ///<summary>
+    ///Linearly interpolates between two colors using HSV.
+    ///</summary>
+    public static Color LerpHSV(this Color a, Color b, float t)
+    {
+        float ha, sa, va;
+        float hb, sb, vb;
+
+        Color.RGBToHSV(a, out ha, out sa, out va);
+        Color.RGBToHSV(b, out hb, out sb, out vb);
+
+        return Color.HSVToRGB(Mathf.Lerp(ha, hb, t), Mathf.Lerp(sa, sb, t), Mathf.Lerp(va, vb, t));
+    }
+
+
     public static ZipArchiveEntry GetEntryCaseInsensitive(this ZipArchive archive, string name)
     {
         foreach(ZipArchiveEntry entry in archive.Entries)

@@ -304,7 +304,13 @@ public class LightManager : MonoBehaviour
 
             float transitionTime = nextEvent.Time - lightEvent.Time;
             float t = (TimeManager.CurrentTime - lightEvent.Time) / transitionTime;
-            baseColor = Color.Lerp(baseColor, transitionColor, t);
+            t = lightEvent.TransitionEasing(t);
+
+            if(lightEvent.HsvLerp)
+            {
+                baseColor = baseColor.LerpHSV(transitionColor, t);
+            }
+            else baseColor = Color.LerpUnclamped(baseColor, transitionColor, t);
         }
         return baseColor;
     }
@@ -611,6 +617,8 @@ public class LightEvent : MapElement
 
     public Color? CustomColor;
     List<int> LightIDs = new List<int>();
+    public Easings.EasingDelegate TransitionEasing;
+    public bool HsvLerp = false;
 
     public bool isTransition => Value == LightEventValue.RedTransition || Value == LightEventValue.BlueTransition || Value == LightEventValue.WhiteTransition;
 
@@ -623,6 +631,7 @@ public class LightEvent : MapElement
         Type = (LightEventType)beatmapEvent.et;
         Value = (LightEventValue)beatmapEvent.i;
         FloatValue = beatmapEvent.f;
+        TransitionEasing = Easings.Linear;
 
         if(beatmapEvent.customData != null)
         {
@@ -634,6 +643,14 @@ public class LightEvent : MapElement
             if(customData.lightID != null)
             {
                 LightIDs = new List<int>(customData.lightID);
+            }
+            if(customData.easing != null)
+            {
+                TransitionEasing = Easings.EasingFromString(customData.easing);
+            }
+            if(customData.lerpType != null)
+            {
+                HsvLerp = customData.lerpType == "HSV";
             }
         }
     }
