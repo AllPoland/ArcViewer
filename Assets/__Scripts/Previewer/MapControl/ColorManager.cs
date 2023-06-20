@@ -20,6 +20,7 @@ public class ColorManager : MonoBehaviour
     private static readonly string[] colorSettings =
     {
         "songcorecolors",
+        "chromaobjectcolors",
         "environmentcolors",
         "coloroverride",
         "leftnotecolor",
@@ -139,6 +140,36 @@ public class ColorManager : MonoBehaviour
             case "Panic2Environment":
                 return Panic2Colors;
         }
+    }
+
+
+    public static Color ColorFromCustomDataColor(float[] eventColor)
+    {
+        Color newColor = Color.black;
+        for(int i = 0; i < eventColor.Length; i++)
+        {
+            //Loop only through present rgba values and ignore missing ones
+            //a will default to 1 if missing because the color is initialized to black
+            switch(i)
+            {
+                case 0:
+                    newColor.r = eventColor[i];
+                    break;
+                case 1:
+                    newColor.g = eventColor[i];
+                    break;
+                case 2:
+                    newColor.b = eventColor[i];
+                    break;
+                case 3:
+                    newColor.a = eventColor[i];
+                    break;
+                default:
+                    //For some reason there are more than 4 elements - we'll ignore these
+                    return newColor;
+            }
+        }
+        return newColor;
     }
 
 

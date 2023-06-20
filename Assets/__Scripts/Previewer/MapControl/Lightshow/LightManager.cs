@@ -144,8 +144,8 @@ public class LightManager : MonoBehaviour
 
     private void UpdateLightEvent(LightEventType type, LightEvent lightEvent, LightEvent nextEvent, MapElementList<LightEvent> events, int eventIndex)
     {
-        Color baseColor = GetEventColor(lightEvent, nextEvent);
-        SetLightProperties(baseColor, ref lightProperties, ref glowProperties);
+        Color eventColor = GetEventColor(lightEvent, nextEvent);
+        SetLightProperties(eventColor, ref lightProperties, ref glowProperties);
 
         LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
         {
@@ -628,7 +628,7 @@ public class LightEvent : MapElement
             BeatmapCustomBasicEventData customData = beatmapEvent.customData;
             if(customData.color != null)
             {
-                CustomColor = ColorFromCustomDataColor(customData.color);
+                CustomColor = ColorManager.ColorFromCustomDataColor(customData.color);
             }
             if(customData.lightID != null)
             {
@@ -649,36 +649,6 @@ public class LightEvent : MapElement
     public bool AffectsID(int id)
     {
         return LightIDs.Count == 0 || LightIDs.Contains(id);
-    }
-
-
-    private static Color ColorFromCustomDataColor(float[] eventColor)
-    {
-        Color newColor = Color.black;
-        for(int i = 0; i < eventColor.Length; i++)
-        {
-            //Loop only through present rgba values and ignore missing ones
-            //a will default to 1 if missing because the color is initialized to black
-            switch(i)
-            {
-                case 0:
-                    newColor.r = eventColor[i];
-                    break;
-                case 1:
-                    newColor.g = eventColor[i];
-                    break;
-                case 2:
-                    newColor.b = eventColor[i];
-                    break;
-                case 3:
-                    newColor.a = eventColor[i];
-                    break;
-                default:
-                    //For some reason there are 5 elements - we'll ignore these
-                    return newColor;
-            }
-        }
-        return newColor;
     }
 }
 

@@ -59,11 +59,11 @@ public class ArcHandler : MonoBehaviour
     }
 
 
-    public void SetProperties(float alpha, float textureOffset)
+    public void SetProperties(float alpha, float textureOffset, Color? customColor)
     {
         materialProperties.SetFloat("_TextureOffset", textureOffset);
 
-        Color color = materialProperties.GetColor("_BaseColor");
+        Color color = customColor ?? materialProperties.GetColor("_BaseColor");
         color.a = alpha;
         materialProperties.SetColor("_BaseColor", color);
 

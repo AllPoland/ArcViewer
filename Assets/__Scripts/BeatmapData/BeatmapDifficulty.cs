@@ -160,6 +160,7 @@ public class BeatmapColorBoostBeatmapEvent
 public class BeatmapCustomObjectData
 {
     public float[] coordinates;
+    public float[] color;
 }
 
 

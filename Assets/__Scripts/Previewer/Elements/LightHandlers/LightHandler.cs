@@ -34,7 +34,7 @@ public class LightHandler : MonoBehaviour
             int startIndex = Mathf.Clamp(eventArgs.eventIndex, 0, eventArgs.eventList.Count - 1);
             int lastIndex = eventArgs.eventList.FindLastIndex(startIndex, x => x.AffectsID(id));
 
-            Color baseColor = Color.clear;
+            Color eventColor = Color.clear;
             if(lastIndex >= 0)
             {
                 LightEvent lightEvent = eventArgs.eventList[lastIndex];
@@ -45,12 +45,12 @@ public class LightHandler : MonoBehaviour
     
                 LightEvent nextEvent = nextIndex >= 0 ? eventArgs.eventList[nextIndex] : null;
 
-                baseColor = LightManager.GetEventColor(lightEvent, nextEvent);
+                eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
             }
 
             //The fact that this has to route to the LightManager instance is yucky
             //but I don't know what to do about it so haha ball
-            eventArgs.sender.SetLightProperties(baseColor, ref laserProperties, ref glowProperties);
+            eventArgs.sender.SetLightProperties(eventColor, ref laserProperties, ref glowProperties);
             UpdateProperties(laserProperties, glowProperties);
         }
     }

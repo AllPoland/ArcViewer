@@ -6,6 +6,8 @@ public class ChainManager : MapElementManager<ChainLink>
 
     public MapElementList<Chain> Chains = new MapElementList<Chain>();
 
+    private NoteManager noteManager => objectManager.noteManager;
+
 
     public void ReloadChains()
     {
@@ -37,6 +39,16 @@ public class ChainManager : MapElementManager<ChainLink>
 
         float duration = c.TailBeat - c.Beat;
 
+        MaterialPropertyBlock linkProperties = null;
+        MaterialPropertyBlock linkDotProperties = null;
+        if(c.CustomColor != null)
+        {
+            //Premake the link property block to apply it to each link
+            linkProperties = new MaterialPropertyBlock();
+            linkDotProperties = new MaterialPropertyBlock();
+            noteManager.SetNoteMaterialProperties(ref linkProperties, ref linkDotProperties, (Color)c.CustomColor);
+        }
+
         //Start at 1 because head note counts as a "segment"
         for(int i = 1; i < c.SegmentCount; i++)
         {
@@ -55,8 +67,12 @@ public class ChainManager : MapElementManager<ChainLink>
                 Beat = beat,
                 Position = linkPos,
                 Color = c.Color,
-                Angle = linkAngle
+                Angle = linkAngle,
+                CustomColor = c.CustomColor,
+                CustomNoteProperties = linkProperties,
+                CustomDotProperties = linkDotProperties
             };
+
             Objects.Add(newLink);
         }
     }
@@ -98,20 +114,28 @@ public class ChainManager : MapElementManager<ChainLink>
 
         if(cl.Visual == null)
         {
-            cl.chainLinkHandler = chainLinkPool.GetObject();
-            cl.Visual = cl.chainLinkHandler.gameObject;
+            cl.ChainLinkHandler = chainLinkPool.GetObject();
+            cl.Visual = cl.ChainLinkHandler.gameObject;
 
             cl.Visual.transform.SetParent(transform);
-            cl.source = cl.chainLinkHandler.audioSource;
+            cl.source = cl.ChainLinkHandler.audioSource;
 
-            NoteManager noteManager = objectManager.noteManager;
-            bool isRed = cl.Color == 0;
-            cl.chainLinkHandler.SetMaterial(objectManager.useSimpleNoteMaterial ? noteManager.simpleMaterial : noteManager.complexMaterial);
-            cl.chainLinkHandler.SetProperties(isRed ? noteManager.redNoteProperties : noteManager.blueNoteProperties);
-            cl.chainLinkHandler.SetDotProperties(isRed ? noteManager.redArrowProperties : noteManager.blueArrowProperties);
+            cl.ChainLinkHandler.SetMaterial(objectManager.useSimpleNoteMaterial ? noteManager.simpleMaterial : noteManager.complexMaterial);
+            if(SettingsManager.GetBool("chromaobjectcolors") && cl.CustomColor != null)
+            {
+                //Apply custom chroma colors to this note
+                cl.ChainLinkHandler.SetProperties(cl.CustomNoteProperties);
+                cl.ChainLinkHandler.SetDotProperties(cl.CustomDotProperties);
+            }
+            else
+            {
+                bool isRed = cl.Color == 0;
+                cl.ChainLinkHandler.SetProperties(isRed ? noteManager.redNoteProperties : noteManager.blueNoteProperties);
+                cl.ChainLinkHandler.SetDotProperties(isRed ? noteManager.redArrowProperties : noteManager.blueArrowProperties);
+            }
 
             cl.Visual.SetActive(true);
-            cl.chainLinkHandler.EnableVisual();
+            cl.ChainLinkHandler.EnableVisual();
 
             if(TimeManager.Playing && SettingsManager.GetFloat("hitsoundvolume") > 0 && SettingsManager.GetFloat("chainvolume") > 0)
             {
@@ -135,11 +159,11 @@ public class ChainManager : MapElementManager<ChainLink>
     public override void ReleaseVisual(ChainLink cl)
     {
         cl.source.Stop();
-        chainLinkPool.ReleaseObject(cl.chainLinkHandler);
+        chainLinkPool.ReleaseObject(cl.ChainLinkHandler);
 
         cl.Visual = null;
         cl.source = null;
-        cl.chainLinkHandler = null;
+        cl.ChainLinkHandler = null;
     }
 
 
@@ -153,16 +177,16 @@ public class ChainManager : MapElementManager<ChainLink>
                 if(cl.source.isPlaying)
                 {
                     //Only clear the visual elements if the hitsound is still playing
-                    cl.chainLinkHandler.DisableVisual();
+                    cl.ChainLinkHandler.DisableVisual();
                     continue;
                 }
 
                 ReleaseVisual(cl);
                 RenderedObjects.Remove(cl);
             }
-            else if(!cl.chainLinkHandler.Visible)
+            else if(!cl.ChainLinkHandler.Visible)
             {
-                cl.chainLinkHandler.EnableVisual();
+                cl.ChainLinkHandler.EnableVisual();
             }
         }
     }
@@ -229,23 +253,25 @@ public class Chain : BaseSlider
     public float Squish;
 
 
-    public static Chain ChainFromBeatmapBurstSlider(BeatmapBurstSlider b)
+    public Chain(BeatmapBurstSlider b)
     {
         Vector2 headPosition = ObjectManager.CalculateObjectPosition(b.x, b.y, b.customData?.coordinates);
         Vector2 tailPosition = ObjectManager.CalculateObjectPosition(b.tx, b.ty);
         float angle = ObjectManager.CalculateObjectAngle(b.d);
 
-        return new Chain
+        Beat = b.b;
+        Position = headPosition;
+        Color = b.c;
+        Angle = angle;
+        TailBeat = b.tb;
+        TailPosition = tailPosition;
+        SegmentCount = b.sc;
+        Squish = b.s;
+
+        if(b.customData?.color != null)
         {
-            Beat = b.b,
-            Position = headPosition,
-            Color = b.c,
-            Angle = angle,
-            TailBeat = b.tb,
-            TailPosition = tailPosition,
-            SegmentCount = b.sc,
-            Squish = b.s
-        };
+            CustomColor = ColorManager.ColorFromCustomDataColor(b.customData.color);
+        }
     }
 }
 
@@ -254,5 +280,8 @@ public class ChainLink : HitSoundEmitter
 {
     public int Color;
     public float Angle;
-    public ChainLinkHandler chainLinkHandler;
+
+    public ChainLinkHandler ChainLinkHandler;
+    public MaterialPropertyBlock CustomNoteProperties;
+    public MaterialPropertyBlock CustomDotProperties;
 }

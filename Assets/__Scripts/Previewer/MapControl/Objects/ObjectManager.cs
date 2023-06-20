@@ -423,7 +423,7 @@ public class ObjectManager : MonoBehaviour
             bool chainAttachment = false;
             foreach(BeatmapColorNote n in notesOnBeat)
             {
-                Note newNote = Note.NoteFromBeatmapColorNote(n);
+                Note newNote = new Note(n);
                 newNote.StartY = ((float)NoteManager.GetStartY(n, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
 
                 newNote.IsChainHead = NoteManager.CheckChainHead(n, burstSlidersOnBeat);
@@ -492,7 +492,7 @@ public class ObjectManager : MonoBehaviour
 
             foreach(BeatmapBurstSlider b in burstSlidersOnBeat)
             {
-                Chain newChain = Chain.ChainFromBeatmapBurstSlider(b);
+                Chain newChain = new Chain(b);
                 chains.Add(newChain);
             }
 
@@ -511,7 +511,7 @@ public class ObjectManager : MonoBehaviour
             BeatmapSliderEnd head = beatmapSliderHeads[i];
             BeatmapSliderEnd tail = beatmapSliderTails[i];
 
-            Arc newArc = Arc.ArcFromBeatmapSlider(beatmapDifficulty.sliders[i]);
+            Arc newArc = new Arc(beatmapDifficulty.sliders[i]);
 
             if(head.HasAttachment)
             {
@@ -571,6 +571,7 @@ public abstract class MapObject : MapElement
 {   
     public GameObject Visual;
     public Vector2 Position;
+    public Color? CustomColor;
 }
 
 

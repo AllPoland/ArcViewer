@@ -329,13 +329,15 @@ public struct BeatmapEventV2
 public class BeatmapCustomObjectDataV2
 {
     public float[] _position;
+    public float[] _color;
 
 
     public BeatmapCustomObjectData ConvertToV3()
     {
         return new BeatmapCustomObjectData
         {
-            coordinates = _position
+            coordinates = _position,
+            color = _color
         };
     }
 }
@@ -352,6 +354,7 @@ public class BeatmapCustomNoteDataV2 : BeatmapCustomObjectDataV2
         return new BeatmapCustomNoteData
         {
             coordinates = _position,
+            color = _color,
             angle = _cutDirection
         };
     }
@@ -369,6 +372,7 @@ public class BeatmapCustomObstacleDataV2 : BeatmapCustomObjectDataV2
         return new BeatmapCustomObstacleData
         {
             coordinates = _position,
+            color = _color,
             size = _scale
         };
     }
