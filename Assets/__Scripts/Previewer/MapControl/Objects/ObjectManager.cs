@@ -498,7 +498,7 @@ public class ObjectManager : MonoBehaviour
 
             foreach(BeatmapObstacle o in obstaclesOnBeat)
             {
-                Wall newWall = Wall.WallFromBeatmapObstacle(o);
+                Wall newWall = new Wall(o);
                 walls.Add(newWall);
             }
         }

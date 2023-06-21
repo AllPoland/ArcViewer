@@ -1,30 +1,29 @@
-using System;
 using UnityEngine;
 
 public class WallHandler : MonoBehaviour
 {
-    [SerializeField] private GameObject wallBody;
-    [SerializeField] private MeshRenderer bodyRenderer;
+    [SerializeField] private MeshRenderer meshRenderer;
 
-    public Action<Vector3> OnScaleUpdated;
-    public Action<MaterialPropertyBlock> OnEdgePropertiesUpdated;
-
-
-    public void SetScale(Vector3 scale)
-    {
-        wallBody.transform.localScale = scale;
-        OnScaleUpdated?.Invoke(scale);
-    }
+    private MaterialPropertyBlock materialProperties;
 
 
     public void SetProperties(MaterialPropertyBlock properties)
     {
-        bodyRenderer.SetPropertyBlock(properties);
+        meshRenderer.SetPropertyBlock(properties);
+        materialProperties = properties;
     }
 
 
-    public void SetEdgeProperties(MaterialPropertyBlock properties)
+    public void SetAlpha(float alpha)
     {
-        OnEdgePropertiesUpdated?.Invoke(properties);
+        if(materialProperties == null)
+        {
+            Debug.LogWarning("Tried to set alpha on a wall with no material properties!");
+            return;
+        }
+
+        Color wallColor = materialProperties.GetColor("_BaseColor");
+        wallColor.a = alpha;
+        materialProperties.SetColor("_BaseColor", wallColor);
     }
 }

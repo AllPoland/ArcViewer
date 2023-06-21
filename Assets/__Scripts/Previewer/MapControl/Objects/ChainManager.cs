@@ -123,7 +123,7 @@ public class ChainManager : MapElementManager<ChainLink>
             cl.ChainLinkHandler.SetMaterial(objectManager.useSimpleNoteMaterial ? noteManager.simpleMaterial : noteManager.complexMaterial);
             if(SettingsManager.GetBool("chromaobjectcolors") && cl.CustomColor != null)
             {
-                //Apply custom chroma colors to this note
+                //This link uses a unique chroma color
                 cl.ChainLinkHandler.SetProperties(cl.CustomNoteProperties);
                 cl.ChainLinkHandler.SetDotProperties(cl.CustomDotProperties);
             }

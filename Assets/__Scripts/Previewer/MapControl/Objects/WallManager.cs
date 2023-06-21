@@ -8,14 +8,7 @@ public class WallManager : MapElementManager<Wall>
     [SerializeField] private ObjectPool<WallHandler> wallPool;
     [SerializeField] private GameObject wallParent;
 
-    [Header("Parameters")]
-    [SerializeField, Range(0f, 1f)] private float wallLightness;
-    [SerializeField] private float wallEmission;
-    [SerializeField, Range(0f, 1f)] private float edgeSaturation;
-    [SerializeField] private float edgeEmission;
-
     private MaterialPropertyBlock wallMaterialProperties;
-    private MaterialPropertyBlock wallEdgeProperties;
 
 
     public void ReloadWalls()
@@ -29,16 +22,9 @@ public class WallManager : MapElementManager<Wall>
     {
         ClearRenderedVisuals();
 
-        float h, s, v;
-        Color.RGBToHSV(WallColor, out h, out s, out v);
-
-        Color newColor = WallColor.SetValue(wallLightness * v);
+        Color newColor = WallColor;
         newColor.a = SettingsManager.GetFloat("wallopacity");
         wallMaterialProperties.SetColor("_BaseColor", newColor);
-        wallMaterialProperties.SetColor("_EmissionColor", newColor.SetValue(wallEmission));
-
-        wallEdgeProperties.SetColor("_BaseColor", newColor.SetSaturation(s * edgeSaturation));
-        wallEdgeProperties.SetColor("_EmissionColor", newColor.SetHSV(h, s * edgeSaturation, edgeEmission, true));
 
         UpdateVisuals();
     }
@@ -55,15 +41,25 @@ public class WallManager : MapElementManager<Wall>
 
         if(w.Visual == null)
         {
-            w.wallHandler = wallPool.GetObject();
-            w.Visual = w.wallHandler.gameObject;
+            w.WallHandler = wallPool.GetObject();
+            w.Visual = w.WallHandler.gameObject;
 
             w.Visual.transform.SetParent(wallParent.transform);
             w.Visual.SetActive(true);
 
-            w.wallHandler.SetScale(new Vector3(w.Width, w.Height, wallLength));
-            w.wallHandler.SetProperties(wallMaterialProperties);
-            w.wallHandler.SetEdgeProperties(wallEdgeProperties);
+            w.WallHandler.transform.localScale = new Vector3(w.Width, w.Height, wallLength);
+
+            if(SettingsManager.GetBool("chromaobjectcolors") && w.CustomColor != null)
+            {
+                //This wall uses a unique chroma color
+                w.WallHandler.SetProperties(w.CustomProperties);
+                //Alpha needs to be set here as well
+                w.WallHandler.SetAlpha(SettingsManager.GetFloat("wallopacity"));
+            }
+            else
+            {
+                w.WallHandler.SetProperties(wallMaterialProperties);
+            }
 
             RenderedObjects.Add(w);
         }
@@ -79,9 +75,9 @@ public class WallManager : MapElementManager<Wall>
 
     public override void ReleaseVisual(Wall w)
     {
-        wallPool.ReleaseObject(w.wallHandler);
+        wallPool.ReleaseObject(w.WallHandler);
         w.Visual = null;
-        w.wallHandler = null;
+        w.WallHandler = null;
     }
 
 
@@ -168,7 +164,6 @@ public class WallManager : MapElementManager<Wall>
     private void Awake()
     {
         wallMaterialProperties = new MaterialPropertyBlock();
-        wallEdgeProperties = new MaterialPropertyBlock();
     }
 }
 
@@ -192,10 +187,12 @@ public class Wall : MapObject
 
     public float Width;
     public float Height;
-    public WallHandler wallHandler;
+
+    public WallHandler WallHandler;
+    public MaterialPropertyBlock CustomProperties;
 
 
-    public static Wall WallFromBeatmapObstacle(BeatmapObstacle o)
+    public Wall(BeatmapObstacle o)
     {
         float width = o.w;
         float height = o.h;
@@ -233,13 +230,18 @@ public class Wall : MapObject
             duration = -duration;
         }
 
-        return new Wall
+        Beat = beat;
+        Position = position;
+        DurationBeats = duration;
+        Width = worldWidth;
+        Height = worldHeight;
+
+        if(o.customData?.color != null)
         {
-            Beat = beat,
-            Position = position,
-            DurationBeats = duration,
-            Width = worldWidth,
-            Height = worldHeight
-        };
+            CustomColor = ColorManager.ColorFromCustomDataColor(o.customData.color);
+
+            CustomProperties = new MaterialPropertyBlock();
+            CustomProperties.SetColor("_BaseColor", (Color)CustomColor);
+        }
     }
 }

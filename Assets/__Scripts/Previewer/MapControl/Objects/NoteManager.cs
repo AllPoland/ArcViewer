@@ -122,7 +122,7 @@ public class NoteManager : MapElementManager<Note>
             n.NoteHandler.SetMaterial(objectManager.useSimpleNoteMaterial ? simpleMaterial : complexMaterial);
             if(SettingsManager.GetBool("chromaobjectcolors") && n.CustomColor != null)
             {
-                //Apply custom chroma colors to this note
+                //This note uses a unique chroma color
                 n.NoteHandler.SetProperties(n.CustomNoteProperties);
                 n.NoteHandler.SetArrowProperties(n.CustomArrowProperties);
             }

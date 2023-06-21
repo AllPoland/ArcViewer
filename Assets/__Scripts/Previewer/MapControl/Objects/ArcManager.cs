@@ -107,6 +107,7 @@ public class ArcManager : MapElementManager<Arc>
         Color arcColor = a.Color == 0 ? redArcColor : blueArcColor;
         if(SettingsManager.GetBool("chromaobjectcolors") && a.CustomColor != null)
         {
+            //This arc uses a unique chroma color
             arcColor = (Color)a.CustomColor;
         }
 
