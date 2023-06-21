@@ -49,6 +49,12 @@ public class BeatmapDifficultyV2
         List<BeatmapBombNote> bombNotes = new List<BeatmapBombNote>();
         foreach(BeatmapNoteV2 n in _notes)
         {
+            if(n._customData?._fake ?? false)
+            {
+                //Ignore fake objects entirely since there's no way to handle them atm
+                continue;
+            }
+
             if(n._type == 0 || n._type == 1)
             {
                 //Color note
@@ -86,6 +92,12 @@ public class BeatmapDifficultyV2
         List<BeatmapObstacle> obstacles = new List<BeatmapObstacle>();
         foreach(BeatmapObstacleV2 o in _obstacles)
         {
+            if(o._customData?._fake ?? false)
+            {
+                //Ignore fake objects entirely since there's no way to handle them atm
+                continue;
+            }
+
             int wallY = o._type == 0 ? 0 : 2;
             int wallH = o._type == 0 ? 5 : 3;
             if(o._type >= 1000)
@@ -330,6 +342,7 @@ public class BeatmapCustomObjectDataV2
 {
     public float[] _position;
     public float[] _color;
+    public bool? _fake;
 
 
     public BeatmapCustomObjectData ConvertToV3()
