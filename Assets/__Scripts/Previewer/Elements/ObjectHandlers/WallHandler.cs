@@ -25,5 +25,7 @@ public class WallHandler : MonoBehaviour
         Color wallColor = materialProperties.GetColor("_BaseColor");
         wallColor.a = alpha;
         materialProperties.SetColor("_BaseColor", wallColor);
+
+        meshRenderer.SetPropertyBlock(materialProperties);
     }
 }
