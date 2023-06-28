@@ -35,9 +35,8 @@ public class WallManager : MapElementManager<Wall>
         float wallLength = objectManager.WorldSpaceFromTime(w.DurationTime);
 
         //Subtract 0.25 to make front face of wall line up with front face of note (walls just built like that)
-        float worldDist = objectManager.GetZPosition(w.Time) - 0.25f;
-
-        worldDist += wallLength / 2;
+        float frontDist = objectManager.GetZPosition(w.Time) - 0.25f;
+        float worldDist = frontDist + (wallLength / 2);
 
         if(w.Visual == null)
         {
@@ -81,6 +80,20 @@ public class WallManager : MapElementManager<Wall>
     }
 
 
+    private void UpdateWallSortingOrder()
+    {
+        const int minSortingOrder = -32768;
+
+        //WallHandlers can be sorted by distance through the IComparable interface
+        RenderedObjects.Sort((x, y) => x.WallHandler.CompareTo(y.WallHandler));
+        for(int i = 0; i < RenderedObjects.Count; i++)
+        {
+            //Since walls are sorted by their distance, we can set their order here
+            RenderedObjects[i].WallHandler.SetSortingOrder(minSortingOrder + i);
+        }
+    }
+
+
     public override void UpdateVisuals()
     {
         ClearOutsideVisuals();
@@ -114,6 +127,8 @@ public class WallManager : MapElementManager<Wall>
                 break;
             }
         }
+
+        UpdateWallSortingOrder();
     }
 
 
