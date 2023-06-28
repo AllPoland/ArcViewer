@@ -535,9 +535,10 @@ public class LightManager : MonoBehaviour
             LaserSpeedEvent speedEvent = rightLaserSpeedEvents[i];
             LaserSpeedEvent previous = i > 0 ? rightLaserSpeedEvents[i - 1] : null;
 
-            if(x >= leftLaserSpeedEvents.Count || speedEvent.LockRotation)
+            if(speedEvent.Value == 0 || x >= leftLaserSpeedEvents.Count || speedEvent.LockRotation)
             {
-                //No left laser events left to check, or we need to get specific values for this event
+                //No left laser events left to check,
+                //or we specifically need to get specific values for this event
                 speedEvent.PopulateRotationData(laserCount, previous);
                 continue;
             }
@@ -551,8 +552,10 @@ public class LightManager : MonoBehaviour
 
                 if(ObjectManager.CheckSameTime(speedEvent.Time, leftSpeedEvent.Time))
                 {
-                    //Events on the same time get the same parameters unless they have different directions
-                    if(speedEvent.Direction == leftSpeedEvent.Direction)
+                    //Events on the same time get the same parameters
+                    //unless the left event is 0 speed,
+                    //or they have different specified directions through chroma
+                    if(leftSpeedEvent.Value != 0 && speedEvent.Direction == leftSpeedEvent.Direction)
                     {
                         speedEvent.RotationValues.AddRange(leftSpeedEvent.RotationValues);
                     }
