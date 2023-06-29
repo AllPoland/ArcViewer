@@ -21,6 +21,7 @@ public class ObjectManager : MonoBehaviour
     public ArcManager arcManager;
 
     public bool useSimpleNoteMaterial => SettingsManager.GetBool("simplenotes");
+    public bool useSimpleBombMaterial => SettingsManager.GetBool("simplebombs");
     public bool doRotationAnimation => SettingsManager.GetBool("rotateanimations");
     public bool doMovementAnimation => SettingsManager.GetBool("moveanimations");
     public bool doFlipAnimation => SettingsManager.GetBool("flipanimations");
@@ -296,6 +297,9 @@ public class ObjectManager : MonoBehaviour
         HitSoundManager.ClearScheduledSounds();
 
         noteManager.UpdateMaterials();
+
+        bombManager.ReloadBombs();
+
         chainManager.ClearRenderedVisuals();
         chainManager.UpdateVisuals();
 
@@ -475,7 +479,7 @@ public class ObjectManager : MonoBehaviour
 
             foreach(BeatmapBombNote b in bombsOnBeat)
             {
-                Bomb newBomb = Bomb.BombFromBeatmapBombNote(b);
+                Bomb newBomb = new Bomb(b);
                 newBomb.StartY = ((float)NoteManager.GetStartY(b, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
 
                 // check attachment to arcs

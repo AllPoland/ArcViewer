@@ -3,7 +3,7 @@ using UnityEngine;
 public class ChainLinkHandler : MonoBehaviour
 {
     public AudioSource audioSource;
-    public bool Visible;
+    public bool Visible { get; private set; }
 
     [SerializeField] private MeshRenderer meshRenderer;
     [SerializeField] private MeshRenderer dotMeshRenderer;
@@ -12,8 +12,6 @@ public class ChainLinkHandler : MonoBehaviour
 
     public void SetMaterial(Material newMaterial)
     {
-        if(newMaterial == meshRenderer.sharedMaterial) return;
-
         meshRenderer.sharedMaterial = newMaterial;
     }
 
