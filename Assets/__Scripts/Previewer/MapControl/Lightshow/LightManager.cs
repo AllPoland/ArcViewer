@@ -28,6 +28,8 @@ public class LightManager : MonoBehaviour
         }
     }
 
+    public static bool FlipBackLasers { get; private set; }
+
     public static event Action<LightingPropertyEventArgs> OnLightPropertiesChanged;
     public static event Action<LaserSpeedEvent, LightEventType> OnLaserRotationsChanged;
     public static event Action OnStaticLightsChanged;
@@ -86,6 +88,13 @@ public class LightManager : MonoBehaviour
         "RockMixtapeEnvironment",
         "Dragons2Environment",
         "Panic2Environment"
+    };
+
+    //These environments have red/blue flipped on their back/bottom lasers
+    private static readonly string[] backLaserFlipEnvironments = new string[]
+    {
+        "DragonsEnvironment",
+        "FitBeatEnvironment"
     };
 
     private static MapElementList<BoostEvent> boostEvents = new MapElementList<BoostEvent>();
@@ -430,6 +439,8 @@ public class LightManager : MonoBehaviour
         }
         else StaticLights = false;
 
+        FlipBackLasers = backLaserFlipEnvironments.Contains(environmentName);
+
         boostEvents.Clear();
         foreach(BeatmapColorBoostBeatmapEvent beatmapBoostEvent in newDifficulty.beatmapDifficulty.colorBoostBeatMapEvents)
         {
@@ -626,6 +637,12 @@ public class LightEvent : MapElement
         FloatValue = beatmapEvent.f;
         TransitionEasing = Easings.Linear;
 
+        if(Type == LightEventType.BackLasers && LightManager.FlipBackLasers)
+        {
+            //Back laser events need to have red/blue values swapped in some envs
+            MirrorColor();
+        }
+
         if(beatmapEvent.customData != null)
         {
             BeatmapCustomBasicEventData customData = beatmapEvent.customData;
@@ -645,6 +662,39 @@ public class LightEvent : MapElement
             {
                 HsvLerp = customData.lerpType == "HSV";
             }
+        }
+    }
+
+
+    public void MirrorColor()
+    {
+        //Mirrors the red/blue value of the event. Doesn't affect white or off
+        switch(Value)
+        {
+            case LightEventValue.BlueOn:
+                Value = LightEventValue.RedOn;
+                break;
+            case LightEventValue.BlueFlash:
+                Value = LightEventValue.RedFlash;
+                break;
+            case LightEventValue.BlueFade:
+                Value = LightEventValue.RedFade;
+                break;
+            case LightEventValue.BlueTransition:
+                Value = LightEventValue.RedTransition;
+                break;
+            case LightEventValue.RedOn:
+                Value = LightEventValue.BlueOn;
+                break;
+            case LightEventValue.RedFlash:
+                Value = LightEventValue.BlueFlash;
+                break;
+            case LightEventValue.RedFade:
+                Value = LightEventValue.BlueFade;
+                break;
+            case LightEventValue.RedTransition:
+                Value = LightEventValue.BlueTransition;
+                break;
         }
     }
 
