@@ -254,30 +254,30 @@ public static class DifficultyLoader
 
     private static void FillCustomDifficultyData(ref Difficulty difficulty, DifficultyBeatmap beatmap)
     {
-        if(beatmap._customData == null)
-        {
-            return;
-        }
-
-        difficulty.requirements = beatmap._customData._requirements ?? new string[0];
-        difficulty.label = beatmap._customData._difficultyLabel ?? Difficulty.DiffLabelFromRank(difficulty.difficultyRank);
+        difficulty.requirements = beatmap._customData?._requirements ?? new string[0];
+        difficulty.label = beatmap._customData?._difficultyLabel ?? Difficulty.DiffLabelFromRank(difficulty.difficultyRank);
         difficulty.songCoreColors = ColorPaletteFromCustomData(beatmap._customData);
     }
 
 
-    private static NullableColorPalette ColorPaletteFromCustomData(CustomDifficultyData _customData)
+    private static NullableColorPalette ColorPaletteFromCustomData(CustomDifficultyData customData)
     {
+        if(customData == null)
+        {
+            return null;
+        }
+
         return new NullableColorPalette
         {
-            LeftNoteColor = _customData._colorLeft?.GetColor(),
-            RightNoteColor = _customData._colorRight?.GetColor(),
-            LightColor1 = _customData._envColorLeft?.GetColor(),
-            LightColor2 = _customData._envColorRight?.GetColor(),
-            WhiteLightColor = _customData._envColorWhite?.GetColor(),
-            BoostLightColor1 = _customData._envColorLeftBoost?.GetColor(),
-            BoostLightColor2 = _customData._envColorRightBoost?.GetColor(),
-            BoostWhiteLightColor = _customData._envColorWhiteBoost?.GetColor(),
-            WallColor = _customData._obstacleColor?.GetColor()
+            LeftNoteColor = customData._colorLeft?.GetColor(),
+            RightNoteColor = customData._colorRight?.GetColor(),
+            LightColor1 = customData._envColorLeft?.GetColor(),
+            LightColor2 = customData._envColorRight?.GetColor(),
+            WhiteLightColor = customData._envColorWhite?.GetColor(),
+            BoostLightColor1 = customData._envColorLeftBoost?.GetColor(),
+            BoostLightColor2 = customData._envColorRightBoost?.GetColor(),
+            BoostWhiteLightColor = customData._envColorWhiteBoost?.GetColor(),
+            WallColor = customData._obstacleColor?.GetColor()
         };
     }
 }

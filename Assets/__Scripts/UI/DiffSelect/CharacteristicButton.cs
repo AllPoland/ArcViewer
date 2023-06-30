@@ -27,13 +27,4 @@ public class CharacteristicButton : MonoBehaviour, IPointerEnterHandler
         rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, newHeight);
         imageTransform.sizeDelta = new Vector2(newHeight, newHeight);
     }
-
-
-    private void OnEnable()
-    {
-        if(!rectTransform)
-        {
-            rectTransform = GetComponent<RectTransform>();
-        }
-    }
 }

@@ -36,17 +36,4 @@ public class DifficultyButton : MonoBehaviour, IPointerEnterHandler
     {
         controller.ChangeDifficulty(difficulty);
     }
-
-
-    private void OnEnable()
-    {
-        if(!rectTransform)
-        {
-            rectTransform = GetComponent<RectTransform>();
-        }
-        if(!button)
-        {
-            button = GetComponent<Button>();
-        }
-    }
 }
