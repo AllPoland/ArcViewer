@@ -59,6 +59,7 @@ public static class DifficultyLoader
                 Debug.Log($"Loading {beatmap._beatmapFilename}");
 
                 //Yielding is a dumb and inconsistent way of allowing the loading text to update
+                //Task.Delay() doesn't work on WebGL for reasons
                 await Task.Yield();
                 Difficulty newDifficulty = await LoadDifficultyFile(info, beatmap, setCharacteristic, directory, archive);
                 if(newDifficulty == null) continue;
@@ -101,6 +102,7 @@ public static class DifficultyLoader
             DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
             foreach(DifficultyBeatmap beatmap in set._difficultyBeatmaps)
             {
+                //Add each difficulty to a task list to run at once
                 string filename = beatmap._beatmapFilename;
                 Debug.Log($"Adding {filename} to task list.");
 
@@ -129,6 +131,7 @@ public static class DifficultyLoader
             Debug.Log($"Added {set._difficultyBeatmaps.Length} difficulties in characteristic {characteristicName}.");
         }
 
+        //Run all loading tasks concurrently
         await Task.WhenAll(difficultyTasks.ToArray());
 
         List<Difficulty> difficulties = new List<Difficulty>();
@@ -251,30 +254,30 @@ public static class DifficultyLoader
 
     private static void FillCustomDifficultyData(ref Difficulty difficulty, DifficultyBeatmap beatmap)
     {
-        difficulty.requirements = beatmap._customData?._requirements ?? new string[0];
-        difficulty.label = beatmap._customData?._difficultyLabel ?? Difficulty.DiffLabelFromRank(difficulty.difficultyRank);
+        if(beatmap._customData == null)
+        {
+            return;
+        }
+
+        difficulty.requirements = beatmap._customData._requirements ?? new string[0];
+        difficulty.label = beatmap._customData._difficultyLabel ?? Difficulty.DiffLabelFromRank(difficulty.difficultyRank);
         difficulty.songCoreColors = ColorPaletteFromCustomData(beatmap._customData);
     }
 
 
     private static NullableColorPalette ColorPaletteFromCustomData(CustomDifficultyData _customData)
     {
-        if(_customData == null)
-        {
-            return null;
-        }
-
         return new NullableColorPalette
         {
-            LeftNoteColor = _customData?._colorLeft?.GetColor(),
-            RightNoteColor = _customData?._colorRight?.GetColor(),
-            LightColor1 = _customData?._envColorLeft?.GetColor(),
-            LightColor2 = _customData?._envColorRight?.GetColor(),
-            WhiteLightColor = _customData?._envColorWhite?.GetColor(),
-            BoostLightColor1 = _customData?._envColorLeftBoost?.GetColor(),
-            BoostLightColor2 = _customData?._envColorRightBoost?.GetColor(),
-            BoostWhiteLightColor = _customData?._envColorWhiteBoost?.GetColor(),
-            WallColor = _customData?._obstacleColor?.GetColor()
+            LeftNoteColor = _customData._colorLeft?.GetColor(),
+            RightNoteColor = _customData._colorRight?.GetColor(),
+            LightColor1 = _customData._envColorLeft?.GetColor(),
+            LightColor2 = _customData._envColorRight?.GetColor(),
+            WhiteLightColor = _customData._envColorWhite?.GetColor(),
+            BoostLightColor1 = _customData._envColorLeftBoost?.GetColor(),
+            BoostLightColor2 = _customData._envColorRightBoost?.GetColor(),
+            BoostWhiteLightColor = _customData._envColorWhiteBoost?.GetColor(),
+            WallColor = _customData._obstacleColor?.GetColor()
         };
     }
 }
