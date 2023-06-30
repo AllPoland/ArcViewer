@@ -52,8 +52,8 @@ public static class JsonReader
         Difficulty output = new Difficulty
         {
             difficultyRank = MapLoader.DiffValueFromString[beatmap._difficulty],
-            NoteJumpSpeed = beatmap._noteJumpMovementSpeed,
-            SpawnOffset = beatmap._noteJumpStartBeatOffset
+            noteJumpSpeed = beatmap._noteJumpMovementSpeed,
+            spawnOffset = beatmap._noteJumpStartBeatOffset
         };
 
         string filename = beatmap._beatmapFilename;

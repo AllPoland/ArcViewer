@@ -422,7 +422,7 @@ public class LightManager : MonoBehaviour
 
     public void UpdateDifficulty(Difficulty newDifficulty)
     {
-        string environmentName = BeatmapManager.Info._environmentName;
+        string environmentName = BeatmapManager.EnvironmentName;
         if(newDifficulty.beatmapDifficulty.basicBeatMapEvents.Length == 0 || v3Environments.Contains(environmentName))
         {
             StaticLights = true;

@@ -11,18 +11,16 @@ public class BeatmapInfo
     public string _levelAuthorName;
     public float _beatsPerMinute;
     //Shuffle is depreciated and will be ignored.
-    public float _shuffle;
-    public float _shufflePeriod;
     //Preview times aren't needed either
-    public float _previewStartTime;
-    public float _previewDuration;
     public string _songFilename;
     public string _coverImageFilename;
     public string _environmentName;
     public string _allDirectionsEnvironmentName;
     public float _songTimeOffset;
-    public CustomInfoData _customData;
     public DifficultyBeatmapSet[] _difficultyBeatmapSets;
+
+    public string[] _environmentNames;
+    public ColorSchemeContainer[] _colorSchemes;
 
 
     public void AddNulls()
@@ -59,25 +57,23 @@ public class BeatmapInfo
         _songAuthorName = "",
         _levelAuthorName = "",
         _beatsPerMinute = 120,
-        _shuffle = 0,
-        _shufflePeriod = 0,
-        _previewStartTime = 0,
-        _previewDuration = 0,
         _songFilename = "",
         _coverImageFilename = "",
         _environmentName = "",
         _allDirectionsEnvironmentName = "",
         _songTimeOffset = 0,
-        _customData = null,
-        _difficultyBeatmapSets = new DifficultyBeatmapSet[0]
+        _difficultyBeatmapSets = new DifficultyBeatmapSet[0],
+        _environmentNames = new string[0],
+        _colorSchemes = new ColorSchemeContainer[0]
     };
 }
 
 
 [Serializable]
-public class CustomInfoData
+public struct DifficultyBeatmapSet
 {
-
+    public string _beatmapCharacteristicName;
+    public DifficultyBeatmap[] _difficultyBeatmaps;
 }
 
 
@@ -90,7 +86,49 @@ public struct DifficultyBeatmap
     public float _noteJumpMovementSpeed;
     public float _noteJumpStartBeatOffset;
 
+    public int _beatmapColorSchemeIdx;
+    public int _environmentNameIdx;
+
     public CustomDifficultyData _customData;
+}
+
+
+[Serializable]
+public class ColorSchemeContainer
+{
+    public bool useOverride;
+    public ColorScheme colorScheme;
+}
+
+
+[Serializable]
+public class ColorScheme
+{
+    public string colorSchemeId;
+    public SerializableColor saberAColor;
+    public SerializableColor saberBColor;
+    public SerializableColor environmentColor0;
+    public SerializableColor environmentColor1;
+    public SerializableColor obstaclesColor;
+    public SerializableColor environmentColor0Boost;
+    public SerializableColor environmentColor1Boost;
+
+
+    public NullableColorPalette GetPalette()
+    {
+        return new NullableColorPalette
+        {
+            LeftNoteColor = saberAColor?.GetColor(),
+            RightNoteColor = saberBColor?.GetColor(),
+            LightColor1 = environmentColor0?.GetColor(),
+            LightColor2 = environmentColor1?.GetColor(),
+            WhiteLightColor = Color.white,
+            BoostLightColor1 = environmentColor0Boost?.GetColor(),
+            BoostLightColor2 = environmentColor1Boost?.GetColor(),
+            BoostWhiteLightColor = Color.white,
+            WallColor = obstaclesColor?.GetColor(),
+        };
+    }
 }
 
 
@@ -100,32 +138,32 @@ public class CustomDifficultyData
     public string _difficultyLabel;
     public string[] _requirements;
 
-    public CustomDifficultyColor _colorLeft;
-    public CustomDifficultyColor _colorRight;
-    public CustomDifficultyColor _envColorLeft;
-    public CustomDifficultyColor _envColorRight;
-    public CustomDifficultyColor _envColorWhite;
-    public CustomDifficultyColor _envColorLeftBoost;
-    public CustomDifficultyColor _envColorRightBoost;
-    public CustomDifficultyColor _envColorWhiteBoost;
-    public CustomDifficultyColor _obstacleColor;
+    //SongCore color overrides
+    public SerializableColor _colorLeft;
+    public SerializableColor _colorRight;
+    public SerializableColor _envColorLeft;
+    public SerializableColor _envColorRight;
+    public SerializableColor _envColorWhite;
+    public SerializableColor _envColorLeftBoost;
+    public SerializableColor _envColorRightBoost;
+    public SerializableColor _envColorWhiteBoost;
+    public SerializableColor _obstacleColor;
 }
 
 
 [Serializable]
-public class CustomDifficultyColor
+public class SerializableColor
 {
     public float r;
     public float g;
     public float b;
-}
+    public float? a;
 
 
-[Serializable]
-public struct DifficultyBeatmapSet
-{
-    public string _beatmapCharacteristicName;
-    public DifficultyBeatmap[] _difficultyBeatmaps;
+    public Color GetColor()
+    {
+        return new Color(r, g, b, a ?? 1f);
+    }
 }
 
 

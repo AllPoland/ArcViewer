@@ -24,9 +24,9 @@ public class DifficultyButton : MonoBehaviour, IPointerEnterHandler
     public void UpdateDiffLabel(List<Difficulty> availableDifficulties)
     {
         Difficulty thisDifficulty = availableDifficulties.FirstOrDefault(x => x.difficultyRank == difficulty);
-        if(thisDifficulty != null && thisDifficulty.Label != "")
+        if(thisDifficulty != null && thisDifficulty.label != "")
         {
-            diffLabel.text = thisDifficulty.Label;
+            diffLabel.text = thisDifficulty.label;
         }
         else diffLabel.text = Difficulty.DiffLabelFromRank(difficulty);
     }

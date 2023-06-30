@@ -19,9 +19,10 @@ public class ColorManager : MonoBehaviour
 
     private static readonly string[] colorSettings =
     {
-        "songcorecolors",
         "chromaobjectcolors",
+        "songcorecolors",
         "environmentcolors",
+        "difficultycolors",
         "coloroverride",
         "leftnotecolor",
         "rightnotecolor",
@@ -34,7 +35,8 @@ public class ColorManager : MonoBehaviour
         "wallcolor"
     };
 
-    private static NullableColorPalette SongCoreColors;
+    private static NullableColorPalette difficultyColorScheme;
+    private static NullableColorPalette difficultySongCoreColors;
 
 
     private void UpdateCurrentColors()
@@ -42,6 +44,7 @@ public class ColorManager : MonoBehaviour
         ColorPalette newColors;
         if(SettingsManager.GetBool("coloroverride"))
         {
+            //Use custom user set colors as the base palette, ignore all vanilla colors
             newColors = new ColorPalette
             {
                 LeftNoteColor = SettingsManager.GetColor("leftnotecolor"),
@@ -55,15 +58,26 @@ public class ColorManager : MonoBehaviour
                 WallColor = SettingsManager.GetColor("wallcolor")
             };
         }
-        else if(SettingsManager.GetBool("environmentcolors"))
+        else 
         {
-            newColors = GetEnvironmentColors(BeatmapManager.Info?._environmentName ?? "");
-        }
-        else newColors = DefaultColors;
+            //Use the vanilla color scheme for the difficulty
+            if(SettingsManager.GetBool("environmentcolors"))
+            {
+                newColors = GetEnvironmentColors(BeatmapManager.EnvironmentName);
+            }
+            else newColors = DefaultColors;
 
-        if(SettingsManager.GetBool("songcorecolors") && SongCoreColors != null)
+            if(SettingsManager.GetBool("difficultycolors"))
+            {
+                //Stack the difficulty-specific color scheme
+                newColors.StackPalette(difficultyColorScheme);
+            }
+        }
+
+        if(SettingsManager.GetBool("songcorecolors"))
         {
-            newColors.StackPalette(SongCoreColors);
+            //SongCore color overrides replace everything
+            newColors.StackPalette(difficultySongCoreColors);
         }
 
         CurrentColors = newColors;
@@ -143,26 +157,26 @@ public class ColorManager : MonoBehaviour
     }
 
 
-    public static Color ColorFromCustomDataColor(float[] eventColor)
+    public static Color ColorFromCustomDataColor(float[] customColor)
     {
         Color newColor = Color.black;
-        for(int i = 0; i < eventColor.Length; i++)
+        for(int i = 0; i < customColor.Length; i++)
         {
             //Loop only through present rgba values and ignore missing ones
             //a will default to 1 if missing because the color is initialized to black
             switch(i)
             {
                 case 0:
-                    newColor.r = eventColor[i];
+                    newColor.r = customColor[i];
                     break;
                 case 1:
-                    newColor.g = eventColor[i];
+                    newColor.g = customColor[i];
                     break;
                 case 2:
-                    newColor.b = eventColor[i];
+                    newColor.b = customColor[i];
                     break;
                 case 3:
-                    newColor.a = eventColor[i];
+                    newColor.a = customColor[i];
                     break;
                 default:
                     //For some reason there are more than 4 elements - we'll ignore these
@@ -175,7 +189,8 @@ public class ColorManager : MonoBehaviour
 
     public void UpdateDifficulty(Difficulty newDifficulty)
     {
-        SongCoreColors = newDifficulty.colors;
+        difficultyColorScheme = newDifficulty.colorScheme;
+        difficultySongCoreColors = newDifficulty.songCoreColors;
         UpdateCurrentColors();
     }
 
