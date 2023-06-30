@@ -19,7 +19,6 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
 
     [SerializeField] private List<DifficultyButton> difficultyButtons;
 
-    private RectTransform rectTransform;
     private Difficulty currentDifficulty = Difficulty.Empty;
     private DifficultyCharacteristic currentCharacteristic = DifficultyCharacteristic.Standard;
     public List<Difficulty> availableDifficulties = new List<Difficulty>();
@@ -33,10 +32,10 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
         //we need to figure out if it's selected or not first and treat the height accordingly
         float firstButtonHeight = selectedCharacteristic == currentDifficulty.characteristic ? buttonHeight : unselectedButtonHeight;
 
-        float currentY = firstButtonHeight;
-        int buttonIndex = 1;
-        foreach(CharacteristicButton button in characteristicButtons)
+        for(int i = 0; i < characteristicButtons.Count; i++)
         {
+            CharacteristicButton button = characteristicButtons[i];
+
             if(!BeatmapManager.HasCharacteristic(button.characteristic))
             {
                 //This characteristic isn't used
@@ -53,43 +52,22 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
             button.SetHeight(height);
             button.rectTransform.sizeDelta = new Vector2(width, height);
 
-            //The current map characteristic should always be on the bottom
-            float position = isCurrent ? 0 : currentY;
-            button.rectTransform.anchoredPosition = new Vector2(button.rectTransform.anchoredPosition.x, position);
-
             if(isSelected)
             {
-                selectedCharacteristicIndex = isCurrent ? 0 : buttonIndex;
-            }
-
-            if(!isCurrent)
-            {
-                //Brings the currentY to the top of the button
-                currentY += height;
-                buttonIndex++;
+                selectedCharacteristicIndex = i;
             }
         }
-        //Set the height of this transform for raycast stuff
-        float newHeight = Mathf.Max(currentY, rectTransform.sizeDelta.y);
-        rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, newHeight);
 
         currentCharacteristic = selectedCharacteristic;
         availableDifficulties = BeatmapManager.GetDifficultiesByCharacteristic(currentCharacteristic);
 
-        //Figure out which difficulty should be selected
-        //This should be the one that shares the same effective index with the characteristic
-        if(currentCharacteristic != currentDifficulty.characteristic)
-        {
-            int diffStartIndex = GetDifficultyStartIndex();
-            int selectedDiffIndex = selectedCharacteristicIndex - diffStartIndex;
-            UpdateDifficultyButtons(availableDifficulties[selectedDiffIndex].difficultyRank);
-        }
-        else
-        {
-            //The selected characteristic is the current one,
-            //so the current difficulty should be selected as well by default
-            UpdateDifficultyButtons(currentDifficulty.difficultyRank);
-        }
+        //Figure out the offset difficulty buttons should be placed on
+        //to line them up with the selected characteristic
+        int diffStartIndex = GetDifficultyStartIndex();
+
+        //The button directly next to this characteristic should be selected
+        int selectedDiffIndex = selectedCharacteristicIndex - diffStartIndex;
+        UpdateDifficultyButtons(availableDifficulties[selectedDiffIndex].difficultyRank);
     }
 
 
@@ -98,15 +76,7 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
         selectedDifficulty = newDifficulty;
 
         bool sameCharacteristic = currentCharacteristic == currentDifficulty.characteristic;
-
         float currentY = GetDifficultyStartIndex() * unselectedButtonHeight;
-        if(sameCharacteristic)
-        {
-            //The current difficulty is highlighted, and should be kept at the bottom
-            bool selectedCurrent = selectedDifficulty == currentDifficulty.difficultyRank;
-            float firstButtonHeight = selectedCurrent ? buttonHeight : unselectedButtonHeight;
-            currentY += firstButtonHeight;
-        }
 
         foreach(DifficultyButton button in difficultyButtons)
         {
@@ -119,30 +89,16 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
             button.gameObject.SetActive(true);
 
             bool isSelected = button.difficulty == selectedDifficulty;
-            bool isCurrent = sameCharacteristic && button.difficulty == currentDifficulty.difficultyRank;
 
             float height = isSelected ? buttonHeight : unselectedButtonHeight;
             float width = isSelected ? selectedDifficultyWidth : difficultyWidth;
             button.rectTransform.sizeDelta = new Vector2(width, height);
 
-            float position = isCurrent ? 0 : currentY;
-            button.rectTransform.anchoredPosition = new Vector2(button.rectTransform.anchoredPosition.x, position);
-
+            button.rectTransform.anchoredPosition = new Vector2(0f, currentY);
             button.UpdateDiffLabel(availableDifficulties);
 
-            if(!isCurrent)
-            {
-                currentY += height;
-                button.button.interactable = true;
-            }
-            else
-            {
-                //Make the current diff uninteractable to avoid reloading the same diff
-                button.button.interactable = false;
-            }
+            currentY += height;
         }
-        float newHeight = Mathf.Max(currentY, rectTransform.sizeDelta.y);
-        rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, newHeight);
     }
 
 
@@ -172,7 +128,6 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
             //Reset the height and position of this button
             button.SetHeight(unselectedButtonHeight);
             button.rectTransform.sizeDelta = new Vector2(characteristicWidth, unselectedButtonHeight);
-            button.rectTransform.anchoredPosition = Vector2.zero;
         }
 
         foreach(DifficultyButton button in difficultyButtons)
@@ -187,12 +142,9 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
             button.gameObject.SetActive(true);
 
             button.UpdateDiffLabel(availableDifficulties);
-
             button.rectTransform.sizeDelta = new Vector2(difficultyWidth, unselectedButtonHeight);
             button.rectTransform.anchoredPosition = Vector2.zero;
         }
-
-        rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, buttonHeight);
     }
 
 
@@ -202,7 +154,12 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
         try
         {
             Difficulty newDifficulty = diffs.Single(x => x.difficultyRank == newDiff);
-            BeatmapManager.CurrentDifficulty = newDifficulty;
+
+            //Don't bother updating the difficulty if it's the same one
+            if(BeatmapManager.CurrentDifficulty != newDifficulty)
+            {
+                BeatmapManager.CurrentDifficulty = newDifficulty;
+            }
         }
         catch(InvalidOperationException)
         {
@@ -244,11 +201,6 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
 
     private void OnEnable()
     {
-        if(!rectTransform)
-        {
-            rectTransform = GetComponent<RectTransform>();
-        }
-
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
 
         CollapseButtons();
