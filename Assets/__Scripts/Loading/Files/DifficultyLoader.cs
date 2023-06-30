@@ -194,7 +194,7 @@ public static class DifficultyLoader
         }
 
         difficulty.characteristic = characteristic;
-        // difficulty.environmentName = GetDifficultyEnvironmentName(info, beatmap);
+        difficulty.environmentName = GetDifficultyEnvironmentName(info, beatmap);
         difficulty.colorScheme = GetDifficultyColorScheme(info, beatmap);
 
         FillCustomDifficultyData(ref difficulty, beatmap);
