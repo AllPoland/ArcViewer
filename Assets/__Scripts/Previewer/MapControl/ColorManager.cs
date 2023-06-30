@@ -153,6 +153,8 @@ public class ColorManager : MonoBehaviour
                 return Dragons2Colors;
             case "Panic2Environment":
                 return Panic2Colors;
+            case "QueenEnvironment":
+                return QueenColors;
         }
     }
 
@@ -516,6 +518,19 @@ public class ColorManager : MonoBehaviour
         BoostLightColor2 = new Color(0.6365692f, 0.4373443f, 0.8584906f),
         BoostWhiteLightColor = Color.white,
         WallColor = new Color(0.9686275f, 0.3803922f, 0.2745098f)
+    };
+
+    public static ColorPalette QueenColors => new ColorPalette
+    {
+        LeftNoteColor = new Color(0.58f, 0.5675714f, 0.5551428f),
+        RightNoteColor = new Color(0.5236231f, 0.1345675f, 0.6792453f),
+        LightColor1 = new Color(0.9333334f, 0.6392157f, 0.1215686f),
+        LightColor2 = new Color(0.04313726f, 0.7176471f, 0.8980393f),
+        WhiteLightColor = Color.white,
+        BoostLightColor1 = new Color(0.7686275f, 0.145098f, 0.07450981f),
+        BoostLightColor2 = new Color(0.4f, 0.007843138f, 0.7254902f),
+        BoostWhiteLightColor = Color.white,
+        WallColor = new Color(0.9333334f, 0.6392157f, 0.1215686f)
     };
 }
 
