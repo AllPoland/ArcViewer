@@ -12,6 +12,7 @@ public class BeatmapManager : MonoBehaviour
     public static List<Difficulty> NoArrowsDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.NoArrows);
     public static List<Difficulty> ThreeSixtyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.ThreeSixty);
     public static List<Difficulty> NinetyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Ninety);
+    public static List<Difficulty> LegacyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Legacy);
     public static List<Difficulty> LightshowDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lightshow);
     public static List<Difficulty> LawlessDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lawless);
     public static List<Difficulty> UnknownDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Unknown);
@@ -162,6 +163,10 @@ public class BeatmapManager : MonoBehaviour
         else if(NinetyDifficulties.Count > 0)
         {
             return NinetyDifficulties.Last();
+        }
+        else if(LegacyDifficulties.Count > 0)
+        {
+            return LegacyDifficulties.Last();
         }
         else if(LightshowDifficulties.Count > 0)
         {

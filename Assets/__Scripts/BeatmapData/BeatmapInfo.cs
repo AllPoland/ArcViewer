@@ -167,7 +167,6 @@ public class SerializableColor
 }
 
 
-[Serializable]
 public enum DifficultyRank
 {
     Easy,
@@ -178,7 +177,6 @@ public enum DifficultyRank
 }
 
 
-[Serializable]
 public enum DifficultyCharacteristic
 {
     Standard,
@@ -186,6 +184,7 @@ public enum DifficultyCharacteristic
     NoArrows,
     ThreeSixty,
     Ninety,
+    Legacy,
     Lightshow,
     Lawless,
     Unknown

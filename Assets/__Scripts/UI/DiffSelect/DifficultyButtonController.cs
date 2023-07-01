@@ -9,33 +9,33 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
     [SerializeField] private float buttonHeight;
     [SerializeField] private float unselectedButtonHeight;
 
+    [Space]
     [SerializeField] private float characteristicWidth;
     [SerializeField] private float selectedCharacteristicWidth;
 
+    [Space]
     [SerializeField] private float difficultyWidth;
     [SerializeField] private float selectedDifficultyWidth;
 
+    [Space]
     [SerializeField] private List<CharacteristicButton> characteristicButtons;
-
     [SerializeField] private List<DifficultyButton> difficultyButtons;
+
+    public List<Difficulty> availableDifficulties = new List<Difficulty>();
 
     private Difficulty currentDifficulty = Difficulty.Empty;
     private DifficultyCharacteristic currentCharacteristic = DifficultyCharacteristic.Standard;
-    public List<Difficulty> availableDifficulties = new List<Difficulty>();
+
     private DifficultyRank selectedDifficulty;
-    private int selectedCharacteristicIndex;
+    private int currentCharacteristicIndex;
 
 
     public void UpdateCharacteristicButtons(DifficultyCharacteristic selectedCharacteristic)
     {
-        //Since the selected characteristic always goes on bottom,
-        //we need to figure out if it's selected or not first and treat the height accordingly
-        float firstButtonHeight = selectedCharacteristic == currentDifficulty.characteristic ? buttonHeight : unselectedButtonHeight;
-
-        for(int i = 0; i < characteristicButtons.Count; i++)
+        //Start at 1 because the selected characteristic will always take 0
+        int buttonIndex = 1;
+        foreach(CharacteristicButton button in characteristicButtons)
         {
-            CharacteristicButton button = characteristicButtons[i];
-
             if(!BeatmapManager.HasCharacteristic(button.characteristic))
             {
                 //This characteristic isn't used
@@ -49,12 +49,24 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
 
             float height = isSelected ? buttonHeight : unselectedButtonHeight;
             float width = isSelected ? selectedCharacteristicWidth : characteristicWidth;
+
             button.SetHeight(height);
             button.rectTransform.sizeDelta = new Vector2(width, height);
 
             if(isSelected)
             {
-                selectedCharacteristicIndex = i;
+                currentCharacteristicIndex = isCurrent ? 0 : buttonIndex;
+            }
+
+            if(isCurrent)
+            {
+                //The current map characteristic should always be on the bottom
+                button.transform.SetSiblingIndex(0);
+            }
+            else
+            {
+                button.transform.SetSiblingIndex(buttonIndex);
+                buttonIndex++;
             }
         }
 
@@ -66,7 +78,7 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
         int diffStartIndex = GetDifficultyStartIndex();
 
         //The button directly next to this characteristic should be selected
-        int selectedDiffIndex = selectedCharacteristicIndex - diffStartIndex;
+        int selectedDiffIndex = currentCharacteristicIndex - diffStartIndex;
         UpdateDifficultyButtons(availableDifficulties[selectedDiffIndex].difficultyRank);
     }
 
@@ -75,14 +87,12 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
     {
         selectedDifficulty = newDifficulty;
 
-        bool sameCharacteristic = currentCharacteristic == currentDifficulty.characteristic;
         float currentY = GetDifficultyStartIndex() * unselectedButtonHeight;
-
         foreach(DifficultyButton button in difficultyButtons)
         {
             if(!availableDifficulties.Any(x => x.difficultyRank == button.difficulty))
             {
-                //This difficulty isn't used
+                //This difficulty isn't used in the characteristic
                 button.gameObject.SetActive(false);
                 continue;
             }
@@ -105,7 +115,7 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
     private int GetDifficultyStartIndex()
     {
         int diffCount = availableDifficulties.Count;
-        return Mathf.Max(selectedCharacteristicIndex - (diffCount - 1), 0);
+        return Mathf.Max(currentCharacteristicIndex - (diffCount - 1), 0);
     }
 
 
@@ -165,17 +175,12 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
         {
             Debug.LogWarning("Trying to load a difficulty that doesn't exist!");
         }
+        CollapseButtons();
     }
 
 
     public void ChangeCharacteristic()
     {
-        if(currentCharacteristic == currentDifficulty.characteristic)
-        {
-            //We're already on this characteristic
-            return;
-        }
-
         ChangeDifficulty(selectedDifficulty);
     }
 
@@ -202,7 +207,6 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
     private void OnEnable()
     {
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
-
         CollapseButtons();
     }
 }
