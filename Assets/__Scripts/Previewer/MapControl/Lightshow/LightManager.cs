@@ -155,7 +155,12 @@ public class LightManager : MonoBehaviour
     private void UpdateLightEvent(LightEventType type, LightEvent lightEvent, LightEvent nextEvent, MapElementList<LightEvent> events, int eventIndex)
     {
         Color eventColor = GetEventColor(lightEvent, nextEvent);
-        SetLightProperties(eventColor, ref lightProperties, ref glowProperties);
+
+        float v;
+        Color.RGBToHSV(eventColor, out _, out _, out v);
+        float glowBrightness = v * eventColor.a;
+
+        SetLightProperties(eventColor, glowBrightness, ref lightProperties, ref glowProperties);
 
         LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
         {
@@ -165,6 +170,7 @@ public class LightManager : MonoBehaviour
             nextEvent = nextEvent,
             type = type,
             eventIndex = eventIndex,
+            glowBrightness = glowBrightness,
             laserProperties = lightProperties,
             glowProperties = glowProperties
         };
@@ -182,13 +188,13 @@ public class LightManager : MonoBehaviour
     }
 
 
-    public void SetLightProperties(Color baseColor, ref MaterialPropertyBlock laserProperties, ref MaterialPropertyBlock laserGlowProperties)
+    public void SetLightProperties(Color baseColor, float glowBrightness, ref MaterialPropertyBlock laserProperties, ref MaterialPropertyBlock laserGlowProperties)
     {
         laserProperties.SetColor("_BaseColor", GetLightColor(baseColor));
         laserProperties.SetColor("_EmissionColor", GetLightEmission(baseColor));
 
         laserGlowProperties.SetColor("_BaseColor", baseColor);
-        laserGlowProperties.SetFloat("_Alpha", baseColor.a * SettingsManager.GetFloat("lightglowbrightness"));
+        laserGlowProperties.SetFloat("_Alpha", Mathf.Clamp(glowBrightness, 0, 1) * SettingsManager.GetFloat("lightglowbrightness"));
     }
 
 
@@ -196,20 +202,21 @@ public class LightManager : MonoBehaviour
     {
         float s;
         Color.RGBToHSV(baseColor, out _, out s, out _);
+
         Color newColor = baseColor.SetSaturation(s * lightSaturation);
         newColor.a = Mathf.Clamp(baseColor.a, 0f, 1f);
+
         return newColor;
     }
 
 
     private Color GetLightEmission(Color baseColor)
     {
-        float emission = lightEmission * baseColor.a;
+        float h, s, v;
+        Color.RGBToHSV(baseColor, out h, out s, out v);
 
-        float h, s;
-        Color.RGBToHSV(baseColor, out h, out s, out _);
-        Color newColor = baseColor.SetHSV(h, s * lightEmissionSaturation, emission, true);
-        return newColor;
+        float emission = baseColor.a * v * lightEmission;
+        return baseColor.SetHSV(h, s * lightEmissionSaturation, emission, true);
     }
 
 
@@ -822,6 +829,8 @@ public class LightingPropertyEventArgs
     public LightEvent nextEvent;
     public LightEventType type;
     public int eventIndex;
+
+    public float glowBrightness;
 
     public MaterialPropertyBlock laserProperties;
     public MaterialPropertyBlock glowProperties;

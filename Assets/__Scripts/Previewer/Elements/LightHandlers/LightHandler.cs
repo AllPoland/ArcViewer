@@ -13,6 +13,8 @@ public class LightHandler : MonoBehaviour
     private MaterialPropertyBlock laserProperties;
     private MaterialPropertyBlock glowProperties;
 
+    private Vector3 glowBaseScale;
+
 
     private void UpdateLight(LightingPropertyEventArgs eventArgs)
     {
@@ -25,7 +27,7 @@ public class LightHandler : MonoBehaviour
         {
             //The current event and next events affect this id, so no need to recalculate anything
             //This will always be the case in vanilla lightshows without lightID
-            UpdateProperties(eventArgs.laserProperties, eventArgs.glowProperties);
+            UpdateProperties(eventArgs.laserProperties, eventArgs.glowProperties, eventArgs.glowBrightness);
         }
         else
         {
@@ -48,23 +50,28 @@ public class LightHandler : MonoBehaviour
                 eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
             }
 
+            float v;
+            Color.RGBToHSV(eventColor, out _, out _, out v);
+            float glowBrightness = v * eventColor.a;
+
             //The fact that this has to route to the LightManager instance is yucky
             //but I don't know what to do about it so haha ball
-            eventArgs.sender.SetLightProperties(eventColor, ref laserProperties, ref glowProperties);
-            UpdateProperties(laserProperties, glowProperties);
+            eventArgs.sender.SetLightProperties(eventColor, glowBrightness, ref laserProperties, ref glowProperties);
+            UpdateProperties(laserProperties, glowProperties, glowBrightness);
         }
     }
 
 
-    private void UpdateProperties(MaterialPropertyBlock newLaserProperties, MaterialPropertyBlock newGlowProperties)
+    private void UpdateProperties(MaterialPropertyBlock newLaserProperties, MaterialPropertyBlock newGlowProperties, float glowBrightness)
     {
         meshRenderer.SetPropertyBlock(newLaserProperties);
 
-        bool enableGlow = newGlowProperties.GetFloat("_Alpha") > 0.001f;
+        bool enableGlow = glowBrightness > 0.001f;
         SetGlowActive(enableGlow);
         if(enableGlow)
         {
             glowRenderer.SetPropertyBlock(newGlowProperties);
+            UpdateGlowScale(glowBrightness);
         }
     }
 
@@ -74,6 +81,24 @@ public class LightHandler : MonoBehaviour
         if(glowRenderer && glowRenderer.gameObject.activeInHierarchy != active)
         {
             glowRenderer.gameObject.SetActive(active);
+        }
+    }
+
+
+    private void UpdateGlowScale(float brightness)
+    {
+        if(brightness <= 1f)
+        {
+            glowRenderer.transform.localScale = glowBaseScale;
+        }
+        else
+        {
+            Vector2 baseScaleDifference = (Vector2)glowBaseScale - Vector2.one;
+            baseScaleDifference.x = Mathf.Max(baseScaleDifference.x, 0f);
+            baseScaleDifference.y = Mathf.Max(baseScaleDifference.y, 0f);
+
+            Vector2 newScaleAmount = baseScaleDifference * brightness;
+            glowRenderer.transform.localScale = Vector3.one + (Vector3)newScaleAmount;
         }
     }
 
@@ -111,6 +136,8 @@ public class LightHandler : MonoBehaviour
     {
         LightManager.OnLightPropertiesChanged += UpdateLight;
         CameraSettingsUpdater.OnCameraPositionUpdated += UpdateGlowRotation;
+
+        glowBaseScale = glowRenderer.transform.localScale;
 
         UpdateGlowRotation();
     }
