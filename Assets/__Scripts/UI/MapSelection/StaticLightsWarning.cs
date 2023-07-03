@@ -27,7 +27,7 @@ public class StaticLightsWarning : MonoBehaviour
     {
         bool staticLights = SettingsManager.GetBool("staticlights");
         string staticString = staticLights ? "enabled" : "disabled";
-        DialogueHandler.ShowDialogueBox(DialogueBoxType.Ok, $"Static lights has been {staticString}.\nYou can change this at any time in the \"visuals\" tab in the settings.");
+        DialogueHandler.ShowDialogueBox(DialogueBoxType.Ok, $"Static lights has been {staticString}.\nYou can change this at any time with the button in the bottom right corner.");
 
         SettingsManager.SetRule("staticlightswarningacknowledged", true, false);
 #if !UNITY_WEBGL || UNITY_EDITOR

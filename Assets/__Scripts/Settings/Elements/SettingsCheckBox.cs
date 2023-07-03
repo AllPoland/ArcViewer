@@ -22,6 +22,20 @@ public class SettingsCheckBox : MonoBehaviour
 
     public void UpdateSettings(string changedSetting)
     {
+        if(changedSetting == "all" || changedSetting == rule)
+        {
+            toggle.SetIsOnWithoutNotify(SettingsManager.GetBool(rule));
+        }
+
+        if(requiredSetting.Enabled)
+        {
+            CheckRequiredSetting(changedSetting);
+        }
+    }
+
+
+    private void CheckRequiredSetting(string changedSetting)
+    {
         SerializedOption<bool> option = requiredSetting.Value;
         if(changedSetting == "all" || changedSetting == option.Name)
         {
@@ -49,11 +63,8 @@ public class SettingsCheckBox : MonoBehaviour
         toggle.isOn = SettingsManager.GetBool(rule);
         toggle.onValueChanged.AddListener(SetValue);
 
-        if(requiredSetting.Enabled)
-        {
-            SettingsManager.OnSettingsUpdated += UpdateSettings;
-            UpdateSettings("all");
-        }
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
+        UpdateSettings("all");
     }
 
 

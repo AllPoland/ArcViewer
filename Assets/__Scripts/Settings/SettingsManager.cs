@@ -26,6 +26,8 @@ public class SettingsManager : MonoBehaviour
     public static event Action<string> OnSettingsUpdated;
     public static event Action OnSettingsReset;
 
+    //This is a yucky, hacky pass-through for outside scripts to force settings to save
+    //without needing a reference, and without making the whole thing a singleton
     public static Action SaveSettingsStatic;
 
     public static bool Loaded { get; private set; }
