@@ -4,6 +4,10 @@ public class WallManager : MapElementManager<Wall>
 {
     public static Color WallColor => ColorManager.CurrentColors.WallColor;
 
+    //This is used to ensure the wall edges always show at full size,
+    //since that's how small walls act in-game
+    public const float MinWallSize = 0.06f;
+
     [Header("Components")]
     [SerializeField] private ObjectPool<WallHandler> wallPool;
     [SerializeField] private GameObject wallParent;
@@ -33,6 +37,7 @@ public class WallManager : MapElementManager<Wall>
     public override void UpdateVisual(Wall w)
     {
         float wallLength = objectManager.WorldSpaceFromTime(w.DurationTime);
+        wallLength = Mathf.Max(wallLength, MinWallSize);
 
         //Subtract 0.25 to make front face of wall line up with front face of note (walls just built like that)
         float frontDist = objectManager.GetZPosition(w.Time) - 0.25f;
@@ -209,10 +214,6 @@ public class Wall : MapObject
 
     public Wall(BeatmapObstacle o)
     {
-        //This is used to ensure the wall edges always show at full size,
-        //since that's how small walls act in-game
-        const float minSize = 0.06f;
-
         float width = o.w;
         float height = o.h;
         if(o.customData?.size != null && o.customData.size.Length > 0)
@@ -252,8 +253,8 @@ public class Wall : MapObject
         Beat = beat;
         Position = position;
         DurationBeats = duration;
-        Width = Mathf.Max(worldWidth, minSize);
-        Height = Mathf.Max(worldHeight, minSize);
+        Width = Mathf.Max(worldWidth, WallManager.MinWallSize);
+        Height = Mathf.Max(worldHeight, WallManager.MinWallSize);
 
         if(o.customData?.color != null)
         {

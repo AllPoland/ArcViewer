@@ -47,8 +47,7 @@ public static class Extensions
     ///</summary>
     public static bool Approximately(this float f, float x)
     {
-        float diff = Mathf.Abs(f - x);
-        return diff < 0.00001f;
+        return Mathf.Abs(f - x) < 0.0001f;
     }
 
 
