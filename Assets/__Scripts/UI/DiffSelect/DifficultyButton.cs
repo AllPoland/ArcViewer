@@ -36,4 +36,17 @@ public class DifficultyButton : MonoBehaviour, IPointerEnterHandler
     {
         controller.ChangeDifficulty(difficulty);
     }
+
+
+    public void SetButtonSize(float minWidth, float height, bool selected)
+    {
+        float width;
+        if(selected)
+        {
+            width = Mathf.Max(diffLabel.preferredWidth, minWidth);
+        }
+        else width = minWidth;
+
+        rectTransform.sizeDelta = new Vector2(width, height);
+    }
 }

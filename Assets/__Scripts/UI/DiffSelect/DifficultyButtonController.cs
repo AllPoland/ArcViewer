@@ -97,15 +97,15 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
                 continue;
             }
             button.gameObject.SetActive(true);
+            button.UpdateDiffLabel(availableDifficulties);
 
             bool isSelected = button.difficulty == selectedDifficulty;
 
-            float height = isSelected ? buttonHeight : unselectedButtonHeight;
             float width = isSelected ? selectedDifficultyWidth : difficultyWidth;
-            button.rectTransform.sizeDelta = new Vector2(width, height);
+            float height = isSelected ? buttonHeight : unselectedButtonHeight;
 
+            button.SetButtonSize(width, height, isSelected);
             button.rectTransform.anchoredPosition = new Vector2(0f, currentY);
-            button.UpdateDiffLabel(availableDifficulties);
 
             currentY += height;
         }
