@@ -15,8 +15,9 @@ public class WallHandler : MonoBehaviour, IComparable<WallHandler>
 
         //Multiply by slightly less than 1 so as to not move *entirely* to the edge of the wall
         //This makes it possible to distinguish distance between walls that have touching edges
-        Vector3 thisHalfScale = transform.localScale / 2 * 0.999f;
-        Vector3 otherHalfScale = otherTransform.localScale / 2 * 0.999f;
+        float maxDist = 1f - 0.001f;
+        Vector3 thisHalfScale = transform.localScale / 2 * maxDist;
+        Vector3 otherHalfScale = otherTransform.localScale / 2 * maxDist;
 
         Vector3 thisClosestPoint = transform.position;
         //Move each coordinate separately in order to properly account for wall scale
@@ -58,6 +59,10 @@ public class WallHandler : MonoBehaviour, IComparable<WallHandler>
         if(thisComparisonDistance < otherComparisonDistance)
         {
             return 1;
+        }
+        else if(thisComparisonDistance == otherComparisonDistance)
+        {
+            return 0;
         }
         else return -1;
     }

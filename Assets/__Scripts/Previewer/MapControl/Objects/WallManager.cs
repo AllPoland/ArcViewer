@@ -209,6 +209,10 @@ public class Wall : MapObject
 
     public Wall(BeatmapObstacle o)
     {
+        //This is used to ensure the wall edges always show at full size,
+        //since that's how small walls act in-game
+        const float minSize = 0.06f;
+
         float width = o.w;
         float height = o.h;
         if(o.customData?.size != null && o.customData.size.Length > 0)
@@ -248,8 +252,8 @@ public class Wall : MapObject
         Beat = beat;
         Position = position;
         DurationBeats = duration;
-        Width = worldWidth;
-        Height = worldHeight;
+        Width = Mathf.Max(worldWidth, minSize);
+        Height = Mathf.Max(worldHeight, minSize);
 
         if(o.customData?.color != null)
         {
