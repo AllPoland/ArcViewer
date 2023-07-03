@@ -30,7 +30,6 @@ public class StaticLightsButton : MonoBehaviour
         bool staticLights = SettingsManager.GetBool(staticLightsSetting);
 
         buttonImage.color = staticLights ? lightsOffColor : lightsOnColor;
-
         tooltip.Text = staticLights ? lightsOffTooltip : lightsOnTooltip;
     }
 
@@ -51,6 +50,8 @@ public class StaticLightsButton : MonoBehaviour
     private void OnEnable()
     {
         SettingsManager.OnSettingsUpdated += UpdateSettings;
+
+        UpdateButton();
     }
 
 
