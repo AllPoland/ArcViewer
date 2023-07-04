@@ -9,7 +9,10 @@ public class ScrollBarReset : MonoBehaviour
 
     private void OnEnable()
     {
-        scrollbar = GetComponent<Scrollbar>();
+        if(!scrollbar)
+        {
+            scrollbar = GetComponent<Scrollbar>();
+        }
 
         scrollbar.value = defaultValue;
     }
