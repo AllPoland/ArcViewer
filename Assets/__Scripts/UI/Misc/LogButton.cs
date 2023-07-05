@@ -4,12 +4,12 @@ using UnityEngine.UI;
 public class LogButton : MonoBehaviour
 {
     [SerializeField] private Button button;
-    [SerializeField] private string logText;
+    [SerializeField] private Log log;
 
 
     public void ShowLog()
     {
-        DialogueHandler.Instance.ShowLog(logText);
+        DialogueHandler.Instance.ShowLog(log);
     }
 
 

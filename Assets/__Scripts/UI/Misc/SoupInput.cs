@@ -75,6 +75,6 @@ public class SoupInput : MonoBehaviour
     public class LockedLog
     {
         public string Passcode;
-        public string Log;
+        public Log Log;
     }
 }

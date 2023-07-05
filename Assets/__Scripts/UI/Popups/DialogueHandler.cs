@@ -1,23 +1,19 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 
 public class DialogueHandler : MonoBehaviour
 {
     public static DialogueHandler Instance { get; private set; }
 
     public static List<DialogueBox> OpenBoxes = new List<DialogueBox>();
-    public static bool LogActive => Instance.logDisplay.activeInHierarchy;
+    public static bool LogActive => Instance.logDisplay.gameObject.activeInHierarchy;
     public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy || Instance.staticLightsWarningPanel.activeInHierarchy || LogActive;
     public static bool PopupActive => DialogueActive || Instance.sharePanel.activeInHierarchy || Instance.jumpSettingsPanel.activeInHierarchy || Instance.statsPanel.activeInHierarchy;
 
     [SerializeField] private GameObject dialogueBoxPrefab;
-    [SerializeField] private TextMeshProUGUI logText;
-    [SerializeField] private Scrollbar logScrollBar;
 
-    public GameObject logDisplay;
+    public LogDisplay logDisplay;
     public GameObject infoPanel;
     public GameObject sharePanel;
     public GameObject jumpSettingsPanel;
@@ -64,16 +60,11 @@ public class DialogueHandler : MonoBehaviour
     }
 
 
-    public void ShowLog(string text)
+    public void ShowLog(Log log)
     {
         TimeManager.SetPlaying(false);
-        logText.text = text;
-
-        logDisplay.SetActive(true);
-        LayoutRebuilder.ForceRebuildLayoutImmediate(logText.rectTransform);
-        LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)logText.transform.parent);
-        LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)logDisplay.transform);
-        logScrollBar.value = 1f;
+        logDisplay.gameObject.SetActive(true);
+        logDisplay.SetLog(log);
     }
 
 
@@ -116,7 +107,7 @@ public class DialogueHandler : MonoBehaviour
         {
             if(cancel)
             {
-                logDisplay.SetActive(false);
+                logDisplay.gameObject.SetActive(false);
             }
             return;
         }
