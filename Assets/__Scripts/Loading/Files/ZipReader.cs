@@ -145,7 +145,7 @@ public class ZipReader : IMapDataLoader
 
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
-            if(!entry.Name.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
+            if(!entry.FullName.Equals("Info.dat", StringComparison.InvariantCultureIgnoreCase))
             {
                 continue;
             }
@@ -159,18 +159,38 @@ public class ZipReader : IMapDataLoader
                 Debug.LogWarning($"Failed to read Info.dat with error: {e.Message}, {e.StackTrace}");
                 return null;
             }
-
-            if(!entry.FullName.Equals("Info.dat", System.StringComparison.OrdinalIgnoreCase))
-            {
-                //This means Info.dat was in a subfolder
-                ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Map files aren't in the root!");
-                Debug.LogWarning("Map files aren't in the root!");
-            }
             break;
         }
 
         if(infoData == null)
         {
+            //Search subfolders for Info
+            foreach(ZipArchiveEntry entry in archive.Entries)
+            {
+                if(!entry.Name.Equals("Info.dat", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    continue;
+                }
+
+                //Info.dat was found in a subfolder
+                ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Map files aren't in the root!");
+                Debug.LogWarning("Map files aren't in the root!");
+                try
+                {
+                    infoData = entry.Open();
+                }
+                catch(Exception e)
+                {
+                    Debug.LogWarning($"Failed to read Info.dat with error: {e.Message}, {e.StackTrace}");
+                    return null;
+                }
+                break;
+            }
+        }
+
+        if(infoData == null)
+        {
+            //Info is still not found
             ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to load Info.dat!");
             Debug.LogWarning("Unable to load Info.dat!");
 

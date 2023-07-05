@@ -7,13 +7,14 @@ public class DialogueHandler : MonoBehaviour
     public static DialogueHandler Instance { get; private set; }
 
     public static List<DialogueBox> OpenBoxes = new List<DialogueBox>();
-    public static bool LogActive => Instance.logDisplay.gameObject.activeInHierarchy;
+    public static bool LogActive => Instance.logCanvas.activeInHierarchy;
     public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy || Instance.staticLightsWarningPanel.activeInHierarchy || LogActive;
     public static bool PopupActive => DialogueActive || Instance.sharePanel.activeInHierarchy || Instance.jumpSettingsPanel.activeInHierarchy || Instance.statsPanel.activeInHierarchy;
 
     [SerializeField] private GameObject dialogueBoxPrefab;
 
     public LogDisplay logDisplay;
+    public GameObject logCanvas;
     public GameObject infoPanel;
     public GameObject sharePanel;
     public GameObject jumpSettingsPanel;
@@ -63,7 +64,7 @@ public class DialogueHandler : MonoBehaviour
     public void ShowLog(Log log)
     {
         TimeManager.SetPlaying(false);
-        logDisplay.gameObject.SetActive(true);
+        logCanvas.SetActive(true);
         logDisplay.SetLog(log);
     }
 
@@ -107,7 +108,7 @@ public class DialogueHandler : MonoBehaviour
         {
             if(cancel)
             {
-                logDisplay.gameObject.SetActive(false);
+                logCanvas.gameObject.SetActive(false);
             }
             return;
         }
