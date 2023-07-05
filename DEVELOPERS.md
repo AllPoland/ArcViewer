@@ -37,10 +37,7 @@ Every bug report should have:
 * Ideally, reliable steps to reproduce the issue
 * The ArcViewer version - visible in the bottom left corner or in the "more info" panel (**NOTE:** Before reporting bugs you should ALWAYS make sure you're using the latest version of the app)
 * The build platform - if you're using the standalone app, this will be the OS you're using, i.e. Windows, Linux, etc. If you're using the web app, you should specify which browser you're using.
-* Depending on the issue, logs may also be needed. Logs can be shared through sites like paste.ee or Pastebin.com. If you're using the web app, the logs can be found by pressing ctrl + shift + i in your browser, and clicking the `console` tab. For standalone, the log file location will vary.
-  * Windows: `(YOUR USER)\AppData\LocalLow\AllPolanDev\ArcViewer\Player.log`
-    * the `AppData` folder may be hidden. To find it, check View -> Hidden items in file explorer.
-  * Linux: `/.config/unity3d/AllPolanDev/ArcViewer/Player.log`
+* Depending on the issue, logs may also be needed. Logs can be shared through sites like paste.ee or Pastebin.com. If you're using the web app, the logs can be found by pressing ctrl + shift + i in your browser, and clicking the `console` tab. For standalone, there is a dedicated button under the "Advanced" tab in the settings to open the logs.
 
 Please report bugs to [the issues page](https://github.com/AllPoland/ArcViewer/issues) using the `Bug report` template. Please also check for duplicate issues before reporting.
 
