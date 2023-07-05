@@ -16,14 +16,14 @@ An open source 3D Beat Saber map previewer, designed to give users an accurate r
 
 - **Adjustable playback** including options to change playback speed and jump settings
 
+- **Chroma support** with Chroma colored light events and objects, as well as lightID, Chroma ring spins/zooms, and Chroma laser speed events
+
 - **Basic modded map support** displaying precision placement through Mapping Extensions and Noodle Extensions
 
 ## Planned Features
 These features aren't included yet, but are very likely to be added in the future.
 
 - 360/90 degree gamemode support (currently just displays as a regular map without rotation events)
-
-- Basic chroma support (chroma color events)
 
 ## Unplanned Features
 These features aren't included, and most likely never will be. If you ask for these I will unceremoniously tell you no.
