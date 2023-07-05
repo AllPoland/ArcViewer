@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ObjectPool<T> : MonoBehaviour where T : MonoBehaviour
+public abstract class ObjectPool<T> : MonoBehaviour where T : MonoBehaviour
 {
     public List<T> AvailableObjects = new List<T>();
     public List<T> ActiveObjects = new List<T>();

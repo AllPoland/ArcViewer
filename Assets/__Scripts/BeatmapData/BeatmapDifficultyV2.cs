@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
 using UnityEngine;
 
 [Serializable]
@@ -47,6 +49,12 @@ public class BeatmapDifficultyV2
         List<BeatmapBombNote> bombNotes = new List<BeatmapBombNote>();
         foreach(BeatmapNoteV2 n in _notes)
         {
+            if(n._customData?._fake ?? false)
+            {
+                //Ignore fake objects entirely since there's no way to handle them atm
+                continue;
+            }
+
             if(n._type == 0 || n._type == 1)
             {
                 //Color note
@@ -81,10 +89,15 @@ public class BeatmapDifficultyV2
         converted.colorNotes = colorNotes.ToArray();
         converted.bombNotes = bombNotes.ToArray();
 
-
         List<BeatmapObstacle> obstacles = new List<BeatmapObstacle>();
         foreach(BeatmapObstacleV2 o in _obstacles)
         {
+            if(o._customData?._fake ?? false)
+            {
+                //Ignore fake objects entirely since there's no way to handle them atm
+                continue;
+            }
+
             int wallY = o._type == 0 ? 0 : 2;
             int wallH = o._type == 0 ? 5 : 3;
             if(o._type >= 1000)
@@ -127,7 +140,6 @@ public class BeatmapDifficultyV2
         }
         converted.obstacles = obstacles.ToArray();
 
-
         List<BeatmapSlider> sliders = new List<BeatmapSlider>();
         foreach(BeatmapSliderV2 s in _sliders)
         {
@@ -152,13 +164,13 @@ public class BeatmapDifficultyV2
         }
         converted.sliders = sliders.ToArray();
 
-
         List<BeatmapRotationEvent> rotationEvents = new List<BeatmapRotationEvent>();
         List<BeatmapBasicBeatmapEvent> basicBeatmapEvents = new List<BeatmapBasicBeatmapEvent>();
         List<BeatmapColorBoostBeatmapEvent> colorBoostBeatmapEvents = new List<BeatmapColorBoostBeatmapEvent>();
         List<BeatmapBpmEvent> bpmEvents = new List<BeatmapBpmEvent>();
-        foreach(BeatmapEventV2 e in _events)
+        for(int i = 0; i < _events.Length; i++)
         {
+            BeatmapEventV2 e = _events[i];
             if(e._type == 14 || e._type == 15)
             {
                 //Rotation event
@@ -168,7 +180,7 @@ public class BeatmapDifficultyV2
                     {
                         b = e._time,
                         e = e._type - 14,  //Subtracting 14 from the type makes it line up with the expected 0 and 1 in V3 format
-                        r = ValueToRotation[Math.Clamp(e._value, 0, 7)]
+                        r = e._customData?._rotation ?? ValueToRotation[Math.Clamp(e._value, 0, 7)]
                     }
                 );
             }
@@ -205,16 +217,58 @@ public class BeatmapDifficultyV2
             else
             {
                 //Other event
-                basicBeatmapEvents.Add
-                (
-                    new BeatmapBasicBeatmapEvent
+                BeatmapBasicBeatmapEvent newEvent = new BeatmapBasicBeatmapEvent
+                {
+                    b = e._time,
+                    et = e._type,
+                    i = e._value,
+                    f = e._floatValue ?? 1f,
+                    customData = e._customData?.ConvertToV3() ?? null
+                };
+                basicBeatmapEvents.Add(newEvent);
+
+                if(e._customData?._lightGradient != null)
+                {
+                    //Light gradients need to be converted to transition events
+                    BeatmapChromaGradientV2 gradient = e._customData._lightGradient;
+
+                    //The v3 event will always have custom data if the v2 event does
+                    newEvent.customData.color = gradient._startColor;
+                    newEvent.customData.easing = gradient._easing;
+
+                    float endBeat = e._time + gradient._duration;
+                    int nextEventIndex = Array.FindIndex(_events, i, x =>
+                        x._type == e._type
+                        && (
+                            //This technically leads to a rare issue where one lightID might have to end early
+                            //but another doesn't, and both will end early anyway
+                            //It's my belief that this issue is so rare and unnoticeable, and is
+                            //due to lighter error so it doesn't matter
+                            x._customData?._lightID == null
+                            || x._customData._lightID.Any(y => e._customData._lightID.Contains(y))
+                        )
+                    );
+        
+                    if(nextEventIndex >= 0 && endBeat >= _events[nextEventIndex]._time)
                     {
-                        b = e._time,
-                        et = e._type,
-                        i = e._value,
-                        f = e._floatValue ?? 1f
+                        //Don't allow the transition to overlap with the next event
+                        endBeat = _events[nextEventIndex]._time - 0.001f;
                     }
-                );
+
+                    BeatmapBasicBeatmapEvent newTransitionEvent = new BeatmapBasicBeatmapEvent
+                    {
+                        b = e._time + gradient._duration,
+                        et = e._type,
+                        i = 4,    //Event type 4 is a transition event - color doesn't matter
+                        f = 1f,
+                        customData = new BeatmapCustomBasicEventData
+                        {
+                            color = gradient._endColor,
+                            lightID = e._customData._lightID
+                        }
+                    };
+                    basicBeatmapEvents.Add(newTransitionEvent);
+                }
             }
         }
         converted.rotationEvents = rotationEvents.ToArray();
@@ -278,6 +332,8 @@ public struct BeatmapEventV2
     public int _type;
     public int _value;
     public float? _floatValue;
+
+    public BeatmapCustomEventDataV2 _customData;
 }
 
 
@@ -285,13 +341,16 @@ public struct BeatmapEventV2
 public class BeatmapCustomObjectDataV2
 {
     public float[] _position;
+    public float[] _color;
+    public bool? _fake;
 
 
     public BeatmapCustomObjectData ConvertToV3()
     {
         return new BeatmapCustomObjectData
         {
-            coordinates = _position
+            coordinates = _position,
+            color = _color
         };
     }
 }
@@ -308,6 +367,7 @@ public class BeatmapCustomNoteDataV2 : BeatmapCustomObjectDataV2
         return new BeatmapCustomNoteData
         {
             coordinates = _position,
+            color = _color,
             angle = _cutDirection
         };
     }
@@ -325,7 +385,63 @@ public class BeatmapCustomObstacleDataV2 : BeatmapCustomObjectDataV2
         return new BeatmapCustomObstacleData
         {
             coordinates = _position,
+            color = _color,
             size = _scale
         };
     }
+}
+
+
+[Serializable]
+public class BeatmapCustomEventDataV2
+{
+    [JsonConverter(typeof(LightIDConverter))]
+    public List<int> _lightID;
+    public float[] _color;
+    public string _easing;
+    public string _lerpType;
+
+    //Laser speed specific data
+    public bool? _lockPosition;
+
+    //Ring specific data
+    public string _nameFilter;
+    public float? _rotation;
+    public float? _step;
+    public float? _prop;
+
+    //Shared by both rings and lasers
+    public float? _speed;
+    public float? _preciseSpeed;
+    public int? _direction;
+
+    public BeatmapChromaGradientV2 _lightGradient;
+
+
+    public BeatmapCustomBasicEventData ConvertToV3()
+    {
+        return new BeatmapCustomBasicEventData
+        {
+            lightID = _lightID,
+            color = _color,
+            easing = _easing,
+            lerpType = _lerpType,
+            lockRotation = _lockPosition,
+            nameFilter = _nameFilter,
+            rotation = _rotation,
+            step = _step,
+            prop = _prop,
+            speed = _preciseSpeed ?? _speed,
+            direction = _direction
+        };
+    }
+}
+
+
+public class BeatmapChromaGradientV2
+{
+    public float _duration;
+    public float[] _startColor;
+    public float[] _endColor;
+    public string _easing;
 }

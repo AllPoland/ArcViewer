@@ -22,26 +22,10 @@ public class RotatingLaserHandler : MonoBehaviour
             return;
         }
 
-        float timeDifference = laserSpeedEvent.Time - TimeManager.CurrentTime;
         for(int i = 0; i < targets.Count; i++)
         {
             LightHandler target = targets[i];
-            if(i >= laserSpeedEvent.rotationValues.Count)
-            {
-                Debug.LogWarning($"Not enough randomized laser values to accomodate {targets.Count} rotating lasers!");
-                SetLaserRotation(target, 0f);
-                continue;
-            }
-
-            LaserSpeedEvent.LaserRotationData rotationData = laserSpeedEvent.rotationValues[i];
-
-            float rotationAmount = laserSpeedEvent.rotationSpeed * timeDifference;
-            if(rotationData.direction)
-            {
-                rotationAmount = -rotationAmount;
-            }
-
-            float angle = (rotationData.startPosition + rotationAmount) % 360;
+            float angle = laserSpeedEvent.GetLaserRotation(TimeManager.CurrentTime, i);
             SetLaserRotation(target, angle);
         }
     }

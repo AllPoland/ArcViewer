@@ -41,25 +41,24 @@ public class NoteManager : MapElementManager<Note>
     {
         ClearRenderedVisuals();
 
-        redNoteProperties.SetColor("_BaseColor", RedNoteColor);
-        blueNoteProperties.SetColor("_BaseColor", BlueNoteColor);
-
-        float redH, redS, redV;
-        float blueH, blueS, blueV;
-        Color.RGBToHSV(RedNoteColor, out redH, out redS, out redV);
-        Color.RGBToHSV(BlueNoteColor, out blueH, out blueS, out blueV);
-
-        float emission = objectManager.useSimpleNoteMaterial ? simpleNoteEmission : noteEmission;
-        redNoteProperties.SetColor("_EmissionColor", RedNoteColor.SetValue(emission * redV, true));
-        blueNoteProperties.SetColor("_EmissionColor", BlueNoteColor.SetValue(emission * blueV, true));
-
-        redArrowProperties.SetColor("_BaseColor", RedNoteColor.SetHSV(null, arrowSaturation * redS, arrowBrightness * redV));
-        blueArrowProperties.SetColor("_BaseColor", BlueNoteColor.SetHSV(null, arrowSaturation * blueS, arrowBrightness * blueV));
-
-        redArrowProperties.SetColor("_EmissionColor", RedNoteColor.SetHSV(null, arrowGlowSaturation * redS, arrowEmission, true));
-        blueArrowProperties.SetColor("_EmissionColor", BlueNoteColor.SetHSV(null, arrowGlowSaturation * blueS, arrowEmission, true));
+        SetNoteMaterialProperties(ref redNoteProperties, ref redArrowProperties, RedNoteColor);
+        SetNoteMaterialProperties(ref blueNoteProperties, ref blueArrowProperties, BlueNoteColor);
 
         UpdateVisuals();
+    }
+
+
+    public void SetNoteMaterialProperties(ref MaterialPropertyBlock noteProperties, ref MaterialPropertyBlock arrowProperties, Color baseColor)
+    {
+        float h, s, v;
+        Color.RGBToHSV(baseColor, out h, out s, out v);
+
+        float emission = objectManager.useSimpleNoteMaterial ? simpleNoteEmission : noteEmission;
+        noteProperties.SetColor("_BaseColor", baseColor);
+        noteProperties.SetColor("_EmissionColor", baseColor.SetValue(emission * v, true));
+
+        arrowProperties.SetColor("_BaseColor", baseColor.SetHSV(null, arrowSaturation * s, arrowBrightness * v));
+        arrowProperties.SetColor("_EmissionColor", baseColor.SetHSV(null, arrowGlowSaturation * s, arrowEmission, true));
     }
 
 
@@ -111,22 +110,31 @@ public class NoteManager : MapElementManager<Note>
 
         if(n.Visual == null)
         {
-            n.noteHandler = notePool.GetObject();
-            n.Visual = n.noteHandler.gameObject;
+            n.NoteHandler = notePool.GetObject();
+            n.Visual = n.NoteHandler.gameObject;
 
             n.Visual.transform.SetParent(transform);
-            n.source = n.noteHandler.audioSource;
+            n.source = n.NoteHandler.audioSource;
 
-            n.noteHandler.SetMesh(n.IsChainHead ? chainHeadMesh : noteMesh);
-            n.noteHandler.SetArrow(!n.IsDot);
+            n.NoteHandler.SetMesh(n.IsChainHead ? chainHeadMesh : noteMesh);
+            n.NoteHandler.SetArrow(!n.IsDot);
 
-            bool isRed = n.Color == 0;
-            n.noteHandler.SetMaterial(objectManager.useSimpleNoteMaterial ? simpleMaterial : complexMaterial);
-            n.noteHandler.SetProperties(isRed ? redNoteProperties : blueNoteProperties);
-            n.noteHandler.SetArrowProperties(isRed ? redArrowProperties : blueArrowProperties);
+            n.NoteHandler.SetMaterial(objectManager.useSimpleNoteMaterial ? simpleMaterial : complexMaterial);
+            if(SettingsManager.GetBool("chromaobjectcolors") && n.CustomColor != null)
+            {
+                //This note uses a unique chroma color
+                n.NoteHandler.SetProperties(n.CustomNoteProperties);
+                n.NoteHandler.SetArrowProperties(n.CustomArrowProperties);
+            }
+            else
+            {
+                bool isRed = n.Color == 0;
+                n.NoteHandler.SetProperties(isRed ? redNoteProperties : blueNoteProperties);
+                n.NoteHandler.SetArrowProperties(isRed ? redArrowProperties : blueArrowProperties);
+            }
 
             n.Visual.SetActive(true);
-            n.noteHandler.EnableVisual();
+            n.NoteHandler.EnableVisual();
 
             if(TimeManager.Playing && SettingsManager.GetFloat("hitsoundvolume") > 0)
             {
@@ -150,11 +158,11 @@ public class NoteManager : MapElementManager<Note>
     public override void ReleaseVisual(Note n)
     {
         n.source.Stop();
-        notePool.ReleaseObject(n.noteHandler);
+        notePool.ReleaseObject(n.NoteHandler);
 
         n.Visual = null;
         n.source = null;
-        n.noteHandler = null;
+        n.NoteHandler = null;
     }
 
 
@@ -168,16 +176,16 @@ public class NoteManager : MapElementManager<Note>
                 if(n.source.isPlaying)
                 {
                     //Only clear the visual elements if the hitsound is still playing
-                    n.noteHandler.DisableVisual();
+                    n.NoteHandler.DisableVisual();
                     continue;
                 }
 
                 ReleaseVisual(n);
                 RenderedObjects.Remove(n);
             }
-            else if(!n.noteHandler.Visible)
+            else if(!n.NoteHandler.Visible)
             {
-                n.noteHandler.EnableVisual();
+                n.NoteHandler.EnableVisual();
             }
         }
     }
@@ -394,22 +402,31 @@ public class Note : HitSoundEmitter
     public float FlipYHeight;
     public bool IsDot;
     public bool IsChainHead;
-    public NoteHandler noteHandler;
+
+    public NoteHandler NoteHandler;
+    public MaterialPropertyBlock CustomNoteProperties;
+    public MaterialPropertyBlock CustomArrowProperties;
 
 
-    public static Note NoteFromBeatmapColorNote(BeatmapColorNote n)
+    public Note(BeatmapColorNote n)
     {
         Vector2 position = ObjectManager.CalculateObjectPosition(n.x, n.y, n.customData?.coordinates);
         float angle = ObjectManager.CalculateObjectAngle(n.d, n.a);
 
-        return new Note
+        Beat = n.b;
+        Position = position;
+        Color = n.c;
+        Angle = n.customData?.angle ?? angle;
+        FlipStartX = position.x;
+        IsDot = n.d == 8;
+
+        if(n.customData?.color != null)
         {
-            Beat = n.b,
-            Position = position,
-            Color = n.c,
-            Angle = n.customData?.angle ?? angle,
-            FlipStartX = position.x,
-            IsDot = n.d == 8
-        };
+            CustomColor = ColorManager.ColorFromCustomDataColor(n.customData.color);
+
+            CustomNoteProperties = new MaterialPropertyBlock();
+            CustomArrowProperties = new MaterialPropertyBlock();
+            ObjectManager.Instance.noteManager.SetNoteMaterialProperties(ref CustomNoteProperties, ref CustomArrowProperties, (Color)CustomColor);
+        }
     }
 }

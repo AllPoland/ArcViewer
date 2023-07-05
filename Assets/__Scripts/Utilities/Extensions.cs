@@ -47,8 +47,7 @@ public static class Extensions
     ///</summary>
     public static bool Approximately(this float f, float x)
     {
-        float diff = Mathf.Abs(f - x);
-        return diff < 0.00001f;
+        return Mathf.Abs(f - x) < 0.0001f;
     }
 
 
@@ -115,6 +114,21 @@ public static class Extensions
         float s;
         Color.RGBToHSV(color, out h, out s, out _);
         return Color.HSVToRGB(h, s, value, hdr);
+    }
+
+
+    ///<summary>
+    ///Linearly interpolates between two colors using HSV.
+    ///</summary>
+    public static Color LerpHSV(this Color a, Color b, float t)
+    {
+        float ha, sa, va;
+        float hb, sb, vb;
+
+        Color.RGBToHSV(a, out ha, out sa, out va);
+        Color.RGBToHSV(b, out hb, out sb, out vb);
+
+        return Color.HSVToRGB(Mathf.Lerp(ha, hb, t), Mathf.Lerp(sa, sb, t), Mathf.Lerp(va, vb, t));
     }
 
 

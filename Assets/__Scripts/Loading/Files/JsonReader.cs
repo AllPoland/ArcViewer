@@ -6,7 +6,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 
-public class JsonReader
+public static class JsonReader
 {
     public static Regex VersionRx = new Regex(@"version""\s*:\s*""(\d\.?)*", RegexOptions.Compiled);
 
@@ -52,8 +52,8 @@ public class JsonReader
         Difficulty output = new Difficulty
         {
             difficultyRank = MapLoader.DiffValueFromString[beatmap._difficulty],
-            NoteJumpSpeed = beatmap._noteJumpMovementSpeed,
-            SpawnOffset = beatmap._noteJumpStartBeatOffset
+            noteJumpSpeed = beatmap._noteJumpMovementSpeed,
+            spawnOffset = beatmap._noteJumpStartBeatOffset
         };
 
         string filename = beatmap._beatmapFilename;

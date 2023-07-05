@@ -8,21 +8,14 @@ public class BeatmapManager : MonoBehaviour
     public static List<Difficulty> Difficulties = new List<Difficulty>();
 
     public static List<Difficulty> StandardDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Standard);
-
     public static List<Difficulty> OneSaberDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.OneSaber);
-
     public static List<Difficulty> NoArrowsDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.NoArrows);
-
     public static List<Difficulty> ThreeSixtyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.ThreeSixty);
-
     public static List<Difficulty> NinetyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Ninety);
-
+    public static List<Difficulty> LegacyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Legacy);
     public static List<Difficulty> LightshowDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lightshow);
-
     public static List<Difficulty> LawlessDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lawless);
-
     public static List<Difficulty> UnknownDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Unknown);
-
 
     private static BeatmapInfo _info = BeatmapInfo.Empty;
     public static BeatmapInfo Info
@@ -52,8 +45,8 @@ public class BeatmapManager : MonoBehaviour
         {
             _currentDifficulty = value;
 
-            SpawnOffset = _currentDifficulty.SpawnOffset;
-            NJS = _currentDifficulty.NoteJumpSpeed;
+            SpawnOffset = _currentDifficulty.spawnOffset;
+            NJS = _currentDifficulty.noteJumpSpeed;
             if(NJS == 0)
             {
                 switch(_currentDifficulty.difficultyRank)
@@ -89,6 +82,13 @@ public class BeatmapManager : MonoBehaviour
             OnBeatmapDifficultyChanged?.Invoke(_currentDifficulty);
         }
     }
+
+    public static string EnvironmentName => 
+    (
+        string.IsNullOrEmpty(CurrentDifficulty.environmentName)
+            ? Info._environmentName
+            : CurrentDifficulty.environmentName
+    );
 
     public static bool MappingExtensions { get; private set; }
     public static bool NoodleExtensions { get; private set; }
@@ -164,6 +164,10 @@ public class BeatmapManager : MonoBehaviour
         {
             return NinetyDifficulties.Last();
         }
+        else if(LegacyDifficulties.Count > 0)
+        {
+            return LegacyDifficulties.Last();
+        }
         else if(LightshowDifficulties.Count > 0)
         {
             return LightshowDifficulties.Last();
@@ -208,11 +212,15 @@ public class Difficulty
     public DifficultyCharacteristic characteristic;
     public DifficultyRank difficultyRank;
     public BeatmapDifficulty beatmapDifficulty;
-    public float NoteJumpSpeed;
-    public float SpawnOffset;
-    public string Label;
+    public float noteJumpSpeed;
+    public float spawnOffset;
+
+    public string environmentName;
+    public NullableColorPalette colorScheme;
+
+    public string label;
     public string[] requirements;
-    public NullableColorPalette colors;
+    public NullableColorPalette songCoreColors;
 
 
     public static Difficulty Empty => new Difficulty
@@ -220,11 +228,13 @@ public class Difficulty
         characteristic = DifficultyCharacteristic.Unknown,
         difficultyRank = DifficultyRank.ExpertPlus,
         beatmapDifficulty = BeatmapDifficulty.Empty,
-        NoteJumpSpeed = 0,
-        SpawnOffset = 0,
-        Label = "Expert+",
+        noteJumpSpeed = 0,
+        spawnOffset = 0,
+        environmentName = "",
+        colorScheme = null,
+        label = "Expert+",
         requirements = new string[0],
-        colors = null
+        songCoreColors = null
     };
 
 

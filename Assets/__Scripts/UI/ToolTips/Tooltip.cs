@@ -18,6 +18,13 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     }
 
 
+    public void ForceUpdate()
+    {
+        TooltipManager.RemoveTooltip(this);
+        TooltipManager.AddTooltip(this);
+    }
+
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         ShowTooltip();

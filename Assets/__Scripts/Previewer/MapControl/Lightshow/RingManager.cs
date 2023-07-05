@@ -12,18 +12,21 @@ public class RingManager : MonoBehaviour
     public static event Action<RingRotationEventArgs> OnRingRotationsChanged;
     public static event Action<float> OnRingZoomPositionChanged;
 
+    public const float DefaultSmallRingRotationAmount = 90f;
+    public const float DefaultSmallRingMaxStep = 5f;
     public const float SmallRingStartAngle = -45f;
-    public const float SmallRingRotationAmount = 90f;
-    public const float SmallRingStep = 5f;
     public const float SmallRingStartStep = 3f;
 
+    public const float DefaultBigRingRotationAmount = 45f;
+    public const float DefaultBigRingMaxStep = 5f;
     public const float BigRingStartAngle = -45f;
-    public const float BigRingRotationAmount = 45f;
-    public const float BigRingStep = 5f;
     public const float BigRingStartStep = 0f;
 
+    public const float DefaultZoomSpeed = 1.5f;
+    public const float DefaultCloseZoomStep = 2f;
+    public const float DefaultFarZoomStep = 5f;
     public const bool StartRingZoomParity = true;
-    public const float StartRingZoomPosition = StartRingZoomParity ? 1f : 0f;
+    public const float StartRingZoomStep = StartRingZoomParity ? DefaultFarZoomStep : DefaultCloseZoomStep;
 
 
     public static void UpdateRings()
@@ -47,6 +50,7 @@ public class RingManager : MonoBehaviour
 
         //Need to update big rings separately
         eventArgs.events = BigRingRotationEvents;
+        eventArgs.currentEventIndex = BigRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= TimeManager.CurrentBeat);
         eventArgs.affectBigRings = true;
         OnRingRotationsChanged?.Invoke(eventArgs);
     }
@@ -56,7 +60,7 @@ public class RingManager : MonoBehaviour
     {
         if(RingZoomEvents.Count == 0)
         {
-            OnRingZoomPositionChanged?.Invoke(StartRingZoomPosition);
+            OnRingZoomPositionChanged?.Invoke(StartRingZoomStep);
             return;
         }
 
@@ -64,12 +68,12 @@ public class RingManager : MonoBehaviour
         if(lastIndex < 0)
         {
             //No ring zoom has taken affect, set defaults
-            OnRingZoomPositionChanged?.Invoke(StartRingZoomPosition);
+            OnRingZoomPositionChanged?.Invoke(StartRingZoomStep);
             return;
         }
 
         RingZoomEvent current = RingZoomEvents[lastIndex];
-        OnRingZoomPositionChanged?.Invoke(current.GetRingDist(TimeManager.CurrentTime));
+        OnRingZoomPositionChanged?.Invoke(current.GetRingZoomStep(TimeManager.CurrentTime));
     }
 
 
@@ -85,14 +89,14 @@ public class RingManager : MonoBehaviour
         eventArgs.affectBigRings = true;
         OnRingRotationsChanged?.Invoke(eventArgs);
 
-        OnRingZoomPositionChanged?.Invoke(StartRingZoomPosition);
+        OnRingZoomPositionChanged?.Invoke(StartRingZoomStep);
     }
 
 
     public static void PopulateRingEventData()
     {
-        PopulateRingRotationEvents(ref SmallRingRotationEvents, SmallRingRotationAmount, SmallRingStep, SmallRingStartAngle, SmallRingStartStep);
-        PopulateRingRotationEvents(ref BigRingRotationEvents, BigRingRotationAmount, BigRingStep, BigRingStartAngle, BigRingStartStep);
+        PopulateRingRotationEvents(ref SmallRingRotationEvents, DefaultSmallRingRotationAmount, DefaultSmallRingMaxStep, SmallRingStartAngle, SmallRingStartStep);
+        PopulateRingRotationEvents(ref BigRingRotationEvents, DefaultBigRingRotationAmount, DefaultBigRingMaxStep, BigRingStartAngle, BigRingStartStep);
 
         PopulateRingZoomEvents();
     }
@@ -106,22 +110,22 @@ public class RingManager : MonoBehaviour
             if(i == 0)
             {
                 //The first event should inherit the default starting positions
-                current.startAngle = startRotation;
-                current.startStep = startStep;
+                current.StartAngle = startRotation;
+                current.StartStep = startStep;
 
-                current.RandomizeDirectionAndStep(startRotation, rotationAmount, maxStep);
+                current.InitializeValues(startRotation, rotationAmount, maxStep);
             }
             else
             {
                 //Subsequent events get starting values based on the current ring rotations
                 RingRotationEvent previous = events[i - 1];
                 float timeDifference = current.Time - previous.Time;
-                float rotationProgress = GetRingEventProgress(timeDifference, RingRotationEvent.Speed);
+                float rotationProgress = GetRingEventProgress(timeDifference, previous.Speed);
 
-                current.startAngle = previous.GetEventAngle(rotationProgress);
-                current.startStep = previous.GetEventStepAngle(rotationProgress);
+                current.StartAngle = previous.GetEventAngle(rotationProgress);
+                current.StartStep = previous.GetEventStepAngle(rotationProgress);
 
-                current.RandomizeDirectionAndStep(previous.targetAngle, rotationAmount, maxStep);
+                current.InitializeValues(previous.TargetAngle, rotationAmount, maxStep);
             }
         }
     }
@@ -135,14 +139,19 @@ public class RingManager : MonoBehaviour
             if(i == 0)
             {
                 current.IsFarParity = !StartRingZoomParity;
-                current.startDistance = StartRingZoomPosition;
+                current.StartStep = StartRingZoomStep;
             }
             else
             {
                 RingZoomEvent previous = RingZoomEvents[i - 1];
 
                 current.IsFarParity = !previous.IsFarParity;
-                current.startDistance = previous.GetRingDist(current.Time);
+                current.StartStep = previous.GetRingZoomStep(current.Time);
+            }
+            if(!current.CustomStep)
+            {
+                //Avoid setting step if it's been set to a custom value through chroma
+                current.Step = current.IsFarParity ? DefaultFarZoomStep : DefaultCloseZoomStep;
             }
         }
     }
@@ -157,15 +166,24 @@ public class RingManager : MonoBehaviour
 
 public class RingRotationEvent : LightEvent
 {
-    public const float Speed = 2f;
-    public const int Prop = 1;
     public const float FixedDeltaTime = 1f / 60f;
-    public const float FloatProp = FixedDeltaTime * Prop;
+    public const float DefaultSpeed = 2f;
+    public const float DefaultProp = 1f;
 
-    public float startAngle;
-    public float startStep;
-    public float targetAngle;
-    public float step;
+    public float Rotation;
+    public float Speed;
+    public float Prop;
+    public float Step;
+
+    public float TargetAngle;
+    public float StartAngle;
+    public float StartStep;
+
+    public bool CustomDirection = false;
+    public bool CustomRotation = false;
+    public bool CustomStep = false;
+
+    private bool RotateClockwise;
 
 
     public RingRotationEvent() {}
@@ -176,30 +194,77 @@ public class RingRotationEvent : LightEvent
         Type = (LightEventType)beatmapEvent.et;
         Value = (LightEventValue)beatmapEvent.i;
         FloatValue = beatmapEvent.f;
+        Speed = DefaultSpeed;
+        Prop = DefaultProp;
+
+        if(beatmapEvent.customData != null)
+        {
+            BeatmapCustomBasicEventData customData = beatmapEvent.customData;
+            if(customData.direction != null)
+            {
+                RotateClockwise = customData.direction == 1;
+                CustomDirection = true;
+            }
+            if(customData.rotation != null)
+            {
+                Rotation = Mathf.Abs((float)customData.rotation);
+                CustomRotation = true;
+            }
+            if(customData.step != null)
+            {
+                Step = (float)customData.step;
+                CustomStep = true;
+            }
+            Prop = customData.prop ?? Prop;
+            Speed = customData.speed ?? Speed;
+        }
+
+        if(Prop == 0)
+        {
+            //Avoid divide by zero errors
+            Prop = 0.0001f;
+        }
     }
 
 
-    public void RandomizeDirectionAndStep(float start, float rotationAmount, float maxStep)
+    public void InitializeValues(float startRotation, float defaultRotationAmount, float defaultMaxStep)
     {
-        float rotation = UnityEngine.Random.value >= 0.5f ? rotationAmount : -rotationAmount;
-        targetAngle = start + rotation;
-        step = UnityEngine.Random.Range(-maxStep, maxStep);
+        //Randomize the rotation and step values unless there are custom values set
+        if(!CustomDirection)
+        {
+            RotateClockwise = UnityEngine.Random.value >= 0.5f;
+        }
+        if(!CustomRotation)
+        {
+            Rotation = defaultRotationAmount;
+        }
+
+        if(RotateClockwise)
+        {
+            Rotation = -Rotation;
+        }
+
+        if(!CustomStep)
+        {
+            Step = UnityEngine.Random.Range(-defaultMaxStep, defaultMaxStep);
+        }
+        TargetAngle = startRotation + Rotation;
     }
 
 
     public float StartInfluenceTime(int ringIndex)
     {
         //Returns the time where this event first starts affecting a given ring
-        return Time + (FloatProp * ringIndex);
+        return Time + (FixedDeltaTime * ringIndex / Prop);
     }
 
 
     public float GetRingAngle(float currentTime, int ringIndex)
     {
-        float eventTimeDifference = currentTime - Time;
-        float ringTimeDifference = Mathf.Max(eventTimeDifference - (FloatProp * ringIndex), 0f);
+        float ringInfluenceTime = StartInfluenceTime(ringIndex);
+        float timeDifference = Mathf.Max(currentTime - ringInfluenceTime, 0f);
 
-        float rotationProgress = RingManager.GetRingEventProgress(ringTimeDifference, Speed);
+        float rotationProgress = RingManager.GetRingEventProgress(timeDifference, Speed);
 
         float angle = GetEventAngle(rotationProgress);
         float step = GetEventStepAngle(rotationProgress);
@@ -209,24 +274,26 @@ public class RingRotationEvent : LightEvent
 
     public float GetEventAngle(float rotationProgress)
     {
-        return Mathf.Lerp(startAngle, targetAngle, rotationProgress);
+        return Mathf.Lerp(StartAngle, TargetAngle, rotationProgress);
     }
 
 
     public float GetEventStepAngle(float rotationProgress)
     {
-        return Mathf.Lerp(startStep, step, rotationProgress);
+        return Mathf.Lerp(StartStep, Step, rotationProgress);
     }
 }
 
 
 public class RingZoomEvent : LightEvent
 {
-    public const float Speed = 1.5f;
+    public float Speed;
+    public float Step;
+    public float StartStep;
 
     public bool IsFarParity;
-    public float startDistance;
-    public float targetDistance => IsFarParity ? 1f : 0f;
+
+    public bool CustomStep = false;
 
 
     public RingZoomEvent() {}
@@ -237,15 +304,22 @@ public class RingZoomEvent : LightEvent
         Type = (LightEventType)beatmapEvent.et;
         Value = (LightEventValue)beatmapEvent.i;
         FloatValue = beatmapEvent.f;
+        Speed = beatmapEvent.customData?.speed ?? RingManager.DefaultZoomSpeed;
+
+        if(beatmapEvent.customData?.step != null)
+        {
+            Step = (float)beatmapEvent.customData.step;
+            CustomStep = true;
+        }
     }
 
 
-    public float GetRingDist(float currentTime)
+    public float GetRingZoomStep(float currentTime)
     {
         float timeDifference = currentTime - Time;
         float zoomProgress = RingManager.GetRingEventProgress(timeDifference, Speed);
 
-        return Mathf.Lerp(startDistance, targetDistance, zoomProgress);
+        return Mathf.Lerp(StartStep, Step, zoomProgress);
     }
 }
 

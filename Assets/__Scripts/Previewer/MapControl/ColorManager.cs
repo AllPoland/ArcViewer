@@ -19,8 +19,10 @@ public class ColorManager : MonoBehaviour
 
     private static readonly string[] colorSettings =
     {
+        "chromaobjectcolors",
         "songcorecolors",
         "environmentcolors",
+        "difficultycolors",
         "coloroverride",
         "leftnotecolor",
         "rightnotecolor",
@@ -33,7 +35,8 @@ public class ColorManager : MonoBehaviour
         "wallcolor"
     };
 
-    private static NullableColorPalette SongCoreColors;
+    private static NullableColorPalette difficultyColorScheme;
+    private static NullableColorPalette difficultySongCoreColors;
 
 
     private void UpdateCurrentColors()
@@ -41,6 +44,7 @@ public class ColorManager : MonoBehaviour
         ColorPalette newColors;
         if(SettingsManager.GetBool("coloroverride"))
         {
+            //Use custom user set colors as the base palette, ignore all vanilla colors
             newColors = new ColorPalette
             {
                 LeftNoteColor = SettingsManager.GetColor("leftnotecolor"),
@@ -54,15 +58,26 @@ public class ColorManager : MonoBehaviour
                 WallColor = SettingsManager.GetColor("wallcolor")
             };
         }
-        else if(SettingsManager.GetBool("environmentcolors"))
+        else 
         {
-            newColors = GetEnvironmentColors(BeatmapManager.Info?._environmentName ?? "");
-        }
-        else newColors = DefaultColors;
+            //Use the vanilla color scheme for the difficulty
+            if(SettingsManager.GetBool("environmentcolors"))
+            {
+                newColors = GetEnvironmentColors(BeatmapManager.EnvironmentName);
+            }
+            else newColors = DefaultColors;
 
-        if(SettingsManager.GetBool("songcorecolors") && SongCoreColors != null)
+            if(SettingsManager.GetBool("difficultycolors"))
+            {
+                //Stack the difficulty-specific color scheme
+                newColors.StackPalette(difficultyColorScheme);
+            }
+        }
+
+        if(SettingsManager.GetBool("songcorecolors"))
         {
-            newColors.StackPalette(SongCoreColors);
+            //SongCore color overrides replace everything
+            newColors.StackPalette(difficultySongCoreColors);
         }
 
         CurrentColors = newColors;
@@ -138,13 +153,46 @@ public class ColorManager : MonoBehaviour
                 return Dragons2Colors;
             case "Panic2Environment":
                 return Panic2Colors;
+            case "QueenEnvironment":
+                return QueenColors;
         }
+    }
+
+
+    public static Color ColorFromCustomDataColor(float[] customColor)
+    {
+        Color newColor = Color.black;
+        for(int i = 0; i < customColor.Length; i++)
+        {
+            //Loop only through present rgba values and ignore missing ones
+            //a will default to 1 if missing because the color is initialized to black
+            switch(i)
+            {
+                case 0:
+                    newColor.r = customColor[i];
+                    break;
+                case 1:
+                    newColor.g = customColor[i];
+                    break;
+                case 2:
+                    newColor.b = customColor[i];
+                    break;
+                case 3:
+                    newColor.a = customColor[i];
+                    break;
+                default:
+                    //For some reason there are more than 4 elements - we'll ignore these
+                    return newColor;
+            }
+        }
+        return newColor;
     }
 
 
     public void UpdateDifficulty(Difficulty newDifficulty)
     {
-        SongCoreColors = newDifficulty.colors;
+        difficultyColorScheme = newDifficulty.colorScheme;
+        difficultySongCoreColors = newDifficulty.songCoreColors;
         UpdateCurrentColors();
     }
 
@@ -470,6 +518,19 @@ public class ColorManager : MonoBehaviour
         BoostLightColor2 = new Color(0.6365692f, 0.4373443f, 0.8584906f),
         BoostWhiteLightColor = Color.white,
         WallColor = new Color(0.9686275f, 0.3803922f, 0.2745098f)
+    };
+
+    public static ColorPalette QueenColors => new ColorPalette
+    {
+        LeftNoteColor = new Color(0.58f, 0.5675714f, 0.5551428f),
+        RightNoteColor = new Color(0.5236231f, 0.1345675f, 0.6792453f),
+        LightColor1 = new Color(0.9333334f, 0.6392157f, 0.1215686f),
+        LightColor2 = new Color(0.04313726f, 0.7176471f, 0.8980393f),
+        WhiteLightColor = Color.white,
+        BoostLightColor1 = new Color(0.7686275f, 0.145098f, 0.07450981f),
+        BoostLightColor2 = new Color(0.4f, 0.007843138f, 0.7254902f),
+        BoostWhiteLightColor = Color.white,
+        WallColor = new Color(0.9333334f, 0.6392157f, 0.1215686f)
     };
 }
 

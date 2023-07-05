@@ -4,18 +4,15 @@ public class WallManager : MapElementManager<Wall>
 {
     public static Color WallColor => ColorManager.CurrentColors.WallColor;
 
+    //This is used to ensure the wall edges always show at full size,
+    //since that's how small walls act in-game
+    public const float MinWallSize = 0.06f;
+
     [Header("Components")]
     [SerializeField] private ObjectPool<WallHandler> wallPool;
     [SerializeField] private GameObject wallParent;
 
-    [Header("Parameters")]
-    [SerializeField, Range(0f, 1f)] private float wallLightness;
-    [SerializeField] private float wallEmission;
-    [SerializeField, Range(0f, 1f)] private float edgeSaturation;
-    [SerializeField] private float edgeEmission;
-
     private MaterialPropertyBlock wallMaterialProperties;
-    private MaterialPropertyBlock wallEdgeProperties;
 
 
     public void ReloadWalls()
@@ -29,16 +26,9 @@ public class WallManager : MapElementManager<Wall>
     {
         ClearRenderedVisuals();
 
-        float h, s, v;
-        Color.RGBToHSV(WallColor, out h, out s, out v);
-
-        Color newColor = WallColor.SetValue(wallLightness * v);
+        Color newColor = WallColor;
         newColor.a = SettingsManager.GetFloat("wallopacity");
         wallMaterialProperties.SetColor("_BaseColor", newColor);
-        wallMaterialProperties.SetColor("_EmissionColor", newColor.SetValue(wallEmission));
-
-        wallEdgeProperties.SetColor("_BaseColor", newColor.SetSaturation(s * edgeSaturation));
-        wallEdgeProperties.SetColor("_EmissionColor", newColor.SetHSV(h, s * edgeSaturation, edgeEmission, true));
 
         UpdateVisuals();
     }
@@ -47,23 +37,33 @@ public class WallManager : MapElementManager<Wall>
     public override void UpdateVisual(Wall w)
     {
         float wallLength = objectManager.WorldSpaceFromTime(w.DurationTime);
+        wallLength = Mathf.Max(wallLength, MinWallSize);
 
         //Subtract 0.25 to make front face of wall line up with front face of note (walls just built like that)
-        float worldDist = objectManager.GetZPosition(w.Time) - 0.25f;
-
-        worldDist += wallLength / 2;
+        float frontDist = objectManager.GetZPosition(w.Time) - 0.25f;
+        float worldDist = frontDist + (wallLength / 2);
 
         if(w.Visual == null)
         {
-            w.wallHandler = wallPool.GetObject();
-            w.Visual = w.wallHandler.gameObject;
+            w.WallHandler = wallPool.GetObject();
+            w.Visual = w.WallHandler.gameObject;
 
             w.Visual.transform.SetParent(wallParent.transform);
             w.Visual.SetActive(true);
 
-            w.wallHandler.SetScale(new Vector3(w.Width, w.Height, wallLength));
-            w.wallHandler.SetProperties(wallMaterialProperties);
-            w.wallHandler.SetEdgeProperties(wallEdgeProperties);
+            w.WallHandler.transform.localScale = new Vector3(w.Width, w.Height, wallLength);
+
+            if(SettingsManager.GetBool("chromaobjectcolors") && w.CustomColor != null)
+            {
+                //This wall uses a unique chroma color
+                w.WallHandler.SetProperties(w.CustomProperties);
+                //Alpha needs to be set here as well
+                w.WallHandler.SetAlpha(SettingsManager.GetFloat("wallopacity"));
+            }
+            else
+            {
+                w.WallHandler.SetProperties(wallMaterialProperties);
+            }
 
             RenderedObjects.Add(w);
         }
@@ -79,9 +79,23 @@ public class WallManager : MapElementManager<Wall>
 
     public override void ReleaseVisual(Wall w)
     {
-        wallPool.ReleaseObject(w.wallHandler);
+        wallPool.ReleaseObject(w.WallHandler);
         w.Visual = null;
-        w.wallHandler = null;
+        w.WallHandler = null;
+    }
+
+
+    private void UpdateWallSortingOrder()
+    {
+        const int minSortingOrder = -32768;
+
+        //WallHandlers can be sorted by distance through the IComparable interface
+        RenderedObjects.Sort((x, y) => x.WallHandler.CompareTo(y.WallHandler));
+        for(int i = 0; i < RenderedObjects.Count; i++)
+        {
+            //Since walls are sorted by their distance, we can set their order here
+            RenderedObjects[i].WallHandler.SetSortingOrder(minSortingOrder + i);
+        }
     }
 
 
@@ -118,6 +132,8 @@ public class WallManager : MapElementManager<Wall>
                 break;
             }
         }
+
+        UpdateWallSortingOrder();
     }
 
 
@@ -168,7 +184,6 @@ public class WallManager : MapElementManager<Wall>
     private void Awake()
     {
         wallMaterialProperties = new MaterialPropertyBlock();
-        wallEdgeProperties = new MaterialPropertyBlock();
     }
 }
 
@@ -192,10 +207,12 @@ public class Wall : MapObject
 
     public float Width;
     public float Height;
-    public WallHandler wallHandler;
+
+    public WallHandler WallHandler;
+    public MaterialPropertyBlock CustomProperties;
 
 
-    public static Wall WallFromBeatmapObstacle(BeatmapObstacle o)
+    public Wall(BeatmapObstacle o)
     {
         float width = o.w;
         float height = o.h;
@@ -233,13 +250,18 @@ public class Wall : MapObject
             duration = -duration;
         }
 
-        return new Wall
+        Beat = beat;
+        Position = position;
+        DurationBeats = duration;
+        Width = Mathf.Max(worldWidth, WallManager.MinWallSize);
+        Height = Mathf.Max(worldHeight, WallManager.MinWallSize);
+
+        if(o.customData?.color != null)
         {
-            Beat = beat,
-            Position = position,
-            DurationBeats = duration,
-            Width = worldWidth,
-            Height = worldHeight
-        };
+            CustomColor = ColorManager.ColorFromCustomDataColor(o.customData.color);
+
+            CustomProperties = new MaterialPropertyBlock();
+            CustomProperties.SetColor("_BaseColor", (Color)CustomColor);
+        }
     }
 }

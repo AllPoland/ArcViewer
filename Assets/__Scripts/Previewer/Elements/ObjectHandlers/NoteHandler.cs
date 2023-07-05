@@ -17,8 +17,6 @@ public class NoteHandler : MonoBehaviour
 
     public void SetMesh(Mesh newMesh)
     {
-        if(newMesh == meshFilter.mesh) return;
-        
         meshFilter.mesh = newMesh;
     }
 

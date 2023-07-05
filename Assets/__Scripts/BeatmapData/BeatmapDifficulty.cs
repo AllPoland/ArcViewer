@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 [Serializable]
 public class BeatmapDifficulty
@@ -141,6 +143,8 @@ public class BeatmapBasicBeatmapEvent
     public int et;
     public int i;
     public float f;
+
+    public BeatmapCustomBasicEventData customData;
 }
 
 
@@ -156,6 +160,7 @@ public class BeatmapColorBoostBeatmapEvent
 public class BeatmapCustomObjectData
 {
     public float[] coordinates;
+    public float[] color;
 }
 
 
@@ -178,4 +183,58 @@ public class BeatmapCustomObstacleData : BeatmapCustomObjectData
 public class BeatmapCustomSliderData : BeatmapCustomObjectData
 {
     public float[] tailCoordinates;
+}
+
+
+[Serializable]
+public class BeatmapCustomBasicEventData
+{
+    [JsonConverter(typeof(LightIDConverter))]
+    public List<int> lightID;
+    public float[] color;
+    public string easing;
+    public string lerpType;
+
+    //Laser speed specific data
+    public bool? lockRotation;
+
+    //Ring specific data
+    public string nameFilter;
+    public float? rotation;
+    public float? step;
+    public float? prop;
+    
+    //Shared by both rings and lasers
+    public float? speed;
+    public int? direction;
+}
+
+
+//A custom json deserializer that converts a single non-array lightID into a list with one element
+public class LightIDConverter : JsonConverter
+{
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    {
+        List<int> val = null;
+        if (reader.TokenType == JsonToken.StartObject)
+        {
+            int id = serializer.Deserialize<int>(reader);
+            val = new List<int>() { id };
+        }
+        else if (reader.TokenType == JsonToken.StartArray)
+        {
+            val = serializer.Deserialize<List<int>>(reader);
+        }
+        return val;
+    }
+
+    public override bool CanConvert(Type objectType)
+    {
+        return true;
+    }
 }

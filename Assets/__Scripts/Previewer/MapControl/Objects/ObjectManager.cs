@@ -21,6 +21,7 @@ public class ObjectManager : MonoBehaviour
     public ArcManager arcManager;
 
     public bool useSimpleNoteMaterial => SettingsManager.GetBool("simplenotes");
+    public bool useSimpleBombMaterial => SettingsManager.GetBool("simplebombs");
     public bool doRotationAnimation => SettingsManager.GetBool("rotateanimations");
     public bool doMovementAnimation => SettingsManager.GetBool("moveanimations");
     public bool doFlipAnimation => SettingsManager.GetBool("flipanimations");
@@ -275,6 +276,7 @@ public class ObjectManager : MonoBehaviour
         chainManager.ReloadChains();
         arcManager.ReloadArcs();
         wallManager.ReloadWalls();
+        bombManager.ReloadBombs();
 
         MapStats.UpdateNpsAndSpsValues();
     }
@@ -295,6 +297,9 @@ public class ObjectManager : MonoBehaviour
         HitSoundManager.ClearScheduledSounds();
 
         noteManager.UpdateMaterials();
+
+        bombManager.ReloadBombs();
+
         chainManager.ClearRenderedVisuals();
         chainManager.UpdateVisuals();
 
@@ -423,7 +428,7 @@ public class ObjectManager : MonoBehaviour
             bool chainAttachment = false;
             foreach(BeatmapColorNote n in notesOnBeat)
             {
-                Note newNote = Note.NoteFromBeatmapColorNote(n);
+                Note newNote = new Note(n);
                 newNote.StartY = ((float)NoteManager.GetStartY(n, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
 
                 newNote.IsChainHead = NoteManager.CheckChainHead(n, burstSlidersOnBeat);
@@ -474,7 +479,7 @@ public class ObjectManager : MonoBehaviour
 
             foreach(BeatmapBombNote b in bombsOnBeat)
             {
-                Bomb newBomb = Bomb.BombFromBeatmapBombNote(b);
+                Bomb newBomb = new Bomb(b);
                 newBomb.StartY = ((float)NoteManager.GetStartY(b, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
 
                 // check attachment to arcs
@@ -492,13 +497,13 @@ public class ObjectManager : MonoBehaviour
 
             foreach(BeatmapBurstSlider b in burstSlidersOnBeat)
             {
-                Chain newChain = Chain.ChainFromBeatmapBurstSlider(b);
+                Chain newChain = new Chain(b);
                 chains.Add(newChain);
             }
 
             foreach(BeatmapObstacle o in obstaclesOnBeat)
             {
-                Wall newWall = Wall.WallFromBeatmapObstacle(o);
+                Wall newWall = new Wall(o);
                 walls.Add(newWall);
             }
         }
@@ -511,7 +516,7 @@ public class ObjectManager : MonoBehaviour
             BeatmapSliderEnd head = beatmapSliderHeads[i];
             BeatmapSliderEnd tail = beatmapSliderTails[i];
 
-            Arc newArc = Arc.ArcFromBeatmapSlider(beatmapDifficulty.sliders[i]);
+            Arc newArc = new Arc(beatmapDifficulty.sliders[i]);
 
             if(head.HasAttachment)
             {
@@ -571,6 +576,7 @@ public abstract class MapObject : MapElement
 {   
     public GameObject Visual;
     public Vector2 Position;
+    public Color? CustomColor;
 }
 
 

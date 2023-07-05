@@ -49,9 +49,6 @@ public class ArcManager : MapElementManager<Arc>
         blueArcMaterialProperties.SetFloat("_FadeEndPoint", fadeDist);
         blueArcMaterialProperties.SetFloat("_FadeTransitionLength", arcFadeTransitionLength);
 
-        redArcMaterialProperties.SetColor("_BaseColor", redArcColor);
-        blueArcMaterialProperties.SetColor("_BaseColor", blueArcColor);
-
         UpdateVisuals();
     }
 
@@ -104,11 +101,17 @@ public class ArcManager : MapElementManager<Arc>
         {
             float timeDifference = TimeManager.CurrentTime - a.Time;
             float startValue = a.Beat + a.HeadAngle + a.Position.x + a.Position.y;
-            textureOffset = startValue + (timeDifference * arcAnimationSpeed);
-            textureOffset %= 1f;
+            textureOffset = (startValue % 1f) + (timeDifference * arcAnimationSpeed);
         }
 
-        a.arcHandler.SetProperties(alpha, textureOffset);
+        Color arcColor = a.Color == 0 ? redArcColor : blueArcColor;
+        if(SettingsManager.GetBool("chromaobjectcolors") && a.CustomColor != null)
+        {
+            //This arc uses a unique chroma color
+            arcColor = (Color)a.CustomColor;
+        }
+
+        a.arcHandler.SetProperties(alpha, textureOffset, arcColor);
 
         if(objectManager.doMovementAnimation)
         {
@@ -369,7 +372,7 @@ public class Arc : BaseSlider
     }
 
 
-    public static Arc ArcFromBeatmapSlider(BeatmapSlider a)
+    public Arc(BeatmapSlider a)
     {
         const float defaultControlOffset = 2.5f;
 
@@ -411,24 +414,26 @@ public class Arc : BaseSlider
             rotationDirection = (ArcRotationDirection)Mathf.Clamp(a.m, 0, 2);
         }
 
-        return new Arc
+        Beat = headBeat;
+        Position = headPosition;
+        Color = a.c;
+        TailBeat = tailBeat;
+        TailPosition = tailPosition;
+        HeadControlPoint = headControlPoint;
+        TailControlPoint = tailControlPoint;
+        HeadOffsetDirection = headOffsetDirection;
+        TailOffsetDirection = tailOffsetDirection;
+        HeadAngle = headAngle;
+        HeadDot = headCutDirection == 8;
+        HasHeadAttachment = false;
+        HeadStartY = headPosition.y;
+        TailStartY = tailPosition.y;
+        MidRotationDirection = rotationDirection;
+
+        if(a.customData?.color != null)
         {
-            Beat = headBeat,
-            Position = headPosition,
-            Color = a.c,
-            TailBeat = tailBeat,
-            TailPosition = tailPosition,
-            HeadControlPoint = headControlPoint,
-            TailControlPoint = tailControlPoint,
-            HeadOffsetDirection = headOffsetDirection,
-            TailOffsetDirection = tailOffsetDirection,
-            HeadAngle = headAngle,
-            HeadDot = headCutDirection == 8,
-            HasHeadAttachment = false,
-            HeadStartY = headPosition.y,
-            TailStartY = tailPosition.y,
-            MidRotationDirection = rotationDirection
-        };
+            CustomColor = ColorManager.ColorFromCustomDataColor(a.customData.color);
+        }
     }
 }
 

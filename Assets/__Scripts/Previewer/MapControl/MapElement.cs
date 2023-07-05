@@ -68,6 +68,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     public void Clear()
     {
         Elements.Clear();
+        lastStartIndex = 0;
         //The elements are technically sorted if there are none :smil
         IsSorted = true;
     }

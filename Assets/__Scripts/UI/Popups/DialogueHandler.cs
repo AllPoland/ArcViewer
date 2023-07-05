@@ -7,16 +7,18 @@ public class DialogueHandler : MonoBehaviour
     public static DialogueHandler Instance { get; private set; }
 
     public static List<DialogueBox> OpenBoxes = new List<DialogueBox>();
-    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy || Instance.staticLightsWarningPanel.activeInHierarchy;
+    public static bool LogActive => Instance.logDisplay.gameObject.activeInHierarchy;
+    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy || Instance.staticLightsWarningPanel.activeInHierarchy || LogActive;
     public static bool PopupActive => DialogueActive || Instance.sharePanel.activeInHierarchy || Instance.jumpSettingsPanel.activeInHierarchy || Instance.statsPanel.activeInHierarchy;
 
+    [SerializeField] private GameObject dialogueBoxPrefab;
+
+    public LogDisplay logDisplay;
     public GameObject infoPanel;
     public GameObject sharePanel;
     public GameObject jumpSettingsPanel;
     public GameObject statsPanel;
     public GameObject staticLightsWarningPanel;
-
-    [SerializeField] private GameObject dialogueBoxPrefab;
 
 
     public static void ShowDialogueBox(DialogueBoxType type, string text, Action<DialogueResponse> callback = null)
@@ -58,6 +60,14 @@ public class DialogueHandler : MonoBehaviour
     }
 
 
+    public void ShowLog(Log log)
+    {
+        TimeManager.SetPlaying(false);
+        logDisplay.gameObject.SetActive(true);
+        logDisplay.SetLog(log);
+    }
+
+
     public static void ClearDialogueBoxes()
     {
         for(int i = OpenBoxes.Count - 1; i >= 0; i--)
@@ -86,10 +96,26 @@ public class DialogueHandler : MonoBehaviour
             return;
         }
 
+        bool cancel = Input.GetButtonDown("Cancel");
+        bool submit = Input.GetButtonDown("Submit");
+        if(!cancel && !submit)
+        {
+            return;
+        }
+
+        if(LogActive)
+        {
+            if(cancel)
+            {
+                logDisplay.gameObject.SetActive(false);
+            }
+            return;
+        }
+
         if(OpenBoxes.Count <= 0)
         {
             //No generic dialogue boxes, check for special dialogues
-            if(Input.GetButtonDown("Cancel"))
+            if(cancel)
             {
                 if(infoPanel.activeInHierarchy)
                 {
@@ -120,7 +146,7 @@ public class DialogueHandler : MonoBehaviour
 
         DialogueBox currentBox = OpenBoxes[OpenBoxes.Count - 1];
 
-        if(Input.GetButtonDown("Cancel"))
+        if(cancel)
         {
             switch(currentBox.boxType)
             {
@@ -136,7 +162,7 @@ public class DialogueHandler : MonoBehaviour
             }
         }
 
-        if(Input.GetButtonDown("Submit"))
+        if(submit)
         {
             switch(currentBox.boxType)
             {

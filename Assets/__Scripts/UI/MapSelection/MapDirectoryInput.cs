@@ -10,6 +10,7 @@ public class MapDirectoryInput : MonoBehaviour
     [SerializeField] private UrlArgHandler urlArgHandler;
     [SerializeField] private TMP_InputField directoryField;
     [SerializeField] private Button openButton;
+    [SerializeField] private SoupInput soupInput;
 
     [SerializeField] private string webGLPlaceholder;
 
@@ -18,7 +19,16 @@ public class MapDirectoryInput : MonoBehaviour
 
     public void LoadMap()
     {
-        if(MapDirectory == "") return;
+        if(MapDirectory == "")
+        {
+            return;
+        }
+
+        if(soupInput.CheckSoupWord(MapDirectory))
+        {
+            directoryField.text = "";
+            return;
+        }
 
         if(MapDirectory.Contains(UrlArgHandler.ArcViewerURL))
         {
@@ -53,7 +63,7 @@ public class MapDirectoryInput : MonoBehaviour
     }
 
 #if UNITY_WEBGL
-    private void Start()
+    private void Awake()
     {
         directoryField.placeholder.GetComponent<TextMeshProUGUI>().text = webGLPlaceholder;
     }

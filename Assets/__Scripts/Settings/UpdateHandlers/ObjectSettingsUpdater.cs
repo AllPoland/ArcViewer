@@ -19,14 +19,17 @@ public class ObjectSettingsUpdater : MonoBehaviour
             chainManager.ClearRenderedVisuals();
             chainManager.UpdateVisuals();
         }
+        if(allSettings || setting == "simplebombs")
+        {
+            bombManager.ReloadBombs();
+        }
         if(allSettings || setting == "moveanimations" || setting == "rotateanimations" || setting == "flipanimations")
         {
             HitSoundManager.ClearScheduledSounds();
             noteManager.ClearRenderedVisuals();
             noteManager.UpdateVisuals();
 
-            bombManager.ClearRenderedVisuals();
-            bombManager.UpdateVisuals();
+            bombManager.ReloadBombs();
 
             chainManager.ClearRenderedVisuals();
             chainManager.UpdateVisuals();
