@@ -136,6 +136,14 @@ public static class Extensions
     {
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
+            //Search the root first to prioritize it over subfolders
+            if(entry.FullName.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return entry;
+            }
+        }
+        foreach(ZipArchiveEntry entry in archive.Entries)
+        {
             if(entry.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
             {
                 return entry;

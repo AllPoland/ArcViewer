@@ -77,8 +77,8 @@ public class ObjectManager : MonoBehaviour
 
     public static bool CheckSameTime(float time1, float time2)
     {
-        const float leeway = 0.001f;
-        return Mathf.Abs(time1 - time2) <= leeway;
+        const float epsilon = 0.001f;
+        return Mathf.Abs(time1 - time2) <= epsilon;
     }
 
 
@@ -506,6 +506,10 @@ public class ObjectManager : MonoBehaviour
                 Wall newWall = new Wall(o);
                 walls.Add(newWall);
             }
+
+            //This is necessary because negative duration objects won't be sorted properly
+            walls.SortElementsByBeat();
+            arcs.SortElementsByBeat();
         }
 
         // pair slider heads/tails back up and make final arcs

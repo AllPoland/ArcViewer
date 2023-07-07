@@ -92,21 +92,20 @@ public class AudioFileHandler
 
     public static async Task<AudioType> GetAudioTypeFromFile(string fileName, string directory = "")
     {
-        AudioType type = AudioType.UNKNOWN;
-        if(fileName.EndsWith(".ogg", StringComparison.InvariantCultureIgnoreCase) || fileName.EndsWith(".egg", StringComparison.InvariantCultureIgnoreCase))
-        {
-            type = AudioType.OGGVORBIS;
-        }
-        else if(fileName.EndsWith(".wav", StringComparison.InvariantCultureIgnoreCase))
-        {
-            type = AudioType.WAV;
-        }
-        else if(fileName.EndsWith(".mp3", StringComparison.InvariantCultureIgnoreCase))
-        {
-            type = AudioType.MPEG;
-        }
-
-        if(type != AudioType.UNKNOWN) return type;
+        //Uncomment to get the type based on file extension
+        //(Marginal performance improvement but makes files with incorrect extension unloadable)
+        // if(fileName.EndsWith(".ogg", StringComparison.InvariantCultureIgnoreCase) || fileName.EndsWith(".egg", StringComparison.InvariantCultureIgnoreCase))
+        // {
+        //     return AudioType.OGGVORBIS;
+        // }
+        // else if(fileName.EndsWith(".wav", StringComparison.InvariantCultureIgnoreCase))
+        // {
+        //     return AudioType.WAV;
+        // }
+        // else if(fileName.EndsWith(".mp3", StringComparison.InvariantCultureIgnoreCase))
+        // {
+        //     return AudioType.MPEG;
+        // }
 
         if(string.IsNullOrEmpty(directory))
         {

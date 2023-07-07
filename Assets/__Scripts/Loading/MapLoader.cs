@@ -320,6 +320,7 @@ public class MapLoader : MonoBehaviour
     {
         if(DialogueHandler.DialogueActive)
         {
+            Debug.LogWarning("Trying to load a map while in a dialogue!");
             return;
         }
 

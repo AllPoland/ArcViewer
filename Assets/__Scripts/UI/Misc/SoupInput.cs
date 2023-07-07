@@ -23,8 +23,9 @@ public class SoupInput : MonoBehaviour
 
         foreach(LockedLog lockedLog in lockedLogs)
         {
-            if(string.Equals(input, lockedLog.Passcode, StringComparison.InvariantCultureIgnoreCase))
+            if(input.Equals(lockedLog.Passcode, StringComparison.InvariantCultureIgnoreCase))
             {
+                Debug.Log("smil");
                 DialogueHandler.Instance.ShowLog(lockedLog.Log);
                 return true;
             }

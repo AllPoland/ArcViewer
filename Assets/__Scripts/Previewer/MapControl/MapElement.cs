@@ -91,8 +91,11 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
 
     public void SortElementsByBeat()
     {
-        Elements = Elements.OrderBy(x => x.Beat).ToList();
-        IsSorted = true;
+        if(!IsSorted)
+        {
+            Elements = Elements.OrderBy(x => x.Beat).ToList();
+            IsSorted = true;
+        }
     }
 
 
