@@ -506,6 +506,10 @@ public class ObjectManager : MonoBehaviour
                 Wall newWall = new Wall(o);
                 walls.Add(newWall);
             }
+
+            //This is necessary because negative duration objects won't be sorted properly
+            walls.SortElementsByBeat();
+            arcs.SortElementsByBeat();
         }
 
         // pair slider heads/tails back up and make final arcs
