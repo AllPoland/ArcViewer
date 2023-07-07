@@ -77,8 +77,8 @@ public class ObjectManager : MonoBehaviour
 
     public static bool CheckSameTime(float time1, float time2)
     {
-        const float leeway = 0.001f;
-        return Mathf.Abs(time1 - time2) <= leeway;
+        const float epsilon = 0.001f;
+        return Mathf.Abs(time1 - time2) <= epsilon;
     }
 
 
