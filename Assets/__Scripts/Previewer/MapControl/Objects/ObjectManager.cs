@@ -26,6 +26,11 @@ public class ObjectManager : MonoBehaviour
     public bool doMovementAnimation => SettingsManager.GetBool("moveanimations");
     public bool doFlipAnimation => SettingsManager.GetBool("flipanimations");
 
+    public const float DefaultPlayerHeight = 1.8f;
+    public float PlayerHeightSetting => SettingsManager.GetFloat("playerheight");
+    public float playerHeight => ReplayManager.IsReplayMode ? ReplayManager.PlayerHeight : PlayerHeightSetting;
+    public float playerHeightOffset => (playerHeight - DefaultPlayerHeight) / 2;
+
     public static readonly Vector2 GridBottomLeft = new Vector2(-0.9f, 0);
     public const float LaneWidth = 0.6f;
     public const float RowHeight = 0.55f;

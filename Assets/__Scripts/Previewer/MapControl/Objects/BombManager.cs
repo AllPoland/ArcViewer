@@ -27,6 +27,8 @@ public class BombManager : MapElementManager<Bomb>
             worldPos.y = objectManager.GetObjectY(b.StartY, worldPos.y, b.Time);
         }
 
+        worldPos.y += objectManager.playerHeightOffset;
+
         if(b.Visual == null)
         {
             b.BombHandler = bombPool.GetObject();

@@ -92,6 +92,8 @@ public class ChainManager : MapElementManager<ChainLink>
             worldPos.y = objectManager.GetObjectY(startY, worldPos.y, cl.Time);
         }
 
+        worldPos.y += objectManager.playerHeightOffset;
+
         float angle = cl.Angle;
         float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
 

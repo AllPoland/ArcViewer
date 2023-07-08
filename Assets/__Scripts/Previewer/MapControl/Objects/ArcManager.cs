@@ -121,7 +121,7 @@ public class ArcManager : MapElementManager<Arc>
             a.arcHandler.SetArcPoints(GetArcSpawnAnimationOffset(a.BaseCurve, headOffsetY, tailOffsetY)); // arc visuals get reset on settings change, so fine to only update in here
         }
 
-        a.Visual.transform.localPosition = new Vector3(0, 0, zDist);
+        a.Visual.transform.localPosition = new Vector3(0, objectManager.playerHeightOffset, zDist);
     }
 
 

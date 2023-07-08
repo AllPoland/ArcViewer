@@ -92,6 +92,8 @@ public class NoteManager : MapElementManager<Note>
             }
         }
 
+        worldPos.y += objectManager.playerHeightOffset;
+
         if(objectManager.doRotationAnimation)
         {
             if(jumpProgress <= 0)
