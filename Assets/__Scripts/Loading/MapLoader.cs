@@ -142,11 +142,10 @@ public class MapLoader : MonoBehaviour
 #endif
 
 
-    public IEnumerator LoadMapURLCoroutine(string url, string mapID = null, bool noProxy = false)
+    public IEnumerator LoadMapZipURLCoroutine(string url, string mapID = null, bool noProxy = false)
     {
         Loading = true;
 
-        url = System.Web.HttpUtility.UrlDecode(url);
 #if !UNITY_WEBGL || UNITY_EDITOR
         //Use the map id as the map key to avoid making requests to beatsaver for cached maps
         string cacheKey = string.IsNullOrEmpty(mapID) ? url : mapID;
@@ -163,7 +162,7 @@ public class MapLoader : MonoBehaviour
         Debug.Log($"Downloading map data from: {url}");
         LoadingMessage = "Downloading map";
 
-        using Task<Stream> downloadTask = WebLoader.LoadMapURL(url, noProxy);
+        using Task<Stream> downloadTask = WebLoader.LoadFileURL(url, noProxy);
         yield return new WaitUntil(() => downloadTask.IsCompleted);
 
         Stream zipStream = downloadTask.Result;
@@ -214,23 +213,63 @@ public class MapLoader : MonoBehaviour
         }
 #endif
 
-        Debug.Log($"Getting beat saver response for ID: {mapID}");
+        Debug.Log($"Getting BeatSaver response for ID: {mapID}");
         LoadingMessage = "Fetching map from BeatSaver";
 
-        using Task<string> apiTask = BeatSaverHandler.GetBeatSaverMapURL(mapID);
+        using Task<string> apiTask = BeatSaverHandler.GetBeatSaverMapID(mapID);
         yield return new WaitUntil(() => apiTask.IsCompleted);
         
         string mapURL = apiTask.Result;
-
-        if(mapURL == null || mapURL == "")
+        if(string.IsNullOrEmpty(mapURL))
         {
             Debug.Log("Empty or nonexistant URL!");
             UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
-        StartCoroutine(LoadMapURLCoroutine(mapURL, mapID));
+        StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID));
     }
+
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+    public IEnumerator LoadReplayDirectoryCoroutine(string directory)
+    {
+        Loading = true;
+
+        Debug.Log($"Loading replay from directory: {directory}");
+        LoadingMessage = "Loading Replay";
+
+        using Task<Replay> replayTask = Task.Run(() => ReplayLoader.ReplayFromDirectory(directory));
+        yield return new WaitUntil(() => replayTask.IsCompleted);
+
+        Replay replay = replayTask.Result;
+        if(replay == null)
+        {
+            UpdateMapInfo(LoadedMap.Empty);
+            yield break;
+        }
+
+        ReplayManager.SetReplay(replay);
+
+        string mapHash = replay.info.hash;
+        Debug.Log($"Getting BeatSaver response for Hash: {mapHash}");
+        LoadingMessage = "Fetching map from BeatSaver";
+
+        using Task<string> apiTask = BeatSaverHandler.GetBeatSaverMapHash(mapHash);
+        yield return new WaitUntil(() => apiTask.IsCompleted);
+
+        string mapURL = apiTask.Result;
+        if(string.IsNullOrEmpty(mapURL))
+        {
+            Debug.Log("Empty or nonexistant URL!");
+            UpdateMapInfo(LoadedMap.Empty);
+            yield break;
+        }
+
+        StartCoroutine(LoadMapZipURLCoroutine(mapURL));
+    }
+#endif
+
 
     private void UpdateMapInfo(LoadedMap newMap)
     {
@@ -281,32 +320,31 @@ public class MapLoader : MonoBehaviour
         throw new InvalidOperationException("Loading from directory doesn't work on WebGL!");
 #else
 
-        if(directory.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+        if(!File.Exists(directory))
         {
-            if(!File.Exists(directory))
-            {
-                ErrorHandler.Instance.ShowPopup(ErrorType.Error, "That file doesn't exist!");
-                Debug.LogWarning("Trying to load a map from a file that doesn't exist!");
-                return;
-            }
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "That file or directory doesn't exist!");
+            Debug.LogWarning("Trying to load a map from a file that doesn't exist!");
+            return;
+        }
 
+        if(directory.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
+        {
             LoadMapZip(directory);
             HotReloader.loadedMapPath = directory;
             return;
         }
 
-        if(directory.EndsWith(".dat", StringComparison.OrdinalIgnoreCase))
+        if(directory.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase))
+        {
+            StartCoroutine(LoadReplayDirectoryCoroutine(directory));
+            return;
+        }
+
+        if(directory.EndsWith(".dat", StringComparison.InvariantCultureIgnoreCase))
         {
             //User is trying to load an unzipped map, get the parent directory
             DirectoryInfo parentDir = Directory.GetParent(directory);
             directory = parentDir.FullName;
-        }
-
-        if(!Directory.Exists(directory))
-        {
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "That directory doesn't exist!");
-            Debug.LogWarning("Trying to load a map from a directory that doesn't exist!");
-            return;
         }
 
         FileReader fileReader = new FileReader(directory);
@@ -333,8 +371,10 @@ public class MapLoader : MonoBehaviour
 
         HotReloader.loadedMapPath = null;
 
-        if(input.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        if(input.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase) || input.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase))
         {
+            input = System.Web.HttpUtility.UrlDecode(input);
+
             if(input.Contains("beatsaver.com/maps"))
             {
                 //Direct beatsaver link, should load based on ID instead
@@ -345,8 +385,14 @@ public class MapLoader : MonoBehaviour
                 return;
             }
 
-            StartCoroutine(LoadMapURLCoroutine(input));
-            UrlArgHandler.LoadedMapURL = input;
+            if(input.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
+            {
+                StartCoroutine(LoadMapZipURLCoroutine(input));
+                UrlArgHandler.LoadedMapURL = input;
+                return;
+            }
+
+            Debug.LogWarning($"{input} doesn't link to a valid map!");
             return;
         }
 
@@ -425,4 +471,10 @@ public interface IMapDataLoader : IDisposable
 {
     public Task<LoadedMap> GetMap();
     public Task<LoadedMapData> GetMapData();
+}
+
+
+public interface IReplayLoader : IMapDataLoader
+{
+    public Task<Replay> GetReplay();
 }

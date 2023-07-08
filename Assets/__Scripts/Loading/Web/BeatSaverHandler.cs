@@ -3,17 +3,30 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class BeatSaverHandler
+public static class BeatSaverHandler
 {
     private const string beatSaverApiURL = "https://api.beatsaver.com/";
-    private const string mapDirect = "maps/id/";
+    private const string idDirect = "maps/id/";
+    private const string hashDirect = "maps/hash/";
 
 
-    public static async Task<string> GetBeatSaverMapURL(string mapID)
+    public static async Task<string> GetBeatSaverMapID(string id)
     {
-        string json = await GetApiResponse(mapID);
+        return await GetBeatSaverMapURL(idDirect, id);
+    }
 
-        if(json == "") return "";
+
+    public static async Task<string> GetBeatSaverMapHash(string hash)
+    {
+        return await GetBeatSaverMapURL(hashDirect, hash, false);
+    }
+
+
+    private static async Task<string> GetBeatSaverMapURL(string apiDirect, string mapID, bool showError = true)
+    {
+        string json = await GetApiResponse(apiDirect, mapID, showError);
+
+        if(string.IsNullOrEmpty(json)) return "";
 
         BeatSaverResponse response = JsonUtility.FromJson<BeatSaverResponse>(json);
 
@@ -26,9 +39,9 @@ public class BeatSaverHandler
     }
 
 
-    public static async Task<string> GetApiResponse(string mapID)
+    private static async Task<string> GetApiResponse(string apiDirect, string mapID, bool showError)
     {
-        string url = string.Concat(beatSaverApiURL, mapDirect, mapID);
+        string url = string.Concat(beatSaverApiURL, apiDirect, mapID);
 
         try
         {
@@ -44,15 +57,23 @@ public class BeatSaverHandler
                 }
                 else
                 {
+                    if(showError)
+                    {
+                        ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find beatsaver map {mapID}! {uwr.error}");
+                    }
+
                     Debug.LogWarning(uwr.error);
-                    ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find beatsaver map {mapID}! {uwr.error}");
                     return "";
                 }
             }
         }
         catch(Exception err)
         {
-            ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find beatsaver map {mapID}! {err.Message}");
+            if(showError)
+            {
+                ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find beatsaver map {mapID}! {err.Message}");
+            }
+
             Debug.LogWarning($"Failed to get BeatSaver api response with error: {err.Message}, {err.StackTrace}");
             return "";
         }

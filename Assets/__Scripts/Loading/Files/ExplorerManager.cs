@@ -34,7 +34,7 @@ public class ExplorerManager : MonoBehaviour, IPointerDownHandler
     {
         ExtensionFilter[] extensions = new []
         {
-            new ExtensionFilter("Map Files", new string[] {"zip", "dat"})
+            new ExtensionFilter("Map and Replay Files", new string[] {"zip", "dat", "bsor"})
         };
 
         string[] paths = StandaloneFileBrowser.OpenFilePanel("Select Map", "", extensions, false);
