@@ -234,11 +234,17 @@ public class ObjectManager : MonoBehaviour
         }
 
         position.x += (int)Mathf.Clamp(x, 0, 3) * LaneWidth;
-        position.y += (int)Mathf.Clamp(y, 0, 2) * RowHeight;
 
-        //Replace the other position.y calculation with this one for game-accurate spacing
-        //This spacing looks like garbage so I'm not using it even though fixed grid is technically inaccurate
-        // position.y += VanillaRowHeights[(int)Mathf.Clamp(y, 0, 2)];
+        if(ReplayManager.IsReplayMode)
+        {
+            //Use truly game-accurate y spacing for replays
+            //This looks like garbage so I don't use it for regular map viewing
+            position.y += VanillaRowHeights[(int)Mathf.Clamp(y, 0, 2)];
+        }
+        else
+        {
+            position.y += (int)Mathf.Clamp(y, 0, 2) * RowHeight;
+        }
 
         return position;
     }
