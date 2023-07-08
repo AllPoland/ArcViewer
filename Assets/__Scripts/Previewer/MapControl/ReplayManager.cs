@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 public class ReplayManager : MonoBehaviour
@@ -8,11 +9,19 @@ public class ReplayManager : MonoBehaviour
 
     public static void SetReplay(Replay newReplay)
     {
-        if(newReplay != null)
+        if(newReplay == null)
         {
-            IsReplayMode = true;
-            CurrentReplay = newReplay;
+            return;
         }
+
+        newReplay.frames.OrderBy(x => x.time);
+        newReplay.heights.OrderBy(x => x.time);
+        newReplay.notes.OrderBy(x => x.eventTime);
+        newReplay.pauses.OrderBy(x => x.time);
+        newReplay.walls.OrderBy(x => x.time);
+
+        IsReplayMode = true;
+        CurrentReplay = newReplay;
     }
 
 

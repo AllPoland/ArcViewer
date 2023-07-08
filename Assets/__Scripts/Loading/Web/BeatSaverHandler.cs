@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -10,21 +11,33 @@ public static class BeatSaverHandler
     private const string hashDirect = "maps/hash/";
 
 
-    public static async Task<string> GetBeatSaverMapID(string id)
-    {
-        return await GetBeatSaverMapURL(idDirect, id);
-    }
-
-
     public static async Task<string> GetBeatSaverMapHash(string hash)
     {
-        return await GetBeatSaverMapURL(hashDirect, hash, false);
+        string json = await GetApiResponse(hashDirect, hash, false);
+
+        if(string.IsNullOrEmpty(json)) return "";
+
+        BeatSaverResponse response = JsonUtility.FromJson<BeatSaverResponse>(json);
+
+        if(response.versions == null || response.versions.Length == 0)
+        {
+            return "";
+        }
+
+        string url = response.versions.FirstOrDefault(x => x.hash.Equals(hash, StringComparison.InvariantCultureIgnoreCase))?.downloadURL;
+        if(url == null)
+        {
+            Debug.LogWarning("BeatSaver response doesn't contain this outdated version!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "This replay is for an outdated map version!");
+            return response.versions.First().downloadURL;
+        }
+        else return url;
     }
 
 
-    private static async Task<string> GetBeatSaverMapURL(string apiDirect, string mapID, bool showError = true)
+    public static async Task<string> GetBeatSaverMapID(string mapID)
     {
-        string json = await GetApiResponse(apiDirect, mapID, showError);
+        string json = await GetApiResponse(idDirect, mapID, true);
 
         if(string.IsNullOrEmpty(json)) return "";
 
@@ -81,7 +94,8 @@ public static class BeatSaverHandler
 }
 
 
-[Serializable] public struct BeatSaverResponse
+[Serializable]
+public class BeatSaverResponse
 {
     public string id;
     public string name;
@@ -95,7 +109,8 @@ public static class BeatSaverHandler
 }
 
 
-[Serializable] public struct BeatSaverVersion
+[Serializable]
+public class BeatSaverVersion
 {
     public string hash;
     public string state;
@@ -110,7 +125,8 @@ public static class BeatSaverHandler
 }
 
 
-[Serializable] public struct BeatSaverDiff
+[Serializable]
+public class BeatSaverDiff
 {
     public float njs;
     public float offset;
@@ -132,7 +148,8 @@ public static class BeatSaverHandler
 }
 
 
-[Serializable] public struct BeatSaverParitySummary
+[Serializable]
+public class BeatSaverParitySummary
 {
     public int errors;
     public int warns;
