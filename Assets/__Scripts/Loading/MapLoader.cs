@@ -231,8 +231,65 @@ public class MapLoader : MonoBehaviour
     }
 
 
+    private IEnumerator LoadMapReplay(Replay loadedReplay)
+    {
+        string mapHash = loadedReplay.info.hash;
+        Debug.Log($"Getting BeatSaver response for Hash: {mapHash}");
+        LoadingMessage = "Fetching map from BeatSaver";
+
+        using Task<string> apiTask = BeatSaverHandler.GetBeatSaverMapHash(mapHash);
+        yield return new WaitUntil(() => apiTask.IsCompleted);
+
+        string mapURL = apiTask.Result;
+        if(string.IsNullOrEmpty(mapURL))
+        {
+            Debug.Log("Empty or nonexistant URL!");
+            UpdateMapInfo(LoadedMap.Empty);
+            yield break;
+        }
+
+        StartCoroutine(LoadMapZipURLCoroutine(mapURL));
+    }
+
+
+    private IEnumerator LoadReplayURLCoroutine(string url, bool noProxy = false)
+    {
+        Loading = true;
+
+        Debug.Log($"Downloading replay file from from: {url}");
+        LoadingMessage = "Downloading replay";
+
+        using Task<Stream> downloadTask = WebLoader.LoadFileURL(url, noProxy);
+        yield return new WaitUntil(() => downloadTask.IsCompleted);
+
+        using Stream replayStream = downloadTask.Result;
+        if(replayStream == null)
+        {
+            Debug.LogWarning("Downloaded replay is null!");
+
+            UpdateMapInfo(LoadedMap.Empty);
+            yield break;
+        }
+
+        using Task<Replay> decodeTask = ReplayLoader.ReplayFromStream(replayStream);
+        yield return new WaitUntil(() => decodeTask.IsCompleted);
+
+        Replay replay = decodeTask.Result;
+        if(replay == null)
+        {
+            Debug.LogWarning("Failed to decode replay!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Faialed to decode the replay!");
+            UpdateMapInfo(LoadedMap.Empty);
+            yield break;
+        }
+
+        ReplayManager.SetReplay(replay);
+        StartCoroutine(LoadMapReplay(replay));
+    }
+
+
 #if !UNITY_WEBGL || UNITY_EDITOR
-    public IEnumerator LoadReplayDirectoryCoroutine(string directory)
+    private IEnumerator LoadReplayDirectoryCoroutine(string directory)
     {
         Loading = true;
 
@@ -250,23 +307,7 @@ public class MapLoader : MonoBehaviour
         }
 
         ReplayManager.SetReplay(replay);
-
-        string mapHash = replay.info.hash;
-        Debug.Log($"Getting BeatSaver response for Hash: {mapHash}");
-        LoadingMessage = "Fetching map from BeatSaver";
-
-        using Task<string> apiTask = BeatSaverHandler.GetBeatSaverMapHash(mapHash);
-        yield return new WaitUntil(() => apiTask.IsCompleted);
-
-        string mapURL = apiTask.Result;
-        if(string.IsNullOrEmpty(mapURL))
-        {
-            Debug.Log("Empty or nonexistant URL!");
-            UpdateMapInfo(LoadedMap.Empty);
-            yield break;
-        }
-
-        StartCoroutine(LoadMapZipURLCoroutine(mapURL));
+        StartCoroutine(LoadMapReplay(replay));
     }
 #endif
 
@@ -389,6 +430,13 @@ public class MapLoader : MonoBehaviour
             {
                 StartCoroutine(LoadMapZipURLCoroutine(input));
                 UrlArgHandler.LoadedMapURL = input;
+                return;
+            }
+
+            if(input.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase))
+            {
+                StartCoroutine(LoadReplayURLCoroutine(input));
+                UrlArgHandler.LoadedReplayURL = input;
                 return;
             }
 

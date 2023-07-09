@@ -163,7 +163,7 @@ public class AsyncReplayDecoder
 
     private async Task<Replay> ContinueDecoding() 
     {
-        await Task.Delay(TimeSpan.FromSeconds(10));
+        await Task.Yield();
         for (int a = (int)StructType.frames; a < ((int)StructType.pauses) + 1; a++) {
             StructType type = (StructType)await DecodeByte(stream);
 

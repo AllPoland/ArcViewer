@@ -25,4 +25,15 @@ public class ReplayLoader
         }
 #endif
     }
+
+
+    public static async Task<Replay> ReplayFromStream(Stream replayStream)
+    {
+        AsyncReplayDecoder decoder = new AsyncReplayDecoder();
+        (ReplayInfo, Task<Replay>) result = await decoder.StartDecodingStream(replayStream);
+
+        Replay decodedReplay = await result.Item2;
+        result.Item2.Dispose();
+        return decodedReplay;
+    }
 }
