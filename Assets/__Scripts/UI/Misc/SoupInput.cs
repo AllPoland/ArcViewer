@@ -6,9 +6,6 @@ using TMPro;
 public class SoupInput : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI placeholderText;
-    [SerializeField] private string soupPlaceholder;
-
-    [Space]
     [SerializeField] private List<LockedLog> lockedLogs;
 
     private string defaultPlaceholder;
@@ -34,41 +31,13 @@ public class SoupInput : MonoBehaviour
     }
 
 
-    private void UpdatePlaceholderText()
-    {
-        bool soup = SettingsManager.GetBool(TheSoup.Rule);
-        placeholderText.text = soup ? soupPlaceholder : defaultPlaceholder;
-    }
-
-
-    public void UpdateSettings(string changedSetting)
-    {
-        if(changedSetting == "all" || changedSetting == TheSoup.Rule)
-        {
-            UpdatePlaceholderText();
-        }
-    }
-
 
     private void OnEnable()
     {
-        SettingsManager.OnSettingsUpdated += UpdateSettings;
-
         if(string.IsNullOrEmpty(defaultPlaceholder))
         {
             defaultPlaceholder = placeholderText.text;
         }
-
-        if(SettingsManager.Loaded)
-        {
-            UpdatePlaceholderText();
-        }
-    }
-
-
-    private void OnDisable()
-    {
-        SettingsManager.OnSettingsUpdated -= UpdateSettings;
     }
 
 

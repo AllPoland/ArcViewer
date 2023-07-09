@@ -252,6 +252,30 @@ public class MapLoader : MonoBehaviour
     }
 
 
+    #if !UNITY_WEBGL || UNITY_EDITOR
+    private IEnumerator LoadReplayDirectoryCoroutine(string directory)
+    {
+        Loading = true;
+
+        Debug.Log($"Loading replay from directory: {directory}");
+        LoadingMessage = "Loading Replay";
+
+        using Task<Replay> replayTask = Task.Run(() => ReplayLoader.ReplayFromDirectory(directory));
+        yield return new WaitUntil(() => replayTask.IsCompleted);
+
+        Replay replay = replayTask.Result;
+        if(replay == null)
+        {
+            UpdateMapInfo(LoadedMap.Empty);
+            yield break;
+        }
+
+        ReplayManager.SetReplay(replay);
+        StartCoroutine(LoadMapReplay(replay));
+    }
+#endif
+
+
     private IEnumerator LoadReplayURLCoroutine(string url, bool noProxy = false)
     {
         Loading = true;
@@ -288,28 +312,26 @@ public class MapLoader : MonoBehaviour
     }
 
 
-#if !UNITY_WEBGL || UNITY_EDITOR
-    private IEnumerator LoadReplayDirectoryCoroutine(string directory)
+    private IEnumerator LoadReplayIDCoroutine(string id)
     {
         Loading = true;
 
-        Debug.Log($"Loading replay from directory: {directory}");
-        LoadingMessage = "Loading Replay";
+        Debug.Log($"Getting Beatleader response for score ID: {id}");
+        LoadingMessage = "Fetching replay from Beatleader";
 
-        using Task<Replay> replayTask = Task.Run(() => ReplayLoader.ReplayFromDirectory(directory));
-        yield return new WaitUntil(() => replayTask.IsCompleted);
+        using Task<string> apiTask = ReplayLoader.ReplayURLFromScoreID(id);
+        yield return new WaitUntil(() => apiTask.IsCompleted);
 
-        Replay replay = replayTask.Result;
-        if(replay == null)
+        string replayURL = apiTask.Result;
+        if(string.IsNullOrEmpty(replayURL))
         {
+            Debug.Log("Empty or nonexistant URL!");
             UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
-        ReplayManager.SetReplay(replay);
-        StartCoroutine(LoadMapReplay(replay));
+        StartCoroutine(LoadReplayURLCoroutine(replayURL));
     }
-#endif
 
 
     private void UpdateMapInfo(LoadedMap newMap)
@@ -395,7 +417,7 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    public void LoadMapInput(string input)
+    public void LoadMapInput(string input, bool forceReplay = false)
     {
         if(DialogueHandler.DialogueActive)
         {
@@ -444,13 +466,25 @@ public class MapLoader : MonoBehaviour
             return;
         }
 
-        const string IDchars = "0123456789abcdef";
-        //If the directory doesn't contain any characters that aren't hexadecimal, that means it's probably an ID
-        if(!input.Any(x => !IDchars.Contains(x)))
+        if(forceReplay || SettingsManager.GetBool("replaymode"))
         {
-            StartCoroutine(LoadMapIDCoroutine(input));
-            UrlArgHandler.LoadedMapID = input;
-            return;
+            if(!input.Any(x => !x.IsDigit()))
+            {
+                StartCoroutine(LoadReplayIDCoroutine(input));
+                UrlArgHandler.LoadedReplayID = input;
+                return;
+            }
+        }
+        else
+        {
+            const string IDchars = "0123456789abcdef";
+            //If the directory doesn't contain any characters that aren't hexadecimal, that means it's probably an ID
+            if(!input.Any(x => !IDchars.Contains(x)))
+            {
+                StartCoroutine(LoadMapIDCoroutine(input));
+                UrlArgHandler.LoadedMapID = input;
+                return;
+            }
         }
 
 #if UNITY_WEBGL && !UNITY_EDITOR

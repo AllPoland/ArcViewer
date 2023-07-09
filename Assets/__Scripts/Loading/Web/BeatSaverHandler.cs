@@ -58,33 +58,31 @@ public static class BeatSaverHandler
 
         try
         {
-            using(UnityWebRequest uwr = UnityWebRequest.Get(url))
+            using UnityWebRequest uwr = UnityWebRequest.Get(url);
+            uwr.SendWebRequest();
+
+            while(!uwr.isDone) await Task.Yield();
+
+            if(uwr.result == UnityWebRequest.Result.Success)
             {
-                uwr.SendWebRequest();
-
-                while(!uwr.isDone) await Task.Yield();
-
-                if(uwr.result == UnityWebRequest.Result.Success)
+                return uwr.downloadHandler.text;
+            }
+            else
+            {
+                if(showError)
                 {
-                    return uwr.downloadHandler.text;
+                    ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find BeatSaver map {mapID}! {uwr.error}");
                 }
-                else
-                {
-                    if(showError)
-                    {
-                        ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find beatsaver map {mapID}! {uwr.error}");
-                    }
 
-                    Debug.LogWarning(uwr.error);
-                    return "";
-                }
+                Debug.LogWarning(uwr.error);
+                return "";
             }
         }
         catch(Exception err)
         {
             if(showError)
             {
-                ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find beatsaver map {mapID}! {err.Message}");
+                ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find BeatSaver map {mapID}! {err.Message}");
             }
 
             Debug.LogWarning($"Failed to get BeatSaver api response with error: {err.Message}, {err.StackTrace}");

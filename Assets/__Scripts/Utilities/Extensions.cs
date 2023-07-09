@@ -52,6 +52,19 @@ public static class Extensions
 
 
     ///<summary>
+    ///Returns true if the character is a numeric value from 0-9
+    ///</summary>
+    public static bool IsDigit(this char c)
+    {
+        if(c < '0' || c > '9')
+        {
+            return false;
+        }
+        else return true;
+    }
+
+
+    ///<summary>
     ///Removes any objects from the list matching the predicate, but only searching forward, with the search ending on the first object that doesn't match.
     ///</summary>
     public static void RemoveAllForward<T>(this List<T> list, Predicate<T> match)
