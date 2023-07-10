@@ -88,6 +88,7 @@ public class PlayerPositionManager : MonoBehaviour
             headVisual.SetActive(true);
             leftSaberVisual.SetActive(true);
             rightSaberVisual.SetActive(true);
+            SetDefaultPositions();
         }
         else
         {

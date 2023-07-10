@@ -93,7 +93,7 @@ public class WallManager : MapElementManager<Wall>
         }
 
         w.Visual.transform.localPosition = worldPos;
-        w.WallHandler.transform.localScale = new Vector3(w.Width, w.Height, wallLength);
+        w.WallHandler.transform.localScale = worldScale;
     }
 
 

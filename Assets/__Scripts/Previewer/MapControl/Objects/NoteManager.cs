@@ -69,6 +69,8 @@ public class NoteManager : MapElementManager<Note>
         float worldDist = objectManager.GetZPosition(n.Time);
         Vector3 worldPos = new Vector3(n.Position.x, n.Position.y, worldDist);
 
+        worldPos.y += objectManager.playerHeightOffset;
+
         if(objectManager.doMovementAnimation)
         {
             worldPos.y = objectManager.GetObjectY(n.StartY, worldPos.y, n.Time);
@@ -91,8 +93,6 @@ public class NoteManager : MapElementManager<Note>
                 worldPos.y += n.FlipYHeight * (0.5f - Mathf.Cos(jumpProgress * Mathf.PI * 4) / 2);
             }
         }
-
-        worldPos.y += objectManager.playerHeightOffset;
 
         if(objectManager.doRotationAnimation)
         {

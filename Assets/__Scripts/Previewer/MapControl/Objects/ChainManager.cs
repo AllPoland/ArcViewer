@@ -86,13 +86,13 @@ public class ChainManager : MapElementManager<ChainLink>
         float worldDist = objectManager.GetZPosition(cl.Time);
         Vector3 worldPos = new Vector3(cl.Position.x, cl.Position.y, worldDist);
 
+        worldPos.y += objectManager.playerHeightOffset;
+
         if(objectManager.doMovementAnimation)
         {
             float startY = objectManager.objectFloorOffset;
             worldPos.y = objectManager.GetObjectY(startY, worldPos.y, cl.Time);
         }
-
-        worldPos.y += objectManager.playerHeightOffset;
 
         float angle = cl.Angle;
         float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;

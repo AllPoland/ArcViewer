@@ -19,15 +19,14 @@ public class BombManager : MapElementManager<Bomb>
     public override void UpdateVisual(Bomb b)
     {
         float worldDist = objectManager.GetZPosition(b.Time);
-
         Vector3 worldPos = new Vector3(b.Position.x, b.Position.y, worldDist);
+
+        worldPos.y += objectManager.playerHeightOffset;
 
         if(objectManager.doMovementAnimation)
         {
             worldPos.y = objectManager.GetObjectY(b.StartY, worldPos.y, b.Time);
         }
-
-        worldPos.y += objectManager.playerHeightOffset;
 
         if(b.Visual == null)
         {

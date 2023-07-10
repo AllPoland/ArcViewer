@@ -115,8 +115,12 @@ public class ArcManager : MapElementManager<Arc>
 
         if(objectManager.doMovementAnimation)
         {
-            float headOffsetY = objectManager.GetObjectY(a.HeadStartY, a.Position.y, a.Time) - a.Position.y;
-            float tailOffsetY = objectManager.GetObjectY(a.TailStartY, a.TailPosition.y, a.TailTime) - a.TailPosition.y;
+            //Need to "undo" the player height so startY remains consistent with different heights
+            float headStartY = a.HeadStartY - objectManager.playerHeightOffset;
+            float tailStartY = a.TailStartY - objectManager.playerHeightOffset;
+
+            float headOffsetY = objectManager.GetObjectY(headStartY, a.Position.y, a.Time) - a.Position.y;
+            float tailOffsetY = objectManager.GetObjectY(tailStartY, a.TailPosition.y, a.TailTime) - a.TailPosition.y;
 
             a.arcHandler.SetArcPoints(GetArcSpawnAnimationOffset(a.BaseCurve, headOffsetY, tailOffsetY)); // arc visuals get reset on settings change, so fine to only update in here
         }
