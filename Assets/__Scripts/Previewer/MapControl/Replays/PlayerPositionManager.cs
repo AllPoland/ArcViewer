@@ -38,20 +38,25 @@ public class PlayerPositionManager : MonoBehaviour
         int lastFrameIndex = replayFrames.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
         if(lastFrameIndex < 0)
         {
-            SetDefaultPositions();
+            //Always start with the first frame
+            lastFrameIndex = 0;
         }
-        else
-        {
-            ReplayFrame currentFrame = replayFrames[lastFrameIndex];
-            headVisual.transform.localPosition = currentFrame.headPosition;
-            headVisual.transform.localRotation = currentFrame.headRotation;
 
-            leftSaberVisual.transform.localPosition = currentFrame.leftSaberPosition;
-            leftSaberVisual.transform.localRotation = currentFrame.leftSaberRotation;
+        //Lerp between frames to keep the visuals smooth
+        ReplayFrame currentFrame = replayFrames[lastFrameIndex];
+        ReplayFrame nextFrame = lastFrameIndex + 1 < replayFrames.Count ? replayFrames[lastFrameIndex + 1] : currentFrame;
 
-            rightSaberVisual.transform.localPosition = currentFrame.rightSaberPosition;
-            rightSaberVisual.transform.localRotation = currentFrame.rightSaberRotation;
-        }
+        float timeDifference = nextFrame.Time - currentFrame.Time;
+        float t = (TimeManager.CurrentTime - currentFrame.Time) / timeDifference;
+
+        headVisual.transform.localPosition = Vector3.Lerp(currentFrame.headPosition, nextFrame.headPosition, t);
+        headVisual.transform.localRotation = Quaternion.Lerp(currentFrame.headRotation, nextFrame.headRotation, t);
+
+        leftSaberVisual.transform.localPosition = Vector3.Lerp(currentFrame.leftSaberPosition, nextFrame.leftSaberPosition, t);
+        leftSaberVisual.transform.localRotation = Quaternion.Lerp(currentFrame.leftSaberRotation, nextFrame.leftSaberRotation, t);
+
+        rightSaberVisual.transform.localPosition = Vector3.Lerp(currentFrame.rightSaberPosition, nextFrame.rightSaberPosition, t);
+        rightSaberVisual.transform.localRotation = Quaternion.Lerp(currentFrame.rightSaberRotation, nextFrame.rightSaberRotation, t);
     }
 
 
