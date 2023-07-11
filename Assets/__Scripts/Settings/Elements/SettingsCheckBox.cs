@@ -62,17 +62,17 @@ public class SettingsCheckBox : MonoBehaviour
             return;
         }
 #endif
-
         if(!toggle)
         {
             toggle = GetComponent<Toggle>();
         }
-
-        toggle.isOn = SettingsManager.GetBool(rule);
         toggle.onValueChanged.AddListener(SetValue);
 
         SettingsManager.OnSettingsUpdated += UpdateSettings;
-        UpdateSettings("all");
+        if(SettingsManager.Loaded)
+        {
+            UpdateSettings("all");
+        }
     }
 
 

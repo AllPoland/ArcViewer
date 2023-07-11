@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ChainManager : MapElementManager<ChainLink>
@@ -73,6 +74,28 @@ public class ChainManager : MapElementManager<ChainLink>
                 CustomDotProperties = linkDotProperties
             };
 
+            if(ReplayManager.IsReplayMode)
+            {
+                //Links need to be matched up with their corresponding NoteEvents
+                float linkTime = newLink.Time;
+                List<NoteEvent> replayEventsOnBeat = ReplayManager.GetNoteEventsAtTime(linkTime);
+
+                BeatmapBurstSlider originalSlider = c.burstSlider;
+                int linkID = ((int)ScoringType.ChainLink * 10000) + (originalSlider.x * 1000) + (originalSlider.y * 100) + (originalSlider.c * 10) + originalSlider.d;
+
+                NoteEvent matchingEvent = replayEventsOnBeat.Find(x => x.noteID == linkID);
+                if(matchingEvent == null || matchingEvent.eventType == NoteEventType.miss)
+                {
+                    newLink.WasHit = false;
+                }
+                else
+                {
+                    newLink.WasHit = true;
+                    newLink.WasBadCut = matchingEvent.eventType == NoteEventType.bad;
+                    newLink.HitOffset = matchingEvent.noteCutInfo?.timeDeviation ?? 0f;
+                }
+            }
+
             Objects.Add(newLink);
         }
     }
@@ -122,6 +145,8 @@ public class ChainManager : MapElementManager<ChainLink>
             cl.Visual.transform.SetParent(transform);
             cl.source = cl.ChainLinkHandler.audioSource;
 
+            cl.ChainLinkHandler.EnableVisual();
+
             cl.ChainLinkHandler.SetMaterial(objectManager.useSimpleNoteMaterial ? noteManager.simpleMaterial : noteManager.complexMaterial);
             if(SettingsManager.GetBool("chromaobjectcolors") && cl.CustomColor != null)
             {
@@ -154,7 +179,7 @@ public class ChainManager : MapElementManager<ChainLink>
 
     public override bool VisualInSpawnRange(ChainLink cl)
     {
-        return objectManager.CheckInSpawnRange(cl.Time);
+        return objectManager.CheckInSpawnRange(cl.Time, true, true, cl.HitOffset);
     }
 
 
@@ -174,22 +199,20 @@ public class ChainManager : MapElementManager<ChainLink>
         for(int i = RenderedObjects.Count - 1; i >= 0; i--)
         {
             ChainLink cl = RenderedObjects[i];
-            if(!objectManager.CheckInSpawnRange(cl.Time))
+            if(!objectManager.CheckInSpawnRange(cl.Time, !cl.WasHit, true, cl.HitOffset))
             {
-                if(cl.source.isPlaying)
+                if(cl.source.isPlaying || (ReplayManager.IsReplayMode && cl.Time > TimeManager.CurrentTime && cl.Time < TimeManager.CurrentTime + 0.5f))
                 {
                     //Only clear the visual elements if the hitsound is still playing
                     cl.ChainLinkHandler.DisableVisual();
-                    continue;
                 }
-
-                ReleaseVisual(cl);
-                RenderedObjects.Remove(cl);
+                else
+                {
+                    ReleaseVisual(cl);
+                    RenderedObjects.Remove(cl);
+                }
             }
-            else if(!cl.ChainLinkHandler.Visible)
-            {
-                cl.ChainLinkHandler.EnableVisual();
-            }
+            else cl.ChainLinkHandler.EnableVisual();
         }
     }
 
@@ -213,11 +236,14 @@ public class ChainManager : MapElementManager<ChainLink>
         {
             //Update each link's position
             ChainLink cl = Objects[i];
-            if(objectManager.CheckInSpawnRange(cl.Time))
+            if(objectManager.CheckInSpawnRange(cl.Time, !cl.WasHit, true, cl.HitOffset))
             {
                 UpdateVisual(cl);
             }
-            else break;
+            else if(!VisualInSpawnRange(cl))
+            {
+                break;
+            }
         }
     }
 
@@ -254,6 +280,9 @@ public class Chain : BaseSlider
     public int SegmentCount;
     public float Squish;
 
+    //I really don't wanna keep this around but it's necessary for replays
+    public BeatmapBurstSlider burstSlider;
+
 
     public Chain(BeatmapBurstSlider b)
     {
@@ -269,6 +298,8 @@ public class Chain : BaseSlider
         TailPosition = tailPosition;
         SegmentCount = b.sc;
         Squish = b.s;
+
+        burstSlider = b;
 
         if(b.customData?.color != null)
         {
@@ -286,4 +317,15 @@ public class ChainLink : HitSoundEmitter
     public ChainLinkHandler ChainLinkHandler;
     public MaterialPropertyBlock CustomNoteProperties;
     public MaterialPropertyBlock CustomDotProperties;
+
+
+    public ChainLink()
+    {
+        Color = 0;
+        Angle = 0f;
+
+        WasHit = true;
+        WasBadCut = false;
+        HitOffset = 0f;
+    }
 }

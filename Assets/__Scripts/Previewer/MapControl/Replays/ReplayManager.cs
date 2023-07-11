@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -15,6 +16,48 @@ public class ReplayManager : MonoBehaviour
     private static MapElementList<PlayerHeightEvent> playerHeightEvents = new MapElementList<PlayerHeightEvent>();
 
 
+    public static List<NoteEvent> GetNoteEventsAtTime(float time) => CurrentReplay.notes.FindAllAtTime(time, x => x.spawnTime);
+
+
+    public static int GetAccScoreFromCenterDistance(float centerDistance)
+    {
+        const int maxAccScore = 15;
+        return Mathf.RoundToInt(maxAccScore * (1f - Mathf.Clamp01(centerDistance / 0.3f)));
+    }
+
+
+    public static int GetNoteScore(ScoringType type, float preSwingAmount, float postSwingAmount, float centerDistance)
+    {
+        const int preSwingValue = 70;
+        const int postSwingValue = 30;
+
+        if(type == ScoringType.ChainLink)
+        {
+            return 20;
+        }
+        
+        if(type == ScoringType.ArcHead)
+        {
+            //Arc heads get post swing for free
+            postSwingAmount = 1f;
+        }
+        else if(type == ScoringType.ArcTail)
+        {
+            //Arc tails get pre swing for free
+            preSwingAmount = 1f;
+        }
+        else if(type == ScoringType.ChainHead)
+        {
+            //Chain heads don't get post swing points at all
+            postSwingAmount = 0f;
+        }
+
+        int preSwingScore = Mathf.RoundToInt(Mathf.Clamp01(preSwingAmount) * preSwingValue);
+        int postSwingScore = Mathf.RoundToInt(Mathf.Clamp01(postSwingAmount) * postSwingValue);
+        return preSwingScore + postSwingScore + GetAccScoreFromCenterDistance(Mathf.Abs(centerDistance));
+    }
+
+
     public static void SetReplay(Replay newReplay)
     {
         if(newReplay == null)
@@ -22,7 +65,7 @@ public class ReplayManager : MonoBehaviour
             return;
         }
 
-        newReplay.notes.OrderBy(x => x.eventTime);
+        newReplay.notes.OrderBy(x => x.spawnTime);
         newReplay.pauses.OrderBy(x => x.time);
         newReplay.walls.OrderBy(x => x.time);
 
@@ -31,6 +74,7 @@ public class ReplayManager : MonoBehaviour
         {
             playerHeightEvents.Add(new PlayerHeightEvent(newReplay.heights[i]));
         }
+        playerHeightEvents.SortElementsByBeat();
 
         IsReplayMode = true;
         CurrentReplay = newReplay;
@@ -95,4 +139,16 @@ public class PlayerHeightEvent : MapElement
         Beat = TimeManager.BeatFromTime(a.time);
         Height = a.height;
     }
+}
+
+
+public enum ScoringType
+{
+    Ignore = 1,
+    NoScore = 2,
+    Note = 3,
+    ArcHead = 4,
+    ArcTail = 5,
+    ChainHead = 6,
+    ChainLink = 7
 }

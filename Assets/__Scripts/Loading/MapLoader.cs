@@ -468,7 +468,7 @@ public class MapLoader : MonoBehaviour
 
         if(forceReplay || SettingsManager.GetBool("replaymode"))
         {
-            if(!input.Any(x => !x.IsDigit()))
+            if(!input.Any(x => !char.IsDigit(x)))
             {
                 StartCoroutine(LoadReplayIDCoroutine(input));
                 UrlArgHandler.LoadedReplayID = input;

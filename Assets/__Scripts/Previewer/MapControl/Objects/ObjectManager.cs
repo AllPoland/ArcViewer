@@ -74,12 +74,6 @@ public class ObjectManager : MonoBehaviour
     public float BehindCameraTime => TimeFromWorldspace(behindCameraZ);
 
 
-    public static bool CheckSameBeat(float beat1, float beat2)
-    {
-        return CheckSameTime(TimeManager.TimeFromBeat(beat1), TimeManager.TimeFromBeat(beat2));
-    }
-
-
     public static bool CheckSameTime(float time1, float time2)
     {
         const float epsilon = 0.001f;
@@ -87,7 +81,7 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public bool CheckInSpawnRange(float time, bool extendBehindCamera = false, bool includeMoveTime = true)
+    public bool CheckInSpawnRange(float time, bool extendBehindCamera = false, bool includeMoveTime = true, float hitOffset = 0f)
     {
         float despawnTime = extendBehindCamera ? TimeManager.CurrentTime + BehindCameraTime : TimeManager.CurrentTime;
         float spawnTime = TimeManager.CurrentTime + BeatmapManager.ReactionTime;
@@ -96,7 +90,8 @@ public class ObjectManager : MonoBehaviour
             spawnTime += Instance.moveTime;
         }
 
-        return time <= spawnTime && time > despawnTime;
+        float hitTime = extendBehindCamera ? time : time - hitOffset;
+        return time <= spawnTime && hitTime > despawnTime;
     }
 
 
@@ -162,10 +157,6 @@ public class ObjectManager : MonoBehaviour
         if(objectTime > jumpTime)
         {
             return startY;
-        }
-        else if(objectTime < TimeManager.CurrentTime)
-        {
-            return targetY;
         }
 
         float halfJumpDistance = BeatmapManager.JumpDistance / 2;
@@ -338,6 +329,7 @@ public class ObjectManager : MonoBehaviour
         public int d;
         public float StartY;
         public bool HasAttachment;
+        public bool IsHead;
     }
 
 
@@ -357,7 +349,8 @@ public class ObjectManager : MonoBehaviour
                 x = a.x,
                 y = a.y,
                 d = a.d,
-                HasAttachment = false
+                HasAttachment = false,
+                IsHead = true
             };
 
             BeatmapSliderEnd tail = new BeatmapSliderEnd
@@ -367,7 +360,8 @@ public class ObjectManager : MonoBehaviour
                 x = a.tx,
                 y = a.ty,
                 d = a.tc,
-                HasAttachment = false
+                HasAttachment = false,
+                IsHead = false
             };
 
             if(a.tb < a.b)
@@ -405,6 +399,7 @@ public class ObjectManager : MonoBehaviour
         for(int i = 0; i < allObjects.Count; i++)
         {
             BeatmapObject current = allObjects[i];
+            float currentTime = TimeManager.TimeFromBeat(current.b);
 
             sameBeatObjects.Clear();
             sameBeatObjects.Add(current);
@@ -413,7 +408,7 @@ public class ObjectManager : MonoBehaviour
             {
                 //Gather all consecutive objects that share the same beat
                 BeatmapObject check = allObjects[x];
-                if(CheckSameBeat(check.b, current.b))
+                if(CheckSameTime(TimeManager.TimeFromBeat(check.b), currentTime))
                 {
                     sameBeatObjects.Add(check);
                     //Skip to the first object that doesn't share this beat next loop
@@ -422,7 +417,6 @@ public class ObjectManager : MonoBehaviour
                 else break;
             }
 
-            //Precalculate values for all objects on this beat
             List<BeatmapColorNote> notesOnBeat = sameBeatObjects.OfType<BeatmapColorNote>().ToList();
             List<BeatmapBombNote> bombsOnBeat = sameBeatObjects.OfType<BeatmapBombNote>().ToList();
             List<BeatmapBurstSlider> burstSlidersOnBeat = sameBeatObjects.OfType<BeatmapBurstSlider>().ToList();
@@ -431,6 +425,14 @@ public class ObjectManager : MonoBehaviour
 
             List<BeatmapObject> notesAndBombs = sameBeatObjects.Where(x => (x is BeatmapColorNote) || (x is BeatmapBombNote)).ToList();
 
+            //Need to pair objects to their replay events if we're in a replay
+            List<NoteEvent> replayEventsOnBeat = null;
+            if(ReplayManager.IsReplayMode)
+            {
+                replayEventsOnBeat = ReplayManager.GetNoteEventsAtTime(currentTime);
+            }
+
+            //Precalculate values for all objects on this beat
             List<Note> newNotes = new List<Note>();
             (float? redSnapAngle, float? blueSnapAngle) = NoteManager.GetSnapAngles(notesOnBeat);
 
@@ -456,6 +458,8 @@ public class ObjectManager : MonoBehaviour
                 }
 
                 // check attachment to arcs
+                bool hasHead = false;
+                bool hasTail = false;
                 foreach(BeatmapSliderEnd a in sliderEndsOnBeat)
                 {
                     if(!a.HasAttachment && a.x == n.x && n.y == a.y)
@@ -463,6 +467,69 @@ public class ObjectManager : MonoBehaviour
                         a.StartY = newNote.StartY;
                         a.HasAttachment = true;
                         arcAttachment = true;
+
+                        if(a.IsHead)
+                        {
+                            hasHead = true;
+                        }
+                        else hasTail = true;
+                    }
+                }
+
+                if(ReplayManager.IsReplayMode)
+                {
+                    //Find the replay event that matches this note
+                    //This needs to be done by calculating object ID
+                    //scoringType*10000 + lineIndex*1000 + noteLineLayer*100 + colorType*10 + cutDirection
+                    ScoringType scoringType;
+                    if(newNote.IsChainHead)
+                    {
+                        scoringType = ScoringType.ChainHead;
+                    }
+                    else if(hasHead)
+                    {
+                        scoringType = ScoringType.ArcHead;
+                    }
+                    else if(hasTail)
+                    {
+                        scoringType = ScoringType.ArcTail;
+                    }
+                    else scoringType = ScoringType.Note;
+
+                    int noteID = ((int)scoringType * 10000) + (n.x * 1000) + (n.y * 100) + (n.c * 10) + n.d;
+                    NoteEvent matchingEvent = replayEventsOnBeat.Find(x => x.noteID == noteID);
+
+                    if(matchingEvent == null)
+                    {
+                        //Check to make sure there aren't any variants of this ID present
+                        const int headTailDifference = (int)ScoringType.ArcHead - (int)ScoringType.ArcTail;
+                        if(scoringType == ScoringType.Note)
+                        {
+                            //Note scoringType can also count as 0 sometimes (very scuffed)
+                            noteID -= (int)scoringType * 10000;
+                        }
+                        else if(scoringType == ScoringType.ArcHead)
+                        {
+                            //Type for a note that's both a head and a tail might be swapped
+                            noteID -= headTailDifference * 10000;
+                        }
+                        else if(scoringType == ScoringType.ArcTail)
+                        {
+                            noteID += headTailDifference * 10000;
+                        }
+
+                        matchingEvent = replayEventsOnBeat.Find(x => x.noteID == noteID);
+                    }
+
+                    if(matchingEvent == null || matchingEvent.eventType == NoteEventType.miss)
+                    {
+                        newNote.WasHit = false;
+                    }
+                    else
+                    {
+                        newNote.WasHit = true;
+                        newNote.WasBadCut = matchingEvent.eventType == NoteEventType.bad;
+                        newNote.HitOffset = matchingEvent.noteCutInfo?.timeDeviation ?? 0f;
                     }
                 }
 
@@ -598,6 +665,9 @@ public abstract class MapObject : MapElement
 public abstract class HitSoundEmitter : MapObject
 {
     public AudioSource source;
+    public bool WasHit;
+    public bool WasBadCut;
+    public float HitOffset;
 }
 
 

@@ -118,6 +118,8 @@ public class NoteManager : MapElementManager<Note>
             n.Visual.transform.SetParent(transform);
             n.source = n.NoteHandler.audioSource;
 
+            n.NoteHandler.EnableVisual();
+
             n.NoteHandler.SetMesh(n.IsChainHead ? chainHeadMesh : noteMesh);
             n.NoteHandler.SetArrow(!n.IsDot);
 
@@ -153,7 +155,7 @@ public class NoteManager : MapElementManager<Note>
 
     public override bool VisualInSpawnRange(Note n)
     {
-        return objectManager.CheckInSpawnRange(n.Time);
+        return objectManager.CheckInSpawnRange(n.Time, true, true, n.HitOffset);
     }
 
 
@@ -173,22 +175,20 @@ public class NoteManager : MapElementManager<Note>
         for(int i = RenderedObjects.Count - 1; i >= 0; i--)
         {
             Note n = RenderedObjects[i];
-            if(!objectManager.CheckInSpawnRange(n.Time))
+            if(!objectManager.CheckInSpawnRange(n.Time, !n.WasHit, true, n.HitOffset))
             {
-                if(n.source.isPlaying)
+                if(n.source.isPlaying || (ReplayManager.IsReplayMode && n.Time > TimeManager.CurrentTime && n.Time < TimeManager.CurrentTime + 0.5f))
                 {
                     //Only clear the visual elements if the hitsound is still playing
                     n.NoteHandler.DisableVisual();
-                    continue;
                 }
-
-                ReleaseVisual(n);
-                RenderedObjects.Remove(n);
+                else
+                {
+                    ReleaseVisual(n);
+                    RenderedObjects.Remove(n);
+                }
             }
-            else if(!n.NoteHandler.Visible)
-            {
-                n.NoteHandler.EnableVisual();
-            }
+            else n.NoteHandler.EnableVisual();
         }
     }
 
@@ -212,11 +212,14 @@ public class NoteManager : MapElementManager<Note>
         {
             //Update each note's position
             Note n = Objects[i];
-            if(objectManager.CheckInSpawnRange(n.Time))
+            if(objectManager.CheckInSpawnRange(n.Time, !n.WasHit, true, n.HitOffset))
             {
                 UpdateVisual(n);
             }
-            else break;
+            else if(!VisualInSpawnRange(n))
+            {
+                break;
+            }
         }
     }
 
@@ -421,6 +424,10 @@ public class Note : HitSoundEmitter
         Angle = n.customData?.angle ?? angle;
         FlipStartX = position.x;
         IsDot = n.d == 8;
+
+        WasHit = true;
+        WasBadCut = false;
+        HitOffset = 0f;
 
         if(n.customData?.color != null)
         {

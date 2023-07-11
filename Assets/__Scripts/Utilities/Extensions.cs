@@ -52,19 +52,6 @@ public static class Extensions
 
 
     ///<summary>
-    ///Returns true if the character is a numeric value from 0-9
-    ///</summary>
-    public static bool IsDigit(this char c)
-    {
-        if(c < '0' || c > '9')
-        {
-            return false;
-        }
-        else return true;
-    }
-
-
-    ///<summary>
     ///Removes any objects from the list matching the predicate, but only searching forward, with the search ending on the first object that doesn't match.
     ///</summary>
     public static void RemoveAllForward<T>(this List<T> list, Predicate<T> match)
@@ -73,6 +60,83 @@ public static class Extensions
         {
             list.RemoveAt(0);
         }
+    }
+
+
+    public delegate float BinarySearchFloatDelegate<T>(T item);
+
+
+    ///<summary>
+    ///Finds all elements in the list matching the time value to 1ms, starting with a binary search.
+    ///</summary>
+    public static List<T> FindAllAtTime<T>(this List<T> list, float searchValue, BinarySearchFloatDelegate<T> timeMethod)
+    {
+        List<T> output = new List<T>();
+
+        int onTimeIndex = list.BinarySearchTime(searchValue, timeMethod);
+
+        if(onTimeIndex < 0)
+        {
+            return output;
+        }
+
+        output.Add(list[onTimeIndex]);
+
+        //Loop backwards and forwards and get all the rest of the notes on time
+        for(int i = onTimeIndex - 1; i >= 0; i--)
+        {
+            if(ObjectManager.CheckSameTime(timeMethod(list[i]), searchValue))
+            {
+                output.Add(list[i]);
+            }
+        }
+        for(int i = onTimeIndex + 1; i < list.Count; i++)
+        {
+            if(ObjectManager.CheckSameTime(timeMethod(list[i]), searchValue))
+            {
+                output.Add(list[i]);
+            }
+        }
+
+        return output;
+    }
+
+
+    ///<summary>
+    ///Finds any element in the list matching the time value to 1ms through binary search. Returns -1 if none exists.
+    ///</summary>
+    public static int BinarySearchTime<T>(this List<T> list, float searchValue, BinarySearchFloatDelegate<T> timeMethod)
+    {
+        return list.BinarySearchTime(searchValue, 0, list.Count - 1, timeMethod);
+    }
+
+
+    ///<summary>
+    ///Finds any element in the list matching the time value to 1ms through binary search, within the given min and max. Returns -1 if none exists.
+    ///</summary>
+    public static int BinarySearchTime<T>(this List<T> list, float searchValue, int min, int max, BinarySearchFloatDelegate<T> timeMethod)
+    {
+        min = Mathf.Clamp(min, 0, list.Count - 1);
+        max = Mathf.Clamp(max, 0, list.Count - 1);
+
+        while(min <= max)
+        {
+            int middle = Mathf.FloorToInt((min + max) / 2);
+            float value = timeMethod(list[middle]);
+            if(ObjectManager.CheckSameTime(value, searchValue))
+            {
+                return middle;
+            }
+            else if(value < searchValue)
+            {
+                min = middle + 1;
+            }
+            else
+            {
+                max = middle - 1;
+            }
+        }
+        return -1;
     }
 
 
