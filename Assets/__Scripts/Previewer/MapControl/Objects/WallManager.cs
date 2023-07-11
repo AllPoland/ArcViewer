@@ -280,8 +280,8 @@ public class Wall : MapObject
         Beat = beat;
         Position = position;
         DurationBeats = duration;
-        Width = Mathf.Max(worldWidth, WallManager.MinWallSize);
-        Height = Mathf.Max(worldHeight, WallManager.MinWallSize);
+        Width = Mathf.Max(Mathf.Abs(worldWidth), WallManager.MinWallSize) * Mathf.Sign(worldWidth);
+        Height = Mathf.Max(Mathf.Abs(worldHeight), WallManager.MinWallSize) * Mathf.Sign(worldHeight);
         ClampPlayerHeight = o.customData?.coordinates == null && !(BeatmapManager.MappingExtensions && Mathf.Abs(o.y) >= 1000);
 
         if(o.customData?.color != null)
