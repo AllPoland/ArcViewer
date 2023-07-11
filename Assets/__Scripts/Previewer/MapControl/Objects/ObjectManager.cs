@@ -598,19 +598,9 @@ public class ObjectManager : MonoBehaviour
 
                     if(matchingEvent != null && matchingEvent.eventType == NoteEventType.bomb)
                     {
-                        Debug.Log($"Bomb at time: {currentTime} was hit");
                         newBomb.WasHit = true;
                         newBomb.WasBadCut = true;
                         newBomb.HitOffset = matchingEvent.spawnTime - matchingEvent.eventTime;
-                    }
-                    else
-                    {
-                        string message = $"Bomb with ID: {noteID} at time: {currentTime} was not hit, not matching any of: ";
-                        foreach(NoteEvent note in replayEventsOnBeat)
-                        {
-                            message += $"{note.noteID - (note.noteID % 10)}, ";
-                        }
-                        Debug.Log(message);
                     }
                     replayEventsOnBeat.Remove(matchingEvent);
                 }
