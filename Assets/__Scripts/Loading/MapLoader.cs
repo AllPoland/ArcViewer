@@ -151,7 +151,7 @@ public class MapLoader : MonoBehaviour
         string cacheKey = string.IsNullOrEmpty(mapID) ? url : mapID;
         string cachedMapPath = FileCache.GetCachedFile(cacheKey);
 
-        if(cachedMapPath != null && cachedMapPath != "")
+        if(!string.IsNullOrEmpty(cachedMapPath))
         {
             Debug.Log("Found map in cache.");
             LoadMapZip(cachedMapPath);
@@ -205,7 +205,7 @@ public class MapLoader : MonoBehaviour
 
 #if !UNITY_WEBGL || UNITY_EDITOR
         string cachedMapPath = FileCache.GetCachedFile(mapID);
-        if(cachedMapPath != null && cachedMapPath != "")
+        if(!string.IsNullOrEmpty(cachedMapPath))
         {
             Debug.Log("Found map in cache.");
             LoadMapZip(cachedMapPath);
@@ -234,7 +234,19 @@ public class MapLoader : MonoBehaviour
     private IEnumerator LoadMapReplay(Replay loadedReplay)
     {
         string mapHash = loadedReplay.info.hash;
-        Debug.Log($"Getting BeatSaver response for Hash: {mapHash}");
+        Debug.Log($"Searching for map matching replay hash: {mapHash}");
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+        string cachedMapPath = FileCache.GetCachedFile(mapHash);
+        if(!string.IsNullOrEmpty(cachedMapPath))
+        {
+            Debug.Log("Found map in cache.");
+            LoadMapZip(cachedMapPath);
+            yield break;
+        }
+#endif
+
+        Debug.Log($"Getting BeatSaver response for hash: {mapHash}");
         LoadingMessage = "Fetching map from BeatSaver";
 
         using Task<string> apiTask = BeatSaverHandler.GetBeatSaverMapHash(mapHash);
@@ -248,7 +260,7 @@ public class MapLoader : MonoBehaviour
             yield break;
         }
 
-        StartCoroutine(LoadMapZipURLCoroutine(mapURL));
+        StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapHash));
     }
 
 
@@ -302,7 +314,7 @@ public class MapLoader : MonoBehaviour
         if(replay == null)
         {
             Debug.LogWarning("Failed to decode replay!");
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Faialed to decode the replay!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to decode the replay!");
             UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }

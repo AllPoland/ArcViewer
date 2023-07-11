@@ -29,9 +29,9 @@ public static class BeatSaverHandler
         {
             Debug.LogWarning("BeatSaver response doesn't contain this outdated version!");
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "This replay is for an outdated map version!");
-            return response.versions.First().downloadURL;
+            url = response.versions.First().downloadURL;
         }
-        else return url;
+        return url;
     }
 
 
