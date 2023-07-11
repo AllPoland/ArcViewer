@@ -16,7 +16,7 @@ public class ReplayManager : MonoBehaviour
     private static MapElementList<PlayerHeightEvent> playerHeightEvents = new MapElementList<PlayerHeightEvent>();
 
 
-    public static List<NoteEvent> GetNoteEventsAtTime(float time) => CurrentReplay.notes.FindAllAtTime(time, x => x.spawnTime);
+    public static List<NoteEvent> GetNoteEventsAtTime(float time) => CurrentReplay.notes.FindAll(x => ObjectManager.CheckSameTime(x.spawnTime, time));
 
 
     public static int GetAccScoreFromCenterDistance(float centerDistance)

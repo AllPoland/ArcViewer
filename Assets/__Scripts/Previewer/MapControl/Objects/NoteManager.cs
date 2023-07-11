@@ -114,10 +114,9 @@ public class NoteManager : MapElementManager<Note>
         {
             n.NoteHandler = notePool.GetObject();
             n.Visual = n.NoteHandler.gameObject;
-
-            n.Visual.transform.SetParent(transform);
             n.source = n.NoteHandler.audioSource;
 
+            n.Visual.transform.SetParent(transform);
             n.NoteHandler.EnableVisual();
 
             n.NoteHandler.SetMesh(n.IsChainHead ? chainHeadMesh : noteMesh);

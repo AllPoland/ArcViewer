@@ -152,10 +152,9 @@ public class ChainManager : MapElementManager<ChainLink>
         {
             cl.ChainLinkHandler = chainLinkPool.GetObject();
             cl.Visual = cl.ChainLinkHandler.gameObject;
-
-            cl.Visual.transform.SetParent(transform);
             cl.source = cl.ChainLinkHandler.audioSource;
 
+            cl.Visual.transform.SetParent(transform);
             cl.ChainLinkHandler.EnableVisual();
 
             cl.ChainLinkHandler.SetMaterial(objectManager.useSimpleNoteMaterial ? noteManager.simpleMaterial : noteManager.complexMaterial);

@@ -67,7 +67,7 @@ public static class Extensions
 
 
     ///<summary>
-    ///Finds all elements in the list matching the time value to 1ms, starting with a binary search.
+    ///Finds all elements in the list matching the time value to 1ms, starting with a binary search. (CURRENTY BROKEN)
     ///</summary>
     public static List<T> FindAllAtTime<T>(this List<T> list, float searchValue, BinarySearchFloatDelegate<T> timeMethod)
     {
@@ -103,7 +103,7 @@ public static class Extensions
 
 
     ///<summary>
-    ///Finds any element in the list matching the time value to 1ms through binary search. Returns -1 if none exists.
+    ///Finds any element in the list matching the time value to 1ms through binary search. Returns -1 if none exists. (CURRENTY BROKEN)
     ///</summary>
     public static int BinarySearchTime<T>(this List<T> list, float searchValue, BinarySearchFloatDelegate<T> timeMethod)
     {
@@ -112,7 +112,7 @@ public static class Extensions
 
 
     ///<summary>
-    ///Finds any element in the list matching the time value to 1ms through binary search, within the given min and max. Returns -1 if none exists.
+    ///Finds any element in the list matching the time value to 1ms through binary search, within the given min and max. Returns -1 if none exists. (CURRENTY BROKEN)
     ///</summary>
     public static int BinarySearchTime<T>(this List<T> list, float searchValue, int min, int max, BinarySearchFloatDelegate<T> timeMethod)
     {

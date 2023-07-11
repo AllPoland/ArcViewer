@@ -503,10 +503,16 @@ public class ObjectManager : MonoBehaviour
                     {
                         //Check to make sure there aren't any variants of this ID present
                         const int headTailDifference = (int)ScoringType.ArcHead - (int)ScoringType.ArcTail;
+                        const int chainArcDifference = (int)ScoringType.ChainHead - (int)ScoringType.ArcHead;
                         if(scoringType == ScoringType.Note)
                         {
                             //Note scoringType can also count as 0 sometimes (very scuffed)
                             noteID -= (int)scoringType * 10000;
+                        }
+                        else if(scoringType == ScoringType.ChainHead && hasHead)
+                        {
+                            //A chain head that's also an arc head may be counted as an arc instead
+                            noteID -= chainArcDifference * 10000;
                         }
                         else if(scoringType == ScoringType.ArcHead)
                         {
@@ -570,6 +576,43 @@ public class ObjectManager : MonoBehaviour
                         a.StartY = newBomb.StartY;
                         a.HasAttachment = true;
                     }
+                }
+
+                if(ReplayManager.IsReplayMode)
+                {
+                    const ScoringType scoringType = ScoringType.NoScore;
+                    const int bombColor = 3;
+                    const int altBombColor = 0;
+
+                    //Ignore the 1s place since direction doesn't matter
+                    int noteID = ((int)scoringType * 10000) + (b.x * 1000) + (b.y * 100) + (bombColor * 10);
+                    NoteEvent matchingEvent = replayEventsOnBeat.Find(x => x.noteID - (x.noteID % 10) == noteID);
+
+                    if(matchingEvent == null)
+                    {
+                        const int altDifference = bombColor - altBombColor;
+                        noteID -= altDifference * 10;
+
+                        matchingEvent = replayEventsOnBeat.Find(x => x.noteID - (x.noteID % 10) == noteID);
+                    }
+
+                    if(matchingEvent != null && matchingEvent.eventType == NoteEventType.bomb)
+                    {
+                        Debug.Log($"Bomb at time: {currentTime} was hit");
+                        newBomb.WasHit = true;
+                        newBomb.WasBadCut = true;
+                        newBomb.HitOffset = matchingEvent.spawnTime - matchingEvent.eventTime;
+                    }
+                    else
+                    {
+                        string message = $"Bomb with ID: {noteID} at time: {currentTime} was not hit, not matching any of: ";
+                        foreach(NoteEvent note in replayEventsOnBeat)
+                        {
+                            message += $"{note.noteID - (note.noteID % 10)}, ";
+                        }
+                        Debug.Log(message);
+                    }
+                    replayEventsOnBeat.Remove(matchingEvent);
                 }
 
                 bombs.Add(newBomb);
