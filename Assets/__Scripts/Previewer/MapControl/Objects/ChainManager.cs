@@ -50,6 +50,9 @@ public class ChainManager : MapElementManager<ChainLink>
             noteManager.SetNoteMaterialProperties(ref linkProperties, ref linkDotProperties, (Color)c.CustomColor);
         }
 
+        //Keep track of replay events so we don't reuse them
+        List<NoteEvent> usedReplayEvents = new List<NoteEvent>();
+
         //Start at 1 because head note counts as a "segment"
         for(int i = 1; i < c.SegmentCount; i++)
         {
@@ -83,16 +86,24 @@ public class ChainManager : MapElementManager<ChainLink>
                 BeatmapBurstSlider originalSlider = c.burstSlider;
                 int linkID = ((int)ScoringType.ChainLink * 10000) + (originalSlider.x * 1000) + (originalSlider.y * 100) + (originalSlider.c * 10) + originalSlider.d;
 
-                NoteEvent matchingEvent = replayEventsOnBeat.Find(x => x.noteID == linkID);
-                if(matchingEvent == null || matchingEvent.eventType == NoteEventType.miss)
+                NoteEvent matchingEvent = replayEventsOnBeat.Find(x => x.noteID == linkID && !usedReplayEvents.Contains(x));
+                if(matchingEvent == null)
                 {
                     newLink.WasHit = false;
                 }
                 else
                 {
-                    newLink.WasHit = true;
-                    newLink.WasBadCut = matchingEvent.eventType == NoteEventType.bad;
-                    newLink.HitOffset = matchingEvent.noteCutInfo?.timeDeviation ?? 0f;
+                    if(matchingEvent.eventType == NoteEventType.miss)
+                    {
+                        newLink.WasHit = false;
+                    }
+                    else
+                    {
+                        newLink.WasHit = true;
+                        newLink.WasBadCut = matchingEvent.eventType == NoteEventType.bad;
+                        newLink.HitOffset = matchingEvent.noteCutInfo?.timeDeviation ?? 0f;
+                    }
+                    usedReplayEvents.Add(matchingEvent);
                 }
             }
 

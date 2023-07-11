@@ -531,6 +531,8 @@ public class ObjectManager : MonoBehaviour
                         newNote.WasBadCut = matchingEvent.eventType == NoteEventType.bad;
                         newNote.HitOffset = matchingEvent.noteCutInfo?.timeDeviation ?? 0f;
                     }
+                    //Remove this event so it doesn't get reused by multiple notes
+                    replayEventsOnBeat.Remove(matchingEvent);
                 }
 
                 newNotes.Add(newNote);
