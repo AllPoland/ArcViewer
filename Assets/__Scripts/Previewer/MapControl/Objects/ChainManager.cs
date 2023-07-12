@@ -80,11 +80,16 @@ public class ChainManager : MapElementManager<ChainLink>
             if(ReplayManager.IsReplayMode)
             {
                 //Links need to be matched up with their corresponding NoteEvents
-                float linkTime = newLink.Time;
-                List<NoteEvent> replayEventsOnBeat = ReplayManager.GetNoteEventsAtTime(linkTime);
+                List<NoteEvent> replayEventsOnBeat = ReplayManager.GetNoteEventsAtTime(newLink.Time);
 
                 BeatmapBurstSlider originalSlider = c.burstSlider;
-                int linkID = ((int)ScoringType.ChainLink * 10000) + (originalSlider.x * 1000) + (originalSlider.y * 100) + (originalSlider.c * 10) + originalSlider.d;
+
+                //The last link gets the actual tail coordinates??????????
+                bool isLastElement = i == c.SegmentCount - 1;
+                int linkX = isLastElement ? originalSlider.tx : originalSlider.x;
+                int linkY = isLastElement ? originalSlider.ty : originalSlider.y;
+
+                int linkID = ((int)ScoringType.ChainLink * 10000) + (linkX * 1000) + (linkY * 100) + (c.Color * 10) + 8;
 
                 NoteEvent matchingEvent = replayEventsOnBeat.Find(x => x.noteID == linkID && !usedReplayEvents.Contains(x));
                 if(matchingEvent == null)

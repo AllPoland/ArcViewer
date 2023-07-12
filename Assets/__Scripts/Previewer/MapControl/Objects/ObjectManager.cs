@@ -580,12 +580,11 @@ public class ObjectManager : MonoBehaviour
 
                 if(ReplayManager.IsReplayMode)
                 {
-                    const ScoringType scoringType = ScoringType.NoScore;
                     const int bombColor = 3;
                     const int altBombColor = 0;
 
                     //Ignore the 1s place since direction doesn't matter
-                    int noteID = ((int)scoringType * 10000) + (b.x * 1000) + (b.y * 100) + (bombColor * 10);
+                    int noteID = ((int)ScoringType.NoScore * 10000) + (b.x * 1000) + (b.y * 100) + (bombColor * 10);
                     NoteEvent matchingEvent = replayEventsOnBeat.Find(x => x.noteID - (x.noteID % 10) == noteID);
 
                     if(matchingEvent == null)
