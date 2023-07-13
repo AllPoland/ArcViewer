@@ -112,7 +112,6 @@ public class LightManager : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float lightSaturation;
     [SerializeField, Range(0f, 1f)] private float lightEmissionSaturation;
     [SerializeField] private float lightEmission;
-    [SerializeField] private Color platformColor;
 
 
     public void UpdateLights(float beat)

@@ -17,6 +17,7 @@ public class NoteManager : MapElementManager<Note>
     [SerializeField] public Material complexMaterial;
     [SerializeField] public Material simpleMaterial;
     [SerializeField] private float noteEmission;
+    [SerializeField] private float simpleNoteSaturation;
     [SerializeField] private float simpleNoteEmission;
     [SerializeField, Range(0f, 1f)] private float arrowSaturation;
     [SerializeField, Range(0f, 1f)] private float arrowBrightness;
@@ -53,9 +54,10 @@ public class NoteManager : MapElementManager<Note>
         float h, s, v;
         Color.RGBToHSV(baseColor, out h, out s, out v);
 
+        float saturation = objectManager.useSimpleNoteMaterial ? simpleNoteSaturation : 1f;
         float emission = objectManager.useSimpleNoteMaterial ? simpleNoteEmission : noteEmission;
-        noteProperties.SetColor("_BaseColor", baseColor);
-        noteProperties.SetColor("_EmissionColor", baseColor.SetValue(emission * v, true));
+        noteProperties.SetColor("_BaseColor", baseColor.SetSaturation(saturation * s));
+        noteProperties.SetColor("_EmissionColor", baseColor.SetHSV(null, saturation * s, emission * v, true));
 
         arrowProperties.SetColor("_BaseColor", baseColor.SetHSV(null, arrowSaturation * s, arrowBrightness * v));
         arrowProperties.SetColor("_EmissionColor", baseColor.SetHSV(null, arrowGlowSaturation * s, arrowEmission, true));

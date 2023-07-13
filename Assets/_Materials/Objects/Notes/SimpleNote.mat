@@ -23,7 +23,9 @@ Material:
   m_Name: SimpleNote
   m_Shader: {fileID: -6465566751694194690, guid: 2e6764df4b8962b4083d4edbea4769e9, type: 3}
   m_ValidKeywords:
+  - _ENVIRONMENTREFLECTIONS_OFF
   - _RECEIVE_SHADOWS_OFF
+  - _SPECULARHIGHLIGHTS_OFF
   m_InvalidKeywords: []
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 1
@@ -105,6 +107,7 @@ Material:
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
+    - _ENVIRONMENTREFLECTIONS_OFF: 1
     - _EnvironmentReflections: 0
     - _GlossMapScale: 0
     - _Glossiness: 0
@@ -116,6 +119,7 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 0
+    - _SPECULARHIGHLIGHTS_OFF: 1
     - _Shininess: 0
     - _Smoothness: 0
     - _SmoothnessSource: 0
@@ -131,6 +135,6 @@ Material:
     m_Colors:
     - _BaseColor: {r: 0.78431374, g: 0.078431375, b: 0.078431375, a: 1}
     - _Color: {r: 0.78431374, g: 0.078431375, b: 0.078431375, a: 1}
-    - _EmissionColor: {r: 0.25, g: 0.026315793, b: 0.026315793, a: 1}
+    - _EmissionColor: {r: 0.078431375, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.5}
   m_BuildTextureStacks: []

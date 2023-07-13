@@ -10005,8 +10005,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d61301bce2d0e74ca28b5c55a2b49fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightSaturation: 0.9
-  lightEmissionSaturation: 0.9
+  lightSaturation: 1
+  lightEmissionSaturation: 1
   lightEmission: 5
   platformColor: {r: 0.21176471, g: 0.21960784, b: 0.25490198, a: 1}
 --- !u!1001 &401327584
@@ -12704,7 +12704,8 @@ MonoBehaviour:
   complexMaterial: {fileID: 2100000, guid: 312d74011adf51f4e9515082ddbfc7b7, type: 2}
   simpleMaterial: {fileID: 2100000, guid: dd516f5f7177efb4da46d849a0cec8eb, type: 2}
   noteEmission: 0.15
-  simpleNoteEmission: 0.15
+  simpleNoteSaturation: 1.06
+  simpleNoteEmission: 0.1
   arrowSaturation: 0.05
   arrowBrightness: 0.75
   arrowGlowSaturation: 0.5
