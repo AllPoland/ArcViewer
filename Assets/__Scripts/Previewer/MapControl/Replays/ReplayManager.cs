@@ -19,45 +19,6 @@ public class ReplayManager : MonoBehaviour
     public static List<NoteEvent> GetNoteEventsAtTime(float time) => CurrentReplay.notes.FindAll(x => ObjectManager.CheckSameTime(x.spawnTime, time));
 
 
-    public static int GetAccScoreFromCenterDistance(float centerDistance)
-    {
-        const int maxAccScore = 15;
-        return Mathf.RoundToInt(maxAccScore * (1f - Mathf.Clamp01(centerDistance / 0.3f)));
-    }
-
-
-    public static int GetNoteScore(ScoringType type, float preSwingAmount, float postSwingAmount, float centerDistance)
-    {
-        const int preSwingValue = 70;
-        const int postSwingValue = 30;
-
-        if(type == ScoringType.ChainLink)
-        {
-            return 20;
-        }
-        
-        if(type == ScoringType.ArcHead)
-        {
-            //Arc heads get post swing for free
-            postSwingAmount = 1f;
-        }
-        else if(type == ScoringType.ArcTail)
-        {
-            //Arc tails get pre swing for free
-            preSwingAmount = 1f;
-        }
-        else if(type == ScoringType.ChainHead)
-        {
-            //Chain heads don't get post swing points at all
-            postSwingAmount = 0f;
-        }
-
-        int preSwingScore = Mathf.RoundToInt(Mathf.Clamp01(preSwingAmount) * preSwingValue);
-        int postSwingScore = Mathf.RoundToInt(Mathf.Clamp01(postSwingAmount) * postSwingValue);
-        return preSwingScore + postSwingScore + GetAccScoreFromCenterDistance(Mathf.Abs(centerDistance));
-    }
-
-
     public static void SetReplay(Replay newReplay)
     {
         if(newReplay == null)
@@ -108,6 +69,7 @@ public class ReplayManager : MonoBehaviour
         PlayerHeight = ObjectManager.DefaultPlayerHeight;
 
         OnReplayModeChanged?.Invoke(false);
+        OnReplayUpdated?.Invoke(null);
 
         TimeManager.OnBeatChangedEarly -= UpdateBeat;
     }
@@ -136,7 +98,7 @@ public class PlayerHeightEvent : MapElement
 
     public PlayerHeightEvent(AutomaticHeight a)
     {
-        Beat = TimeManager.BeatFromTime(a.time);
+        Time = a.time;
         Height = a.height;
     }
 }

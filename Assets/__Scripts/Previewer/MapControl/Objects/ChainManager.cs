@@ -101,12 +101,17 @@ public class ChainManager : MapElementManager<ChainLink>
                     if(matchingEvent.eventType == NoteEventType.miss)
                     {
                         newLink.WasHit = false;
+
+                        float missTime = matchingEvent?.eventTime ?? newLink.Time + objectManager.BehindCameraTime;
+                        ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, NoteEventType.miss, missTime, newLink.Position.x, null);
                     }
                     else
                     {
                         newLink.WasHit = true;
                         newLink.WasBadCut = matchingEvent.eventType == NoteEventType.bad;
                         newLink.HitOffset = matchingEvent.noteCutInfo?.timeDeviation ?? 0f;
+
+                        ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, matchingEvent.eventType, matchingEvent.eventTime, newLink.Position.x, matchingEvent.noteCutInfo);
                     }
                     usedReplayEvents.Add(matchingEvent);
                 }

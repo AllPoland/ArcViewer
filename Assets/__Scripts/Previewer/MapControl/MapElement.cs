@@ -12,10 +12,20 @@ public class MapElement
         set
         {
             _beat = value;
-            Time = TimeManager.TimeFromBeat(_beat);
+            _time = TimeManager.TimeFromBeat(_beat);
         }
     }
-    public float Time { get; private set; }
+
+    private float _time;
+    public float Time
+    {
+        get => _time;
+        set
+        {
+            _time = value;
+            _beat = TimeManager.BeatFromTime(_time);
+        }
+    }
 }
 
 
@@ -46,11 +56,13 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
 
     public int Count => Elements.Count;
 
+    public T Last() => Elements.Last();
+
 
     public void Add(T item)
     {
         //If the new item is in order, don't wanna bother resorting the whole list
-        IsSorted = Count == 0 || (IsSorted && item.Beat >= Elements.Last().Beat);
+        IsSorted = Count == 0 || (IsSorted && item.Beat >= Last().Beat);
         Elements.Add(item);
     }
 

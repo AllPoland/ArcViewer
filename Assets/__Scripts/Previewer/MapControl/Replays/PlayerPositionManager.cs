@@ -156,7 +156,7 @@ public class ReplayFrame : MapElement
 
     public ReplayFrame(Frame f)
     {
-        Beat = TimeManager.BeatFromTime(f.time);
+        Time = f.time;
 
         headPosition = f.head.position;
         headRotation = f.head.rotation;

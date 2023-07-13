@@ -299,6 +299,11 @@ public class ObjectManager : MonoBehaviour
         bombManager.ReloadBombs();
 
         MapStats.UpdateNpsAndSpsValues();
+
+        if(ReplayManager.IsReplayMode)
+        {
+            ScoreManager.InitializeScoringEvents();
+        }
     }
 
 
@@ -548,12 +553,17 @@ public class ObjectManager : MonoBehaviour
                     if(matchingEvent == null || matchingEvent.eventType == NoteEventType.miss)
                     {
                         newNote.WasHit = false;
+
+                        float missTime = matchingEvent?.eventTime ?? currentTime + Instance.BehindCameraTime;
+                        ScoreManager.AddNoteScoringEvent(scoringType, NoteEventType.miss, missTime, newNote.Position.x, null);
                     }
                     else
                     {
                         newNote.WasHit = true;
                         newNote.WasBadCut = matchingEvent.eventType == NoteEventType.bad;
                         newNote.HitOffset = matchingEvent.noteCutInfo?.timeDeviation ?? 0f;
+
+                        ScoreManager.AddNoteScoringEvent(scoringType, matchingEvent.eventType, matchingEvent.eventTime, newNote.Position.x, matchingEvent.noteCutInfo);
                     }
                     //Remove this event so it doesn't get reused by multiple notes
                     replayEventsOnBeat.Remove(matchingEvent);
@@ -618,6 +628,8 @@ public class ObjectManager : MonoBehaviour
                         newBomb.WasHit = true;
                         newBomb.WasBadCut = true;
                         newBomb.HitOffset = matchingEvent.spawnTime - matchingEvent.eventTime;
+
+                        ScoreManager.AddNoteScoringEvent(ScoringType.NoScore, NoteEventType.bomb, matchingEvent.eventTime, newBomb.Position.x, null);
                     }
                     replayEventsOnBeat.Remove(matchingEvent);
                 }

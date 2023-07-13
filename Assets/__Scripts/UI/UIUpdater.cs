@@ -28,7 +28,7 @@ public class UIUpdater : MonoBehaviour
         selectionScreen.SetActive(newState == UIState.MapSelection && !MapLoader.Loading);
         previewScreen.SetActive(newState == UIState.Previewer);
         background.SetActive(newState == UIState.MapSelection);
-        
+
         DialogueHandler.ClearExtraPopups();
     }
 

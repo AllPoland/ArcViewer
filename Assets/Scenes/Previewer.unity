@@ -10008,7 +10008,6 @@ MonoBehaviour:
   lightSaturation: 1
   lightEmissionSaturation: 1
   lightEmission: 5
-  platformColor: {r: 0.21176471, g: 0.21960784, b: 0.25490198, a: 1}
 --- !u!1001 &401327584
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -32535,6 +32534,7 @@ GameObject:
   - component: {fileID: 1523641092}
   - component: {fileID: 1523641091}
   - component: {fileID: 1523641090}
+  - component: {fileID: 1523641095}
   m_Layer: 0
   m_Name: Preview
   m_TagString: Untagged
@@ -32618,6 +32618,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 51f2b8901d1fdc447b237b9a55307ad2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1523641095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1523641088}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7241f2a63ba8c49b0fd7860bc8b626, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1525334636
