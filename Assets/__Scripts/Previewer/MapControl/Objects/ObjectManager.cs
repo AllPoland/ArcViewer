@@ -20,11 +20,13 @@ public class ObjectManager : MonoBehaviour
     public ChainManager chainManager;
     public ArcManager arcManager;
 
+    public bool forceGameAccuracy => ReplayManager.IsReplayMode;
+
     public bool useSimpleNoteMaterial => SettingsManager.GetBool("simplenotes");
     public bool useSimpleBombMaterial => SettingsManager.GetBool("simplebombs");
-    public bool doRotationAnimation => SettingsManager.GetBool("rotateanimations");
-    public bool doMovementAnimation => SettingsManager.GetBool("moveanimations");
-    public bool doFlipAnimation => SettingsManager.GetBool("flipanimations");
+    public bool doRotationAnimation => forceGameAccuracy || SettingsManager.GetBool("rotateanimations");
+    public bool doMovementAnimation => forceGameAccuracy || SettingsManager.GetBool("moveanimations");
+    public bool doFlipAnimation => forceGameAccuracy || SettingsManager.GetBool("flipanimations");
 
     public const float DefaultPlayerHeight = 1.8f;
     public float PlayerHeightSetting => SettingsManager.GetFloat("playerheight");
@@ -161,6 +163,22 @@ public class ObjectManager : MonoBehaviour
 
         float halfJumpDistance = BeatmapManager.JumpDistance / 2;
         return SpawnParabola(targetY, startY, halfJumpDistance, GetZPosition(objectTime));
+    }
+
+
+    public Quaternion LookAtPlayer(Transform target, Quaternion baseRotation, float jumpProgress)
+    {
+        const float verticalLookStrength = 0.8f;
+
+        Vector3 objectPosition = target.position;
+        Vector3 headPosition = PlayerPositionManager.HeadPosition;
+
+        headPosition.y = Mathf.Lerp(headPosition.y, objectPosition.y, verticalLookStrength);
+
+        Vector3 headDirection = (objectPosition - headPosition).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(headDirection, baseRotation * Vector3.up);
+
+        return Quaternion.Lerp(baseRotation, lookRotation, jumpProgress);
     }
 
 

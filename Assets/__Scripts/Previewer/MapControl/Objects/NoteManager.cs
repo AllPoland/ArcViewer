@@ -109,6 +109,7 @@ public class NoteManager : MapElementManager<Note>
                 angle *= angleDist;
             }
         }
+        Quaternion worldRotation = Quaternion.AngleAxis(angle, Vector3.forward);
 
         if(n.Visual == null)
         {
@@ -148,7 +149,16 @@ public class NoteManager : MapElementManager<Note>
         }
 
         n.Visual.transform.localPosition = worldPos;
-        n.Visual.transform.localRotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
+        if(objectManager.forceGameAccuracy && !n.IsChainHead)
+        {
+            //Notes look towards the player's head in replays
+            n.Visual.transform.localRotation = objectManager.LookAtPlayer(n.Visual.transform, worldRotation, jumpProgress);
+        }
+        else
+        {
+            n.Visual.transform.localRotation = worldRotation;
+        }
     }
 
 

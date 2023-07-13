@@ -82,7 +82,7 @@ public class ReplayManager : MonoBehaviour
         OnReplayModeChanged?.Invoke(true);
         OnReplayUpdated?.Invoke(CurrentReplay);
 
-        TimeManager.OnBeatChanged += UpdateBeat;
+        TimeManager.OnBeatChangedEarly += UpdateBeat;
     }
 
 
@@ -109,7 +109,7 @@ public class ReplayManager : MonoBehaviour
 
         OnReplayModeChanged?.Invoke(false);
 
-        TimeManager.OnBeatChanged -= UpdateBeat;
+        TimeManager.OnBeatChangedEarly -= UpdateBeat;
     }
 
 

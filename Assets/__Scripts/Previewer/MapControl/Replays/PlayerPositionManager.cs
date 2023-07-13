@@ -5,6 +5,10 @@ public class PlayerPositionManager : MonoBehaviour
 {
     public MapElementList<ReplayFrame> replayFrames = new MapElementList<ReplayFrame>();
 
+    public static Vector3 HeadPosition { get; private set; }
+    public static Vector3 LeftSaberTipPosition { get; private set; }
+    public static Vector3 RightSaberTipPosition { get; private set; }
+
     [SerializeField] private GameObject headVisual;
     [SerializeField] private GameObject leftSaberVisual;
     [SerializeField] private GameObject rightSaberVisual;
@@ -13,6 +17,9 @@ public class PlayerPositionManager : MonoBehaviour
     [SerializeField] private Vector3 defaultHmdPosition;
     [SerializeField] private Vector3 defaultLeftSaberPosition;
     [SerializeField] private Vector3 defaultRightSaberPosition;
+
+    [Space]
+    [SerializeField] private float saberTipOffset;
 
 
     private void SetDefaultPositions()
@@ -25,6 +32,8 @@ public class PlayerPositionManager : MonoBehaviour
 
         rightSaberVisual.transform.localPosition = defaultRightSaberPosition;
         rightSaberVisual.transform.localRotation = Quaternion.identity;
+
+        UpdatePositions();
     }
 
 
@@ -57,6 +66,16 @@ public class PlayerPositionManager : MonoBehaviour
 
         rightSaberVisual.transform.localPosition = Vector3.Lerp(currentFrame.rightSaberPosition, nextFrame.rightSaberPosition, t);
         rightSaberVisual.transform.localRotation = Quaternion.Lerp(currentFrame.rightSaberRotation, nextFrame.rightSaberRotation, t);
+
+        UpdatePositions();
+    }
+
+
+    private void UpdatePositions()
+    {
+        HeadPosition = headVisual.transform.position;
+        LeftSaberTipPosition = leftSaberVisual.transform.position + (leftSaberVisual.transform.forward * saberTipOffset);
+        RightSaberTipPosition = rightSaberVisual.transform.position + (rightSaberVisual.transform.forward * saberTipOffset);
     }
 
 
@@ -88,7 +107,7 @@ public class PlayerPositionManager : MonoBehaviour
         if(ReplayManager.IsReplayMode)
         {
             TimeManager.OnDifficultyBpmEventsLoaded += UpdateDifficulty;
-            TimeManager.OnBeatChanged += UpdateBeat;
+            TimeManager.OnBeatChangedEarly += UpdateBeat;
 
             headVisual.SetActive(true);
             leftSaberVisual.SetActive(true);
@@ -117,7 +136,7 @@ public class PlayerPositionManager : MonoBehaviour
     {
         ReplayManager.OnReplayModeChanged -= UpdateReplayMode;
         TimeManager.OnDifficultyBpmEventsLoaded -= UpdateDifficulty;
-        TimeManager.OnBeatChanged -= UpdateBeat;
+        TimeManager.OnBeatChangedEarly -= UpdateBeat;
 
         replayFrames.Clear();
     }
