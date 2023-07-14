@@ -1,10 +1,18 @@
+using System;
+using System.Globalization;
 using UnityEngine;
+using TMPro;
 
 public class ScoreManager : MonoBehaviour
 {
     public static MapElementList<ScoringEvent> ScoringEvents = new MapElementList<ScoringEvent>();
 
+    public static int MaxScore { get; private set; }
     public static int TotalScore => ScoringEvents.Count > 0 ? ScoringEvents.Last().TotalScore : 0;
+
+    public const int MaxNoteScore = 115;
+    public const int MaxChainHeadScore = 85;
+    public const int MaxChainLinkScore = 20;
 
     public static readonly byte[] ComboMultipliers = new byte[]
     {
@@ -19,6 +27,12 @@ public class ScoreManager : MonoBehaviour
         4,
         8
     };
+
+    [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private TextMeshProUGUI scorePercentageText;
+    [SerializeField] private TextMeshProUGUI gradeText;
+    [SerializeField] private TextMeshProUGUI comboText;
+    [SerializeField] private TextMeshProUGUI missText;
 
 
     private static int GetAccScoreFromCenterDistance(float centerDistance)
@@ -35,9 +49,9 @@ public class ScoreManager : MonoBehaviour
 
         if(type == ScoringType.ChainLink)
         {
-            return 20;
+            return MaxChainLinkScore;
         }
-        
+
         if(type == ScoringType.ArcHead)
         {
             //Arc heads get post swing for free
@@ -65,10 +79,13 @@ public class ScoreManager : MonoBehaviour
         ScoringEvents.SortElementsByBeat();
 
         int currentScore = 0;
+        int maxScore = 0;
 
         int combo = 0;
         byte comboMult = 0;
         byte comboProgress = 0;
+
+        int misses = 0;
 
         for(int i = 0; i < ScoringEvents.Count; i++)
         {
@@ -88,6 +105,8 @@ public class ScoreManager : MonoBehaviour
                     comboMult--;
                 }
                 comboProgress = 0;
+
+                misses++;
             }
             else
             {
@@ -107,12 +126,31 @@ public class ScoreManager : MonoBehaviour
                 currentScore += currentEvent.ScoreGained * ComboMultipliers[comboMult];
             }
 
+            switch(currentEvent.scoringType)
+            {
+                case ScoringType.Note:
+                case ScoringType.ArcHead:
+                case ScoringType.ArcTail:
+                    maxScore += MaxNoteScore * ComboMultipliers[comboMult];
+                    break;
+                case ScoringType.ChainHead:
+                    maxScore += MaxChainHeadScore * ComboMultipliers[comboMult];
+                    break;
+                case ScoringType.ChainLink:
+                    maxScore += MaxChainLinkScore * ComboMultipliers[comboMult];
+                    break;
+            }
+
             currentEvent.TotalScore = currentScore;
+            currentEvent.MaxScore = maxScore;
             currentEvent.Combo = combo;
             currentEvent.ComboMult = comboMult;
             currentEvent.ComboProgress = comboProgress;
+            currentEvent.Misses = misses;
 
-            Debug.Log($"Event #{i} | Time: {System.Math.Round(currentEvent.Time, 2)} | Type: {currentEvent.scoringType} | Score: {currentEvent.ScoreGained} | Total score: {currentScore} | Combo: {combo} | Combo mult: {ComboMultipliers[comboMult]}x");
+            currentEvent.ScorePercentage = (float)Math.Round(((float)currentScore / maxScore) * 100, 2);
+
+            Debug.Log($"Event #{i} | Time: {Math.Round(currentEvent.Time, 2)} | Type: {currentEvent.scoringType} | Score: {currentEvent.ScoreGained} | Total score: {currentScore} | Combo: {combo} | Combo mult: {ComboMultipliers[comboMult]}x");
         }
 
         Debug.Log($"Initialized Scoring Events for replay with total score: {TotalScore}");
@@ -123,12 +161,12 @@ public class ScoreManager : MonoBehaviour
     {
         if(eventType == NoteEventType.good && cutInfo == null)
         {
-            throw new System.ArgumentNullException("A good cut cannot have null cutInfo!");
+            throw new ArgumentNullException("A good cut cannot have null cutInfo!");
         }
 
         if(scoringType == ScoringType.Ignore || scoringType == ScoringType.NoScore)
         {
-            throw new System.ArgumentException("The event must be a positive ScoringType!");
+            throw new ArgumentException("The event must be a positive ScoringType!");
         }
 
         ScoringEvent newEvent = new ScoringEvent();
@@ -146,24 +184,123 @@ public class ScoreManager : MonoBehaviour
     }
 
 
-    private void UpdateReplay(Replay newReplay)
+    private void UpdateScoreTexts(int lastEventIndex)
+    {
+
+    }
+
+
+    private void UpdateBeat(float beat)
+    {
+        int lastIndex = ScoringEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
+
+        int currentScore;
+        float currentPercentage;
+        int currentCombo;
+        int currentComboMult;
+        int currentComboProgress;
+        int currentMisses;
+        if(lastIndex >= 0)
+        {
+            ScoringEvent lastEvent = ScoringEvents[lastIndex];
+
+            currentScore = lastEvent.TotalScore;
+            currentPercentage = lastEvent.ScorePercentage;
+            currentCombo = lastEvent.Combo;
+            currentComboMult = lastEvent.ComboMult;
+            currentComboProgress = lastEvent.ComboProgress;
+            currentMisses = lastEvent.Misses;
+
+            UpdateScoreTexts(lastIndex);
+        }
+        else
+        {
+            currentScore = 0;
+            currentPercentage = 100f;
+            currentCombo = 0;
+            currentComboMult = 0;
+            currentComboProgress = 0;
+            currentMisses = 0;
+        }
+
+        comboText.text = currentCombo.ToString();
+        missText.text = currentMisses.ToString();
+
+        //The score gets a space inserted between every 3 decimals
+        string baseScoreString = currentScore.ToString();
+        string scoreString = "";
+        int maxIndex = baseScoreString.Length;
+        for(int i = maxIndex - 1; i >= 0; i -= 3)
+        {
+            //Gather the next digits, up to 3 if they're available
+            //(logic is funky cause this needs to be done backwards)
+            int startIndex = Mathf.Max(i - 2, 0);
+            int length = Mathf.Min(3, maxIndex - startIndex);
+            string substring = baseScoreString.Substring(startIndex, length);
+            if(scoreString == "")
+            {
+                //No space if the string is empty
+                scoreString = substring;
+            }
+            else scoreString = substring + ' ' + scoreString;
+
+            //Make sure none of these digits are used by the next round
+            maxIndex = startIndex;
+        }
+
+        scoreText.text = scoreString;
+
+        string percentageString = currentPercentage.ToString(CultureInfo.InvariantCulture);
+        string[] split = percentageString.Split('.');
+        int decimals = split.Length > 1 ? split[1].Length : 0;
+
+        if(decimals == 0)
+        {
+            percentageString = $"{percentageString}.00%";
+        }
+        else if(decimals == 1)
+        {
+            percentageString = $"{percentageString}0%";
+        }
+        else percentageString = $"{percentageString}%";
+
+        scorePercentageText.text = percentageString;
+    }
+
+
+    private void Reset()
     {
         ScoringEvents.Clear();
+        TimeManager.OnBeatChanged -= UpdateBeat;
+    }
+
+
+    private void UpdateReplay(Replay newReplay)
+    {
+        UpdateReplayMode(ReplayManager.IsReplayMode);
     }
 
 
     private void UpdateReplayMode(bool replayMode)
     {
-        if(!replayMode)
+        if(replayMode)
         {
             ScoringEvents.Clear();
+            TimeManager.OnBeatChanged += UpdateBeat;
+        }
+        else
+        {
+            Reset();
         }
     }
 
 
     private void UpdateUIState(UIState newState)
     {
-        ScoringEvents.Clear();
+        if(newState != UIState.Previewer)
+        {
+            Reset();
+        }
     }
 
 
@@ -181,12 +318,17 @@ public class ScoringEvent : MapElement
 {
     public ScoringType scoringType;
     public NoteEventType noteEventType;
+
     public int ScoreGained;
     public int TotalScore;
+    public int MaxScore;
+    public float ScorePercentage;
 
     public float xPos;
 
     public int Combo;
     public int ComboMult;
     public byte ComboProgress;
+
+    public int Misses;
 }
