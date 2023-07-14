@@ -12,6 +12,7 @@ public class ReplayManager : MonoBehaviour
     public static event Action<Replay> OnReplayUpdated;
 
     public static float PlayerHeight;
+    public static bool LeftHandedMode => IsReplayMode && CurrentReplay.info.leftHanded;
 
     private static MapElementList<PlayerHeightEvent> playerHeightEvents = new MapElementList<PlayerHeightEvent>();
 

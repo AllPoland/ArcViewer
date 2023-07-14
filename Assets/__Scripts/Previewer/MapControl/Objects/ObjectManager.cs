@@ -73,6 +73,19 @@ public class ObjectManager : MonoBehaviour
         {8, 8}
     };
 
+    public static readonly Dictionary<int, int> MirroredCutDirection = new Dictionary<int, int>
+    {
+        {0, 0},
+        {1, 1},
+        {2, 3},
+        {3, 2},
+        {4, 5},
+        {5, 4},
+        {6, 7},
+        {7, 6},
+        {8, 8}
+    };
+
     public float BehindCameraTime => TimeFromWorldspace(behindCameraZ);
 
 
@@ -353,10 +366,15 @@ public class ObjectManager : MonoBehaviour
     private class BeatmapSliderEnd : BeatmapObject
     {
         public int id; // used for pairing back up
-        public int d;
         public float StartY;
         public bool HasAttachment;
         public bool IsHead;
+
+
+        public override void Mirror()
+        {
+            x = -(x - 2) + 1;
+        }
     }
 
 
@@ -375,7 +393,6 @@ public class ObjectManager : MonoBehaviour
                 b = a.b,
                 x = a.x,
                 y = a.y,
-                d = a.d,
                 HasAttachment = false,
                 IsHead = true
             };
@@ -386,17 +403,12 @@ public class ObjectManager : MonoBehaviour
                 b = a.tb,
                 x = a.tx,
                 y = a.ty,
-                d = a.tc,
                 HasAttachment = false,
                 IsHead = false
             };
 
             if(a.tb < a.b)
             {
-                //Swap the head and tail if the arc is backwards
-                //Flip the directions as well since heads and tails are different
-                head.d = ReverseCutDirection[Mathf.Clamp(head.d, 0, 8)];
-                tail.d = ReverseCutDirection[Mathf.Clamp(tail.d, 0, 8)];
                 beatmapSliderTails.Add(head);
                 beatmapSliderHeads.Add(tail);
             }
@@ -410,11 +422,20 @@ public class ObjectManager : MonoBehaviour
         List<BeatmapObject> allObjects = new List<BeatmapObject>();
         allObjects.AddRange(beatmapDifficulty.colorNotes);
         allObjects.AddRange(beatmapDifficulty.bombNotes);
+        allObjects.AddRange(beatmapDifficulty.sliders);
         allObjects.AddRange(beatmapDifficulty.burstSliders);
         allObjects.AddRange(beatmapDifficulty.obstacles);
         allObjects.AddRange(beatmapSliderHeads);
         allObjects.AddRange(beatmapSliderTails);
         allObjects = allObjects.OrderBy(x => x.b).ToList();
+
+        if(ReplayManager.LeftHandedMode)
+        {
+            foreach(BeatmapObject mapObject in allObjects)
+            {
+                mapObject.Mirror();
+            }
+        }
 
         notes = new MapElementList<Note>();
         bombs = new MapElementList<Bomb>();
