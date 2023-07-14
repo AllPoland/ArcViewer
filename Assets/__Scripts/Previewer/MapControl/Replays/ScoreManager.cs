@@ -85,6 +85,9 @@ public class ScoreManager : MonoBehaviour
         byte comboMult = 0;
         byte comboProgress = 0;
 
+        int fcComboMult = 0;
+        int fcComboProgress = 0;
+
         int misses = 0;
 
         for(int i = 0; i < ScoringEvents.Count; i++)
@@ -126,18 +129,29 @@ public class ScoreManager : MonoBehaviour
                 currentScore += currentEvent.ScoreGained * ComboMultipliers[comboMult];
             }
 
+            if(fcComboMult < ComboMultipliers.Length - 1)
+            {
+                //Increment FC combo, which is used to calculate max score
+                fcComboProgress++;
+                if(fcComboProgress >= HitsNeededForComboIncrease[fcComboMult])
+                {
+                    fcComboMult++;
+                    fcComboProgress = 0;
+                }
+            }
+
             switch(currentEvent.scoringType)
             {
                 case ScoringType.Note:
                 case ScoringType.ArcHead:
                 case ScoringType.ArcTail:
-                    maxScore += MaxNoteScore * ComboMultipliers[comboMult];
+                    maxScore += MaxNoteScore * ComboMultipliers[fcComboMult];
                     break;
                 case ScoringType.ChainHead:
-                    maxScore += MaxChainHeadScore * ComboMultipliers[comboMult];
+                    maxScore += MaxChainHeadScore * ComboMultipliers[fcComboMult];
                     break;
                 case ScoringType.ChainLink:
-                    maxScore += MaxChainLinkScore * ComboMultipliers[comboMult];
+                    maxScore += MaxChainLinkScore * ComboMultipliers[fcComboMult];
                     break;
             }
 
@@ -148,9 +162,9 @@ public class ScoreManager : MonoBehaviour
             currentEvent.ComboProgress = comboProgress;
             currentEvent.Misses = misses;
 
-            currentEvent.ScorePercentage = (float)Math.Round(((float)currentScore / maxScore) * 100, 2);
+            currentEvent.ScorePercentage = ((float)currentScore / maxScore) * 100;
 
-            Debug.Log($"Event #{i} | Time: {Math.Round(currentEvent.Time, 2)} | Type: {currentEvent.scoringType} | Score: {currentEvent.ScoreGained} | Total score: {currentScore} | Combo: {combo} | Combo mult: {ComboMultipliers[comboMult]}x");
+            Debug.Log($"Event #{i} | Time: {Math.Round(currentEvent.Time, 2)} | Type: {currentEvent.scoringType} | Score: {currentEvent.ScoreGained} | Total score: {currentScore} | Max score: {maxScore} | Combo: {combo} | Combo mult: {ComboMultipliers[comboMult]}x");
         }
 
         Debug.Log($"Initialized Scoring Events for replay with total score: {TotalScore}");
@@ -181,6 +195,36 @@ public class ScoreManager : MonoBehaviour
         }
 
         ScoringEvents.Add(newEvent);
+    }
+
+
+    private static string GradeFromPercentage(float percentage)
+    {
+        if(percentage >= 90)
+        {
+            return "SS";
+        }
+        else if(percentage >= 80)
+        {
+            return "S";
+        }
+        else if(percentage >= 65)
+        {
+            return "A";
+        }
+        else if(percentage >= 50)
+        {
+            return "B";
+        }
+        else if(percentage >= 35)
+        {
+            return "C";
+        }
+        else if(percentage >= 20)
+        {
+            return "D";
+        }
+        else return "E";
     }
 
 
@@ -226,6 +270,8 @@ public class ScoreManager : MonoBehaviour
         comboText.text = currentCombo.ToString();
         missText.text = currentMisses.ToString();
 
+        gradeText.text = GradeFromPercentage(currentPercentage);
+
         //The score gets a space inserted between every 3 decimals
         string baseScoreString = currentScore.ToString();
         string scoreString = "";
@@ -250,7 +296,8 @@ public class ScoreManager : MonoBehaviour
 
         scoreText.text = scoreString;
 
-        string percentageString = currentPercentage.ToString(CultureInfo.InvariantCulture);
+        float roundedPercentage = (float)Math.Round(currentPercentage, 2);
+        string percentageString = roundedPercentage.ToString(CultureInfo.InvariantCulture);
         string[] split = percentageString.Split('.');
         int decimals = split.Length > 1 ? split[1].Length : 0;
 
