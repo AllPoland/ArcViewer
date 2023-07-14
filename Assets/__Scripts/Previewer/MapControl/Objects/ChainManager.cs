@@ -92,9 +92,19 @@ public class ChainManager : MapElementManager<ChainLink>
                 int linkID = ((int)ScoringType.ChainLink * 10000) + (linkX * 1000) + (linkY * 100) + (c.Color * 10) + 8;
 
                 NoteEvent matchingEvent = replayEventsOnBeat.Find(x => x.noteID == linkID && !usedReplayEvents.Contains(x));
+                if(matchingEvent == null && isLastElement)
+                {
+                    //Sometimes the last link doesn't get tail coordinates though :smil
+                    linkX = originalSlider.x;
+                    linkY = originalSlider.y;
+                    linkID = ((int)ScoringType.ChainLink * 10000) + (linkX * 1000) + (linkY * 100) + (c.Color * 10) + 8;
+                    matchingEvent = replayEventsOnBeat.Find(x => x.noteID == linkID && !usedReplayEvents.Contains(x));
+                }
+
                 if(matchingEvent == null)
                 {
                     newLink.WasHit = false;
+                    ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, NoteEventType.miss, newLink.Time + objectManager.BehindCameraTime, newLink.Position.x, null);
                 }
                 else
                 {
