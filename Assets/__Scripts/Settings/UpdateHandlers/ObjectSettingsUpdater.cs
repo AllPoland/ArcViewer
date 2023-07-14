@@ -23,7 +23,7 @@ public class ObjectSettingsUpdater : MonoBehaviour
         {
             bombManager.ReloadBombs();
         }
-        if(allSettings || setting == "moveanimations" || setting == "rotateanimations" || setting == "flipanimations")
+        if(allSettings || setting == "moveanimations" || setting == "rotateanimations" || setting == "flipanimations" || setting == "playerheight")
         {
             HitSoundManager.ClearScheduledSounds();
             noteManager.ClearRenderedVisuals();
@@ -36,6 +36,9 @@ public class ObjectSettingsUpdater : MonoBehaviour
 
             arcManager.ClearRenderedVisuals();
             arcManager.UpdateVisuals();
+
+            wallManager.ClearRenderedVisuals();
+            wallManager.UpdateVisuals();
         }
         else if(setting == "arcfadeanimation" || setting == "arctextureanimation" || setting == "arcdensity" || setting == "arcbrightness" || setting == "arcwidth")
         {

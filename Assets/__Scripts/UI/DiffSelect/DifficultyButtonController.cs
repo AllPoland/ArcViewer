@@ -42,10 +42,17 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
                 button.gameObject.SetActive(false);
                 continue;
             }
+            bool isCurrent = button.characteristic == currentDifficulty.characteristic;
+            if(ReplayManager.IsReplayMode && !isCurrent)
+            {
+                //Don't show other characteristics when in a replay
+                button.gameObject.SetActive(false);
+                continue;
+            }
+
             button.gameObject.SetActive(true);
 
             bool isSelected = button.characteristic == selectedCharacteristic;
-            bool isCurrent = button.characteristic == currentDifficulty.characteristic;
 
             float height = isSelected ? buttonHeight : unselectedButtonHeight;
             float width = isSelected ? selectedCharacteristicWidth : characteristicWidth;
@@ -95,6 +102,24 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
                 //This difficulty isn't used in the characteristic
                 button.gameObject.SetActive(false);
                 continue;
+            }
+            if(ReplayManager.IsReplayMode)
+            {
+                if(button.difficulty != currentDifficulty.difficultyRank)
+                {
+                    //Don't show other difficulties when in a replay
+                    button.gameObject.SetActive(false);
+                    continue;
+                }
+                else
+                {
+                    //The current difficulty will always be selected in replays
+                    button.gameObject.SetActive(true);
+                    button.UpdateDiffLabel(availableDifficulties);
+                    button.SetButtonSize(selectedDifficultyWidth, buttonHeight, true);
+                    button.rectTransform.anchoredPosition = Vector2.zero;
+                    break;
+                }
             }
             button.gameObject.SetActive(true);
             button.UpdateDiffLabel(availableDifficulties);
@@ -160,6 +185,12 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
 
     public void ChangeDifficulty(DifficultyRank newDiff)
     {
+        if(ReplayManager.IsReplayMode)
+        {
+            //Replays need to stick to their difficulty
+            return;
+        }
+
         List<Difficulty> diffs = BeatmapManager.GetDifficultiesByCharacteristic(currentCharacteristic);
         try
         {

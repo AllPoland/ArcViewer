@@ -12,9 +12,21 @@ public class MapDirectoryInput : MonoBehaviour
     [SerializeField] private Button openButton;
     [SerializeField] private SoupInput soupInput;
 
+    [Space]
+    [SerializeField] private string placeholder;
     [SerializeField] private string webGLPlaceholder;
 
+    [Space]
+    [SerializeField] private string replayPlaceholder;
+    [SerializeField] private string webGLReplayPlaceholder;
+
+    [Space]
+    [SerializeField] private string theSoupPlaceholder;
+
+    [Space]
     public string MapDirectory;
+
+    private TextMeshProUGUI placeholderText;
 
 
     public void LoadMap()
@@ -54,6 +66,34 @@ public class MapDirectoryInput : MonoBehaviour
     }
 
 
+    public void UpdateSettings(string changedSetting)
+    {
+        if(changedSetting == "all" || changedSetting == TheSoup.Rule || changedSetting == "replaymode")
+        {
+            if(SettingsManager.GetBool(TheSoup.Rule))
+            {
+                placeholderText.text = theSoupPlaceholder;
+            }
+            else if(SettingsManager.GetBool("replaymode"))
+            {
+#if UNITY_WEBGL
+                placeholderText.text = webGLReplayPlaceholder;
+#else
+                placeholderText.text = replayPlaceholder;
+#endif
+            }
+            else
+            {
+#if UNITY_WEBGL
+                placeholderText.text = webGLPlaceholder;
+#else
+                placeholderText.text = placeholder;
+#endif
+            }
+        }
+    }
+
+
     private void Update()
     {
         if(Input.GetButtonDown("Submit") && EventSystem.current.currentSelectedGameObject == directoryField.gameObject)
@@ -62,10 +102,29 @@ public class MapDirectoryInput : MonoBehaviour
         }
     }
 
-#if UNITY_WEBGL
     private void Awake()
     {
-        directoryField.placeholder.GetComponent<TextMeshProUGUI>().text = webGLPlaceholder;
-    }
+        placeholderText = directoryField.placeholder.GetComponent<TextMeshProUGUI>();
+
+#if UNITY_WEBGL
+        placeholderText.text = webGLPlaceholder;
 #endif
+    }
+
+
+    private void OnEnable()
+    {
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
+
+        if(SettingsManager.Loaded)
+        {
+            UpdateSettings("all");
+        }
+    }
+
+
+    private void OnDisable()
+    {
+        SettingsManager.OnSettingsUpdated -= UpdateSettings;
+    }
 }
