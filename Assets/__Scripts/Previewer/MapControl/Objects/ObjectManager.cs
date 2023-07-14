@@ -536,19 +536,25 @@ public class ObjectManager : MonoBehaviour
                             //Note scoringType can also count as 0 sometimes (very scuffed)
                             noteID -= (int)scoringType * 10000;
                         }
-                        else if(scoringType == ScoringType.ChainHead && hasHead)
-                        {
-                            //A chain head that's also an arc head may be counted as an arc instead
-                            noteID -= chainArcDifference * 10000;
-                        }
-                        else if(scoringType == ScoringType.ArcHead)
+                        else if(scoringType == ScoringType.ArcHead && hasTail)
                         {
                             //Type for a note that's both a head and a tail might be swapped
                             noteID -= headTailDifference * 10000;
                         }
-                        else if(scoringType == ScoringType.ArcTail)
+                        else if(scoringType == ScoringType.ArcTail && hasHead)
                         {
                             noteID += headTailDifference * 10000;
+                        }
+                        else if(scoringType == ScoringType.ChainHead && (hasHead || hasTail))
+                        {
+                            //A chain head that's also an arc head may be counted as an arc instead
+                            noteID -= chainArcDifference * 10000;
+                            matchingEvent = replayEventsOnBeat.Find(x => x.noteID == noteID);
+                            if(matchingEvent == null)
+                            {
+                                //It might also be an arc tail :smil
+                                noteID -= headTailDifference * 10000;
+                            }
                         }
 
                         matchingEvent = replayEventsOnBeat.Find(x => x.noteID == noteID);

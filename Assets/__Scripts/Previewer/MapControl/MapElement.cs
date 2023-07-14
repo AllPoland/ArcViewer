@@ -62,7 +62,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     public void Add(T item)
     {
         //If the new item is in order, don't wanna bother resorting the whole list
-        IsSorted = Count == 0 || (IsSorted && item.Beat >= Last().Beat);
+        IsSorted = Count == 0 || (IsSorted && item.Time >= Last().Time);
         Elements.Add(item);
     }
 
@@ -105,7 +105,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     {
         if(!IsSorted)
         {
-            Elements = Elements.OrderBy(x => x.Beat).ToList();
+            Elements = Elements.OrderBy(x => x.Time).ToList();
             IsSorted = true;
         }
     }

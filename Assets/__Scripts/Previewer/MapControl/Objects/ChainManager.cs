@@ -112,8 +112,7 @@ public class ChainManager : MapElementManager<ChainLink>
                     {
                         newLink.WasHit = false;
 
-                        float missTime = matchingEvent?.eventTime ?? newLink.Time + objectManager.BehindCameraTime;
-                        ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, NoteEventType.miss, missTime, newLink.Position.x, null);
+                        ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, NoteEventType.miss, matchingEvent.eventTime, newLink.Position.x, null);
                     }
                     else
                     {
