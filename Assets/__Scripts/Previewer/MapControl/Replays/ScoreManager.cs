@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class ScoreManager : MonoBehaviour
@@ -25,16 +26,23 @@ public class ScoreManager : MonoBehaviour
     {
         2,
         4,
-        8
+        8,
+        255
     };
 
     [SerializeField] private GameObject hudObject;
 
+    [Space]
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI scorePercentageText;
     [SerializeField] private TextMeshProUGUI gradeText;
     [SerializeField] private TextMeshProUGUI comboText;
     [SerializeField] private TextMeshProUGUI missText;
+
+    [Space]
+    [SerializeField] private TextMeshProUGUI multiplierText;
+    [SerializeField] private string multiplierPrefix;
+    [SerializeField] private Image comboProgressFill;
 
 
     private static int GetAccScoreFromCenterDistance(float centerDistance)
@@ -164,7 +172,7 @@ public class ScoreManager : MonoBehaviour
             currentEvent.ComboProgress = comboProgress;
             currentEvent.Misses = misses;
 
-            currentEvent.ScorePercentage = ((float)currentScore / maxScore) * 100;
+            currentEvent.ScorePercentage = maxScore == 0 ? 100f : ((float)currentScore / maxScore) * 100;
 
             Debug.Log($"Event #{i} | Time: {Math.Round(currentEvent.Time, 2)} | Type: {currentEvent.scoringType} | Score: {currentEvent.ScoreGained} | Total score: {currentScore} | Max score: {maxScore} | Combo: {combo} | Combo mult: {ComboMultipliers[comboMult]}x");
         }
@@ -314,6 +322,9 @@ public class ScoreManager : MonoBehaviour
         else percentageString = $"{percentageString}%";
 
         scorePercentageText.text = percentageString;
+
+        multiplierText.text = multiplierPrefix + ComboMultipliers[currentComboMult].ToString();
+        comboProgressFill.fillAmount = (float)currentComboProgress / HitsNeededForComboIncrease[currentComboMult];
     }
 
 
