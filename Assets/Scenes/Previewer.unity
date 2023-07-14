@@ -6780,6 +6780,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f7241f2a63ba8c49b0fd7860bc8b626, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hudObject: {fileID: 1134590263}
   scoreText: {fileID: 1479854795}
   scorePercentageText: {fileID: 612025082}
   gradeText: {fileID: 917751635}
@@ -11236,7 +11237,6 @@ Transform:
   - {fileID: 395744162}
   - {fileID: 1146378751}
   - {fileID: 2118322367}
-  - {fileID: 1423842652}
   m_Father: {fileID: 398105680}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -17260,8 +17260,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 758716420}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3, y: 0.2, z: 2}
+  m_LocalPosition: {x: 0, y: -0.025, z: 0}
+  m_LocalScale: {x: 3, y: 0.05, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1423842652}
@@ -31013,13 +31013,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1423842651}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.07, z: -0.6}
-  m_LocalScale: {x: 1, y: 0.3, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 758716421}
-  m_Father: {fileID: 452764997}
+  m_Father: {fileID: 1932978883}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1459660422
@@ -44316,6 +44316,7 @@ Transform:
   - {fileID: 1381324909}
   - {fileID: 2109431120}
   - {fileID: 266741276}
+  - {fileID: 1423842652}
   m_Father: {fileID: 1523641089}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -44334,6 +44335,7 @@ MonoBehaviour:
   headVisual: {fileID: 1381324908}
   leftSaberVisual: {fileID: 2109431119}
   rightSaberVisual: {fileID: 266741275}
+  playerPlatform: {fileID: 758716420}
   defaultHmdPosition: {x: 0, y: 1.7, z: 0}
   defaultLeftSaberPosition: {x: -0.5, y: 1, z: 0}
   defaultRightSaberPosition: {x: 0.5, y: 1, z: 0}

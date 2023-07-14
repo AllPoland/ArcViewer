@@ -28,6 +28,8 @@ public class ScoreManager : MonoBehaviour
         8
     };
 
+    [SerializeField] private GameObject hudObject;
+
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI scorePercentageText;
     [SerializeField] private TextMeshProUGUI gradeText;
@@ -178,9 +180,9 @@ public class ScoreManager : MonoBehaviour
             throw new ArgumentNullException("A good cut cannot have null cutInfo!");
         }
 
-        if(scoringType == ScoringType.Ignore || scoringType == ScoringType.NoScore)
+        if(scoringType == ScoringType.Ignore)
         {
-            throw new ArgumentException("The event must be a positive ScoringType!");
+            return;
         }
 
         ScoringEvent newEvent = new ScoringEvent();
@@ -318,6 +320,8 @@ public class ScoreManager : MonoBehaviour
     private void Reset()
     {
         ScoringEvents.Clear();
+        hudObject.SetActive(false);
+
         TimeManager.OnBeatChanged -= UpdateBeat;
     }
 
@@ -333,7 +337,10 @@ public class ScoreManager : MonoBehaviour
         if(replayMode)
         {
             ScoringEvents.Clear();
+            hudObject.SetActive(true);
+
             TimeManager.OnBeatChanged += UpdateBeat;
+            UpdateBeat(TimeManager.CurrentBeat);
         }
         else
         {

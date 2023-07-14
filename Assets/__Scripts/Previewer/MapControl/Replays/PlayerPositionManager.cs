@@ -12,6 +12,7 @@ public class PlayerPositionManager : MonoBehaviour
     [SerializeField] private GameObject headVisual;
     [SerializeField] private GameObject leftSaberVisual;
     [SerializeField] private GameObject rightSaberVisual;
+    [SerializeField] private GameObject playerPlatform;
 
     [Space]
     [SerializeField] private Vector3 defaultHmdPosition;
@@ -41,6 +42,7 @@ public class PlayerPositionManager : MonoBehaviour
     {
         if(replayFrames.Count == 0)
         {
+            SetDefaultPositions();
             return;
         }
 
@@ -90,6 +92,7 @@ public class PlayerPositionManager : MonoBehaviour
         }
 
         replayFrames.SortElementsByBeat();
+        UpdateBeat(TimeManager.CurrentBeat);
     }
 
 
@@ -112,7 +115,8 @@ public class PlayerPositionManager : MonoBehaviour
             headVisual.SetActive(true);
             leftSaberVisual.SetActive(true);
             rightSaberVisual.SetActive(true);
-            SetDefaultPositions();
+            playerPlatform.SetActive(true);
+            UpdateBeat(TimeManager.CurrentBeat);
         }
         else
         {
@@ -121,6 +125,7 @@ public class PlayerPositionManager : MonoBehaviour
             headVisual.SetActive(false);
             leftSaberVisual.SetActive(false);
             rightSaberVisual.SetActive(false);
+            playerPlatform.SetActive(false);
         }
     }
 
