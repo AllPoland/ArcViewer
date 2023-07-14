@@ -224,7 +224,7 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public static Vector2 CalculateObjectPosition(float x, float y, float[] coordinates = null)
+    public static Vector2 CalculateObjectPosition(float x, float y, float[] coordinates = null, bool clampX = true)
     {
         Vector2 position = GridBottomLeft;
         if(coordinates != null && coordinates.Length >= 2)
@@ -247,7 +247,11 @@ public class ObjectManager : MonoBehaviour
             return position;
         }
 
-        position.x += (int)Mathf.Clamp(x, 0, 3) * LaneWidth;
+        if(clampX)
+        {
+            position.x += (int)Mathf.Clamp(x, 0, 3) * LaneWidth;
+        }
+        else position.x += x * LaneWidth;
 
         if(ReplayManager.IsReplayMode)
         {
