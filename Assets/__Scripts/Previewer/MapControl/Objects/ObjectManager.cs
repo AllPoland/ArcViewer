@@ -89,6 +89,9 @@ public class ObjectManager : MonoBehaviour
     public float BehindCameraTime => TimeFromWorldspace(behindCameraZ);
 
 
+    public float objectYToWorldSpace(float y) => (y - objectFloorOffset) + 0.25f;
+
+
     public static bool CheckSameTime(float time1, float time2)
     {
         const float epsilon = 0.001f;
@@ -586,7 +589,7 @@ public class ObjectManager : MonoBehaviour
                         newNote.WasHit = false;
 
                         float missTime = matchingEvent?.eventTime ?? currentTime + Instance.BehindCameraTime;
-                        ScoreManager.AddNoteScoringEvent(scoringType, NoteEventType.miss, missTime, newNote.Position.x, null);
+                        ScoreManager.AddNoteScoringEvent(scoringType, NoteEventType.miss, missTime, newNote.Position, null);
                     }
                     else
                     {
@@ -594,7 +597,7 @@ public class ObjectManager : MonoBehaviour
                         newNote.WasBadCut = matchingEvent.eventType == NoteEventType.bad;
                         newNote.HitOffset = matchingEvent.noteCutInfo?.timeDeviation ?? 0f;
 
-                        ScoreManager.AddNoteScoringEvent(scoringType, matchingEvent.eventType, matchingEvent.eventTime, newNote.Position.x, matchingEvent.noteCutInfo);
+                        ScoreManager.AddNoteScoringEvent(scoringType, matchingEvent.eventType, matchingEvent.eventTime, newNote.Position, matchingEvent.noteCutInfo);
                     }
                     //Remove this event so it doesn't get reused by multiple notes
                     replayEventsOnBeat.Remove(matchingEvent);
@@ -660,7 +663,7 @@ public class ObjectManager : MonoBehaviour
                         newBomb.WasBadCut = true;
                         newBomb.HitOffset = matchingEvent.spawnTime - matchingEvent.eventTime;
 
-                        ScoreManager.AddNoteScoringEvent(ScoringType.NoScore, NoteEventType.bomb, matchingEvent.eventTime, newBomb.Position.x, null);
+                        ScoreManager.AddNoteScoringEvent(ScoringType.NoScore, NoteEventType.bomb, matchingEvent.eventTime, newBomb.Position, null);
                     }
                     replayEventsOnBeat.Remove(matchingEvent);
                 }

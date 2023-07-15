@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,6 +8,7 @@ using TMPro;
 public class ScoreManager : MonoBehaviour
 {
     public static MapElementList<ScoringEvent> ScoringEvents = new MapElementList<ScoringEvent>();
+    private static List<ScoringEvent> RenderedScoringEvents = new List<ScoringEvent>();
 
     public static int MaxScore { get; private set; }
     public static int TotalScore => ScoringEvents.Count > 0 ? ScoringEvents.Last().TotalScore : 0;
@@ -14,6 +16,8 @@ public class ScoreManager : MonoBehaviour
     public const int MaxNoteScore = 115;
     public const int MaxChainHeadScore = 85;
     public const int MaxChainLinkScore = 20;
+
+    private const float scoreIndicatorXRandomness = 0.15f;
 
     public static readonly byte[] ComboMultipliers = new byte[]
     {
@@ -30,6 +34,7 @@ public class ScoreManager : MonoBehaviour
         255
     };
 
+    [Header("Components")]
     [SerializeField] private GameObject hudObject;
 
     [Space]
@@ -41,8 +46,22 @@ public class ScoreManager : MonoBehaviour
 
     [Space]
     [SerializeField] private TextMeshProUGUI multiplierText;
-    [SerializeField] private string multiplierPrefix;
     [SerializeField] private Image comboProgressFill;
+
+    [Space]
+    [SerializeField] private TMProPool scoreIndicatorPool;
+    [SerializeField] private Transform scoreIndicatorParent;
+
+    [Header("Parameters")]
+    [SerializeField] private string multiplierPrefix;
+
+    [Space]
+    [SerializeField] private float scoreIndicatorStartZ;
+    [SerializeField] private float scoreIndicatorEndY;
+    [SerializeField] private float scoreIndicatorEndZ;
+    [SerializeField] private float scoreIndicatorLifetime;
+    [SerializeField] private float scoreIndicatorFadeInTime;
+    [SerializeField] private float scoreIndicatorFadeOutTime;
 
 
     private static int GetAccScoreFromCenterDistance(float centerDistance)
@@ -181,7 +200,7 @@ public class ScoreManager : MonoBehaviour
     }
 
 
-    public static void AddNoteScoringEvent(ScoringType scoringType, NoteEventType eventType, float time, float xPos, NoteCutInfo cutInfo)
+    public static void AddNoteScoringEvent(ScoringType scoringType, NoteEventType eventType, float time, Vector2 position, NoteCutInfo cutInfo)
     {
         if(eventType == NoteEventType.good && cutInfo == null)
         {
@@ -197,7 +216,11 @@ public class ScoreManager : MonoBehaviour
         newEvent.scoringType = scoringType;
         newEvent.noteEventType = eventType;
         newEvent.Time = time;
-        newEvent.xPos = xPos;
+        newEvent.position = position;
+
+        //Y position needs to be adjusted to worldspace, and the endX gets randomized a bit
+        newEvent.position.y = ObjectManager.Instance.objectYToWorldSpace(newEvent.position.y);
+        newEvent.endX = position.x + UnityEngine.Random.Range(-scoreIndicatorXRandomness, scoreIndicatorXRandomness);
 
         if(eventType == NoteEventType.good)
         {
@@ -238,14 +261,84 @@ public class ScoreManager : MonoBehaviour
     }
 
 
-    private void UpdateScoreTexts(int lastEventIndex)
+    private void UpdateScoreIndicator(ScoringEvent scoringEvent)
     {
+        float timeDifference = TimeManager.CurrentTime - scoringEvent.Time;
+        float t = timeDifference / scoreIndicatorLifetime;
 
+        Vector3 startPos = new Vector3(scoringEvent.position.x, scoringEvent.position.y, scoreIndicatorStartZ);
+        Vector3 endPos = new Vector3(scoringEvent.endX, scoreIndicatorEndY, scoreIndicatorEndZ);
+        Vector3 position = Vector3.Lerp(startPos, endPos, Easings.Cubic.Out(t));
+
+        Color color = Color.white;
+        if(timeDifference < scoreIndicatorFadeInTime)
+        {
+            color.a = timeDifference / scoreIndicatorFadeInTime;
+        }
+        else
+        {
+            float endTime = scoringEvent.Time + scoreIndicatorLifetime;
+            float fadeStartTime = endTime - scoreIndicatorFadeOutTime;
+            if(TimeManager.CurrentTime >= fadeStartTime)
+            {
+                timeDifference = endTime - TimeManager.CurrentTime;
+                color.a = timeDifference / scoreIndicatorFadeOutTime;
+            }
+        }
+
+        if(scoringEvent.visual == null)
+        {
+            scoringEvent.visual = scoreIndicatorPool.GetObject();
+            scoringEvent.visual.transform.SetParent(scoreIndicatorParent);
+            scoringEvent.visual.gameObject.SetActive(true);
+
+            RenderedScoringEvents.Add(scoringEvent);
+        }
+
+        scoringEvent.visual.transform.position = position;
+        scoringEvent.visual.text = scoringEvent.ScoreGained.ToString();
+        scoringEvent.visual.color = color;
+    }
+
+
+    private void ReleaseIndicator(ScoringEvent target)
+    {
+        scoreIndicatorPool.ReleaseObject(target.visual);
+        target.visual = null;
+        RenderedScoringEvents.Remove(target);
+    }
+
+
+    private void ClearOutsideIndicators()
+    {
+        for(int i = RenderedScoringEvents.Count - 1; i >= 0; i--)
+        {
+            ScoringEvent currentEvent = RenderedScoringEvents[i];
+            if(currentEvent.Time > TimeManager.CurrentTime || currentEvent.Time + scoreIndicatorLifetime < TimeManager.CurrentTime)
+            {
+                ReleaseIndicator(currentEvent);
+            }
+        }
+    }
+
+
+    private void UpdateScoreIndicators(int lastEventIndex)
+    {
+        for(int i = lastEventIndex; i >= 0; i--)
+        {
+            ScoringEvent currentEvent = ScoringEvents[i];
+            if(currentEvent.Time + scoreIndicatorLifetime >= TimeManager.CurrentTime)
+            {
+                UpdateScoreIndicator(currentEvent);
+            }
+            else break;
+        }
     }
 
 
     private void UpdateBeat(float beat)
     {
+        ClearOutsideIndicators();
         int lastIndex = ScoringEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
 
         int currentScore;
@@ -265,7 +358,7 @@ public class ScoreManager : MonoBehaviour
             currentComboProgress = lastEvent.ComboProgress;
             currentMisses = lastEvent.Misses;
 
-            UpdateScoreTexts(lastIndex);
+            UpdateScoreIndicators(lastIndex);
         }
         else
         {
@@ -389,11 +482,14 @@ public class ScoringEvent : MapElement
     public int MaxScore;
     public float ScorePercentage;
 
-    public float xPos;
+    public Vector2 position;
+    public float endX;
 
     public int Combo;
     public int ComboMult;
     public byte ComboProgress;
 
     public int Misses;
+
+    public TextMeshPro visual;
 }

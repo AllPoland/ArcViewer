@@ -104,7 +104,7 @@ public class ChainManager : MapElementManager<ChainLink>
                 if(matchingEvent == null)
                 {
                     newLink.WasHit = false;
-                    ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, NoteEventType.miss, newLink.Time + objectManager.BehindCameraTime, newLink.Position.x, null);
+                    ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, NoteEventType.miss, newLink.Time + objectManager.BehindCameraTime, newLink.Position, null);
                 }
                 else
                 {
@@ -112,7 +112,7 @@ public class ChainManager : MapElementManager<ChainLink>
                     {
                         newLink.WasHit = false;
 
-                        ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, NoteEventType.miss, matchingEvent.eventTime, newLink.Position.x, null);
+                        ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, NoteEventType.miss, matchingEvent.eventTime, newLink.Position, null);
                     }
                     else
                     {
@@ -120,7 +120,7 @@ public class ChainManager : MapElementManager<ChainLink>
                         newLink.WasBadCut = matchingEvent.eventType == NoteEventType.bad;
                         newLink.HitOffset = matchingEvent.noteCutInfo?.timeDeviation ?? 0f;
 
-                        ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, matchingEvent.eventType, matchingEvent.eventTime, newLink.Position.x, matchingEvent.noteCutInfo);
+                        ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, matchingEvent.eventType, matchingEvent.eventTime, newLink.Position, matchingEvent.noteCutInfo);
                     }
                     usedReplayEvents.Add(matchingEvent);
                 }
