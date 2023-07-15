@@ -44,6 +44,7 @@ public enum SettingsTab
     General,
     Visuals,
     Graphics,
+    Replays,
     Colors,
     Advanced
 }
