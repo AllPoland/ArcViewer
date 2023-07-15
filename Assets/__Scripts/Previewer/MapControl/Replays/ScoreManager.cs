@@ -56,12 +56,21 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private string multiplierPrefix;
 
     [Space]
-    [SerializeField] private float scoreIndicatorStartZ;
-    [SerializeField] private float scoreIndicatorEndY;
-    [SerializeField] private float scoreIndicatorEndZ;
-    [SerializeField] private float scoreIndicatorLifetime;
-    [SerializeField] private float scoreIndicatorFadeInTime;
-    [SerializeField] private float scoreIndicatorFadeOutTime;
+    [SerializeField] private float indicatorStartZ;
+    [SerializeField] private float indicatorEndY;
+    [SerializeField] private float indicatorEndZ;
+    [SerializeField] private float indicatorLifetime;
+    [SerializeField] private float indicatorFadeInTime;
+    [SerializeField] private float indicatorFadeOutTime;
+
+    [Space]
+    [SerializeField] private float badEndY;
+    [SerializeField] private float badEndZ;
+    [SerializeField] private string badCutString;
+    [SerializeField] private string missString;
+
+    [Header("Colors")]
+    [SerializeField] private Color badColor = Color.white;
 
 
     private static int GetAccScoreFromCenterDistance(float centerDistance)
@@ -192,8 +201,7 @@ public class ScoreManager : MonoBehaviour
             currentEvent.Misses = misses;
 
             currentEvent.ScorePercentage = maxScore == 0 ? 100f : ((float)currentScore / maxScore) * 100;
-
-            Debug.Log($"Event #{i} | Time: {Math.Round(currentEvent.Time, 2)} | Type: {currentEvent.scoringType} | Score: {currentEvent.ScoreGained} | Total score: {currentScore} | Max score: {maxScore} | Combo: {combo} | Combo mult: {ComboMultipliers[comboMult]}x");
+            // Debug.Log($"Event #{i} | Time: {Math.Round(currentEvent.Time, 2)} | Type: {currentEvent.scoringType} | Score: {currentEvent.ScoreGained} | Total score: {currentScore} | Max score: {maxScore} | Combo: {combo} | Combo mult: {ComboMultipliers[comboMult]}x");
         }
 
         Debug.Log($"Initialized Scoring Events for replay with total score: {TotalScore}");
@@ -261,28 +269,61 @@ public class ScoreManager : MonoBehaviour
     }
 
 
+    private Color GetIndicatorColor(ScoringEvent scoringEvent)
+    {
+        NoteEventType eventType = scoringEvent.noteEventType;
+        if(eventType == NoteEventType.bad || eventType == NoteEventType.miss || eventType == NoteEventType.bomb)
+        {
+            return badColor;
+        }
+        else return Color.white;
+    }
+
+
+    private string GetIndicatorText(ScoringEvent scoringEvent)
+    {
+        switch(scoringEvent.noteEventType)
+        {
+            case NoteEventType.bad:
+            case NoteEventType.bomb:
+                return badCutString;
+            case NoteEventType.miss:
+                return missString;
+            case NoteEventType.good:
+            default:
+                return scoringEvent.ScoreGained.ToString();
+        }
+    }
+
+
     private void UpdateScoreIndicator(ScoringEvent scoringEvent)
     {
         float timeDifference = TimeManager.CurrentTime - scoringEvent.Time;
-        float t = timeDifference / scoreIndicatorLifetime;
+        float t = timeDifference / indicatorLifetime;
 
-        Vector3 startPos = new Vector3(scoringEvent.position.x, scoringEvent.position.y, scoreIndicatorStartZ);
-        Vector3 endPos = new Vector3(scoringEvent.endX, scoreIndicatorEndY, scoreIndicatorEndZ);
-        Vector3 position = Vector3.Lerp(startPos, endPos, Easings.Cubic.Out(t));
+        NoteEventType eventType = scoringEvent.noteEventType;
+        bool isBad = eventType == NoteEventType.bad || eventType == NoteEventType.miss || eventType == NoteEventType.bomb;
 
-        Color color = Color.white;
-        if(timeDifference < scoreIndicatorFadeInTime)
+        float endY = isBad ? badEndY : indicatorEndY;
+        float endZ = isBad ? badEndZ : indicatorEndZ;
+
+        Vector3 startPos = new Vector3(scoringEvent.position.x, scoringEvent.position.y, indicatorStartZ);
+        Vector3 endPos = new Vector3(scoringEvent.endX, endY, endZ);
+        Vector3 position = Vector3.Lerp(startPos, endPos, Easings.Quart.Out(t));
+
+        Color color = GetIndicatorColor(scoringEvent);
+        if(timeDifference < indicatorFadeInTime)
         {
-            color.a = timeDifference / scoreIndicatorFadeInTime;
+            color.a = timeDifference / indicatorFadeInTime;
         }
         else
         {
-            float endTime = scoringEvent.Time + scoreIndicatorLifetime;
-            float fadeStartTime = endTime - scoreIndicatorFadeOutTime;
+            float endTime = scoringEvent.Time + indicatorLifetime;
+            float fadeStartTime = endTime - indicatorFadeOutTime;
             if(TimeManager.CurrentTime >= fadeStartTime)
             {
                 timeDifference = endTime - TimeManager.CurrentTime;
-                color.a = timeDifference / scoreIndicatorFadeOutTime;
+                color.a = timeDifference / indicatorFadeOutTime;
             }
         }
 
@@ -296,7 +337,7 @@ public class ScoreManager : MonoBehaviour
         }
 
         scoringEvent.visual.transform.position = position;
-        scoringEvent.visual.text = scoringEvent.ScoreGained.ToString();
+        scoringEvent.visual.text = GetIndicatorText(scoringEvent);
         scoringEvent.visual.color = color;
     }
 
@@ -314,7 +355,7 @@ public class ScoreManager : MonoBehaviour
         for(int i = RenderedScoringEvents.Count - 1; i >= 0; i--)
         {
             ScoringEvent currentEvent = RenderedScoringEvents[i];
-            if(currentEvent.Time > TimeManager.CurrentTime || currentEvent.Time + scoreIndicatorLifetime < TimeManager.CurrentTime)
+            if(currentEvent.Time > TimeManager.CurrentTime || currentEvent.Time + indicatorLifetime < TimeManager.CurrentTime)
             {
                 ReleaseIndicator(currentEvent);
             }
@@ -327,7 +368,7 @@ public class ScoreManager : MonoBehaviour
         for(int i = lastEventIndex; i >= 0; i--)
         {
             ScoringEvent currentEvent = ScoringEvents[i];
-            if(currentEvent.Time + scoreIndicatorLifetime >= TimeManager.CurrentTime)
+            if(currentEvent.Time + indicatorLifetime >= TimeManager.CurrentTime)
             {
                 UpdateScoreIndicator(currentEvent);
             }

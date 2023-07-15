@@ -6954,12 +6954,17 @@ MonoBehaviour:
   scoreIndicatorPool: {fileID: 65405870}
   scoreIndicatorParent: {fileID: 347637730}
   multiplierPrefix: <sup>x</sup>
-  scoreIndicatorStartZ: -0.6
-  scoreIndicatorEndY: -0.25
-  scoreIndicatorEndZ: 5
-  scoreIndicatorLifetime: 0.7
-  scoreIndicatorFadeInTime: 0.1
-  scoreIndicatorFadeOutTime: 0.2
+  indicatorStartZ: -0.6
+  indicatorEndY: -0.25
+  indicatorEndZ: 5
+  indicatorLifetime: 0.7
+  indicatorFadeInTime: 0.1
+  indicatorFadeOutTime: 0.3
+  badEndY: 1.8
+  badEndZ: 7
+  badCutString: <size=80><b>X
+  missString: <size=60>MISS
+  badColor: {r: 1, g: 0.050980393, b: 0.050980393, a: 1}
 --- !u!1 &278545449
 GameObject:
   m_ObjectHideFlags: 0
@@ -21044,11 +21049,11 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 8192
   m_textAlignment: 65535
-  m_characterSpacing: -8
+  m_characterSpacing: -5
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -26046,7 +26051,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1134590263}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 9}
+  m_LocalPosition: {x: 0, y: 0, z: 10}
   m_LocalScale: {x: 0.012500001, y: 0.012500001, z: 0.012500001}
   m_ConstrainProportionsScale: 1
   m_Children:
