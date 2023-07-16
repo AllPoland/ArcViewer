@@ -572,7 +572,7 @@ public class ScoringEvent : MapElement
         noteID -= cutDirection;
         int colorType = noteID % 100;
         noteID -= colorType;
-        noteID /= 10;
+        colorType /= 10;
 
         bool isBomb = noteEventType == NoteEventType.bomb;
         if(ID >= 80000 || colorType > 10 || cutDirection > 8)
