@@ -50,6 +50,19 @@ public class BeatmapInfo
     }
 
 
+    public static DifficultyRank DifficultyRankFromString(string difficultyName)
+    {
+        DifficultyRank difficulty;
+        bool success = Enum.TryParse(difficultyName, true, out difficulty);
+        if(!success)
+        {
+            Debug.LogWarning("Could not match difficulty name!");
+            return DifficultyRank.ExpertPlus;
+        }
+        else return difficulty;
+    }
+
+
     public static readonly BeatmapInfo Empty = new BeatmapInfo
     {
         _songName = "",
