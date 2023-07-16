@@ -322,7 +322,7 @@ public class ObjectManager : MonoBehaviour
 
         if(ReplayManager.IsReplayMode)
         {
-            ScoreManager.InitializeScoringEvents();
+            ScoreManager.InitializeMapScore();
         }
     }
 
@@ -477,10 +477,10 @@ public class ObjectManager : MonoBehaviour
             List<BeatmapObject> notesAndBombs = sameBeatObjects.Where(x => (x is BeatmapColorNote) || (x is BeatmapBombNote)).ToList();
 
             //Need to pair objects to their replay events if we're in a replay
-            List<NoteEvent> replayEventsOnBeat = null;
+            List<ScoringEvent> scoringEventsOnBeat = null;
             if(ReplayManager.IsReplayMode)
             {
-                replayEventsOnBeat = ReplayManager.GetNoteEventsAtTime(currentTime);
+                scoringEventsOnBeat = ScoreManager.ScoringEvents.FindAll(x => CheckSameTime(x.ObjectTime, currentTime));
             }
 
             //Precalculate values for all objects on this beat
@@ -529,6 +529,9 @@ public class ObjectManager : MonoBehaviour
 
                 if(ReplayManager.IsReplayMode)
                 {
+                    Vector2 worldPosition = newNote.Position;
+                    worldPosition.y = Instance.objectYToWorldSpace(worldPosition.y);
+
                     //Find the replay event that matches this note
                     //This needs to be done by calculating object ID
                     //scoringType*10000 + lineIndex*1000 + noteLineLayer*100 + colorType*10 + cutDirection
@@ -548,7 +551,7 @@ public class ObjectManager : MonoBehaviour
                     else scoringType = ScoringType.Note;
 
                     int noteID = ((int)scoringType * 10000) + (n.x * 1000) + (n.y * 100) + (n.c * 10) + n.d;
-                    NoteEvent matchingEvent = replayEventsOnBeat.Find(x => x.noteID == noteID);
+                    ScoringEvent matchingEvent = scoringEventsOnBeat.Find(x => x.ID == noteID);
 
                     if(matchingEvent == null)
                     {
@@ -564,43 +567,46 @@ public class ObjectManager : MonoBehaviour
                         {
                             //Type for a note that's both a head and a tail might be swapped
                             noteID -= headTailDifference * 10000;
+                            scoringType = ScoringType.ArcTail;
                         }
                         else if(scoringType == ScoringType.ArcTail && hasHead)
                         {
                             noteID += headTailDifference * 10000;
+                            scoringType = ScoringType.ArcHead;
                         }
                         else if(scoringType == ScoringType.ChainHead && (hasHead || hasTail))
                         {
                             //A chain head that's also an arc head may be counted as an arc instead
                             noteID -= chainArcDifference * 10000;
-                            matchingEvent = replayEventsOnBeat.Find(x => x.noteID == noteID);
+                            matchingEvent = scoringEventsOnBeat.Find(x => x.ID == noteID);
+                            scoringType = ScoringType.ArcHead;
                             if(matchingEvent == null)
                             {
                                 //It might also be an arc tail :smil
                                 noteID -= headTailDifference * 10000;
+                                scoringType = ScoringType.ArcTail;
                             }
                         }
 
-                        matchingEvent = replayEventsOnBeat.Find(x => x.noteID == noteID);
+                        matchingEvent = scoringEventsOnBeat.Find(x => x.ID == noteID);
                     }
 
-                    if(matchingEvent == null || matchingEvent.eventType == NoteEventType.miss)
+                    if(matchingEvent == null || matchingEvent.noteEventType == NoteEventType.miss)
                     {
-                        newNote.WasHit = false;
+                        newNote.WasHit = false; 
 
-                        float missTime = matchingEvent?.eventTime ?? currentTime + Instance.BehindCameraTime;
-                        ScoreManager.AddNoteScoringEvent(scoringType, NoteEventType.miss, missTime, newNote.Position, null);
+                        float missTime = matchingEvent?.Time ?? currentTime + Instance.BehindCameraTime;
                     }
                     else
                     {
                         newNote.WasHit = true;
-                        newNote.WasBadCut = matchingEvent.eventType == NoteEventType.bad;
-                        newNote.HitOffset = matchingEvent.noteCutInfo?.timeDeviation ?? 0f;
-
-                        ScoreManager.AddNoteScoringEvent(scoringType, matchingEvent.eventType, matchingEvent.eventTime, newNote.Position, matchingEvent.noteCutInfo);
+                        newNote.WasBadCut = matchingEvent.noteEventType == NoteEventType.bad;
+                        newNote.HitOffset = matchingEvent.HitTimeOffset;
                     }
+                    matchingEvent?.SetEventValues(scoringType, worldPosition);
+
                     //Remove this event so it doesn't get reused by multiple notes
-                    replayEventsOnBeat.Remove(matchingEvent);
+                    scoringEventsOnBeat.Remove(matchingEvent);
                 }
 
                 newNotes.Add(newNote);
@@ -647,25 +653,27 @@ public class ObjectManager : MonoBehaviour
 
                     //Ignore the 1s place since direction doesn't matter
                     int noteID = ((int)ScoringType.NoScore * 10000) + (b.x * 1000) + (b.y * 100) + (bombColor * 10);
-                    NoteEvent matchingEvent = replayEventsOnBeat.Find(x => x.noteID - (x.noteID % 10) == noteID);
+                    ScoringEvent matchingEvent = scoringEventsOnBeat.Find(x => x.ID - (x.ID % 10) == noteID);
 
                     if(matchingEvent == null)
                     {
                         const int altDifference = bombColor - altBombColor;
                         noteID -= altDifference * 10;
 
-                        matchingEvent = replayEventsOnBeat.Find(x => x.noteID - (x.noteID % 10) == noteID);
+                        matchingEvent = scoringEventsOnBeat.Find(x => x.ID - (x.ID % 10) == noteID);
                     }
 
-                    if(matchingEvent != null && matchingEvent.eventType == NoteEventType.bomb)
+                    if(matchingEvent != null && matchingEvent.noteEventType == NoteEventType.bomb)
                     {
                         newBomb.WasHit = true;
                         newBomb.WasBadCut = true;
-                        newBomb.HitOffset = matchingEvent.spawnTime - matchingEvent.eventTime;
+                        newBomb.HitOffset = matchingEvent.ObjectTime - matchingEvent.Time;
 
-                        ScoreManager.AddNoteScoringEvent(ScoringType.NoScore, NoteEventType.bomb, matchingEvent.eventTime, newBomb.Position, null);
+                        Vector2 worldPosition = newBomb.Position;
+                        worldPosition.y = Instance.objectYToWorldSpace(worldPosition.y);
+                        matchingEvent.SetEventValues(ScoringType.NoScore, worldPosition);
                     }
-                    replayEventsOnBeat.Remove(matchingEvent);
+                    scoringEventsOnBeat.Remove(matchingEvent);
                 }
 
                 bombs.Add(newBomb);

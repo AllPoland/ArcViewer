@@ -17,8 +17,6 @@ public class ScoreManager : MonoBehaviour
     public const int MaxChainHeadScore = 85;
     public const int MaxChainLinkScore = 20;
 
-    private const float scoreIndicatorXRandomness = 0.15f;
-
     public static readonly byte[] ComboMultipliers = new byte[]
     {
         1,
@@ -112,10 +110,8 @@ public class ScoreManager : MonoBehaviour
     }
 
 
-    public static void InitializeScoringEvents()
+    public static void InitializeMapScore()
     {
-        ScoringEvents.SortElementsByBeat();
-
         int currentScore = 0;
         int maxScore = 0;
 
@@ -128,9 +124,17 @@ public class ScoreManager : MonoBehaviour
 
         int misses = 0;
 
+        int inferCount = 0;
         for(int i = 0; i < ScoringEvents.Count; i++)
         {
             ScoringEvent currentEvent = ScoringEvents[i];
+
+            if(!currentEvent.Initialized)
+            {
+                //This event wasn't matched with a note, so its type and position need to be inferred
+                currentEvent.InferEventValues();
+                inferCount++;
+            }
 
             if(currentEvent.scoringType == ScoringType.Ignore)
             {
@@ -167,7 +171,7 @@ public class ScoreManager : MonoBehaviour
                 currentScore += currentEvent.ScoreGained * ComboMultipliers[comboMult];
             }
 
-            if(fcComboMult < ComboMultipliers.Length - 1)
+            if(fcComboMult < ComboMultipliers.Length - 1 && currentEvent.scoringType != ScoringType.NoScore)
             {
                 //Increment FC combo, which is used to calculate max score
                 fcComboProgress++;
@@ -204,38 +208,11 @@ public class ScoreManager : MonoBehaviour
             // Debug.Log($"Event #{i} | Time: {Math.Round(currentEvent.Time, 2)} | Type: {currentEvent.scoringType} | Score: {currentEvent.ScoreGained} | Total score: {currentScore} | Max score: {maxScore} | Combo: {combo} | Combo mult: {ComboMultipliers[comboMult]}x");
         }
 
-        Debug.Log($"Initialized Scoring Events for replay with total score: {TotalScore}");
-    }
-
-
-    public static void AddNoteScoringEvent(ScoringType scoringType, NoteEventType eventType, float time, Vector2 position, NoteCutInfo cutInfo)
-    {
-        if(eventType == NoteEventType.good && cutInfo == null)
+        if(inferCount > 0)
         {
-            throw new ArgumentNullException("A good cut cannot have null cutInfo!");
+            Debug.LogWarning($"Unable to match {inferCount} scoring events to their notes! Scores may not line up.");
         }
-
-        if(scoringType == ScoringType.Ignore)
-        {
-            return;
-        }
-
-        ScoringEvent newEvent = new ScoringEvent();
-        newEvent.scoringType = scoringType;
-        newEvent.noteEventType = eventType;
-        newEvent.Time = time;
-        newEvent.position = position;
-
-        //Y position needs to be adjusted to worldspace, and the endX gets randomized a bit
-        newEvent.position.y = ObjectManager.Instance.objectYToWorldSpace(newEvent.position.y);
-        newEvent.endX = position.x + UnityEngine.Random.Range(-scoreIndicatorXRandomness, scoreIndicatorXRandomness);
-
-        if(eventType == NoteEventType.good)
-        {
-            newEvent.ScoreGained = GetNoteScore(scoringType, cutInfo.beforeCutRating, cutInfo.afterCutRating, cutInfo.cutDistanceToCenter);
-        }
-
-        ScoringEvents.Add(newEvent);
+        Debug.Log($"Initialized Scoring Events for replay with {ScoringEvents.Count} events. Total score: {TotalScore} out of max: {maxScore} with {misses} misses.");
     }
 
 
@@ -484,6 +461,11 @@ public class ScoreManager : MonoBehaviour
             ScoringEvents.Clear();
             hudObject.SetActive(true);
 
+            foreach(NoteEvent noteEvent in ReplayManager.CurrentReplay.notes)
+            {
+                ScoringEvents.Add(new ScoringEvent(noteEvent));
+            }
+
             TimeManager.OnBeatChanged += UpdateBeat;
             UpdateBeat(TimeManager.CurrentBeat);
         }
@@ -515,8 +497,18 @@ public class ScoreManager : MonoBehaviour
 
 public class ScoringEvent : MapElement
 {
+    public bool Initialized;
+
+    public int ID;
+    public float ObjectTime;
+
     public ScoringType scoringType;
     public NoteEventType noteEventType;
+
+    public float PreSwingAmount;
+    public float PostSwingAmount;
+    public float SwingCenterDistance;
+    public float HitTimeOffset;
 
     public int ScoreGained;
     public int TotalScore;
@@ -533,4 +525,74 @@ public class ScoringEvent : MapElement
     public int Misses;
 
     public TextMeshPro visual;
+
+
+    public ScoringEvent(NoteEvent noteEvent)
+    {
+        Initialized = false;
+
+        ID = noteEvent.noteID;
+        Time = noteEvent.eventTime;
+        ObjectTime = noteEvent.spawnTime;
+        noteEventType = noteEvent.eventType;
+
+        if(noteEvent.noteCutInfo != null)
+        {
+            PreSwingAmount = noteEvent.noteCutInfo.beforeCutRating;
+            PostSwingAmount = noteEvent.noteCutInfo.afterCutRating;
+            SwingCenterDistance = noteEvent.noteCutInfo.cutDistanceToCenter;
+            HitTimeOffset = noteEvent.noteCutInfo.timeDeviation;
+        }
+    }
+
+
+    public void SetEventValues(ScoringType newScoringType, Vector2 newPosition)
+    {
+        const float scoreIndicatorXRandomness = 0.15f;
+
+        scoringType = newScoringType;
+        position = newPosition;
+
+        endX = position.x + UnityEngine.Random.Range(-scoreIndicatorXRandomness, scoreIndicatorXRandomness);
+
+        if(noteEventType == NoteEventType.good)
+        {
+            ScoreGained = ScoreManager.GetNoteScore(scoringType, PreSwingAmount, PostSwingAmount, SwingCenterDistance);
+        }
+
+        Initialized = true;
+    }
+
+
+    public void InferEventValues()
+    {
+        int noteID = ID;
+
+        int cutDirection = noteID % 10;
+        noteID -= cutDirection;
+        int colorType = noteID % 100;
+        noteID -= colorType;
+        noteID /= 10;
+
+        bool isBomb = noteEventType == NoteEventType.bomb;
+        if(ID >= 80000 || colorType > 10 || cutDirection > 8)
+        {
+            //In ME, the ID can become worthless for identifying note type and position
+            //so we can only tell whether this was a bomb or a note
+            SetEventValues(isBomb ? ScoringType.NoScore : ScoringType.Note, Vector2.zero);
+        }
+
+        int y = noteID % 1000;
+        noteID -= y;
+        y /= 100;
+        int x = noteID % 10000;
+        noteID -= x;
+        x /= 1000;
+        int type = noteID / 10000;
+
+        Vector2 newPosition = ObjectManager.CalculateObjectPosition(x, y);
+        newPosition.y = ObjectManager.Instance.objectYToWorldSpace(newPosition.y);
+
+        SetEventValues((ScoringType)type, newPosition);
+    }
 }

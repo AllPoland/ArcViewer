@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -15,9 +14,6 @@ public class ReplayManager : MonoBehaviour
     public static bool LeftHandedMode => IsReplayMode && CurrentReplay.info.leftHanded;
 
     private static MapElementList<PlayerHeightEvent> playerHeightEvents = new MapElementList<PlayerHeightEvent>();
-
-
-    public static List<NoteEvent> GetNoteEventsAtTime(float time) => CurrentReplay.notes.FindAll(x => ObjectManager.CheckSameTime(x.spawnTime, time));
 
 
     public static void SetReplay(Replay newReplay)

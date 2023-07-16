@@ -51,7 +51,7 @@ public class ChainManager : MapElementManager<ChainLink>
         }
 
         //Keep track of replay events so we don't reuse them
-        List<NoteEvent> usedReplayEvents = new List<NoteEvent>();
+        List<ScoringEvent> usedScoringEvents = new List<ScoringEvent>();
 
         //Start at 1 because head note counts as a "segment"
         for(int i = 1; i < c.SegmentCount; i++)
@@ -80,7 +80,7 @@ public class ChainManager : MapElementManager<ChainLink>
             if(ReplayManager.IsReplayMode)
             {
                 //Links need to be matched up with their corresponding NoteEvents
-                List<NoteEvent> replayEventsOnBeat = ReplayManager.GetNoteEventsAtTime(newLink.Time);
+                List<ScoringEvent> scoringEventsOnBeat = ScoreManager.ScoringEvents.FindAll(x => ObjectManager.CheckSameTime(x.ObjectTime, newLink.Time));
 
                 BeatmapBurstSlider originalSlider = c.burstSlider;
 
@@ -91,38 +91,38 @@ public class ChainManager : MapElementManager<ChainLink>
 
                 int linkID = ((int)ScoringType.ChainLink * 10000) + (linkX * 1000) + (linkY * 100) + (c.Color * 10) + 8;
 
-                NoteEvent matchingEvent = replayEventsOnBeat.Find(x => x.noteID == linkID && !usedReplayEvents.Contains(x));
+                ScoringEvent matchingEvent = scoringEventsOnBeat.Find(x => x.ID == linkID && !usedScoringEvents.Contains(x));
                 if(matchingEvent == null && isLastElement)
                 {
                     //Sometimes the last link doesn't get tail coordinates though :smil
                     linkX = originalSlider.x;
                     linkY = originalSlider.y;
                     linkID = ((int)ScoringType.ChainLink * 10000) + (linkX * 1000) + (linkY * 100) + (c.Color * 10) + 8;
-                    matchingEvent = replayEventsOnBeat.Find(x => x.noteID == linkID && !usedReplayEvents.Contains(x));
+                    matchingEvent = scoringEventsOnBeat.Find(x => x.ID == linkID && !usedScoringEvents.Contains(x));
                 }
 
                 if(matchingEvent == null)
                 {
                     newLink.WasHit = false;
-                    ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, NoteEventType.miss, newLink.Time + objectManager.BehindCameraTime, newLink.Position, null);
                 }
                 else
                 {
-                    if(matchingEvent.eventType == NoteEventType.miss)
+                    if(matchingEvent.noteEventType == NoteEventType.miss)
                     {
                         newLink.WasHit = false;
-
-                        ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, NoteEventType.miss, matchingEvent.eventTime, newLink.Position, null);
                     }
                     else
                     {
                         newLink.WasHit = true;
-                        newLink.WasBadCut = matchingEvent.eventType == NoteEventType.bad;
-                        newLink.HitOffset = matchingEvent.noteCutInfo?.timeDeviation ?? 0f;
-
-                        ScoreManager.AddNoteScoringEvent(ScoringType.ChainLink, matchingEvent.eventType, matchingEvent.eventTime, newLink.Position, matchingEvent.noteCutInfo);
+                        newLink.WasBadCut = matchingEvent.noteEventType == NoteEventType.bad;
+                        newLink.HitOffset = matchingEvent.HitTimeOffset;
                     }
-                    usedReplayEvents.Add(matchingEvent);
+
+                    Vector2 worldPosition = newLink.Position;
+                    worldPosition.y = objectManager.objectYToWorldSpace(worldPosition.y);
+                    matchingEvent.SetEventValues(ScoringType.ChainLink, worldPosition);
+
+                    usedScoringEvents.Add(matchingEvent);
                 }
             }
 

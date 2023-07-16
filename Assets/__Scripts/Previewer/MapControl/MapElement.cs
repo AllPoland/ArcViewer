@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,6 +58,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     public int Count => Elements.Count;
 
     public T Last() => Elements.Last();
+    public List<T> FindAll(Predicate<T> match) => Elements.FindAll(match);
 
 
     public void Add(T item)
