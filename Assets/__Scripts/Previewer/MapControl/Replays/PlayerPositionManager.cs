@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PlayerPositionManager : MonoBehaviour
 {
-    public MapElementList<ReplayFrame> replayFrames = new MapElementList<ReplayFrame>();
+    public static MapElementList<ReplayFrame> replayFrames = new MapElementList<ReplayFrame>();
 
     public static Vector3 HeadPosition { get; private set; }
     public static Vector3 LeftSaberTipPosition { get; private set; }
@@ -21,6 +21,24 @@ public class PlayerPositionManager : MonoBehaviour
 
     [Space]
     [SerializeField] private float saberTipOffset;
+
+
+    public static Vector3 HeadPositionAtTime(float time)
+    {
+        if(replayFrames.Count == 0)
+        {
+            return Vector3.zero;
+        }
+
+        int lastFrameIndex = replayFrames.GetLastIndexUnoptimized(x => x.Time <= time);
+        if(lastFrameIndex < 0)
+        {
+            //Always start with the first frame
+            lastFrameIndex = 0;
+        }
+
+        return replayFrames[lastFrameIndex].headPosition;
+    }
 
 
     private void SetDefaultPositions()

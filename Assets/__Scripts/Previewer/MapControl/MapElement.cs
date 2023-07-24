@@ -64,7 +64,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     public void Add(T item)
     {
         //If the new item is in order, don't wanna bother resorting the whole list
-        IsSorted = Count == 0 || (IsSorted && item.Time >= Last().Time);
+        IsSorted = Count == 0 || (IsSorted && item.Beat >= Last().Beat);
         Elements.Add(item);
     }
 
@@ -76,6 +76,20 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
             //Use the custom Add() to tell if the list is sorted
             Add(item);
         }
+    }
+
+
+    public void InsertSorted(T item)
+    {
+        //Inserts the item to where it would be, based on its time
+        if(!IsSorted)
+        {
+            Debug.LogWarning("Trying to insert an item into an unsorted list!");
+            SortElementsByBeat();
+        }
+
+        int lastItemIndex = GetLastIndexUnoptimized(x => x.Time < item.Time);
+        Elements.Insert(lastItemIndex + 1, item);
     }
 
 
@@ -107,7 +121,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     {
         if(!IsSorted)
         {
-            Elements = Elements.OrderBy(x => x.Time).ToList();
+            Elements = Elements.OrderBy(x => x.Beat).ToList();
             IsSorted = true;
         }
     }
@@ -191,5 +205,13 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
         }
 
         return lastStartIndex;
+    }
+
+
+    public int GetLastIndexUnoptimized(CheckInRangeDelegate checkMethod)
+    {
+        int result = GetLastIndex(-1f, checkMethod);
+        lastStartIndex = 0;
+        return result;
     }
 }

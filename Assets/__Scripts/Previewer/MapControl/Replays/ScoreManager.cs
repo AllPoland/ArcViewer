@@ -131,9 +131,18 @@ public class ScoreManager : MonoBehaviour
 
             if(!currentEvent.Initialized)
             {
-                //This event wasn't matched with a note, so its type and position need to be inferred
-                currentEvent.InferEventValues();
-                inferCount++;
+                if(currentEvent.IsWall)
+                {
+                    //Wall hits need to get their position from the player head
+                    Vector3 headPosition = PlayerPositionManager.HeadPositionAtTime(currentEvent.Time);
+                    currentEvent.SetEventValues(ScoringType.NoScore, headPosition);
+                }
+                else
+                {
+                    //This event wasn't matched with a note, so its type and position need to be inferred
+                    currentEvent.InferEventValues();
+                    inferCount++;
+                }
             }
 
             if(currentEvent.scoringType == ScoringType.Ignore)
@@ -466,6 +475,12 @@ public class ScoreManager : MonoBehaviour
                 ScoringEvents.Add(new ScoringEvent(noteEvent));
             }
 
+            foreach(WallEvent wallEvent in ReplayManager.CurrentReplay.walls)
+            {
+                ScoringEvents.InsertSorted(new ScoringEvent(wallEvent));
+
+            }
+
             TimeManager.OnBeatChanged += UpdateBeat;
             UpdateBeat(TimeManager.CurrentBeat);
         }
@@ -500,6 +515,7 @@ public class ScoringEvent : MapElement
     public bool Initialized;
 
     public int ID;
+    public bool IsWall;
     public float ObjectTime;
 
     public ScoringType scoringType;
@@ -532,6 +548,7 @@ public class ScoringEvent : MapElement
         Initialized = false;
 
         ID = noteEvent.noteID;
+        IsWall = false;
         Time = noteEvent.eventTime;
         ObjectTime = noteEvent.spawnTime;
         noteEventType = noteEvent.eventType;
@@ -543,6 +560,19 @@ public class ScoringEvent : MapElement
             SwingCenterDistance = noteEvent.noteCutInfo.cutDistanceToCenter;
             HitTimeOffset = noteEvent.noteCutInfo.timeDeviation;
         }
+    }
+
+
+    public ScoringEvent(WallEvent wallEvent)
+    {
+        Initialized = false;
+
+        ID = wallEvent.wallID;
+        IsWall = true;
+        Time = wallEvent.time;
+        ObjectTime = wallEvent.spawnTime;
+        noteEventType = NoteEventType.bad;
+        scoringType = ScoringType.NoScore;
     }
 
 
