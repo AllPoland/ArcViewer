@@ -13,6 +13,10 @@ public class ReplayManager : MonoBehaviour
     public static float PlayerHeight;
     public static bool LeftHandedMode => IsReplayMode && CurrentReplay.info.leftHanded;
 
+    public static bool Failed = false;
+    public static float FailTime = 0f;
+    public static bool HasFailed => Failed && TimeManager.CurrentTime >= FailTime;
+
     private static MapElementList<PlayerHeightEvent> playerHeightEvents = new MapElementList<PlayerHeightEvent>();
 
 
@@ -64,6 +68,9 @@ public class ReplayManager : MonoBehaviour
         IsReplayMode = false;
         CurrentReplay = null;
         PlayerHeight = ObjectManager.DefaultPlayerHeight;
+
+        Failed = false;
+        FailTime = 0f;
 
         OnReplayModeChanged?.Invoke(false);
         OnReplayUpdated?.Invoke(null);
