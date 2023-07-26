@@ -23,7 +23,7 @@ public class ExplorerManager : MonoBehaviour, IPointerDownHandler
 
     public void OnReplayUploaded(string url)
     {
-        Debug.LogError("Not implemented yet smil");
+        mapLoader.LoadReplayDirectoryWebGL(url);
     }
 #endif
 

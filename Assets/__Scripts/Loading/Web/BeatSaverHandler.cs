@@ -11,17 +11,17 @@ public static class BeatSaverHandler
     private const string hashDirect = "maps/hash/";
 
 
-    public static async Task<string> GetBeatSaverMapHash(string hash)
+    public static async Task<(string, string)> GetBeatSaverMapHash(string hash)
     {
         string json = await GetApiResponse(hashDirect, hash, false);
 
-        if(string.IsNullOrEmpty(json)) return "";
+        if(string.IsNullOrEmpty(json)) return ("", "");
 
         BeatSaverResponse response = JsonUtility.FromJson<BeatSaverResponse>(json);
 
         if(response.versions == null || response.versions.Length == 0)
         {
-            return "";
+            return ("", "");
         }
 
         string url = response.versions.FirstOrDefault(x => x.hash.Equals(hash, StringComparison.InvariantCultureIgnoreCase))?.downloadURL;
@@ -31,7 +31,7 @@ public static class BeatSaverHandler
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "This replay is for an outdated map version!");
             url = response.versions.First().downloadURL;
         }
-        return url;
+        return (url, response.id);
     }
 
 

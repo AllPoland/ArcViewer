@@ -142,19 +142,16 @@ public class MapLoader : MonoBehaviour
 #endif
 
 
-    public IEnumerator LoadMapZipURLCoroutine(string url, string mapID = null, bool noProxy = false)
+    public IEnumerator LoadMapZipURLCoroutine(string url, string mapID = null, string mapHash = null, bool noProxy = false)
     {
         Loading = true;
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        //Use the map id as the map key to avoid making requests to beatsaver for cached maps
-        string cacheKey = string.IsNullOrEmpty(mapID) ? url : mapID;
-        string cachedMapPath = FileCache.GetCachedFile(cacheKey);
-
-        if(!string.IsNullOrEmpty(cachedMapPath))
+        CachedFile cachedFile = FileCache.GetCachedFile(url, mapID, mapHash);
+        if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
             Debug.Log("Found map in cache.");
-            LoadMapZip(cachedMapPath);
+            LoadMapZip(cachedFile.FilePath);
             yield break;
         }
 #endif
@@ -177,7 +174,7 @@ public class MapLoader : MonoBehaviour
 #if !UNITY_WEBGL || UNITY_EDITOR
         else
         {
-            FileCache.SaveFileToCache(zipStream, cacheKey);
+            FileCache.SaveFileToCache(zipStream, url, mapID, mapHash);
         }
 #endif
 
@@ -204,11 +201,11 @@ public class MapLoader : MonoBehaviour
         Loading = true;
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        string cachedMapPath = FileCache.GetCachedFile(mapID);
-        if(!string.IsNullOrEmpty(cachedMapPath))
+        CachedFile cachedFile = FileCache.GetCachedFile(null, mapID);
+        if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
             Debug.Log("Found map in cache.");
-            LoadMapZip(cachedMapPath);
+            LoadMapZip(cachedFile.FilePath);
             yield break;
         }
 #endif
@@ -237,11 +234,11 @@ public class MapLoader : MonoBehaviour
         Debug.Log($"Searching for map matching replay hash: {mapHash}");
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        string cachedMapPath = FileCache.GetCachedFile(mapHash);
-        if(!string.IsNullOrEmpty(cachedMapPath))
+        CachedFile cachedFile = FileCache.GetCachedFile(null, null, mapHash);
+        if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
             Debug.Log("Found map in cache.");
-            LoadMapZip(cachedMapPath);
+            LoadMapZip(cachedFile.FilePath);
             yield break;
         }
 #endif
@@ -249,10 +246,11 @@ public class MapLoader : MonoBehaviour
         Debug.Log($"Getting BeatSaver response for hash: {mapHash}");
         LoadingMessage = "Fetching map from BeatSaver";
 
-        using Task<string> apiTask = BeatSaverHandler.GetBeatSaverMapHash(mapHash);
+        using Task<(string, string)> apiTask = BeatSaverHandler.GetBeatSaverMapHash(mapHash);
         yield return new WaitUntil(() => apiTask.IsCompleted);
 
-        string mapURL = apiTask.Result;
+        string mapURL = apiTask.Result.Item1;
+        string mapID = apiTask.Result.Item2;
         if(string.IsNullOrEmpty(mapURL))
         {
             Debug.Log("Empty or nonexistant URL!");
@@ -260,17 +258,18 @@ public class MapLoader : MonoBehaviour
             yield break;
         }
 
-        StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapHash));
+        UrlArgHandler.LoadedMapID = mapID;
+        StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, mapHash));
     }
 
 
-    #if !UNITY_WEBGL || UNITY_EDITOR
+#if !UNITY_WEBGL || UNITY_EDITOR
     private IEnumerator LoadReplayDirectoryCoroutine(string directory)
     {
         Loading = true;
 
         Debug.Log($"Loading replay from directory: {directory}");
-        LoadingMessage = "Loading Replay";
+        LoadingMessage = "Loading replay";
 
         using Task<Replay> replayTask = Task.Run(() => ReplayLoader.ReplayFromDirectory(directory));
         yield return new WaitUntil(() => replayTask.IsCompleted);
@@ -284,6 +283,64 @@ public class MapLoader : MonoBehaviour
 
         ReplayManager.SetReplay(replay);
         StartCoroutine(LoadMapReplay(replay));
+    }
+#else
+
+
+    private IEnumerator LoadReplayDirectoryWebGLCoroutine(string directory)
+    {
+        Loading = true;
+        LoadingMessage = "Loading replay";
+
+        Debug.Log("Starting web request.");
+        using UnityWebRequest uwr = UnityWebRequest.Get(directory);
+        yield return uwr.SendWebRequest();
+
+        if(uwr.result == UnityWebRequest.Result.Success)
+        {
+            using Task<Replay> replayTask = ReplayLoader.ReplayFromStream(new MemoryStream(uwr.downloadHandler.data));
+            yield return new WaitUntil(() => replayTask.IsCompleted);
+
+            Replay replay = replayTask.Result;
+            if(replay == null)
+            {
+                Debug.LogWarning($"Failed to read replay data!");
+                ErrorHandler.Instance.ShowPopup(ErrorType.Error, $"Failed to read replay data!");
+
+                UpdateMapInfo(LoadedMap.Empty);
+                yield break;
+            }
+
+            ReplayManager.SetReplay(replay);
+            StartCoroutine(LoadMapReplay(replay));
+        }
+        else
+        {
+            Debug.LogWarning(uwr.error);
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, $"Failed to load replay! {uwr.error}");
+
+            UpdateMapInfo(LoadedMap.Empty);
+            yield break;
+        }
+    }
+
+
+    public void LoadReplayDirectoryWebGL(string directory)
+    {
+        if(DialogueHandler.DialogueActive)
+        {
+            return;
+        }
+
+        if(Loading)
+        {
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "You're already loading something!");
+            Debug.LogWarning("Trying to load a replay while already loading!");
+            return;
+        }
+
+        StartCoroutine(LoadReplayDirectoryWebGLCoroutine(directory));
+        UrlArgHandler.LoadedReplayURL = null;
     }
 #endif
 
@@ -461,6 +518,7 @@ public class MapLoader : MonoBehaviour
         }
 
         HotReloader.loadedMapPath = null;
+        UrlArgHandler.LoadedReplayID = null;
 
         if(input.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase) || input.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase))
         {

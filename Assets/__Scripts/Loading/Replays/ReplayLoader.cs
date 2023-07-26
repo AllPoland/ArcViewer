@@ -67,6 +67,9 @@ public class ReplayLoader
     public static async Task<string> ReplayURLFromScoreID(string scoreID)
     {
         string url = String.Concat(beatleaderApiURL, scoreDirect, scoreID);
+#if UNITY_WEBGL && !UNITY_EDITOR
+        url = WebLoader.GetCorsURL(url);
+#endif
 
         try
         {

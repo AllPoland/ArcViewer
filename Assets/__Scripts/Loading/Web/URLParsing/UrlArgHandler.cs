@@ -24,8 +24,6 @@ public class UrlArgHandler : MonoBehaviour
         {
             _loadedMapID = value;
             _loadedMapURL = null;
-            _loadedReplayID = null;
-            _loadedReplayURL = null;
         }
     }
 
@@ -38,8 +36,6 @@ public class UrlArgHandler : MonoBehaviour
         {
             _loadedMapURL = value;
             _loadedMapID = null;
-            _loadedReplayID = null;
-            _loadedReplayURL = null;
         }
     }
 
@@ -51,8 +47,6 @@ public class UrlArgHandler : MonoBehaviour
         set
         {
             _loadedReplayID = value;
-            _loadedMapID = null;
-            _loadedMapURL = null;
             _loadedReplayURL = null;
         }
     }
@@ -65,9 +59,7 @@ public class UrlArgHandler : MonoBehaviour
         set
         {
             _loadedReplayURL = value;
-            _loadedMapID = null;
             _loadedReplayID = null;
-            _loadedMapURL = null;
         }
     }
 
@@ -140,7 +132,7 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
-            StartCoroutine(mapLoader.LoadMapZipURLCoroutine(mapURL, null, noProxy));
+            StartCoroutine(mapLoader.LoadMapZipURLCoroutine(mapURL, null, null, noProxy));
             LoadedMapURL = mapURL;
 
             autoLoad = true;

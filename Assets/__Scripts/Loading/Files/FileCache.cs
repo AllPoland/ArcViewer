@@ -33,7 +33,7 @@ public class FileCache
     private static List<CachedFile> CachedFiles;
 
 
-    public static string GetCachedFile(string key)
+    public static CachedFile GetCachedFile(string url = null, string id = null, string hash = null)
     {
         if(CachedFiles == null)
         {
@@ -42,32 +42,45 @@ public class FileCache
 
         if(CachedFiles.Count <= 0)
         {
-            return "";
+            return null;
         }
 
-        CachedFile match = CachedFiles.FirstOrDefault(x => x.Key == key);
+        CachedFile match = CachedFiles.FirstOrDefault(x => x.MatchInput(url, id, hash));
         if(match != null)
         {
             //Move this file to the end of the list
             CachedFiles.Remove(match);
             CachedFiles.Add(match);
+
+            //Add missing fields if we have new ones
+            if(string.IsNullOrEmpty(match.URL)) match.URL = url;
+            if(string.IsNullOrEmpty(match.ID)) match.ID = id;
+            if(string.IsNullOrEmpty(match.Hash)) match.Hash = hash;
+
             SaveCacheData();
         }
 
-        return match?.FilePath ?? "";
+        return match;
     }
 
 
-    public static void SaveFileToCache(Stream fileStream, string key)
+    public static void SaveFileToCache(Stream fileStream, string url = null, string id = null, string hash = null)
     {
         if(CachedFiles == null)
         {
             LoadCachedFiles();
         }
 
-        if(CachedFiles.Any(x => x.Key == key))
+        CachedFile match = CachedFiles.FirstOrDefault(x => x.MatchInput(url, id, hash));
+        if(match != null)
         {
-            //This file has already been cached
+            //This file has already been cached, add missing fields if we have new ones
+            if(string.IsNullOrEmpty(match.URL)) match.URL = url;
+            if(string.IsNullOrEmpty(match.ID)) match.ID = id;
+            if(string.IsNullOrEmpty(match.Hash)) match.Hash = hash;
+
+            SaveCacheData();
+            Debug.Log("Tried to save an already cached file.");
             return;
         }
 
@@ -93,7 +106,9 @@ public class FileCache
 
         CachedFile newFile = new CachedFile
         {
-            Key = key,
+            URL = url,
+            ID = id,
+            Hash = hash,
             FilePath = newFilePath
         };
 
@@ -216,12 +231,22 @@ public class FileCache
             Debug.LogWarning($"Failed to write cache data with error: {e.Message}, {e.StackTrace}");
         }
     }
+}
 
 
-    [Serializable]
-    public class CachedFile
+[Serializable]
+public class CachedFile
+{
+    public string ID;
+    public string URL;
+    public string Hash;
+    public string FilePath;
+
+    public bool MatchInput(string id, string url, string hash)
     {
-        public string Key;
-        public string FilePath;
+        if(!string.IsNullOrEmpty(id) && id == ID) return true;
+        if(!string.IsNullOrEmpty(url) && url == URL) return true;
+        if(!string.IsNullOrEmpty(hash) && hash == Hash) return true;
+        return false;
     }
 }
