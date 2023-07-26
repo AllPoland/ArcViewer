@@ -94,6 +94,13 @@ public class MapDirectoryInput : MonoBehaviour
     private void UpdatePlaceholderText(bool _) => UpdatePlaceholderText();
 
 
+    private void UpdateReplayPrompt()
+    {
+        directoryField.text = "";
+        UpdatePlaceholderText();
+    }
+
+
     public void UpdateSettings(string changedSetting)
     {
         if(changedSetting == "all" || changedSetting == TheSoup.Rule || changedSetting == "replaymode")
@@ -124,8 +131,8 @@ public class MapDirectoryInput : MonoBehaviour
     private void OnEnable()
     {
         SettingsManager.OnSettingsUpdated += UpdateSettings;
-        MapLoader.OnReplayMapPrompt += UpdatePlaceholderText;
-        MapLoader.OnLoadingFailed += UpdatePlaceholderText;
+        MapLoader.OnReplayMapPrompt += UpdateReplayPrompt;
+        MapLoader.OnLoadingFailed += UpdateReplayPrompt;
         ReplayManager.OnReplayModeChanged += UpdatePlaceholderText;
 
         if(SettingsManager.Loaded)
@@ -138,8 +145,8 @@ public class MapDirectoryInput : MonoBehaviour
     private void OnDisable()
     {
         SettingsManager.OnSettingsUpdated -= UpdateSettings;
-        MapLoader.OnReplayMapPrompt -= UpdatePlaceholderText;
-        MapLoader.OnLoadingFailed -= UpdatePlaceholderText;
+        MapLoader.OnReplayMapPrompt -= UpdateReplayPrompt;
+        MapLoader.OnLoadingFailed -= UpdateReplayPrompt;
         ReplayManager.OnReplayModeChanged -= UpdatePlaceholderText;
     }
 }
