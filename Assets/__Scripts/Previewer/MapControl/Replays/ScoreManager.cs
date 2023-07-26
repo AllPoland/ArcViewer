@@ -395,6 +395,15 @@ public class ScoreManager : MonoBehaviour
     }
 
 
+    private void ClearIndicators()
+    {
+        for(int i = RenderedScoringEvents.Count - 1; i >= 0; i--)
+        {
+            ReleaseIndicator(RenderedScoringEvents[i]);
+        }
+    }
+
+
     private void ClearOutsideIndicators()
     {
         for(int i = RenderedScoringEvents.Count - 1; i >= 0; i--)
@@ -516,6 +525,7 @@ public class ScoreManager : MonoBehaviour
 
     private void Reset()
     {
+        ClearIndicators();
         ScoringEvents.Clear();
         hudObject.SetActive(false);
 
