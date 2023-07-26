@@ -66,30 +66,39 @@ public class MapDirectoryInput : MonoBehaviour
     }
 
 
+    private void UpdatePlaceholderText()
+    {
+        if(SettingsManager.GetBool(TheSoup.Rule))
+        {
+            placeholderText.text = theSoupPlaceholder;
+        }
+        else if(!ReplayManager.IsReplayMode && SettingsManager.GetBool("replaymode"))
+        {
+#if UNITY_WEBGL
+            placeholderText.text = webGLReplayPlaceholder;
+#else
+            placeholderText.text = replayPlaceholder;
+#endif
+        }
+        else
+        {
+#if UNITY_WEBGL
+            placeholderText.text = webGLPlaceholder;
+#else
+            placeholderText.text = placeholder;
+#endif
+        }
+    }
+
+
+    private void UpdatePlaceholderText(bool _) => UpdatePlaceholderText();
+
+
     public void UpdateSettings(string changedSetting)
     {
         if(changedSetting == "all" || changedSetting == TheSoup.Rule || changedSetting == "replaymode")
         {
-            if(SettingsManager.GetBool(TheSoup.Rule))
-            {
-                placeholderText.text = theSoupPlaceholder;
-            }
-            else if(SettingsManager.GetBool("replaymode"))
-            {
-#if UNITY_WEBGL
-                placeholderText.text = webGLReplayPlaceholder;
-#else
-                placeholderText.text = replayPlaceholder;
-#endif
-            }
-            else
-            {
-#if UNITY_WEBGL
-                placeholderText.text = webGLPlaceholder;
-#else
-                placeholderText.text = placeholder;
-#endif
-            }
+            UpdatePlaceholderText();
         }
     }
 
@@ -115,10 +124,13 @@ public class MapDirectoryInput : MonoBehaviour
     private void OnEnable()
     {
         SettingsManager.OnSettingsUpdated += UpdateSettings;
+        MapLoader.OnReplayMapPrompt += UpdatePlaceholderText;
+        MapLoader.OnLoadingFailed += UpdatePlaceholderText;
+        ReplayManager.OnReplayModeChanged += UpdatePlaceholderText;
 
         if(SettingsManager.Loaded)
         {
-            UpdateSettings("all");
+            UpdatePlaceholderText();
         }
     }
 
@@ -126,5 +138,8 @@ public class MapDirectoryInput : MonoBehaviour
     private void OnDisable()
     {
         SettingsManager.OnSettingsUpdated -= UpdateSettings;
+        MapLoader.OnReplayMapPrompt -= UpdatePlaceholderText;
+        MapLoader.OnLoadingFailed -= UpdatePlaceholderText;
+        ReplayManager.OnReplayModeChanged -= UpdatePlaceholderText;
     }
 }

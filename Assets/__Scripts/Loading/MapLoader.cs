@@ -28,6 +28,7 @@ public class MapLoader : MonoBehaviour
     public static event Action<bool> OnLoadingChanged;
     public static event Action OnMapLoaded;
     public static event Action OnLoadingFailed;
+    public static event Action OnReplayMapPrompt;
 
 
     public static Dictionary<string, DifficultyRank> DiffValueFromString = new Dictionary<string, DifficultyRank>
@@ -253,8 +254,12 @@ public class MapLoader : MonoBehaviour
         string mapID = apiTask.Result.Item2;
         if(string.IsNullOrEmpty(mapURL))
         {
-            Debug.Log("Empty or nonexistant URL!");
-            UpdateMapInfo(LoadedMap.Empty);
+            Debug.Log("Empty or nonexistant URL! Showing manual map selection.");
+
+            Loading = false;
+            LoadingMessage = "";
+
+            OnReplayMapPrompt?.Invoke();
             yield break;
         }
 
@@ -517,8 +522,11 @@ public class MapLoader : MonoBehaviour
             return;
         }
 
-        HotReloader.loadedMapPath = null;
-        UrlArgHandler.LoadedReplayID = null;
+        if(!ReplayManager.IsReplayMode)
+        {
+            HotReloader.loadedMapPath = null;
+            UrlArgHandler.LoadedReplayID = null;
+        }
 
         if(input.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase) || input.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase))
         {
@@ -541,7 +549,7 @@ public class MapLoader : MonoBehaviour
                 return;
             }
 
-            if(input.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase))
+            if(!ReplayManager.IsReplayMode && input.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase))
             {
                 StartCoroutine(LoadReplayURLCoroutine(input));
                 UrlArgHandler.LoadedReplayURL = input;
@@ -549,10 +557,11 @@ public class MapLoader : MonoBehaviour
             }
 
             Debug.LogWarning($"{input} doesn't link to a valid map!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Invalid URL!");
             return;
         }
 
-        if(forceReplay || SettingsManager.GetBool("replaymode"))
+        if(!ReplayManager.IsReplayMode && (forceReplay || SettingsManager.GetBool("replaymode")))
         {
             if(!input.Any(x => !char.IsDigit(x)))
             {
@@ -580,6 +589,12 @@ public class MapLoader : MonoBehaviour
         UrlArgHandler.LoadedMapURL = null;
         LoadMapDirectory(input);
 #endif
+    }
+
+
+    public void CancelMapLoading()
+    {
+        UpdateMapInfo(LoadedMap.Empty);
     }
 
 
