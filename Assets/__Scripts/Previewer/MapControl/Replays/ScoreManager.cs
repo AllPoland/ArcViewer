@@ -17,8 +17,7 @@ public class ScoreManager : MonoBehaviour
     public const int MaxChainHeadScore = 85;
     public const int MaxChainLinkScore = 20;
 
-    private const int maxHealth = 100;
-    private const int startHealth = 50;
+    private const float startEnergy = 0.5f;
 
     public static readonly byte[] ComboMultipliers = new byte[]
     {
@@ -54,8 +53,8 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private Transform scoreIndicatorParent;
 
     [Space]
-    [SerializeField] private RectTransform healthBar;
-    [SerializeField] private RectTransform healthBarFill;
+    [SerializeField] private RectTransform energyBar;
+    [SerializeField] private RectTransform energyBarFill;
 
     [Header("Parameters")]
     [SerializeField] private string multiplierPrefix;
@@ -119,13 +118,18 @@ public class ScoreManager : MonoBehaviour
 
     public static void InitializeMapScore()
     {
-        const int damageAmount = 15;
-        const int healAmount = 1;
+        const float badcutDamageAmount = 0.1f;
+        const float chainLinkBadcutDamageAmount = 0.025f;
+        const float missDamageAmount = 0.15f;
+        const float chainLinkMissDamageAmount = 0.03f;
+
+        const float healAmount = 0.01f;
+        const float chainLinkHealAmount = 1f / 500f;
 
         int currentScore = 0;
         int maxScore = 0;
 
-        int currentHealth = startHealth;
+        float currentEnergy = startEnergy;
 
         int combo = 0;
         byte comboMult = 0;
@@ -175,8 +179,24 @@ public class ScoreManager : MonoBehaviour
                 misses++;
                 if(!currentEvent.IsWall)
                 {
-                    //Walls already get their health set in the constructor
-                    currentHealth -= damageAmount;
+                    switch(currentEvent.noteEventType)
+                    {
+                        case NoteEventType.bad:
+                            if(currentEvent.scoringType == ScoringType.ChainLink)
+                            {
+                                currentEnergy -= chainLinkBadcutDamageAmount;
+                            }
+                            else currentEnergy -= badcutDamageAmount;
+                            break;
+                        case NoteEventType.miss:
+                        case NoteEventType.bomb:
+                            if(currentEvent.scoringType == ScoringType.ChainLink)
+                            {
+                                currentEnergy -= chainLinkMissDamageAmount;
+                            }
+                            else currentEnergy -= missDamageAmount;
+                            break;
+                    }
                 }
             }
             else
@@ -195,7 +215,12 @@ public class ScoreManager : MonoBehaviour
                 }
 
                 currentScore += currentEvent.ScoreGained * ComboMultipliers[comboMult];
-                currentHealth += healAmount;
+
+                if(currentEvent.scoringType == ScoringType.ChainLink)
+                {
+                    currentEnergy += chainLinkHealAmount;
+                }
+                else currentEnergy += healAmount;
             }
 
             if(fcComboMult < ComboMultipliers.Length - 1 && currentEvent.scoringType != ScoringType.NoScore)
@@ -226,9 +251,9 @@ public class ScoreManager : MonoBehaviour
 
             if(ReplayManager.Failed)
             {
-                currentHealth = 0;
+                currentEnergy = 0;
             }
-            else if(currentHealth <= 0)
+            else if(currentEnergy <= 0)
             {
                 ReplayManager.Failed = true;
                 ReplayManager.FailTime = currentEvent.Time;
@@ -236,19 +261,18 @@ public class ScoreManager : MonoBehaviour
             }
             else
             {
-                currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+                currentEnergy = Mathf.Clamp01(currentEnergy);
             }
 
             currentEvent.TotalScore = currentScore;
             currentEvent.MaxScore = maxScore;
-            currentEvent.Health = currentHealth;
+            currentEvent.Energy = currentEnergy;
             currentEvent.Combo = combo;
             currentEvent.ComboMult = comboMult;
             currentEvent.ComboProgress = comboProgress;
             currentEvent.Misses = misses;
 
             currentEvent.ScorePercentage = maxScore == 0 ? 100f : ((float)currentScore / maxScore) * 100;
-            currentEvent.EffectivePercentage = ReplayManager.Failed ? currentEvent.ScorePercentage / 2 : currentEvent.ScorePercentage;
             // Debug.Log($"Event #{i} | Time: {Math.Round(currentEvent.Time, 2)} | Type: {currentEvent.scoringType} | Score: {currentEvent.ScoreGained} | Total score: {currentScore} | Max score: {maxScore} | Combo: {combo} | Combo mult: {ComboMultipliers[comboMult]}x");
         }
 
@@ -405,24 +429,22 @@ public class ScoreManager : MonoBehaviour
 
         int currentScore;
         float currentPercentage;
-        float effectivePercentage;
         int currentCombo;
         int currentComboMult;
         int currentComboProgress;
         int currentMisses;
-        int currentHealth;
+        float currentEnergy;
         if(lastIndex >= 0)
         {
             ScoringEvent lastEvent = ScoringEvents[lastIndex];
 
             currentScore = lastEvent.TotalScore;
             currentPercentage = lastEvent.ScorePercentage;
-            effectivePercentage = lastEvent.EffectivePercentage;
             currentCombo = lastEvent.Combo;
             currentComboMult = lastEvent.ComboMult;
             currentComboProgress = lastEvent.ComboProgress;
             currentMisses = lastEvent.Misses;
-            currentHealth = lastEvent.Health;
+            currentEnergy = lastEvent.Energy;
 
             UpdateScoreIndicators(lastIndex);
         }
@@ -430,17 +452,17 @@ public class ScoreManager : MonoBehaviour
         {
             currentScore = 0;
             currentPercentage = 100f;
-            effectivePercentage = 100f;
             currentCombo = 0;
             currentComboMult = 0;
             currentComboProgress = 0;
             currentMisses = 0;
-            currentHealth = startHealth;
+            currentEnergy = startEnergy;
         }
 
         comboText.text = currentCombo.ToString();
         missText.text = currentMisses.ToString();
 
+        float effectivePercentage = ReplayManager.HasFailed ? currentPercentage / 2 : currentPercentage;
         gradeText.text = GradeFromPercentage(effectivePercentage);
 
         //The score gets a space inserted between every 3 decimals
@@ -487,9 +509,8 @@ public class ScoreManager : MonoBehaviour
         multiplierText.text = multiplierPrefix + ComboMultipliers[currentComboMult].ToString();
         comboProgressFill.fillAmount = (float)currentComboProgress / HitsNeededForComboIncrease[currentComboMult];
 
-        float healthFillAmount = (float)currentHealth / maxHealth;
-        float healthBarWidth = healthBar.sizeDelta.x;
-        healthBarFill.sizeDelta = new Vector2(healthBarWidth * healthFillAmount, healthBarFill.sizeDelta.y);
+        float healthBarWidth = energyBar.sizeDelta.x;
+        energyBarFill.sizeDelta = new Vector2(healthBarWidth * currentEnergy, energyBarFill.sizeDelta.y);
     }
 
 
@@ -575,9 +596,8 @@ public class ScoringEvent : MapElement
     public int TotalScore;
     public int MaxScore;
     public float ScorePercentage;
-    public float EffectivePercentage;
 
-    public int Health;
+    public float Energy;
 
     public Vector2 position;
     public float endX;
@@ -621,7 +641,7 @@ public class ScoringEvent : MapElement
         ObjectTime = wallEvent.spawnTime;
         noteEventType = NoteEventType.bad;
         scoringType = ScoringType.NoScore;
-        Health = (int)wallEvent.energy;
+        Energy = wallEvent.energy;
     }
 
 
