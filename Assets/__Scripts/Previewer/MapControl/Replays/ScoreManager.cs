@@ -166,8 +166,11 @@ public class ScoreManager : MonoBehaviour
                 continue;
             }
 
-            bool isBadHit = currentEvent.noteEventType == NoteEventType.bad || currentEvent.noteEventType == NoteEventType.miss;
-            if(isBadHit || currentEvent.scoringType == ScoringType.NoScore)
+            bool isBadHit = currentEvent.noteEventType == NoteEventType.bad
+                || currentEvent.noteEventType == NoteEventType.miss
+                || currentEvent.scoringType == ScoringType.NoScore
+                || currentEvent.noteEventType == NoteEventType.bomb;
+            if(isBadHit)
             {
                 combo = 0;
                 if(comboMult > 0)
