@@ -110,16 +110,7 @@ public class PlayerPositionManager : MonoBehaviour
         }
 
         replayFrames.SortElementsByBeat();
-        UpdateBeat(TimeManager.CurrentBeat);
-    }
-
-
-    private void UpdateDifficulty(Difficulty newDifficulty)
-    {
-        if(ReplayManager.IsReplayMode)
-        {
-            UpdateReplay(ReplayManager.CurrentReplay);
-        }
+        UpdateBeat(0f);
     }
 
 
@@ -127,14 +118,13 @@ public class PlayerPositionManager : MonoBehaviour
     {
         if(ReplayManager.IsReplayMode)
         {
-            TimeManager.OnDifficultyBpmEventsLoaded += UpdateDifficulty;
             TimeManager.OnBeatChangedEarly += UpdateBeat;
 
             headVisual.SetActive(true);
             leftSaberVisual.SetActive(true);
             rightSaberVisual.SetActive(true);
             playerPlatform.SetActive(true);
-            UpdateBeat(TimeManager.CurrentBeat);
+            UpdateReplay(ReplayManager.CurrentReplay);
         }
         else
         {
@@ -158,7 +148,6 @@ public class PlayerPositionManager : MonoBehaviour
     private void OnDisable()
     {
         ReplayManager.OnReplayModeChanged -= UpdateReplayMode;
-        TimeManager.OnDifficultyBpmEventsLoaded -= UpdateDifficulty;
         TimeManager.OnBeatChangedEarly -= UpdateBeat;
 
         replayFrames.Clear();
