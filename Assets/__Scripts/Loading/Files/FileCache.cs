@@ -237,16 +237,25 @@ public class FileCache
 [Serializable]
 public class CachedFile
 {
-    public string ID;
     public string URL;
+    public string ID;
     public string Hash;
     public string FilePath;
 
-    public bool MatchInput(string id, string url, string hash)
+    public bool MatchInput(string url, string id, string hash)
     {
-        if(!string.IsNullOrEmpty(id) && id == ID) return true;
-        if(!string.IsNullOrEmpty(url) && url == URL) return true;
-        if(!string.IsNullOrEmpty(hash) && hash == Hash) return true;
-        return false;
+        if(!string.IsNullOrEmpty(url) && url == URL)
+        {
+            return true;
+        }
+        else if(!string.IsNullOrEmpty(id) && id == ID)
+        {
+            return true;
+        }
+        else if(!string.IsNullOrEmpty(hash) && hash == Hash)
+        {
+            return true;
+        }
+        else return false;
     }
 }
