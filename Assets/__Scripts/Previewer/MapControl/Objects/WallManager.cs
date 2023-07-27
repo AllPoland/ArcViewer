@@ -36,7 +36,7 @@ public class WallManager : MapElementManager<Wall>
 
     public override void UpdateVisual(Wall w)
     {
-        float wallLength = objectManager.WorldSpaceFromTime(w.DurationTime);
+        float wallLength = objectManager.WorldSpaceFromTime(w.DurationTime) * objectManager.NjsMult;
         wallLength = Mathf.Max(wallLength, MinWallSize);
 
         //Subtract 0.25 to make front face of wall line up with front face of note (walls just built like that)

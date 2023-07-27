@@ -14,11 +14,11 @@ public class ObjectManager : MonoBehaviour
     [SerializeField] public float objectFloorOffset;
 
     [Header("Managers")]
-    public NoteManager noteManager;
-    public BombManager bombManager;
-    public WallManager wallManager;
-    public ChainManager chainManager;
-    public ArcManager arcManager;
+    [SerializeField] public NoteManager noteManager;
+    [SerializeField] public BombManager bombManager;
+    [SerializeField] public WallManager wallManager;
+    [SerializeField] public ChainManager chainManager;
+    [SerializeField] public ArcManager arcManager;
 
     public bool forceGameAccuracy => ReplayManager.IsReplayMode && SettingsManager.GetBool("accuratereplays");
 
@@ -39,6 +39,7 @@ public class ObjectManager : MonoBehaviour
     public const float StartYSpacing = 0.6f;
     public const float WallHScale = 0.6f;
     public const float PrecisionUnits = 0.6f;
+    public const float PlayerCutPlaneDistance = 0.65f;
 
     public static readonly Dictionary<int, float> VanillaRowHeights = new Dictionary<int, float>
     {
@@ -86,7 +87,29 @@ public class ObjectManager : MonoBehaviour
         {8, 8}
     };
 
-    public float BehindCameraTime => TimeFromWorldspace(behindCameraZ);
+    //Clamp this so objects don't get ignored before they reach the cut plane, or stick around for way too long
+    public float BehindCameraTime => Mathf.Clamp(TimeFromWorldspaceAdjusted(behindCameraZ), -5f, 0f);
+
+    public float NjsMult
+    {
+        get
+        {
+            if(!ReplayManager.IsReplayMode)
+            {
+                return 1f;
+            }
+
+            float halfJumpDistance = BeatmapManager.JumpDistance / 2;
+            float adjustedJumpDistance = halfJumpDistance - CutPlanePos;
+            return adjustedJumpDistance / halfJumpDistance;
+        }
+    }
+
+    public float CutPlanePos => ReplayManager.IsReplayMode ? PlayerPositionManager.HeadPosition.z + PlayerCutPlaneDistance : 0f;
+    public float EffectiveHalfJumpDistance => ReplayManager.IsReplayMode ? (BeatmapManager.JumpDistance / 2) - CutPlanePos : BeatmapManager.JumpDistance / 2;
+
+    //Give a minimum value to avoid divide by 0 errors
+    public float EffectiveNJS => Mathf.Max(BeatmapManager.NJS * NjsMult, 0.0001f);
 
 
     public float objectYToWorldSpace(float y) => (y - objectFloorOffset) + 0.25f;
@@ -134,7 +157,7 @@ public class ObjectManager : MonoBehaviour
         {
             //Note has jumped in. Place based on Jump Setting stuff
             float timeDist = objectTime - TimeManager.CurrentTime;
-            return WorldSpaceFromTime(timeDist);
+            return WorldSpaceFromTimeAdjusted(timeDist);
         }
         else
         {
@@ -151,9 +174,21 @@ public class ObjectManager : MonoBehaviour
     }
 
 
+    public float WorldSpaceFromTimeAdjusted(float time)
+    {
+        return (time * EffectiveNJS) + CutPlanePos;
+    }
+
+
     public float TimeFromWorldspace(float position)
     {
         return position / BeatmapManager.NJS;
+    }
+
+
+    public float TimeFromWorldspaceAdjusted(float position)
+    {
+        return (position - CutPlanePos) / EffectiveNJS;
     }
 
 
@@ -177,8 +212,7 @@ public class ObjectManager : MonoBehaviour
             return startY;
         }
 
-        float halfJumpDistance = BeatmapManager.JumpDistance / 2;
-        return SpawnParabola(targetY, startY, halfJumpDistance, GetZPosition(objectTime));
+        return SpawnParabola(targetY, startY, EffectiveHalfJumpDistance, GetZPosition(objectTime) - CutPlanePos);
     }
 
 
