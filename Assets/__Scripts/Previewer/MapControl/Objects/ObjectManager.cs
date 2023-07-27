@@ -20,7 +20,7 @@ public class ObjectManager : MonoBehaviour
     public ChainManager chainManager;
     public ArcManager arcManager;
 
-    public bool forceGameAccuracy => ReplayManager.IsReplayMode;
+    public bool forceGameAccuracy => ReplayManager.IsReplayMode && SettingsManager.GetBool("accuratereplays");
 
     public bool useSimpleNoteMaterial => SettingsManager.GetBool("simplenotes");
     public bool useSimpleBombMaterial => SettingsManager.GetBool("simplebombs");
