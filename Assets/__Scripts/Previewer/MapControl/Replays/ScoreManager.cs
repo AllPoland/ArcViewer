@@ -70,7 +70,6 @@ public class ScoreManager : MonoBehaviour
     [Space]
     [SerializeField] private float badEndY;
     [SerializeField] private float badEndZ;
-    [SerializeField] private string badCutString;
     [SerializeField] private string missString;
 
     [Header("Colors")]
@@ -328,22 +327,6 @@ public class ScoreManager : MonoBehaviour
     }
 
 
-    private string GetIndicatorText(ScoringEvent scoringEvent)
-    {
-        switch(scoringEvent.noteEventType)
-        {
-            case NoteEventType.bad:
-            case NoteEventType.bomb:
-                return badCutString;
-            case NoteEventType.miss:
-                return missString;
-            case NoteEventType.good:
-            default:
-                return scoringEvent.ScoreGained.ToString();
-        }
-    }
-
-
     private void UpdateScoreIndicator(ScoringEvent scoringEvent)
     {
         float timeDifference = TimeManager.CurrentTime - scoringEvent.Time;
@@ -385,8 +368,20 @@ public class ScoreManager : MonoBehaviour
         }
 
         scoringEvent.visual.transform.position = position;
-        scoringEvent.visual.text = GetIndicatorText(scoringEvent);
-        scoringEvent.visual.color = color;
+
+        if(scoringEvent.noteEventType == NoteEventType.bad || scoringEvent.noteEventType == NoteEventType.bomb)
+        {
+            scoringEvent.visual.SetIconActive(true);
+        }
+        else
+        {
+            bool isMiss = scoringEvent.noteEventType == NoteEventType.miss;
+            string indicatorText = isMiss ? missString : scoringEvent.ScoreGained.ToString();
+
+            scoringEvent.visual.SetIconActive(false);
+            scoringEvent.visual.SetText(indicatorText);
+        }
+        scoringEvent.visual.SetColor(color);
     }
 
 
@@ -621,7 +616,7 @@ public class ScoringEvent : MapElement
 
     public int Misses;
 
-    public TextMeshPro visual;
+    public ScoreIndicatorHandler visual;
 
 
     public ScoringEvent(NoteEvent noteEvent)

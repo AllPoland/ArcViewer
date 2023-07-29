@@ -1,3 +1,1 @@
-using TMPro;
-
-public class TMProPool : ObjectPool<TextMeshPro> { }
+public class TMProPool : ObjectPool<ScoreIndicatorHandler> { }
