@@ -282,6 +282,12 @@ public class ScoreManager : MonoBehaviour
         {
             Debug.LogWarning($"Unable to match {inferCount} scoring events to their notes! Scores may not line up.");
         }
+
+        if(currentScore != ReplayManager.CurrentReplay.info.score)
+        {
+            Debug.LogWarning($"Calculated score does not match the metadata score: {ReplayManager.CurrentReplay.info.score}!");
+        }
+
         Debug.Log($"Initialized Scoring Events for replay with {ScoringEvents.Count} events. Total score: {TotalScore} out of max: {maxScore} with {misses} misses.");
     }
 
