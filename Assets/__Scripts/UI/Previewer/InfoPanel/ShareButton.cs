@@ -5,6 +5,7 @@ public class ShareButton : MonoBehaviour
 {
     [SerializeField] private string enabledTooltip;
     [SerializeField] private string disabledTooltip;
+    [SerializeField] private string disabledReplayTooltip;
 
     private Button button;
     private Tooltip tooltip;
@@ -21,7 +22,15 @@ public class ShareButton : MonoBehaviour
             tooltip = GetComponent<Tooltip>();
         }
 
-        button.interactable = !string.IsNullOrEmpty(UrlArgHandler.LoadedMapID) || !string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL);
-        tooltip.Text = button.interactable ? enabledTooltip : disabledTooltip;
+        if(ReplayManager.IsReplayMode)
+        {
+            button.interactable = !string.IsNullOrEmpty(UrlArgHandler.LoadedReplayID) || !string.IsNullOrEmpty(UrlArgHandler.LoadedReplayURL);
+            tooltip.Text = button.interactable ? enabledTooltip : disabledReplayTooltip;
+        }
+        else
+        {
+            button.interactable = !string.IsNullOrEmpty(UrlArgHandler.LoadedMapID) || !string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL);
+            tooltip.Text = button.interactable ? enabledTooltip : disabledTooltip;
+        }
     }
 }

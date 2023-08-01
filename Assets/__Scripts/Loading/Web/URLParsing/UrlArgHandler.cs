@@ -65,10 +65,13 @@ public class UrlArgHandler : MonoBehaviour
 
     public static DifficultyCharacteristic? LoadedCharacteristic;
     public static DifficultyRank? LoadedDiffRank;
+    public static bool ignoreMapForSharing;
 
     private static string mapID;
     private static string mapURL;
     private static string mapPath;
+    private static string replayID;
+    private static string replayURL;
     private static float startTime;
     private static DifficultyCharacteristic? mode;
     private static DifficultyRank? diffRank;
@@ -96,6 +99,12 @@ public class UrlArgHandler : MonoBehaviour
             case "url":
                 mapURL = value;
                 break;
+            case "scoreID":
+                replayID = value;
+                break;
+            case "replayURL":
+                replayURL = value;
+                break;
             case "t":
                 if(!float.TryParse(value, out startTime)) startTime = 0;
                 break;
@@ -122,41 +131,58 @@ public class UrlArgHandler : MonoBehaviour
 
     private void ApplyArguments()
     {
-        bool autoLoad = false;
-        if(!string.IsNullOrEmpty(mapID))
+        bool setTime = false;
+        bool setDiff = false;
+
+        if(!string.IsNullOrEmpty(replayID))
+        {
+            StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, mapURL, mapID, noProxy));
+            LoadedReplayID = replayID;
+            
+            //Don't set the diff cause that depends on the replay
+            setTime = true;
+        }
+        else if(!string.IsNullOrEmpty(replayURL))
+        {
+            StartCoroutine(mapLoader.LoadReplayURLCoroutine(replayURL, mapURL, mapID, noProxy));
+            LoadedReplayURL = replayURL;
+
+            setTime = true;
+        }
+        else if(!string.IsNullOrEmpty(mapID))
         {
             StartCoroutine(mapLoader.LoadMapIDCoroutine(mapID));
             LoadedMapID = mapID;
 
-            autoLoad = true;
+            setTime = true;
+            setDiff = true;
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
             StartCoroutine(mapLoader.LoadMapZipURLCoroutine(mapURL, null, null, noProxy));
             LoadedMapURL = mapURL;
 
-            autoLoad = true;
+            setTime = true;
+            setDiff = true;
         }
 #if !UNITY_WEBGL || UNITY_EDITOR
         else if(!string.IsNullOrEmpty(mapPath))
         {
             mapLoader.LoadMapDirectory(mapPath);
-            autoLoad = true;
+            setTime = true;
+            setDiff = true;
         }
 #endif
 
-        if(autoLoad)
+        //Only apply start time and diff when a map is also included in the arguments
+        if(setTime && startTime > 0)
         {
-            //Only apply start time and diff when a map is also included in the arguments
-            if(startTime > 0)
-            {
-                MapLoader.OnMapLoaded += SetTime;
-            }
+            MapLoader.OnMapLoaded += SetTime;
+        }
 
-            if(mode != null || diffRank != null)
-            {
-                MapLoader.OnMapLoaded += SetDifficulty;
-            }
+        if(setDiff && (mode != null || diffRank != null))
+        {
+            MapLoader.OnMapLoaded += SetDifficulty;
         }
     }
 

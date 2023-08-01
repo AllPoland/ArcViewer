@@ -197,7 +197,7 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    public IEnumerator LoadMapIDCoroutine(string mapID)
+    public IEnumerator LoadMapIDCoroutine(string mapID, string mapHash = null)
     {
         Loading = true;
 
@@ -225,11 +225,11 @@ public class MapLoader : MonoBehaviour
             yield break;
         }
 
-        StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID));
+        StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, mapHash));
     }
 
 
-    private IEnumerator LoadMapReplay(Replay loadedReplay)
+    private IEnumerator LoadMapReplay(Replay loadedReplay, bool noProxy = false)
     {
         string mapHash = loadedReplay.info.hash;
         Debug.Log($"Searching for map matching replay hash: {mapHash}");
@@ -263,8 +263,14 @@ public class MapLoader : MonoBehaviour
             yield break;
         }
 
-        UrlArgHandler.LoadedMapID = mapID;
-        StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, mapHash));
+        UrlArgHandler.ignoreMapForSharing = true;
+        if(!string.IsNullOrEmpty(mapID))
+        {
+            UrlArgHandler.LoadedMapID = mapID;
+        }
+        else UrlArgHandler.LoadedMapURL = mapURL;
+
+        StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, mapHash, noProxy));
     }
 
 
@@ -350,7 +356,7 @@ public class MapLoader : MonoBehaviour
 #endif
 
 
-    private IEnumerator LoadReplayURLCoroutine(string url, bool noProxy = false)
+    public IEnumerator LoadReplayURLCoroutine(string url, string mapURL = null, string mapID = null, bool noProxy = false)
     {
         Loading = true;
 
@@ -382,11 +388,22 @@ public class MapLoader : MonoBehaviour
         }
 
         ReplayManager.SetReplay(replay);
-        StartCoroutine(LoadMapReplay(replay));
+
+        if(!string.IsNullOrEmpty(mapID))
+        {
+            UrlArgHandler.LoadedMapID = mapID;
+            StartCoroutine(LoadMapIDCoroutine(mapID, replay.info.hash));
+        }
+        else if(!string.IsNullOrEmpty(mapURL))
+        {
+            UrlArgHandler.LoadedMapURL = mapURL;
+            StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, replay.info.hash, noProxy));
+        }
+        else StartCoroutine(LoadMapReplay(replay, noProxy));
     }
 
 
-    private IEnumerator LoadReplayIDCoroutine(string id)
+    public IEnumerator LoadReplayIDCoroutine(string id, string mapURL = null, string mapID = null, bool noProxy = false)
     {
         Loading = true;
 
@@ -404,7 +421,7 @@ public class MapLoader : MonoBehaviour
             yield break;
         }
 
-        StartCoroutine(LoadReplayURLCoroutine(replayURL));
+        StartCoroutine(LoadReplayURLCoroutine(replayURL, mapURL, mapID, noProxy));
     }
 
 
@@ -527,6 +544,7 @@ public class MapLoader : MonoBehaviour
             HotReloader.loadedMapPath = null;
             UrlArgHandler.LoadedReplayID = null;
         }
+        UrlArgHandler.ignoreMapForSharing = false;
 
         if(input.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase) || input.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase))
         {

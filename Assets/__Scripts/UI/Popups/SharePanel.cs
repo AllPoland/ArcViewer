@@ -21,37 +21,71 @@ public class SharePanel : MonoBehaviour
     {
         string newText = UrlArgHandler.ArcViewerURL;
 
-        if(!string.IsNullOrEmpty(UrlArgHandler.LoadedMapID))
+        if(ReplayManager.IsReplayMode)
         {
-            newText += $"?id={UrlArgHandler.LoadedMapID}";
-        }
-        else if(!string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL))
-        {
-            newText += $"?url={UrlArgHandler.LoadedMapURL}";
+            if(!string.IsNullOrEmpty(UrlArgHandler.LoadedReplayID))
+            {
+                newText += $"?scoreID={UrlArgHandler.LoadedReplayID}";
+            }
+            else if(!string.IsNullOrEmpty(UrlArgHandler.LoadedReplayURL))
+            {
+                newText += $"?replayURL={UrlArgHandler.LoadedReplayURL}";
+            }
+            else
+            {
+                //The replay was loaded locally, this menu shouldn't be open
+                gameObject.SetActive(false);
+                return;
+            }
+
+            if(!UrlArgHandler.ignoreMapForSharing)
+            {
+                //Include map arguments for replays
+                if(!string.IsNullOrEmpty(UrlArgHandler.LoadedMapID))
+                {
+                    newText += $"&id={UrlArgHandler.LoadedMapID}";
+                }
+                else if(!string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL))
+                {
+                    newText += $"&url={UrlArgHandler.LoadedMapURL}";
+                }
+            }
         }
         else
         {
-            //The map was loaded locally, this menu shouldn't be open
-            gameObject.SetActive(false);
-            return;
+            if(!string.IsNullOrEmpty(UrlArgHandler.LoadedMapID))
+            {
+                newText += $"?id={UrlArgHandler.LoadedMapID}";
+            }
+            else if(!string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL))
+            {
+                newText += $"?url={UrlArgHandler.LoadedMapURL}";
+            }
+            else
+            {
+                //The map was loaded locally, this menu shouldn't be open
+                gameObject.SetActive(false);
+                return;
+            }
+
+            //Only include difficulty arguments outside of replays
+            string mode = UrlArgHandler.LoadedCharacteristic?.ToString() ?? "";
+            string difficulty = UrlArgHandler.LoadedDiffRank?.ToString() ?? "";
+
+            if(!string.IsNullOrEmpty(mode))
+            {
+                newText += $"&mode={mode}";
+            }
+            if(!string.IsNullOrEmpty(difficulty))
+            {
+                newText += $"&difficulty={difficulty}";
+            }
         }
 
         if(UseTimestamp)
         {
             float time = (ulong)TimeManager.CurrentTime;
             newText += $"&t={time}";
-        }
-
-        string mode = UrlArgHandler.LoadedCharacteristic?.ToString() ?? "";
-        string difficulty = UrlArgHandler.LoadedDiffRank?.ToString() ?? "";
-
-        if(!string.IsNullOrEmpty(mode))
-        {
-            newText += $"&mode={mode}";
-        }
-        if(!string.IsNullOrEmpty(difficulty))
-        {
-            newText += $"&difficulty={difficulty}";
         }
 
         if(newText != urlOutput.text)
