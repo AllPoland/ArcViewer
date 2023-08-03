@@ -7,8 +7,13 @@ public class ReplayManager : MonoBehaviour
     public static bool IsReplayMode { get; private set; }
     public static Replay CurrentReplay { get; private set; }
 
+    public static Sprite Avatar { get; private set; }
+    public static BeatleaderUser PlayerInfo;
+
     public static event Action<bool> OnReplayModeChanged;
     public static event Action<Replay> OnReplayUpdated;
+
+    public static event Action<Sprite> OnAvatarUpdated;
 
     public static float PlayerHeight;
     public static string[] Modifiers = new string[0];
@@ -57,6 +62,45 @@ public class ReplayManager : MonoBehaviour
     }
 
 
+    public static void SetAvatarImageData(byte[] imageData)
+    {
+        ClearAvatar();
+
+        Texture2D newTexture = new Texture2D(2, 2);
+        bool loaded = newTexture.LoadImage(imageData);
+
+        if(!loaded)
+        {
+            Debug.LogWarning("Unable to load cover image!");
+            ErrorHandler.Instance?.ShowPopup(ErrorType.Warning, "Unable to load cover image!");
+
+            Destroy(newTexture);
+            Avatar = null;
+        }
+        else
+        {
+            Avatar = Sprite.Create(newTexture,
+                new Rect(0, 0, newTexture.width, newTexture.height),
+                new Vector2(0.5f, 0.5f), 100);
+        }
+        OnAvatarUpdated?.Invoke(Avatar);
+    }
+
+
+    private static void ClearAvatar()
+    {
+        if(Avatar == null)
+        {
+            return;
+        }
+
+        OnAvatarUpdated?.Invoke(null);
+        Destroy(Avatar.texture);
+        Destroy(Avatar);
+        Avatar = null;
+    }
+
+
     private static void UpdatePlayerHeight(float beat)
     {
         int lastHeightIndex = playerHeightEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
@@ -84,6 +128,8 @@ public class ReplayManager : MonoBehaviour
 
         OnReplayModeChanged?.Invoke(false);
         OnReplayUpdated?.Invoke(null);
+
+        ClearAvatar();
 
         TimeManager.OnBeatChangedEarly -= UpdateBeat;
     }

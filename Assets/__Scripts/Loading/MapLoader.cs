@@ -229,7 +229,7 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    private IEnumerator LoadMapReplay(Replay loadedReplay, bool noProxy = false)
+    private IEnumerator LoadMapReplayCoroutine(Replay loadedReplay, bool noProxy = false)
     {
         string mapHash = loadedReplay.info.hash;
         Debug.Log($"Searching for map matching replay hash: {mapHash}");
@@ -274,6 +274,44 @@ public class MapLoader : MonoBehaviour
     }
 
 
+    private IEnumerator SetReplayCoroutine(Replay replay, string mapURL = null, string mapID = null, bool noProxy = false)
+    {
+        ReplayManager.SetReplay(replay);
+        LoadingMessage = "Loading player profile";
+
+        Debug.Log($"Getting Beatleader user {replay.info.playerID}");
+        using Task<BeatleaderUser> userTask = ReplayLoader.BeatleaderUserFromID(replay.info.playerID);
+        yield return new WaitUntil(() => userTask.IsCompleted);
+
+        BeatleaderUser response = userTask.Result;
+        ReplayManager.PlayerInfo = response;
+
+        if(response != null)
+        {
+            using Task<byte[]> avatarTask = ReplayLoader.AvatarDataFromBeatleaderUser(response);
+            yield return new WaitUntil(() => avatarTask.IsCompleted);
+
+            byte[] avatarData = avatarTask.Result;
+            if(avatarData != null)
+            {
+                ReplayManager.SetAvatarImageData(avatarData);
+            }
+        }
+
+        if(!string.IsNullOrEmpty(mapID))
+        {
+            UrlArgHandler.LoadedMapID = mapID;
+            StartCoroutine(LoadMapIDCoroutine(mapID, replay.info.hash));
+        }
+        else if(!string.IsNullOrEmpty(mapURL))
+        {
+            UrlArgHandler.LoadedMapURL = mapURL;
+            StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, replay.info.hash, noProxy));
+        }
+        else StartCoroutine(LoadMapReplayCoroutine(replay, noProxy));
+    }
+
+
 #if !UNITY_WEBGL || UNITY_EDITOR
     private IEnumerator LoadReplayDirectoryCoroutine(string directory)
     {
@@ -292,8 +330,7 @@ public class MapLoader : MonoBehaviour
             yield break;
         }
 
-        ReplayManager.SetReplay(replay);
-        StartCoroutine(LoadMapReplay(replay));
+        StartCoroutine(SetReplayCoroutine(replay));
     }
 #else
 
@@ -322,8 +359,7 @@ public class MapLoader : MonoBehaviour
                 yield break;
             }
 
-            ReplayManager.SetReplay(replay);
-            StartCoroutine(LoadMapReplay(replay));
+            StartCoroutine(SetReplayCoroutine(replay));
         }
         else
         {
@@ -387,19 +423,7 @@ public class MapLoader : MonoBehaviour
             yield break;
         }
 
-        ReplayManager.SetReplay(replay);
-
-        if(!string.IsNullOrEmpty(mapID))
-        {
-            UrlArgHandler.LoadedMapID = mapID;
-            StartCoroutine(LoadMapIDCoroutine(mapID, replay.info.hash));
-        }
-        else if(!string.IsNullOrEmpty(mapURL))
-        {
-            UrlArgHandler.LoadedMapURL = mapURL;
-            StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, replay.info.hash, noProxy));
-        }
-        else StartCoroutine(LoadMapReplay(replay, noProxy));
+        StartCoroutine(SetReplayCoroutine(replay, mapURL, mapID, noProxy));
     }
 
 

@@ -28,7 +28,8 @@ public class CoverImageHandler : MonoBehaviour
         {
             //Why does this method take SO MANY ARGUMENTS
             UpdateImage(Sprite.Create(newTexture,
-                new Rect(0, 0, newTexture.width, newTexture.height), new Vector2(0.5f, 0.5f), 100));
+                new Rect(0, 0, newTexture.width, newTexture.height),
+                new Vector2(0.5f, 0.5f), 100));
         }
     }
 
