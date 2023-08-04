@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class ReplayManager : MonoBehaviour
 {
+    public const string BeatLeaderURL = "https://www.beatleader.xyz/";
+
     public static bool IsReplayMode { get; private set; }
     public static Replay CurrentReplay { get; private set; }
 
     public static Sprite Avatar { get; private set; }
     public static BeatleaderUser PlayerInfo;
+    public static string LeaderboardID = "";
 
     public static event Action<bool> OnReplayModeChanged;
     public static event Action<Replay> OnReplayUpdated;
@@ -71,8 +74,8 @@ public class ReplayManager : MonoBehaviour
 
         if(!loaded)
         {
-            Debug.LogWarning("Unable to load cover image!");
-            ErrorHandler.Instance?.ShowPopup(ErrorType.Warning, "Unable to load cover image!");
+            Debug.LogWarning("Unable to load player avatar!");
+            ErrorHandler.Instance?.ShowPopup(ErrorType.Warning, "Unable to load avatar image!");
 
             Destroy(newTexture);
             Avatar = null;
@@ -130,6 +133,8 @@ public class ReplayManager : MonoBehaviour
         OnReplayUpdated?.Invoke(null);
 
         ClearAvatar();
+        PlayerInfo = null;
+        LeaderboardID = "";
 
         TimeManager.OnBeatChangedEarly -= UpdateBeat;
     }

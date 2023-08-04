@@ -4,8 +4,12 @@ using TMPro;
 
 public class PlayerInfoPanel : MonoBehaviour
 {
+    private const string userDirect = "u/";
+
     [SerializeField] private Image avatarImage;
+    [SerializeField] private RectTransform infoContainer;
     [SerializeField] private TextMeshProUGUI infoText;
+    [SerializeField] private Button playerProfileButton;
 
     [Space]
     [SerializeField] private float avatarWidth;
@@ -13,20 +17,20 @@ public class PlayerInfoPanel : MonoBehaviour
 
     private void UpdateAvatar(Sprite newAvatar)
     {
-        Vector2 infoTextPos = infoText.rectTransform.anchoredPosition;
+        Vector2 infoPosition = infoContainer.anchoredPosition;
         if(ReplayManager.IsReplayMode && newAvatar != null)
         {
             avatarImage.sprite = newAvatar;
             avatarImage.gameObject.SetActive(true);
-            infoTextPos.x = avatarWidth;
+            infoPosition.x = avatarWidth;
         }
         else
         {
             avatarImage.sprite = null;
             avatarImage.gameObject.SetActive(false);
-            infoTextPos.x = 0f;
+            infoPosition.x = 0f;
         }
-        infoText.rectTransform.anchoredPosition = infoTextPos;
+        infoContainer.anchoredPosition = infoPosition;
     }
 
 
@@ -44,6 +48,13 @@ public class PlayerInfoPanel : MonoBehaviour
     }
 
 
+    private void UpdateButtons()
+    {
+        bool enableUserButton = !string.IsNullOrEmpty(ReplayManager.PlayerInfo?.id);
+        playerProfileButton.gameObject.SetActive(enableUserButton);
+    }
+
+
     private void OnEnable()
     {
         ReplayManager.OnAvatarUpdated += UpdateAvatar;
@@ -52,11 +63,23 @@ public class PlayerInfoPanel : MonoBehaviour
         {
             UpdateAvatar(ReplayManager.Avatar);
             UpdateInfoText();
+            UpdateButtons();
         }
         else
         {
             avatarImage.gameObject.SetActive(false);
             infoText.gameObject.SetActive(false);
+            playerProfileButton.gameObject.SetActive(false);
+        }
+    }
+
+
+    public void OpenPlayerProfile()
+    {
+        if(!string.IsNullOrEmpty(ReplayManager.PlayerInfo?.id))
+        {
+            string url = string.Concat(ReplayManager.BeatLeaderURL, userDirect, ReplayManager.PlayerInfo.id);
+            Application.OpenURL(url);
         }
     }
 

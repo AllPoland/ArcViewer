@@ -4,10 +4,12 @@ public class MapLinkButtons : MonoBehaviour
 {
     [SerializeField] private GameObject beatSaverButton;
     [SerializeField] private GameObject mapDownloadButton;
+    [SerializeField] private GameObject leaderboardButton;
 
     private const string beatSaverURL = "https://beatsaver.com/";
     private const string mapDirect = "maps/";
-
+    
+    private const string leaderboardDirect = "leaderboard/global/";
 
     public void OpenBeatSaverLink()
     {
@@ -38,6 +40,21 @@ public class MapLinkButtons : MonoBehaviour
     }
 
 
+    public void OpenLeaderboardLink()
+    {
+        if(string.IsNullOrEmpty(ReplayManager.LeaderboardID))
+        {
+            Debug.LogWarning("Tried to open a leaderboard link with no URL!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Replay has no leaderboard URL!");
+            leaderboardButton.SetActive(false);
+            return;
+        }
+
+        string leaderboardURl = string.Concat(ReplayManager.BeatLeaderURL, leaderboardDirect, ReplayManager.LeaderboardID);
+        Application.OpenURL(leaderboardURl);
+    }
+
+
     private void OnEnable()
     {
         beatSaverButton.SetActive(false);
@@ -51,5 +68,7 @@ public class MapLinkButtons : MonoBehaviour
         {
             mapDownloadButton.SetActive(true);
         }
+
+        leaderboardButton.SetActive(!string.IsNullOrEmpty(ReplayManager.LeaderboardID));
     }
 }

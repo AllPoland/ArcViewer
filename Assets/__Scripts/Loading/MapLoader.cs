@@ -298,6 +298,12 @@ public class MapLoader : MonoBehaviour
             }
         }
 
+        Debug.Log("Getting replay leaderboard ID.");
+        using Task<string> leaderboardTask = ReplayLoader.LeaderboardIDFromHash(replay.info.hash, replay.info.mode, replay.info.difficulty);
+        yield return new WaitUntil(() => leaderboardTask.IsCompleted);
+
+        ReplayManager.LeaderboardID = leaderboardTask.Result;
+
         if(!string.IsNullOrEmpty(mapID))
         {
             UrlArgHandler.LoadedMapID = mapID;
