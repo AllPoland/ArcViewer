@@ -40,6 +40,8 @@ public class BeatmapDifficultyV2
 
     public BeatmapDifficulty ConvertToV3()
     {
+        AddNulls();
+
         BeatmapDifficulty converted = new BeatmapDifficulty
         {
             version = "3.0.0"

@@ -20,20 +20,20 @@ public class BeatmapDifficulty
     public bool useNormalEventsAsCompatibleEvents;
 
 
-    public static BeatmapDifficulty Empty = new BeatmapDifficulty
+    public BeatmapDifficulty()
     {
-        version = "",
-        bpmEvents = new BeatmapBpmEvent[0],
-        rotationEvents = new BeatmapRotationEvent[0],
-        colorNotes = new BeatmapColorNote[0],
-        bombNotes = new BeatmapBombNote[0],
-        obstacles = new BeatmapObstacle[0],
-        sliders = new BeatmapSlider[0],
-        burstSliders = new BeatmapBurstSlider[0],
-        basicBeatMapEvents = new BeatmapBasicBeatmapEvent[0],
-        colorBoostBeatMapEvents = new BeatmapColorBoostBeatmapEvent[0],
-        useNormalEventsAsCompatibleEvents = false
-    };
+        version = "";
+        bpmEvents = new BeatmapBpmEvent[0];
+        rotationEvents = new BeatmapRotationEvent[0];
+        colorNotes = new BeatmapColorNote[0];
+        bombNotes = new BeatmapBombNote[0];
+        obstacles = new BeatmapObstacle[0];
+        sliders = new BeatmapSlider[0];
+        burstSliders = new BeatmapBurstSlider[0];
+        basicBeatMapEvents = new BeatmapBasicBeatmapEvent[0];
+        colorBoostBeatMapEvents = new BeatmapColorBoostBeatmapEvent[0];
+        useNormalEventsAsCompatibleEvents = false;
+    }
 
 
     public void AddNulls()
