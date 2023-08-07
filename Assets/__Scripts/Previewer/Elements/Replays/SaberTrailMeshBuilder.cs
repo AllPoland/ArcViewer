@@ -56,7 +56,7 @@ public class SaberTrailMeshBuilder : MonoBehaviour
         for(int i = 0; i < segmentCount; i++)
         {
             float timeDifference = segmentLength * i;
-            float segmentTime = TimeManager.CurrentTime - timeDifference;
+            float segmentTime = Mathf.Max(TimeManager.CurrentTime - timeDifference, 0f);
 
             if(segmentTime < endTime)
             {
@@ -80,7 +80,7 @@ public class SaberTrailMeshBuilder : MonoBehaviour
             ReplayFrame frame = frames[frameIndex];
             ReplayFrame nextFrame = useNextFrame ? frames[frameIndex + 1] : frame;
 
-            float frameDifference = nextFrame.Time - frame.Time;
+            float frameDifference = Mathf.Max(nextFrame.Time - frame.Time, 0.001f);
             float frameProgress = segmentTime - frame.Time;
             float t = frameProgress / frameDifference;
 

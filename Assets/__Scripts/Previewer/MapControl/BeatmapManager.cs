@@ -64,7 +64,12 @@ public class BeatmapManager : MonoBehaviour
                         break;
                 }
             }
-            JumpDistance = GetJumpDistance(HJD, Info._beatsPerMinute, NJS);
+            if(ReplayManager.IsReplayMode)
+            {
+                defaultJumpDistance = ReplayManager.CurrentReplay.info.jumpDistance;
+            }
+            else defaultJumpDistance = GetJumpDistance(HJD, Info._beatsPerMinute, NJS);
+            JumpDistance = defaultJumpDistance;
 
             MappingExtensions = _currentDifficulty.requirements.Contains("Mapping Extensions");
             NoodleExtensions = _currentDifficulty.requirements.Contains("Noodle Extensions");
@@ -92,6 +97,7 @@ public class BeatmapManager : MonoBehaviour
 
     public static bool MappingExtensions { get; private set; }
     public static bool NoodleExtensions { get; private set; }
+    public static float defaultJumpDistance { get; private set; }
 
     public static float NJS;
     public static float SpawnOffset;

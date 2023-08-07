@@ -9,7 +9,10 @@ public class JumpSettingsPanel : MonoBehaviour
 
     public void SetNJS(float NJS)
     {
+        float targetReactionTime = BeatmapManager.ReactionTime;
+
         BeatmapManager.NJS = NJS;
+        BeatmapManager.JumpDistance = targetReactionTime * NJS * 2;
         UpdateValues();
     }
 
@@ -32,10 +35,8 @@ public class JumpSettingsPanel : MonoBehaviour
 
     public void ResetValues()
     {
-        Difficulty currentDifficulty = BeatmapManager.CurrentDifficulty;
-
-        BeatmapManager.NJS = currentDifficulty.noteJumpSpeed;
-        BeatmapManager.JumpDistance = BeatmapManager.GetJumpDistance(BeatmapManager.HJD, BeatmapManager.Info._beatsPerMinute, BeatmapManager.NJS);
+        BeatmapManager.NJS = BeatmapManager.CurrentDifficulty.noteJumpSpeed;
+        BeatmapManager.JumpDistance = BeatmapManager.defaultJumpDistance;
 
         UpdateValues();
     }
