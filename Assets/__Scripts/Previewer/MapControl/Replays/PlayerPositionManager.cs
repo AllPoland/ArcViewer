@@ -38,6 +38,7 @@ public class PlayerPositionManager : MonoBehaviour
     {
         "sabertrails",
         "sabertraillength",
+        "sabertrailwidth",
         "sabertrailsegments"
     };
 

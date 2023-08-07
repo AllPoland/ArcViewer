@@ -7,10 +7,7 @@ public class SaberTrailMeshBuilder : MonoBehaviour
 
     [Space]
     [SerializeField] private bool isRightHand;
-    [SerializeField] private Vector3 handleOffset;
     [SerializeField] private Vector3 tipOffset;
-
-    [Space]
 
     private Mesh mesh;
     private Vector3[] vertices;
@@ -18,27 +15,10 @@ public class SaberTrailMeshBuilder : MonoBehaviour
     private int[] triangles;
 
 
-    private Vector3 GetVertexPosition(ReplayFrame frame, ReplayFrame nextFrame, float t, Vector3 pointOffset)
-    {
-        Vector3 currentPosition = isRightHand ? frame.rightSaberPosition : frame.leftSaberPosition;
-        Quaternion currentRotation = isRightHand ? frame.rightSaberRotation : frame.leftSaberRotation;
-
-        Vector3 nextPosition = isRightHand ? nextFrame.rightSaberPosition : nextFrame.leftSaberPosition;
-        Quaternion nextRotation = isRightHand ? nextFrame.rightSaberRotation : nextFrame.leftSaberRotation;
-
-        Vector3 saberPosition = Vector3.Lerp(currentPosition, nextPosition, t);
-        Quaternion saberRotation = Quaternion.Lerp(currentRotation, nextRotation, t);
-
-        saberPosition.z -= ObjectManager.PlayerCutPlaneDistance;
-
-        Vector3 offset = saberRotation * pointOffset;
-        return transform.InverseTransformPoint(saberPosition) + transform.InverseTransformDirection(offset);
-    }
-
-
     public void SetFrames(List<ReplayFrame> frames, int startIndex)
     {
         float lifetime = SettingsManager.GetFloat("sabertraillength");
+        float trailWidth = SettingsManager.GetFloat("sabertrailwidth");
         int segmentCount = SettingsManager.GetInt("sabertrailsegments");
 
         mesh.Clear();
@@ -84,8 +64,24 @@ public class SaberTrailMeshBuilder : MonoBehaviour
             float frameProgress = segmentTime - frame.Time;
             float t = frameProgress / frameDifference;
 
-            vertices[handleIndex] = GetVertexPosition(frame, nextFrame, t, handleOffset);
-            vertices[tipIndex] = GetVertexPosition(frame, nextFrame, t, tipOffset);
+            Vector3 currentPosition = isRightHand ? frame.rightSaberPosition : frame.leftSaberPosition;
+            Quaternion currentRotation = isRightHand ? frame.rightSaberRotation : frame.leftSaberRotation;
+            Vector3 nextPosition = isRightHand ? nextFrame.rightSaberPosition : nextFrame.leftSaberPosition;
+            Quaternion nextRotation = isRightHand ? nextFrame.rightSaberRotation : nextFrame.leftSaberRotation;
+
+            Vector3 saberPosition = Vector3.Lerp(currentPosition, nextPosition, t);
+            Quaternion saberRotation = Quaternion.Lerp(currentRotation, nextRotation, t);
+
+            saberPosition.z -= ObjectManager.PlayerCutPlaneDistance;
+            saberPosition = transform.InverseTransformPoint(saberPosition);
+
+            Vector3 tipPoint = transform.InverseTransformDirection(saberRotation * tipOffset);
+
+            Vector3 tipDirection = tipPoint.normalized;
+            Vector3 handlePoint = tipPoint - (tipDirection * trailWidth);
+
+            vertices[handleIndex] = saberPosition + handlePoint;
+            vertices[tipIndex] = saberPosition + tipPoint;
 
             //UVs don't reach fully to the top/bottom because there're weird artifacts
             //for some reason

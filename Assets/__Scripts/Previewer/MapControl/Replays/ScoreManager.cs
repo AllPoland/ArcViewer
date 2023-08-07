@@ -259,7 +259,7 @@ public class ScoreManager : MonoBehaviour
             {
                 ReplayManager.Failed = true;
                 ReplayManager.FailTime = currentEvent.Time;
-                Debug.Log($"Failed at {currentEvent.Time}, compared to {ReplayManager.CurrentReplay.info.failTime}");
+                Debug.Log($"Failed at {currentEvent.Time}s.");
             }
             else
             {
