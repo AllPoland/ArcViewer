@@ -239,6 +239,16 @@ public class MapLoader : MonoBehaviour
         if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
             Debug.Log("Found map in cache.");
+
+            if(!string.IsNullOrEmpty(cachedFile.ID))
+            {
+                UrlArgHandler.LoadedMapID = cachedFile.ID;
+            }
+            else if(!string.IsNullOrEmpty(cachedFile.URL))
+            {
+                UrlArgHandler.LoadedMapURL = cachedFile.URL;
+            }
+
             LoadMapZip(cachedFile.FilePath);
             yield break;
         }
