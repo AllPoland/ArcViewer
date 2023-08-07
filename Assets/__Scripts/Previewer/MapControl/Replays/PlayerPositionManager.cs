@@ -9,20 +9,35 @@ public class PlayerPositionManager : MonoBehaviour
     public static Vector3 LeftSaberTipPosition { get; private set; }
     public static Vector3 RightSaberTipPosition { get; private set; }
 
+    [Header("Components")]
     [SerializeField] private GameObject headVisual;
-    [SerializeField] private GameObject leftSaberVisual;
-    [SerializeField] private GameObject rightSaberVisual;
-    [SerializeField] private SaberTrailMeshBuilder leftSaberTrail;
-    [SerializeField] private SaberTrailMeshBuilder rightSaberTrail;
+    [SerializeField] private SaberHandler leftSaber;
+    [SerializeField] private SaberHandler rightSaber;
     [SerializeField] private GameObject playerPlatform;
 
-    [Space]
+    [Header("Positions")]
     [SerializeField] private Vector3 defaultHmdPosition;
     [SerializeField] private Vector3 defaultLeftSaberPosition;
     [SerializeField] private Vector3 defaultRightSaberPosition;
 
     [Space]
     [SerializeField] private float saberTipOffset;
+
+    [Header("Visuals")]
+    [SerializeField] private Texture2D[] trailTextures;
+
+
+    public void UpdateSaberMaterials()
+    {
+        leftSaber.SetSaberProperties(NoteManager.RedNoteColor);
+        leftSaber.SetTrailProperties(NoteManager.RedNoteColor, trailTextures[0]);
+
+        rightSaber.SetSaberProperties(NoteManager.BlueNoteColor);
+        rightSaber.SetTrailProperties(NoteManager.BlueNoteColor, trailTextures[0]);
+    }
+
+
+    private void UpdateColors(ColorPalette _) => UpdateSaberMaterials();
 
 
     public static Vector3 HeadPositionAtTime(float time)
@@ -48,11 +63,11 @@ public class PlayerPositionManager : MonoBehaviour
         headVisual.transform.localPosition = defaultHmdPosition;
         headVisual.transform.localRotation = Quaternion.identity;
 
-        leftSaberVisual.transform.localPosition = defaultLeftSaberPosition;
-        leftSaberVisual.transform.localRotation = Quaternion.identity;
+        leftSaber.transform.localPosition = defaultLeftSaberPosition;
+        leftSaber.transform.localRotation = Quaternion.identity;
 
-        rightSaberVisual.transform.localPosition = defaultRightSaberPosition;
-        rightSaberVisual.transform.localRotation = Quaternion.identity;
+        rightSaber.transform.localPosition = defaultRightSaberPosition;
+        rightSaber.transform.localRotation = Quaternion.identity;
 
         UpdatePositions();
     }
@@ -83,14 +98,14 @@ public class PlayerPositionManager : MonoBehaviour
         headVisual.transform.localPosition = Vector3.Lerp(currentFrame.headPosition, nextFrame.headPosition, t);
         headVisual.transform.localRotation = Quaternion.Lerp(currentFrame.headRotation, nextFrame.headRotation, t);
 
-        leftSaberVisual.transform.localPosition = Vector3.Lerp(currentFrame.leftSaberPosition, nextFrame.leftSaberPosition, t);
-        leftSaberVisual.transform.localRotation = Quaternion.Lerp(currentFrame.leftSaberRotation, nextFrame.leftSaberRotation, t);
+        leftSaber.transform.localPosition = Vector3.Lerp(currentFrame.leftSaberPosition, nextFrame.leftSaberPosition, t);
+        leftSaber.transform.localRotation = Quaternion.Lerp(currentFrame.leftSaberRotation, nextFrame.leftSaberRotation, t);
 
-        rightSaberVisual.transform.localPosition = Vector3.Lerp(currentFrame.rightSaberPosition, nextFrame.rightSaberPosition, t);
-        rightSaberVisual.transform.localRotation = Quaternion.Lerp(currentFrame.rightSaberRotation, nextFrame.rightSaberRotation, t);
+        rightSaber.transform.localPosition = Vector3.Lerp(currentFrame.rightSaberPosition, nextFrame.rightSaberPosition, t);
+        rightSaber.transform.localRotation = Quaternion.Lerp(currentFrame.rightSaberRotation, nextFrame.rightSaberRotation, t);
 
-        leftSaberTrail.SetFrames(replayFrames, lastFrameIndex);
-        rightSaberTrail.SetFrames(replayFrames, lastFrameIndex);
+        leftSaber.SetFrames(replayFrames, lastFrameIndex);
+        rightSaber.SetFrames(replayFrames, lastFrameIndex);
 
         UpdatePositions();
     }
@@ -99,8 +114,8 @@ public class PlayerPositionManager : MonoBehaviour
     private void UpdatePositions()
     {
         HeadPosition = headVisual.transform.position;
-        LeftSaberTipPosition = leftSaberVisual.transform.position + (leftSaberVisual.transform.forward * saberTipOffset);
-        RightSaberTipPosition = rightSaberVisual.transform.position + (rightSaberVisual.transform.forward * saberTipOffset);
+        LeftSaberTipPosition = leftSaber.transform.position + (leftSaber.transform.forward * saberTipOffset);
+        RightSaberTipPosition = rightSaber.transform.position + (rightSaber.transform.forward * saberTipOffset);
     }
 
 
@@ -126,18 +141,20 @@ public class PlayerPositionManager : MonoBehaviour
             TimeManager.OnBeatChangedEarly += UpdateBeat;
 
             headVisual.SetActive(true);
-            leftSaberVisual.SetActive(true);
-            rightSaberVisual.SetActive(true);
+            leftSaber.gameObject.SetActive(true);
+            rightSaber.gameObject.SetActive(true);
             playerPlatform.SetActive(true);
+
             UpdateReplay(ReplayManager.CurrentReplay);
+            UpdateSaberMaterials();
         }
         else
         {
             replayFrames.Clear();
 
             headVisual.SetActive(false);
-            leftSaberVisual.SetActive(false);
-            rightSaberVisual.SetActive(false);
+            leftSaber.gameObject.SetActive(false);
+            rightSaber.gameObject.SetActive(false);
             playerPlatform.SetActive(false);
         }
     }
@@ -146,6 +163,8 @@ public class PlayerPositionManager : MonoBehaviour
     private void OnEnable()
     {
         ReplayManager.OnReplayModeChanged += UpdateReplayMode;
+        ColorManager.OnColorsChanged += UpdateColors;
+
         UpdateReplayMode(ReplayManager.IsReplayMode);
     }
 
@@ -154,6 +173,7 @@ public class PlayerPositionManager : MonoBehaviour
     {
         ReplayManager.OnReplayModeChanged -= UpdateReplayMode;
         TimeManager.OnBeatChangedEarly -= UpdateBeat;
+        ColorManager.OnColorsChanged -= UpdateColors;
 
         replayFrames.Clear();
     }
