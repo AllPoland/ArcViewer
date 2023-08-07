@@ -13,6 +13,9 @@ public class SaberTrailMeshBuilder : MonoBehaviour
     [Space]
 
     private Mesh mesh;
+    private Vector3[] vertices;
+    private Vector2[] uvs;
+    private int[] triangles;
 
 
     private Vector3 GetVertexPosition(ReplayFrame frame, ReplayFrame nextFrame, float t, Vector3 pointOffset)
@@ -39,16 +42,15 @@ public class SaberTrailMeshBuilder : MonoBehaviour
         int segmentCount = SettingsManager.GetInt("sabertrailsegments");
 
         mesh.Clear();
-        Vector3[] vertices = new Vector3[segmentCount * 2];
-        Vector3[] normals = new Vector3[vertices.Length];
-        Vector2[] uvs = new Vector2[vertices.Length];
+        vertices = new Vector3[segmentCount * 2];
+        uvs = new Vector2[vertices.Length];
 
         float segmentLength = lifetime / segmentCount;
         float endTime = TimeManager.CurrentTime - lifetime;
 
         int faceCount = segmentCount - 1;
         int triangleCount = faceCount * 2;
-        int[] triangles = new int[triangleCount * 3];
+        triangles = new int[triangleCount * 3];
 
         int frameIndex = startIndex;
         for(int i = 0; i < segmentCount; i++)
@@ -85,12 +87,11 @@ public class SaberTrailMeshBuilder : MonoBehaviour
             vertices[handleIndex] = GetVertexPosition(frame, nextFrame, t, handleOffset);
             vertices[tipIndex] = GetVertexPosition(frame, nextFrame, t, tipOffset);
 
-            normals[handleIndex] = Vector3.up;
-            normals[tipIndex] = Vector3.up;
-
+            //UVs don't reach fully to the top/bottom because there're weird artifacts
+            //for some reason
             float uvX = (float)i / segmentCount;
-            uvs[handleIndex] = new Vector2(uvX, 0f);
-            uvs[tipIndex] = new Vector2(uvX, 1f);
+            uvs[handleIndex] = new Vector2(uvX, 0.001f);
+            uvs[tipIndex] = new Vector2(uvX, 0.999f);
 
             if(i < segmentCount - 1)
             {
@@ -108,9 +109,7 @@ public class SaberTrailMeshBuilder : MonoBehaviour
         }
 
         mesh.SetVertices(vertices);
-        mesh.SetNormals(normals);
         mesh.uv = uvs;
-        mesh.uv2 = uvs;
         mesh.triangles = triangles;
 
         meshFilter.mesh = mesh;

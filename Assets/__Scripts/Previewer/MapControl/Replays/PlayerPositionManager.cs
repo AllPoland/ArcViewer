@@ -138,7 +138,8 @@ public class PlayerPositionManager : MonoBehaviour
         }
 
         replayFrames.SortElementsByBeat();
-        UpdateBeat(0f);
+        UpdateSaberMaterials();
+        UpdateSettings("all");
     }
 
 
@@ -154,7 +155,6 @@ public class PlayerPositionManager : MonoBehaviour
             playerPlatform.SetActive(true);
 
             UpdateReplay(ReplayManager.CurrentReplay);
-            UpdateSaberMaterials();
         }
         else
         {
@@ -192,6 +192,11 @@ public class PlayerPositionManager : MonoBehaviour
 
     public void UpdateColors(ColorPalette _)
     {
+        if(!ReplayManager.IsReplayMode)
+        {
+            return;
+        }
+
         UpdateSaberMaterials();
         UpdateTrailMaterials();
     }
@@ -199,6 +204,11 @@ public class PlayerPositionManager : MonoBehaviour
 
     private void UpdateSettings(string changedSetting)
     {
+        if(!ReplayManager.IsReplayMode)
+        {
+            return;
+        }
+
         bool allSettings = changedSetting == "all";
         if(allSettings || trailMaterialSettings.Contains(changedSetting))
         {
