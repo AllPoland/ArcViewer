@@ -24,12 +24,22 @@ public class ReplayManager : MonoBehaviour
     public static float ReplayTimeScale { get; private set; }
     public static bool LeftHandedMode => IsReplayMode && CurrentReplay.info.leftHanded;
     public static bool BatteryEnergy { get; private set; }
+    public static bool OneLife { get; private set; }
+    public static bool NoArrows { get; private set; }
+    public static bool NoWalls { get; private set; }
+    public static bool NoBombs { get; private set; }
 
     public static bool Failed = false;
     public static float FailTime = 0f;
     public static bool HasFailed => Failed && TimeManager.CurrentTime >= FailTime;
 
     private static MapElementList<PlayerHeightEvent> playerHeightEvents = new MapElementList<PlayerHeightEvent>();
+
+
+    private static bool HasModifier(string modifier)
+    {
+        return Modifiers.Any(x => x.Equals(modifier, StringComparison.InvariantCultureIgnoreCase));
+    }
 
 
     public static void SetReplay(Replay newReplay)
@@ -54,19 +64,23 @@ public class ReplayManager : MonoBehaviour
         CurrentReplay = newReplay;
 
         Modifiers = CurrentReplay.info.modifiers.Split(',');
-        BatteryEnergy = Modifiers.Any(x => x.Equals("BE", StringComparison.InvariantCultureIgnoreCase));
+        BatteryEnergy = HasModifier("BE");
 
-        if(Modifiers.Any(x => x.Equals("SF", StringComparison.InvariantCultureIgnoreCase)))
+        NoArrows = HasModifier("NA");
+        NoWalls = HasModifier("NO");
+        NoBombs = HasModifier("NB");
+
+        if(HasModifier("SF"))
         {
             //Super fast song
             ReplayTimeScale = 1.5f;
         }
-        else if(Modifiers.Any(x => x.Equals("FS", StringComparison.InvariantCultureIgnoreCase)))
+        else if(HasModifier("FS"))
         {
             //Faster song
             ReplayTimeScale = 1.2f;
         }
-        else if(Modifiers.Any(x => x.Equals("SS", StringComparison.InvariantCultureIgnoreCase)))
+        else if(HasModifier("SS"))
         {
             //Slower song
             ReplayTimeScale = 0.85f;
@@ -128,6 +142,13 @@ public class ReplayManager : MonoBehaviour
         PlayerHeight = lastHeightIndex >= 0
             ? playerHeightEvents[lastHeightIndex].Height
             : CurrentReplay.info.height;
+        
+        if(PlayerHeight <= 0.001)
+        {
+            //Some old replays didn't store player height, so use default
+            PlayerHeight = ObjectManager.DefaultPlayerHeight;
+        }
+        Debug.Log(PlayerHeight);
     }
 
 

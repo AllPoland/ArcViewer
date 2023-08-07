@@ -515,6 +515,25 @@ public class ObjectManager : MonoBehaviour
             if(ReplayManager.IsReplayMode)
             {
                 scoringEventsOnBeat = ScoreManager.ScoringEvents.FindAll(x => CheckSameTime(x.ObjectTime, currentTime));
+
+                if(ReplayManager.NoArrows)
+                {
+                    foreach(BeatmapColorNote n in notesOnBeat)
+                    {
+                        //Force all notes to be dots
+                        //It's ok to modify the source beatmap because it's never used again
+                        //when a replay is loaded
+                        n.d = 8;
+                    }
+                }
+                if(ReplayManager.NoWalls)
+                {
+                    obstaclesOnBeat.Clear();
+                }
+                if(ReplayManager.NoBombs)
+                {
+                    bombsOnBeat.Clear();
+                }
             }
 
             //Precalculate values for all objects on this beat

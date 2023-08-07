@@ -99,7 +99,7 @@ public class PlayerPositionManager : MonoBehaviour
         ReplayFrame nextFrame = lastFrameIndex + 1 < replayFrames.Count ? replayFrames[lastFrameIndex + 1] : currentFrame;
 
         float timeDifference = nextFrame.Time - currentFrame.Time;
-        float t = (TimeManager.CurrentTime - currentFrame.Time) / timeDifference;
+        float t = timeDifference <= 0 ? 0f : (TimeManager.CurrentTime - currentFrame.Time) / timeDifference;
 
         if(headset.gameObject.activeInHierarchy)
         {
