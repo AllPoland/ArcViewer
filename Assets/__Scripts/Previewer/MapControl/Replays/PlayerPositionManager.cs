@@ -11,7 +11,7 @@ public class PlayerPositionManager : MonoBehaviour
     public static Vector3 RightSaberTipPosition { get; private set; }
 
     [Header("Components")]
-    [SerializeField] private GameObject headVisual;
+    [SerializeField] private HeadsetHandler headset;
     [SerializeField] private SaberHandler leftSaber;
     [SerializeField] private SaberHandler rightSaber;
     [SerializeField] private GameObject playerPlatform;
@@ -66,8 +66,8 @@ public class PlayerPositionManager : MonoBehaviour
 
     private void SetDefaultPositions()
     {
-        headVisual.transform.localPosition = defaultHmdPosition;
-        headVisual.transform.localRotation = Quaternion.identity;
+        headset.transform.localPosition = defaultHmdPosition;
+        headset.transform.localRotation = Quaternion.identity;
 
         leftSaber.transform.localPosition = defaultLeftSaberPosition;
         leftSaber.transform.localRotation = Quaternion.identity;
@@ -101,8 +101,11 @@ public class PlayerPositionManager : MonoBehaviour
         float timeDifference = nextFrame.Time - currentFrame.Time;
         float t = (TimeManager.CurrentTime - currentFrame.Time) / timeDifference;
 
-        headVisual.transform.localPosition = Vector3.Lerp(currentFrame.headPosition, nextFrame.headPosition, t);
-        headVisual.transform.localRotation = Quaternion.Lerp(currentFrame.headRotation, nextFrame.headRotation, t);
+        if(headset.gameObject.activeInHierarchy)
+        {
+            headset.transform.localPosition = Vector3.Lerp(currentFrame.headPosition, nextFrame.headPosition, t);
+            headset.transform.localRotation = Quaternion.Lerp(currentFrame.headRotation, nextFrame.headRotation, t);
+        }
 
         leftSaber.transform.localPosition = Vector3.Lerp(currentFrame.leftSaberPosition, nextFrame.leftSaberPosition, t);
         leftSaber.transform.localRotation = Quaternion.Lerp(currentFrame.leftSaberRotation, nextFrame.leftSaberRotation, t);
@@ -122,7 +125,7 @@ public class PlayerPositionManager : MonoBehaviour
 
     private void UpdatePositions()
     {
-        HeadPosition = headVisual.transform.position;
+        HeadPosition = headset.transform.position;
         LeftSaberTipPosition = leftSaber.transform.position + (leftSaber.transform.forward * saberTipOffset);
         RightSaberTipPosition = rightSaber.transform.position + (rightSaber.transform.forward * saberTipOffset);
     }
@@ -150,7 +153,7 @@ public class PlayerPositionManager : MonoBehaviour
         {
             TimeManager.OnBeatChangedEarly += UpdateBeat;
 
-            headVisual.SetActive(true);
+            headset.gameObject.SetActive(true);
             leftSaber.gameObject.SetActive(true);
             rightSaber.gameObject.SetActive(true);
             playerPlatform.SetActive(true);
@@ -161,7 +164,7 @@ public class PlayerPositionManager : MonoBehaviour
         {
             replayFrames.Clear();
 
-            headVisual.SetActive(false);
+            headset.gameObject.SetActive(false);
             leftSaber.gameObject.SetActive(false);
             rightSaber.gameObject.SetActive(false);
             playerPlatform.SetActive(false);
@@ -228,6 +231,14 @@ public class PlayerPositionManager : MonoBehaviour
             float width = SettingsManager.GetFloat("saberwidth");
             leftSaber.SetWidth(width);
             rightSaber.SetWidth(width);
+        }
+        if(allSettings || changedSetting == "showheadset")
+        {
+            headset.gameObject.SetActive(SettingsManager.GetBool("showheadset"));
+        }
+        if(allSettings || changedSetting == "headsetalpha")
+        {
+            headset.SetAlpha(SettingsManager.GetFloat("headsetalpha"));
         }
     }
 
