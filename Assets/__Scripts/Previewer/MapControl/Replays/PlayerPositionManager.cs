@@ -12,6 +12,8 @@ public class PlayerPositionManager : MonoBehaviour
     [SerializeField] private GameObject headVisual;
     [SerializeField] private GameObject leftSaberVisual;
     [SerializeField] private GameObject rightSaberVisual;
+    [SerializeField] private SaberTrailMeshBuilder leftSaberTrail;
+    [SerializeField] private SaberTrailMeshBuilder rightSaberTrail;
     [SerializeField] private GameObject playerPlatform;
 
     [Space]
@@ -86,6 +88,9 @@ public class PlayerPositionManager : MonoBehaviour
 
         rightSaberVisual.transform.localPosition = Vector3.Lerp(currentFrame.rightSaberPosition, nextFrame.rightSaberPosition, t);
         rightSaberVisual.transform.localRotation = Quaternion.Lerp(currentFrame.rightSaberRotation, nextFrame.rightSaberRotation, t);
+
+        leftSaberTrail.SetFrames(replayFrames, lastFrameIndex);
+        rightSaberTrail.SetFrames(replayFrames, lastFrameIndex);
 
         UpdatePositions();
     }
