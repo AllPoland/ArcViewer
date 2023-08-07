@@ -98,10 +98,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   meshFilter: {fileID: 5997546492962435284}
   isRightHand: 0
-  handleOffset: {x: 0, y: 0, z: 0.08}
   tipOffset: {x: 0, y: 0, z: 1.08}
-  lifetime: 0.1
-  segmentCount: 50
 --- !u!1 &5820523132042977509
 GameObject:
   m_ObjectHideFlags: 0
@@ -232,8 +229,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   meshBuilder: {fileID: 8696412163246609548}
-  handleRenderer: {fileID: 2704883596963933048}
+  saberModelContainer: {fileID: 6252490351318958146}
   bladeRenderer: {fileID: 4233540119827007478}
+  handleRenderer: {fileID: 2704883596963933048}
   trailRenderer: {fileID: 8275416719609333111}
 --- !u!1 &6252490351318958146
 GameObject:
@@ -261,7 +259,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 1
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5279490421753430487}
   - {fileID: 6000012842211786941}

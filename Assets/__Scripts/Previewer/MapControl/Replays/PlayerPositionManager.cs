@@ -223,6 +223,12 @@ public class PlayerPositionManager : MonoBehaviour
             leftSaber.SetTrailActive(trail);
             rightSaber.SetTrailActive(trail);
         }
+        if(allSettings || changedSetting == "saberwidth")
+        {
+            float width = SettingsManager.GetFloat("saberwidth");
+            leftSaber.SetWidth(width);
+            rightSaber.SetWidth(width);
+        }
     }
 
 

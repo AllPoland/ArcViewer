@@ -4,6 +4,7 @@ using UnityEngine;
 public class SaberHandler : MonoBehaviour
 {
     [SerializeField] private SaberTrailMeshBuilder meshBuilder;
+    [SerializeField] private GameObject saberModelContainer;
 
     [Space]
     [SerializeField] private MeshRenderer bladeRenderer;
@@ -34,6 +35,15 @@ public class SaberHandler : MonoBehaviour
         trailProperties.SetFloat("_Brightness", brightness);
         trailProperties.SetTexture("_TrailTexture", texture);
         trailRenderer.SetPropertyBlock(trailProperties);
+    }
+
+
+    public void SetWidth(float width)
+    {
+        Vector3 scale = saberModelContainer.transform.localScale;
+        scale.x = width;
+        scale.y = width;
+        saberModelContainer.transform.localScale = scale;
     }
 
 
