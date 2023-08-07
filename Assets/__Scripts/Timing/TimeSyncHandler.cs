@@ -47,7 +47,11 @@ public class TimeSyncHandler : MonoBehaviour
 
     public void UpdateState(UIState newState)
     {
-        TimeScale = 1f;
+        if(ReplayManager.IsReplayMode)
+        {
+            TimeScale = ReplayManager.ReplayTimeScale;
+        }
+        else TimeScale = 1f;
     }
 
 

@@ -21,6 +21,7 @@ public class ReplayManager : MonoBehaviour
     public static float PlayerHeight;
     public static string[] Modifiers = new string[0];
 
+    public static float ReplayTimeScale { get; private set; }
     public static bool LeftHandedMode => IsReplayMode && CurrentReplay.info.leftHanded;
     public static bool BatteryEnergy { get; private set; }
 
@@ -54,6 +55,23 @@ public class ReplayManager : MonoBehaviour
 
         Modifiers = CurrentReplay.info.modifiers.Split(',');
         BatteryEnergy = Modifiers.Any(x => x.Equals("BE", StringComparison.InvariantCultureIgnoreCase));
+
+        if(Modifiers.Any(x => x.Equals("SF", StringComparison.InvariantCultureIgnoreCase)))
+        {
+            //Super fast song
+            ReplayTimeScale = 1.5f;
+        }
+        else if(Modifiers.Any(x => x.Equals("FS", StringComparison.InvariantCultureIgnoreCase)))
+        {
+            //Faster song
+            ReplayTimeScale = 1.2f;
+        }
+        else if(Modifiers.Any(x => x.Equals("SS", StringComparison.InvariantCultureIgnoreCase)))
+        {
+            //Slower song
+            ReplayTimeScale = 0.85f;
+        }
+        else ReplayTimeScale = 1f;
 
         OnReplayModeChanged?.Invoke(true);
         OnReplayUpdated?.Invoke(CurrentReplay);
