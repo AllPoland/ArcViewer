@@ -17,6 +17,9 @@ public class SaberHandler : MonoBehaviour
     public void SetFrames(List<ReplayFrame> frames, int startIndex) => meshBuilder.SetFrames(frames, startIndex);
 
 
+    public void SetTrailActive(bool active) => trailRenderer.gameObject.SetActive(active);
+
+
     public void SetSaberProperties(Color color)
     {
         saberProperties.SetColor("_BaseColor", color);
@@ -25,9 +28,10 @@ public class SaberHandler : MonoBehaviour
     }
 
 
-    public void SetTrailProperties(Color color, Texture2D texture)
+    public void SetTrailProperties(Color color, float brightness, Texture2D texture)
     {
         trailProperties.SetColor("_BaseColor", color);
+        trailProperties.SetFloat("_Brightness", brightness);
         trailProperties.SetTexture("_TrailTexture", texture);
         trailRenderer.SetPropertyBlock(trailProperties);
     }

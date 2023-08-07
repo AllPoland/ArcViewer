@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PlayerPositionManager : MonoBehaviour
@@ -26,18 +27,22 @@ public class PlayerPositionManager : MonoBehaviour
     [Header("Visuals")]
     [SerializeField] private Texture2D[] trailTextures;
 
-
-    public void UpdateSaberMaterials()
+    private string[] trailMaterialSettings = new string[]
     {
-        leftSaber.SetSaberProperties(NoteManager.RedNoteColor);
-        leftSaber.SetTrailProperties(NoteManager.RedNoteColor, trailTextures[0]);
+        "sabertrails",
+        "sabertrailtype",
+        "sabertrailbrightness"
+    };
 
-        rightSaber.SetSaberProperties(NoteManager.BlueNoteColor);
-        rightSaber.SetTrailProperties(NoteManager.BlueNoteColor, trailTextures[0]);
-    }
+    private string[] redrawSettings = new string[]
+    {
+        "sabertrails",
+        "sabertraillength",
+        "sabertrailsegments"
+    };
 
-
-    private void UpdateColors(ColorPalette _) => UpdateSaberMaterials();
+    private bool useTrails => SettingsManager.GetBool("sabertrails");
+    private int trailIndex => Mathf.Clamp(SettingsManager.GetInt("sabertrailtype"), 0, trailTextures.Length - 1);
 
 
     public static Vector3 HeadPositionAtTime(float time)
@@ -104,8 +109,11 @@ public class PlayerPositionManager : MonoBehaviour
         rightSaber.transform.localPosition = Vector3.Lerp(currentFrame.rightSaberPosition, nextFrame.rightSaberPosition, t);
         rightSaber.transform.localRotation = Quaternion.Lerp(currentFrame.rightSaberRotation, nextFrame.rightSaberRotation, t);
 
-        leftSaber.SetFrames(replayFrames, lastFrameIndex);
-        rightSaber.SetFrames(replayFrames, lastFrameIndex);
+        if(useTrails)
+        {
+            leftSaber.SetFrames(replayFrames, lastFrameIndex);
+            rightSaber.SetFrames(replayFrames, lastFrameIndex);
+        }
 
         UpdatePositions();
     }
@@ -160,10 +168,58 @@ public class PlayerPositionManager : MonoBehaviour
     }
 
 
+    public void UpdateTrailMaterials()
+    {
+        if(!useTrails)
+        {
+            return;
+        }
+
+        float brightness = SettingsManager.GetFloat("sabertrailbrightness");
+        Texture2D trail = trailTextures[trailIndex];
+
+        leftSaber.SetTrailProperties(NoteManager.RedNoteColor, brightness, trail);
+        rightSaber.SetTrailProperties(NoteManager.BlueNoteColor, brightness, trail);
+    }
+
+
+    public void UpdateSaberMaterials()
+    {
+        leftSaber.SetSaberProperties(NoteManager.RedNoteColor);
+        rightSaber.SetSaberProperties(NoteManager.BlueNoteColor);
+    }
+
+
+    public void UpdateColors(ColorPalette _)
+    {
+        UpdateSaberMaterials();
+        UpdateTrailMaterials();
+    }
+
+
+    private void UpdateSettings(string changedSetting)
+    {
+        bool allSettings = changedSetting == "all";
+        if(allSettings || trailMaterialSettings.Contains(changedSetting))
+        {
+            UpdateTrailMaterials();
+        }
+        if(allSettings || redrawSettings.Contains(changedSetting))
+        {
+            UpdateBeat(TimeManager.CurrentBeat);
+
+            bool trail = useTrails; //Just to avoid an unnecessary extra settings lookup
+            leftSaber.SetTrailActive(trail);
+            rightSaber.SetTrailActive(trail);
+        }
+    }
+
+
     private void OnEnable()
     {
         ReplayManager.OnReplayModeChanged += UpdateReplayMode;
         ColorManager.OnColorsChanged += UpdateColors;
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
 
         UpdateReplayMode(ReplayManager.IsReplayMode);
     }
@@ -174,6 +230,7 @@ public class PlayerPositionManager : MonoBehaviour
         ReplayManager.OnReplayModeChanged -= UpdateReplayMode;
         TimeManager.OnBeatChangedEarly -= UpdateBeat;
         ColorManager.OnColorsChanged -= UpdateColors;
+        SettingsManager.OnSettingsUpdated -= UpdateSettings;
 
         replayFrames.Clear();
     }

@@ -11,8 +11,6 @@ public class SaberTrailMeshBuilder : MonoBehaviour
     [SerializeField] private Vector3 tipOffset;
 
     [Space]
-    [SerializeField] private float lifetime;
-    [SerializeField] private int segmentCount;
 
     private Mesh mesh;
 
@@ -37,6 +35,9 @@ public class SaberTrailMeshBuilder : MonoBehaviour
 
     public void SetFrames(List<ReplayFrame> frames, int startIndex)
     {
+        float lifetime = SettingsManager.GetFloat("sabertraillength");
+        int segmentCount = SettingsManager.GetInt("sabertrailsegments");
+
         mesh.Clear();
         Vector3[] vertices = new Vector3[segmentCount * 2];
         Vector3[] normals = new Vector3[vertices.Length];
