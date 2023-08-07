@@ -148,7 +148,6 @@ public class ReplayManager : MonoBehaviour
             //Some old replays didn't store player height, so use default
             PlayerHeight = ObjectManager.DefaultPlayerHeight;
         }
-        Debug.Log(PlayerHeight);
     }
 
 

@@ -234,7 +234,11 @@ public class AsyncReplayDecoder
         List<Frame> result = new List<Frame>();
         for (int i = 0; i < length; i++)
         {
-            result.Add(await DecodeFrame(stream));
+            Frame frame = await DecodeFrame(stream);
+            if (frame.time != 0 && (result.Count == 0 || frame.time != result[result.Count - 1].time))
+            {
+                result.Add(frame);
+            }
         }
         return result;
     }
