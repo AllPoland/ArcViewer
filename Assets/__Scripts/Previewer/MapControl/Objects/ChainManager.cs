@@ -195,7 +195,7 @@ public class ChainManager : MapElementManager<ChainLink>
 
             if(TimeManager.Playing && SettingsManager.GetFloat("hitsoundvolume") > 0 && SettingsManager.GetFloat("chainvolume") > 0)
             {
-                HitSoundManager.ScheduleHitsound(cl.Time, cl.source);
+                HitSoundManager.ScheduleHitsound(cl);
             }
 
             RenderedObjects.Add(cl);
@@ -283,7 +283,7 @@ public class ChainManager : MapElementManager<ChainLink>
         {
             if(cl.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0 && SettingsManager.GetFloat("chainvolume") > 0)
             {
-                HitSoundManager.ScheduleHitsound(cl.Time, cl.source);
+                HitSoundManager.ScheduleHitsound(cl);
             }
         }
     }

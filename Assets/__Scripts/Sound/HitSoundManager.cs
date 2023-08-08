@@ -8,6 +8,7 @@ public class HitSoundManager : MonoBehaviour
     public const float SoundOffset = -0.185f;
 
     public static AudioClip HitSound;
+    public static AudioClip BadHitSound;
     public static List<ScheduledSound> scheduledSounds = new List<ScheduledSound>();
 
     public static bool RandomPitch => SettingsManager.GetBool("randomhitsoundpitch");
@@ -45,34 +46,48 @@ public class HitSoundManager : MonoBehaviour
 
     [SerializeField] private AudioMixer hitSoundMixer;
     [SerializeField] private AudioClip defaultHitsound;
+    [SerializeField] private AudioClip defaultBadHitsound;
 
 
-    public static void ScheduleHitsound(float noteTime, AudioSource noteSource)
+    public static void ScheduleHitsound(HitSoundEmitter emitter)
     {
-        noteSource.enabled = true;
-        noteSource.Stop();
-        noteSource.clip = HitSound;
-        noteSource.volume = 1f;
+        if(!emitter.WasHit && !emitter.WasBadCut && SettingsManager.GetBool("mutemisses"))
+        {
+            //This note was missed and shouldn't play a sound
+            return;
+        }
+
+        AudioSource source = emitter.source;
+
+        source.enabled = true;
+        source.Stop();
+        source.volume = 1f;
+
+        if(emitter.WasBadCut && SettingsManager.GetBool("usebadhitsound"))
+        {
+            source.clip = BadHitSound;
+        }
+        else source.clip = HitSound;
 
         if(RandomPitch)
         {
-            noteSource.pitch = Random.Range(0.95f, 1.05f);
+            source.pitch = Random.Range(0.95f, 1.05f);
         }
-        else noteSource.pitch = 1;
+        else source.pitch = 1;
 
 #if !UNITY_WEBGL || UNITY_EDITOR
         if(Spatial)
         {
             //A bit less than full spacial blend because I think having the sounds way in one ear is weird
-            noteSource.spatialBlend = 0.8f;
+            source.spatialBlend = 0.8f;
         }
-        else noteSource.spatialBlend = 0;
+        else source.spatialBlend = 0;
 #endif
 
         if(Spatial)
         {
             //Findall my behated
-            List<ScheduledSound> existingSounds = scheduledSounds.FindAll(x => Mathf.Abs(x.time - noteTime) <= 0.001);
+            List<ScheduledSound> existingSounds = scheduledSounds.FindAll(x => ObjectManager.CheckSameTime(x.time, emitter.Time));
             if(existingSounds.Count > 0)
             {
                 //This sound has already been scheduled, every source should match pitch and have reduced volume
@@ -81,12 +96,12 @@ public class HitSoundManager : MonoBehaviour
                 {
                     existingSound.source.volume *= volumeFalloff;
                 }
-                noteSource.volume *= volumeFalloff;
+                source.volume *= volumeFalloff;
 
-                noteSource.pitch = existingSounds[0].source.pitch;
+                source.pitch = existingSounds[0].source.pitch;
             }
         }
-        else if(scheduledSounds.Any(x => Mathf.Abs(x.time - noteTime) <= 0.001))
+        else if(scheduledSounds.Any(x => ObjectManager.CheckSameTime(x.time, emitter.Time)))
         {
             //This sound has already been scheduled and we aren't using spatial audio, so sounds shouldn't stack
             return;
@@ -95,8 +110,8 @@ public class HitSoundManager : MonoBehaviour
         ScheduledSound sound = new ScheduledSound
         {
             parentList = scheduledSounds,
-            source = noteSource,
-            time = noteTime
+            source = source,
+            time = emitter.Time
         };
         scheduledSounds.Add(sound);
     }
@@ -158,6 +173,7 @@ public class HitSoundManager : MonoBehaviour
     private void Awake()
     {
         HitSound = defaultHitsound;
+        BadHitSound = defaultBadHitsound;
     }
 }
 

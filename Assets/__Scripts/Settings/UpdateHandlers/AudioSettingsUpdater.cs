@@ -1,11 +1,24 @@
+using System.Linq;
 using UnityEngine;
 
 public class AudioSettingsUpdater : MonoBehaviour
 {
     [SerializeField] private AudioManager audioManager;
     [SerializeField] private HitSoundManager hitSoundManager;
-    [SerializeField] private AudioClip[] hitSounds;
     [SerializeField] private ObjectSettingsUpdater objectSettingsUpdater;
+
+    [Space]
+    [SerializeField] private AudioClip[] hitSounds;
+    [SerializeField] private AudioClip[] badHitSounds;
+
+    private string[] hitSoundSettings = new string[]
+    {
+        "hitsound",
+        "spatialhitsounds",
+        "randomhitsoundpitch",
+        "badhitsound",
+        "mutemisses"
+    };
 
 
     public void UpdateAudioSettings(string setting)
@@ -23,13 +36,15 @@ public class AudioSettingsUpdater : MonoBehaviour
             hitSoundManager.ChainVolume = SettingsManager.GetFloat("chainvolume") * hitsoundVolume;
         }
 
-        if(allSettings || setting == "hitsound" || setting == "spatialhitsounds" || setting == "randomhitsoundpitch")
+        if(allSettings || hitSoundSettings.Contains(setting))
         {
             int hitsound = SettingsManager.GetInt("hitsound");
-            Mathf.Clamp(hitsound, 0, hitSounds.Length - 1);
-            AudioClip newSound = hitSounds[hitsound];
+            hitsound = Mathf.Clamp(hitsound, 0, hitSounds.Length - 1);
+            HitSoundManager.HitSound = hitSounds[hitsound];
 
-            HitSoundManager.HitSound = newSound;
+            int badHitsound = SettingsManager.GetInt("badhitsound");
+            badHitsound = Mathf.Clamp(badHitsound, 0, badHitSounds.Length - 1);
+            HitSoundManager.BadHitSound = badHitSounds[badHitsound];
 
             HitSoundManager.ClearScheduledSounds();
             ObjectManager.Instance.RescheduleHitsounds(TimeManager.Playing);

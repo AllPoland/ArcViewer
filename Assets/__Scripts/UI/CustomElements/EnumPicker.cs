@@ -67,6 +67,11 @@ public class EnumPicker : MonoBehaviour
         valueText.color = textColor;
 
         valueContainerImage.sprite = interactable ? enabledPanelSprite : disabledPanelSprite;
+        
+        if(interactable)
+        {
+            UpdateElements();
+        }
     }
 
 

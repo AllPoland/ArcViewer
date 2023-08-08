@@ -144,7 +144,7 @@ public class NoteManager : MapElementManager<Note>
 
             if(TimeManager.Playing && SettingsManager.GetFloat("hitsoundvolume") > 0)
             {
-                HitSoundManager.ScheduleHitsound(n.Time, n.source);
+                HitSoundManager.ScheduleHitsound(n);
             }
 
             RenderedObjects.Add(n);
@@ -241,7 +241,7 @@ public class NoteManager : MapElementManager<Note>
         {
             if(n.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0)
             {
-                HitSoundManager.ScheduleHitsound(n.Time, n.source);
+                HitSoundManager.ScheduleHitsound(n);
             }
         }
     }

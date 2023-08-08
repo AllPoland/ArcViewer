@@ -38,11 +38,6 @@ public class SaberTrailMeshBuilder : MonoBehaviour
             float timeDifference = segmentLength * i;
             float segmentTime = Mathf.Max(TimeManager.CurrentTime - timeDifference, 0f);
 
-            if(segmentTime < endTime)
-            {
-                break;
-            }
-
             //Make sure the first segment always lines up with the last frame
             if(i > 0)
             {

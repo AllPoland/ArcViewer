@@ -7,7 +7,7 @@ public class LogDisplay : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI logText;
     [SerializeField] private AttachedFileHandler attachedFileHandler;
-    [SerializeField] private Scrollbar scrollbar;
+    [SerializeField] private RectTransform content;
 
 
     public void SetLog(Log newLog)
@@ -25,7 +25,7 @@ public class LogDisplay : MonoBehaviour
         LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)logText.transform.parent);
         LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)transform);
 
-        scrollbar.value = 1f;
+        content.anchoredPosition = Vector2.zero;
     }
 }
 
