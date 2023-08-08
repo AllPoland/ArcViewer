@@ -135,7 +135,7 @@ public class LightHandler : MonoBehaviour
     private void OnEnable()
     {
         LightManager.OnLightPropertiesChanged += UpdateLight;
-        CameraSettingsUpdater.OnCameraPositionUpdated += UpdateGlowRotation;
+        CameraUpdater.OnCameraPositionUpdated += UpdateGlowRotation;
 
         glowBaseScale = glowRenderer.transform.localScale;
 
@@ -146,6 +146,6 @@ public class LightHandler : MonoBehaviour
     private void OnDisable()
     {
         LightManager.OnLightPropertiesChanged -= UpdateLight;
-        CameraSettingsUpdater.OnCameraPositionUpdated -= UpdateGlowRotation;
+        CameraUpdater.OnCameraPositionUpdated -= UpdateGlowRotation;
     }
 }

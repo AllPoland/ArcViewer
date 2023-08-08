@@ -12,23 +12,26 @@ public class PlayerInfoPanel : MonoBehaviour
     [SerializeField] private Button playerProfileButton;
 
     [Space]
-    [SerializeField] private float avatarWidth;
+    [SerializeField] private Sprite defaultImage;
 
 
     private void UpdateAvatar(Sprite newAvatar)
     {
         Vector2 infoPosition = infoContainer.anchoredPosition;
-        if(ReplayManager.IsReplayMode && newAvatar != null)
+        if(ReplayManager.IsReplayMode)
         {
+            if(newAvatar == null)
+            {
+                newAvatar = defaultImage;
+            }
+
             avatarImage.sprite = newAvatar;
             avatarImage.gameObject.SetActive(true);
-            infoPosition.x = avatarWidth;
         }
         else
         {
             avatarImage.sprite = null;
             avatarImage.gameObject.SetActive(false);
-            infoPosition.x = 0f;
         }
         infoContainer.anchoredPosition = infoPosition;
     }

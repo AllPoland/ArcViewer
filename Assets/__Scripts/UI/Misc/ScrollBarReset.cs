@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(Scrollbar))]
 public class ScrollBarReset : MonoBehaviour
 {
     [SerializeField] float defaultValue;

@@ -7,6 +7,8 @@ public class PlayerPositionManager : MonoBehaviour
     public static MapElementList<ReplayFrame> replayFrames = new MapElementList<ReplayFrame>();
 
     public static Vector3 HeadPosition { get; private set; }
+    public static Quaternion HeadRotation { get; private set; }
+
     public static Vector3 LeftSaberTipPosition { get; private set; }
     public static Vector3 RightSaberTipPosition { get; private set; }
 
@@ -101,11 +103,8 @@ public class PlayerPositionManager : MonoBehaviour
         float timeDifference = nextFrame.Time - currentFrame.Time;
         float t = timeDifference <= 0 ? 0f : (TimeManager.CurrentTime - currentFrame.Time) / timeDifference;
 
-        if(headset.gameObject.activeInHierarchy)
-        {
-            headset.transform.localPosition = Vector3.Lerp(currentFrame.headPosition, nextFrame.headPosition, t);
-            headset.transform.localRotation = Quaternion.Lerp(currentFrame.headRotation, nextFrame.headRotation, t);
-        }
+        headset.transform.localPosition = Vector3.Lerp(currentFrame.headPosition, nextFrame.headPosition, t);
+        headset.transform.localRotation = Quaternion.Lerp(currentFrame.headRotation, nextFrame.headRotation, t);
 
         leftSaber.transform.localPosition = Vector3.Lerp(currentFrame.leftSaberPosition, nextFrame.leftSaberPosition, t);
         leftSaber.transform.localRotation = Quaternion.Lerp(currentFrame.leftSaberRotation, nextFrame.leftSaberRotation, t);
@@ -126,6 +125,7 @@ public class PlayerPositionManager : MonoBehaviour
     private void UpdatePositions()
     {
         HeadPosition = headset.transform.position;
+        HeadRotation = headset.transform.rotation;
         LeftSaberTipPosition = leftSaber.transform.position + (leftSaber.transform.forward * saberTipOffset);
         RightSaberTipPosition = rightSaber.transform.position + (rightSaber.transform.forward * saberTipOffset);
     }
@@ -232,9 +232,10 @@ public class PlayerPositionManager : MonoBehaviour
             leftSaber.SetWidth(width);
             rightSaber.SetWidth(width);
         }
-        if(allSettings || changedSetting == "showheadset")
+        if(allSettings || changedSetting == "showheadset" || changedSetting == "firstpersonreplay")
         {
-            headset.gameObject.SetActive(SettingsManager.GetBool("showheadset"));
+            bool enableHeadset = SettingsManager.GetBool("showheadset") && !SettingsManager.GetBool("firstpersonreplay");
+            headset.gameObject.SetActive(enableHeadset);
         }
         if(allSettings || changedSetting == "headsetalpha")
         {
