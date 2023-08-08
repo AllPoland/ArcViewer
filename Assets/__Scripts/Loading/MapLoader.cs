@@ -316,11 +316,13 @@ public class MapLoader : MonoBehaviour
 
         if(!string.IsNullOrEmpty(mapID))
         {
+            Debug.Log($"Loading map from preset ID: {mapID}");
             UrlArgHandler.LoadedMapID = mapID;
             StartCoroutine(LoadMapIDCoroutine(mapID, replay.info.hash));
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
+            Debug.Log($"Loading map from preset URL: {mapURL}");
             UrlArgHandler.LoadedMapURL = mapURL;
             StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, replay.info.hash, noProxy));
         }

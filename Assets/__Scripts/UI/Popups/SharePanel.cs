@@ -4,7 +4,7 @@ using TMPro;
 
 public class SharePanel : MonoBehaviour
 {
-    public bool UseTimestamp;
+    public bool UseTimestamp = false;
 
     [SerializeField] private TMP_InputField urlOutput;
     [SerializeField] private Toggle timeStampToggle;
@@ -38,17 +38,10 @@ public class SharePanel : MonoBehaviour
                 return;
             }
 
-            if(!UrlArgHandler.ignoreMapForSharing)
+            if(!UrlArgHandler.ignoreMapForSharing && !string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL))
             {
-                //Include map arguments for replays
-                if(!string.IsNullOrEmpty(UrlArgHandler.LoadedMapID))
-                {
-                    newText += $"&id={UrlArgHandler.LoadedMapID}";
-                }
-                else if(!string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL))
-                {
-                    newText += $"&url={UrlArgHandler.LoadedMapURL}";
-                }
+                //Include custom set map for replays
+                newText += $"&url={UrlArgHandler.LoadedMapURL}";
             }
         }
         else

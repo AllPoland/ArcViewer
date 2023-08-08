@@ -37,8 +37,22 @@ public class BeatmapInfo
     }
 
 
+    public static string TrimCharacteristicString(string characteristicName)
+    {
+        //Trims extra text added by BeatLeader in replay modes
+        if(characteristicName.EndsWith("OldDots", StringComparison.InvariantCultureIgnoreCase))
+        {
+            characteristicName = characteristicName.Substring(0, characteristicName.LastIndexOf("OldDots", StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        return characteristicName;
+    }
+
+
     public static DifficultyCharacteristic CharacteristicFromString(string characteristicName)
     {
+        characteristicName = TrimCharacteristicString(characteristicName);
+
         DifficultyCharacteristic characteristic;
         bool success = Enum.TryParse(characteristicName, true, out characteristic);
         if(!success)

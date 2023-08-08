@@ -180,6 +180,7 @@ public class ReplayLoader
             return "";
         }
 
+        modeName = BeatmapInfo.TrimCharacteristicString(modeName);
         BeatleaderLeaderboard leaderboard = response.leaderboards.FirstOrDefault(x => x.difficulty.modeName == modeName && x.difficulty.difficultyName == difficultyName);
         if(leaderboard == null)
         {

@@ -8,6 +8,7 @@ public class UrlArgHandler : MonoBehaviour
 {
     public const string ArcViewerName = "ArcViewer";
     public const string ArcViewerURL = "https://allpoland.github.io/ArcViewer/";
+    public const string BeatLeaderViewerURL = "https://replay.beatleader.xyz/";
 
     [DllImport("__Internal")]
     public static extern string GetParameters();
