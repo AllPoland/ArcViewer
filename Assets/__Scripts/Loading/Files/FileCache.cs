@@ -52,10 +52,10 @@ public class FileCache
             CachedFiles.Remove(match);
             CachedFiles.Add(match);
 
-            //Add missing fields if we have new ones
-            if(string.IsNullOrEmpty(match.URL)) match.URL = url;
-            if(string.IsNullOrEmpty(match.ID)) match.ID = id;
-            if(string.IsNullOrEmpty(match.Hash)) match.Hash = hash;
+            //Update fields if we have new ones
+            if(string.IsNullOrEmpty(url)) match.URL = url;
+            if(string.IsNullOrEmpty(id)) match.ID = id;
+            if(string.IsNullOrEmpty(hash)) match.Hash = hash;
 
             SaveCacheData();
         }
@@ -74,10 +74,10 @@ public class FileCache
         CachedFile match = CachedFiles.FirstOrDefault(x => x.MatchInput(url, id, hash));
         if(match != null)
         {
-            //This file has already been cached, add missing fields if we have new ones
-            if(string.IsNullOrEmpty(match.URL)) match.URL = url;
-            if(string.IsNullOrEmpty(match.ID)) match.ID = id;
-            if(string.IsNullOrEmpty(match.Hash)) match.Hash = hash;
+            //This file has already been cached, update fields if we have new ones
+            if(string.IsNullOrEmpty(url)) match.URL = url;
+            if(string.IsNullOrEmpty(id)) match.ID = id;
+            if(string.IsNullOrEmpty(hash)) match.Hash = hash;
 
             SaveCacheData();
             Debug.Log("Tried to save an already cached file.");
