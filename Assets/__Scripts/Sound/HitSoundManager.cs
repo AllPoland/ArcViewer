@@ -101,7 +101,7 @@ public class HitSoundManager : MonoBehaviour
                 source.pitch = existingSounds[0].source.pitch;
             }
         }
-        else if(scheduledSounds.Any(x => ObjectManager.CheckSameTime(x.time, emitter.Time)))
+        else if(scheduledSounds.Any(x => ObjectManager.CheckSameTime(x.time, emitter.Time) && x.source.clip == source.clip))
         {
             //This sound has already been scheduled and we aren't using spatial audio, so sounds shouldn't stack
             return;
