@@ -57,14 +57,14 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
 
     public int Count => Elements.Count;
 
-    public T Last() => Elements.Last();
+    public T Last => Elements.Count > 0 ? Elements[Elements.Count - 1] : null;
     public List<T> FindAll(Predicate<T> match) => Elements.FindAll(match);
 
 
     public void Add(T item)
     {
         //If the new item is in order, don't wanna bother resorting the whole list
-        IsSorted = Count == 0 || (IsSorted && item.Beat >= Last().Beat);
+        IsSorted = Count == 0 || (IsSorted && item.Beat >= Last.Beat);
         Elements.Add(item);
     }
 

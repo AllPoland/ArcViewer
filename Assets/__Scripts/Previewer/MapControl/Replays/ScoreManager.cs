@@ -11,7 +11,7 @@ public class ScoreManager : MonoBehaviour
     private static List<ScoringEvent> RenderedScoringEvents = new List<ScoringEvent>();
 
     public static int MaxScore { get; private set; }
-    public static int TotalScore => ScoringEvents.Count > 0 ? ScoringEvents.Last().TotalScore : 0;
+    public static int TotalScore => ScoringEvents.Count > 0 ? ScoringEvents.Last.TotalScore : 0;
 
     public const int MaxNoteScore = 115;
     public const int MaxChainHeadScore = 85;
@@ -552,7 +552,14 @@ public class ScoreManager : MonoBehaviour
 
             foreach(NoteEvent noteEvent in ReplayManager.CurrentReplay.notes)
             {
-                ScoringEvents.Add(new ScoringEvent(noteEvent));
+                ScoringEvent newEvent = new ScoringEvent(noteEvent);
+                if(ScoringEvents.Last != null && noteEvent.eventTime < ScoringEvents.Last.Time)
+                {
+                    //Events need to be kept in order individually, full list sorting
+                    //should be avoided
+                    ScoringEvents.InsertSorted(newEvent);
+                }
+                else ScoringEvents.Add(newEvent);
             }
 
             foreach(WallEvent wallEvent in ReplayManager.CurrentReplay.walls)

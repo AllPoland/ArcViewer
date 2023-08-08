@@ -8484,7 +8484,7 @@ MonoBehaviour:
       enabled: 0
       value: 0
   - Name: fpcamerasmoothing
-    Value: 0.3
+    Value: 0.5
     ValueWebGL:
       enabled: 0
       value: 0
@@ -51195,7 +51195,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82ed6a7d2078e6c408b91b9d3fbd9bd6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  text: {fileID: 1963028646}
   requiredClicks: 3
+  defaultColor: {r: 0.85882354, g: 0.7490196, b: 0.13333334, a: 1}
+  hoveredColor: {r: 0.6132076, g: 0.5379638, b: 0.10702208, a: 1}
+  clickedColor: {r: 0.5188679, g: 0.38142028, b: 0.07587219, a: 1}
 --- !u!1001 &1966173301
 PrefabInstance:
   m_ObjectHideFlags: 0
