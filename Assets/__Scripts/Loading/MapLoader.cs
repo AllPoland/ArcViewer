@@ -238,19 +238,23 @@ public class MapLoader : MonoBehaviour
         CachedFile cachedFile = FileCache.GetCachedFile(null, null, mapHash);
         if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
-            Debug.Log("Found map in cache.");
-
+            //Only use the cache if we know the ID or URL, so the link buttons work
             if(!string.IsNullOrEmpty(cachedFile.ID))
             {
                 UrlArgHandler.LoadedMapID = cachedFile.ID;
+                Debug.Log($"Found map ID: {cachedFile.ID} in cache.");
+
+                LoadMapZip(cachedFile.FilePath);
+                yield break;
             }
             else if(!string.IsNullOrEmpty(cachedFile.URL))
             {
                 UrlArgHandler.LoadedMapURL = cachedFile.URL;
-            }
+                Debug.Log($"Found map URL: {cachedFile.URL} in cache.");
 
-            LoadMapZip(cachedFile.FilePath);
-            yield break;
+                LoadMapZip(cachedFile.FilePath);
+                yield break;
+            }
         }
 #endif
 
