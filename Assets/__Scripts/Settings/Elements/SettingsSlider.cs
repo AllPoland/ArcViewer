@@ -6,12 +6,23 @@ using TMPro;
 
 public class SettingsSlider : MonoBehaviour, IPointerUpHandler
 {
-    [SerializeField] private TextMeshProUGUI valueLabel;
+    [Header("Components")]
+    [SerializeField] private Slider slider;
+    [SerializeField] private TMP_InputField valueInput;
+    [SerializeField] private RectTransform valueText;
     [SerializeField] private TextMeshProUGUI nameLabel;
+
+    [Header("Configuration")]
     [SerializeField] private string minOverride;
     [SerializeField] private string maxOverride;
     [SerializeField] private string rule;
+
+    [Space]
     [SerializeField] private bool integerValue;
+    [SerializeField] private float minValue = 0f;
+    [SerializeField] private float maxValue = 1f;
+
+    [Space]
     [SerializeField] private bool hideInWebGL;
     [SerializeField] private bool realTimeUpdates = true;
     [SerializeField] private Optional<SerializedOption<bool>> requiredSetting;
@@ -19,8 +30,6 @@ public class SettingsSlider : MonoBehaviour, IPointerUpHandler
     [Space]
     [SerializeField] private Color enabledColor;
     [SerializeField] private Color disabledColor;
-
-    private Slider slider;
 
 
     public void OnPointerUp(PointerEventData eventData)
@@ -35,7 +44,25 @@ public class SettingsSlider : MonoBehaviour, IPointerUpHandler
         {
             SettingsManager.SetRule(rule, value);
         }
-        else SettingsManager.SetRule(rule, (int)value);
+        else SettingsManager.SetRule(rule, Mathf.RoundToInt(value));
+    }
+
+
+    public void SetValue(string value)
+    {
+        if(float.TryParse(value, out float number))
+        {
+            number = Mathf.Clamp(number, minValue, maxValue);
+
+            if(integerValue)
+            {
+                slider.value = Mathf.RoundToInt(number);
+            }
+            else slider.value = number;
+
+            UpdateText(slider.value);
+        }
+        else UpdateText(slider.value);
     }
 
 
@@ -45,8 +72,8 @@ public class SettingsSlider : MonoBehaviour, IPointerUpHandler
         if(changedSetting == "all" || changedSetting == option.Name)
         {
             slider.interactable = option.Value == SettingsManager.GetBool(option.Name);
+            valueInput.interactable = slider.interactable;
             Color textColor = slider.interactable ? enabledColor : disabledColor;
-            valueLabel.color = textColor;
             nameLabel.color = textColor;
         }
     }
@@ -54,15 +81,17 @@ public class SettingsSlider : MonoBehaviour, IPointerUpHandler
 
     public void UpdateText(float value)
     {
-        if(value > slider.maxValue - 0.005 && maxOverride != "")
+        if(value > maxValue - 0.005 && maxOverride != "")
         {
-            valueLabel.text = maxOverride;
+            valueInput.SetTextWithoutNotify(maxOverride);
         }
-        else if(value < slider.minValue + 0.005 && minOverride != "")
+        else if(value < minValue + 0.005 && minOverride != "")
         {
-            valueLabel.text = minOverride;
+            valueInput.SetTextWithoutNotify(minOverride);
         }
-        else valueLabel.text = Math.Round(value, 2).ToString();  
+        else valueInput.SetTextWithoutNotify(Math.Round(value, 2).ToString());
+
+        valueText.anchoredPosition = Vector2.zero;
     }
 
 
@@ -76,18 +105,20 @@ public class SettingsSlider : MonoBehaviour, IPointerUpHandler
         }
 #endif
 
-        slider = GetComponent<Slider>();
+        slider.wholeNumbers = integerValue;
+        slider.minValue = minValue;
+        slider.maxValue = maxValue;
 
-        if(!integerValue)
+        if(integerValue)
         {
-            float newValue = SettingsManager.GetFloat(rule);
+            int newValue = SettingsManager.GetInt(rule);
 
             slider.SetValueWithoutNotify(newValue);
             UpdateText(slider.value);
         }
-        else if(integerValue)
+        else
         {
-            int newValue = SettingsManager.GetInt(rule);
+            float newValue = SettingsManager.GetFloat(rule);
 
             slider.SetValueWithoutNotify(newValue);
             UpdateText(slider.value);

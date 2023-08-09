@@ -242,19 +242,19 @@ public class PlayerPositionManager : MonoBehaviour
     }
 
 
-    private void UpdateSettings(string changedSetting)
+    private void UpdateSettings(string setting)
     {
         if(!ReplayManager.IsReplayMode)
         {
             return;
         }
 
-        bool allSettings = changedSetting == "all";
-        if(allSettings || trailMaterialSettings.Contains(changedSetting))
+        bool allSettings = setting == "all";
+        if(allSettings || trailMaterialSettings.Contains(setting))
         {
             UpdateTrailMaterials();
         }
-        if(allSettings || redrawSettings.Contains(changedSetting))
+        if(allSettings || redrawSettings.Contains(setting))
         {
             UpdateBeat(TimeManager.CurrentBeat);
 
@@ -262,18 +262,18 @@ public class PlayerPositionManager : MonoBehaviour
             leftSaber.SetTrailActive(trail);
             rightSaber.SetTrailActive(trail);
         }
-        if(allSettings || changedSetting == "saberwidth")
+        if(allSettings || setting == "saberwidth")
         {
             float width = SettingsManager.GetFloat("saberwidth");
             leftSaber.SetWidth(width);
             rightSaber.SetWidth(width);
         }
-        if(allSettings || changedSetting == "showheadset" || changedSetting == "firstpersonreplay")
+        if(allSettings || setting == "showheadset" || setting == "firstpersonreplay")
         {
             bool enableHeadset = SettingsManager.GetBool("showheadset") && !SettingsManager.GetBool("firstpersonreplay");
             headset.gameObject.SetActive(enableHeadset);
         }
-        if(allSettings || changedSetting == "headsetalpha")
+        if(allSettings || setting == "headsetalpha")
         {
             headset.SetAlpha(SettingsManager.GetFloat("headsetalpha"));
         }
