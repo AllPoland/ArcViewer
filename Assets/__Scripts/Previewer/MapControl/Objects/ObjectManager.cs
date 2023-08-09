@@ -28,6 +28,8 @@ public class ObjectManager : MonoBehaviour
     public bool doMovementAnimation => forceGameAccuracy || SettingsManager.GetBool("moveanimations");
     public bool doFlipAnimation => forceGameAccuracy || SettingsManager.GetBool("flipanimations");
 
+    public bool doLookAnimation => ReplayManager.IsReplayMode && (forceGameAccuracy || SettingsManager.GetBool("lookanimations"));
+
     public const float DefaultPlayerHeight = 1.8f;
     public float PlayerHeightSetting => SettingsManager.GetFloat("playerheight");
     public float playerHeight => ReplayManager.IsReplayMode ? ReplayManager.PlayerHeight : PlayerHeightSetting;

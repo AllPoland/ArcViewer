@@ -152,7 +152,7 @@ public class NoteManager : MapElementManager<Note>
 
         n.Visual.transform.localPosition = worldPos;
 
-        if(objectManager.forceGameAccuracy && !n.IsChainHead)
+        if(objectManager.doLookAnimation && !n.IsChainHead)
         {
             //Notes look towards the player's head in replays
             n.Visual.transform.localRotation = objectManager.LookAtPlayer(n.Visual.transform, worldRotation, jumpProgress);

@@ -59,7 +59,7 @@ public class ObjectSettingsUpdater : MonoBehaviour
             {
                 bombManager.ReloadBombs();
             }
-            if(allSettings || setting == "simplenotes")
+            if(allSettings || setting == "simplenotes" || setting == "lookanimations")
             {
                 HitSoundManager.ClearScheduledSounds();
                 noteManager.UpdateMaterials();
