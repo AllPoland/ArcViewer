@@ -8,6 +8,8 @@ public class BombManager : MapElementManager<Bomb>
     [SerializeField] private Material complexMaterial;
     [SerializeField] private Material simpleMaterial;
 
+    private static bool playBadCutSound => TimeManager.Playing && SettingsManager.GetBool("usebadhitsound") && SettingsManager.GetFloat("hitsoundvolume") > 0;
+
 
     public void ReloadBombs()
     {
@@ -48,6 +50,12 @@ public class BombManager : MapElementManager<Bomb>
             {
                 //This bomb has no custom color, so properties should be cleared
                 b.BombHandler.ClearProperties();
+            }
+
+            if(b.WasHit && playBadCutSound)
+            {
+                //This bomb should play
+                HitSoundManager.ScheduleHitsound(b);
             }
 
             b.Visual.SetActive(true);
@@ -122,6 +130,18 @@ public class BombManager : MapElementManager<Bomb>
             else if(!VisualInSpawnRange(b))
             {
                 break;
+            }
+        }
+    }
+
+
+    public void RescheduleHitsounds()
+    {
+        foreach(Bomb b in RenderedObjects)
+        {
+            if(b.WasHit && playBadCutSound && b.source != null)
+            {
+                HitSoundManager.ScheduleHitsound(b);
             }
         }
     }

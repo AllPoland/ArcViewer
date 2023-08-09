@@ -395,6 +395,7 @@ public class ObjectManager : MonoBehaviour
         }
 
         noteManager.RescheduleHitsounds();
+        bombManager.RescheduleHitsounds();
         chainManager.RescheduleHitsounds();
     }
 
