@@ -106,16 +106,30 @@ public class PlayerPositionManager : MonoBehaviour
         headset.transform.localPosition = Vector3.Lerp(currentFrame.headPosition, nextFrame.headPosition, t);
         headset.transform.localRotation = Quaternion.Lerp(currentFrame.headRotation, nextFrame.headRotation, t);
 
-        leftSaber.transform.localPosition = Vector3.Lerp(currentFrame.leftSaberPosition, nextFrame.leftSaberPosition, t);
-        leftSaber.transform.localRotation = Quaternion.Lerp(currentFrame.leftSaberRotation, nextFrame.leftSaberRotation, t);
+        bool leftSaberActive = leftSaber.gameObject.activeInHierarchy;
+        bool rightSaberActive = rightSaber.gameObject.activeInHierarchy;
 
-        rightSaber.transform.localPosition = Vector3.Lerp(currentFrame.rightSaberPosition, nextFrame.rightSaberPosition, t);
-        rightSaber.transform.localRotation = Quaternion.Lerp(currentFrame.rightSaberRotation, nextFrame.rightSaberRotation, t);
+        if(leftSaberActive)
+        {
+            leftSaber.transform.localPosition = Vector3.Lerp(currentFrame.leftSaberPosition, nextFrame.leftSaberPosition, t);
+            leftSaber.transform.localRotation = Quaternion.Lerp(currentFrame.leftSaberRotation, nextFrame.leftSaberRotation, t);
+        }
+        if(rightSaberActive)
+        {
+            rightSaber.transform.localPosition = Vector3.Lerp(currentFrame.rightSaberPosition, nextFrame.rightSaberPosition, t);
+            rightSaber.transform.localRotation = Quaternion.Lerp(currentFrame.rightSaberRotation, nextFrame.rightSaberRotation, t);
+        }
 
         if(useTrails)
         {
-            leftSaber.SetFrames(replayFrames, lastFrameIndex);
-            rightSaber.SetFrames(replayFrames, lastFrameIndex);
+            if(leftSaberActive)
+            {
+                leftSaber.SetFrames(replayFrames, lastFrameIndex);
+            }
+            if(rightSaberActive)
+            {
+                rightSaber.SetFrames(replayFrames, lastFrameIndex);
+            }
         }
 
         UpdatePositions();
@@ -153,10 +167,10 @@ public class PlayerPositionManager : MonoBehaviour
         {
             TimeManager.OnBeatChangedEarly += UpdateBeat;
 
+            playerPlatform.SetActive(true);
             headset.gameObject.SetActive(true);
             leftSaber.gameObject.SetActive(true);
             rightSaber.gameObject.SetActive(true);
-            playerPlatform.SetActive(true);
 
             UpdateReplay(ReplayManager.CurrentReplay);
         }
@@ -164,10 +178,32 @@ public class PlayerPositionManager : MonoBehaviour
         {
             replayFrames.Clear();
 
+            playerPlatform.SetActive(false);
             headset.gameObject.SetActive(false);
             leftSaber.gameObject.SetActive(false);
             rightSaber.gameObject.SetActive(false);
-            playerPlatform.SetActive(false);
+        }
+    }
+
+
+    private void UpdateDifficulty(Difficulty newDifficulty)
+    {
+        if(!ReplayManager.IsReplayMode)
+        {
+            leftSaber.gameObject.SetActive(false);
+            rightSaber.gameObject.SetActive(false);
+            return;
+        }
+
+        if(ReplayManager.OneSaber)
+        {
+            leftSaber.gameObject.SetActive(ReplayManager.LeftHandedMode);
+            rightSaber.gameObject.SetActive(!ReplayManager.LeftHandedMode);
+        }
+        else
+        {
+            leftSaber.gameObject.SetActive(true);
+            rightSaber.gameObject.SetActive(true);
         }
     }
 
@@ -249,6 +285,7 @@ public class PlayerPositionManager : MonoBehaviour
         ReplayManager.OnReplayModeChanged += UpdateReplayMode;
         ColorManager.OnColorsChanged += UpdateColors;
         SettingsManager.OnSettingsUpdated += UpdateSettings;
+        BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
 
         UpdateReplayMode(ReplayManager.IsReplayMode);
     }
@@ -256,10 +293,12 @@ public class PlayerPositionManager : MonoBehaviour
 
     private void OnDisable()
     {
-        ReplayManager.OnReplayModeChanged -= UpdateReplayMode;
         TimeManager.OnBeatChangedEarly -= UpdateBeat;
+
+        ReplayManager.OnReplayModeChanged -= UpdateReplayMode;
         ColorManager.OnColorsChanged -= UpdateColors;
         SettingsManager.OnSettingsUpdated -= UpdateSettings;
+        BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
 
         replayFrames.Clear();
     }
