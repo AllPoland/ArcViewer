@@ -57,7 +57,7 @@ public class BeatmapInfo
         bool success = Enum.TryParse(characteristicName, true, out characteristic);
         if(!success)
         {
-            Debug.LogWarning("Could not match characteristic name!");
+            Debug.LogWarning($"Could not match characteristic name: {characteristicName}");
             return DifficultyCharacteristic.Unknown;
         }
         else return characteristic;

@@ -90,13 +90,13 @@ public class ReplayManager : MonoBehaviour
         }
         else ReplayTimeScale = 1f;
 
-        OnReplayModeChanged?.Invoke(true);
-        OnReplayUpdated?.Invoke(CurrentReplay);
-
         TimeManager.OnBeatChangedEarly += UpdateBeat;
 
         ReplayInfo info = CurrentReplay.info;
         Debug.Log($"Loaded replay for {info.songName}, {info.mode}, {info.difficulty}, played by {info.playerName}, with score {info.score}, and modifiers: {info.modifiers}");
+
+        OnReplayModeChanged?.Invoke(true);
+        OnReplayUpdated?.Invoke(CurrentReplay);
     }
 
 

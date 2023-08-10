@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -112,6 +113,8 @@ public class ObjectManager : MonoBehaviour
 
     //Give a minimum value to avoid divide by 0 errors
     public float EffectiveNJS => Mathf.Max(BeatmapManager.NJS * NjsMult, 0.0001f);
+
+    public static event Action OnObjectsLoaded;
 
 
     public float objectYToWorldSpace(float y) => (y - objectFloorOffset) + 0.25f;
@@ -356,10 +359,7 @@ public class ObjectManager : MonoBehaviour
 
         MapStats.UpdateNpsAndSpsValues();
 
-        if(ReplayManager.IsReplayMode)
-        {
-            ScoreManager.InitializeMapScore();
-        }
+        OnObjectsLoaded?.Invoke();
     }
 
 
