@@ -488,12 +488,6 @@ public class ScoreManager : MonoBehaviour
     }
 
 
-    private void UpdateReplay(Replay newReplay)
-    {
-        UpdateReplayMode(ReplayManager.IsReplayMode);
-    }
-
-
     private void UpdateReplayMode(bool replayMode)
     {
         if(replayMode)
@@ -540,9 +534,7 @@ public class ScoreManager : MonoBehaviour
 
     private void Start()
     {
-        ReplayManager.OnReplayUpdated += UpdateReplay;
         ReplayManager.OnReplayModeChanged += UpdateReplayMode;
-
         UIStateManager.OnUIStateChanged += UpdateUIState;
     }
 }

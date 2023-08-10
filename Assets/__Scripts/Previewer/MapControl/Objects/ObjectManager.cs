@@ -357,9 +357,11 @@ public class ObjectManager : MonoBehaviour
         wallManager.ReloadWalls();
         bombManager.ReloadBombs();
 
-        MapStats.UpdateNpsAndSpsValues();
-
-        OnObjectsLoaded?.Invoke();
+        if(UIStateManager.CurrentState == UIState.Previewer)
+        {
+            MapStats.UpdateNpsAndSpsValues();
+            OnObjectsLoaded?.Invoke();
+        }
     }
 
 

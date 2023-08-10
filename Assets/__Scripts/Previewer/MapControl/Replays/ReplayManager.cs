@@ -14,7 +14,6 @@ public class ReplayManager : MonoBehaviour
     public static string LeaderboardID = "";
 
     public static event Action<bool> OnReplayModeChanged;
-    public static event Action<Replay> OnReplayUpdated;
 
     public static event Action<Sprite> OnAvatarUpdated;
 
@@ -68,6 +67,7 @@ public class ReplayManager : MonoBehaviour
 
         Modifiers = CurrentReplay.info.modifiers.Split(',');
         BatteryEnergy = HasModifier("BE");
+        OneLife = HasModifier("IF");
 
         NoArrows = HasModifier("NA");
         NoWalls = HasModifier("NO");
@@ -96,7 +96,6 @@ public class ReplayManager : MonoBehaviour
         Debug.Log($"Loaded replay for {info.songName}, {info.mode}, {info.difficulty}, played by {info.playerName}, with score {info.score}, and modifiers: {info.modifiers}");
 
         OnReplayModeChanged?.Invoke(true);
-        OnReplayUpdated?.Invoke(CurrentReplay);
     }
 
 
@@ -171,7 +170,6 @@ public class ReplayManager : MonoBehaviour
         FailTime = 0f;
 
         OnReplayModeChanged?.Invoke(false);
-        OnReplayUpdated?.Invoke(null);
 
         ClearAvatar();
         PlayerInfo = null;
