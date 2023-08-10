@@ -207,6 +207,17 @@ public class SongManager : MonoBehaviour
     }
 
 
+    private void Update()
+    {
+        if(TimeManager.Playing && !musicSource.isPlaying)
+        {
+            //The song has finished playing, so stop the map
+            TimeManager.SetPlaying(false);
+            TimeManager.CurrentTime = GetSongLength();
+        }
+    }
+
+
     private void Awake()
     {
         musicSource = GetComponent<AudioSource>();
