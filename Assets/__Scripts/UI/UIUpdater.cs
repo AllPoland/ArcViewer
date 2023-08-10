@@ -22,7 +22,7 @@ public class UIUpdater : MonoBehaviour
         {
             directoryField.text = "";
 
-            AudioManager.Instance.DestroyClip();
+            SongManager.Instance.DestroyClip();
             if(CoverImageHandler.Instance != null)
             {
                 CoverImageHandler.Instance.ClearImage();

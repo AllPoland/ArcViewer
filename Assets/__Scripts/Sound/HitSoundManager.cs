@@ -205,7 +205,7 @@ public class ScheduledSound
             return;
         }
 
-        float currentTime = AudioManager.GetSongTime();
+        float currentTime = SongManager.GetSongTime();
 
         //Account for time scale and sound offset
         float timeDifference = (time - currentTime) / TimeSyncHandler.TimeScale;

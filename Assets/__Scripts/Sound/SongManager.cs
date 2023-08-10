@@ -2,9 +2,9 @@ using System;
 using UnityEngine;
 using UnityEngine.Audio;
 
-public class AudioManager : MonoBehaviour
+public class SongManager : MonoBehaviour
 {
-    public static AudioManager Instance { get; private set; }
+    public static SongManager Instance { get; private set; }
 
 #if !UNITY_WEBGL || UNITY_EDITOR
     private AudioClip _musicClip;

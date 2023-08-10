@@ -40,7 +40,7 @@ public class TimeSliderTooltip : MonoBehaviour
 
         //Calculate the time that's highlighted
         float sliderProgress = targetPos / sliderPixelWidth;
-        float targetTime = AudioManager.GetSongLength() * sliderProgress;
+        float targetTime = SongManager.GetSongLength() * sliderProgress;
         float targetBeat = TimeManager.BeatFromTime(targetTime);
 
         UpdateText(targetTime, targetBeat);

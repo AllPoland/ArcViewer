@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class AudioSettingsUpdater : MonoBehaviour
 {
-    [SerializeField] private AudioManager audioManager;
     [SerializeField] private HitSoundManager hitSoundManager;
     [SerializeField] private ObjectSettingsUpdater objectSettingsUpdater;
 
@@ -26,7 +25,7 @@ public class AudioSettingsUpdater : MonoBehaviour
         bool allSettings = setting == "all";
         if(allSettings || setting == "musicvolume")
         {
-            audioManager.MusicVolume = SettingsManager.GetFloat("musicvolume");
+            SongManager.Instance.MusicVolume = SettingsManager.GetFloat("musicvolume");
         }
 
         if(allSettings || setting == "hitsoundvolume" || setting == "chainvolume")

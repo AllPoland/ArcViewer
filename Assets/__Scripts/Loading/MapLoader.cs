@@ -499,7 +499,7 @@ public class MapLoader : MonoBehaviour
         UIStateManager.CurrentState = UIState.Previewer;
         
         BeatmapManager.Info = newMap.Info;
-        AudioManager.Instance.MusicClip = newMap.Song;
+        SongManager.Instance.MusicClip = newMap.Song;
 
         if(newMap.CoverImageData != null && newMap.CoverImageData.Length > 0)
         {

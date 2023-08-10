@@ -25,7 +25,7 @@ public class TimeSyncHandler : MonoBehaviour
     {
         if(!TimeManager.Playing) return;
 
-        float musicTime = AudioManager.GetSongTime();
+        float musicTime = SongManager.GetSongTime();
         float mapTime = TimeManager.CurrentTime;
 
         float discrepancy = mapTime - musicTime;

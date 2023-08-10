@@ -17,7 +17,7 @@ public class TimeManager : MonoBehaviour
 
     public static event Action<Difficulty> OnDifficultyBpmEventsLoaded;
 
-    private static float SongLength => AudioManager.GetSongLength();
+    private static float SongLength => SongManager.GetSongLength();
     private static float _currentTime = 0;
     public static float CurrentTime
     {
