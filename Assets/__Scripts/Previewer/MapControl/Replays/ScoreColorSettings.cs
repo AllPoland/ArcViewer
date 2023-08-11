@@ -7,6 +7,7 @@ using UnityEngine;
 public class ScoreColorSettings
 {
     [SerializeField] public List<ScoreColor> scoreColors = new List<ScoreColor> { new ScoreColor() };
+    [SerializeField] public Color chainLinkColor = Color.white;
 
 
     public Color GetScoreColor(int score)

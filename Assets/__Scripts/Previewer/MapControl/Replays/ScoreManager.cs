@@ -76,6 +76,9 @@ public class ScoreManager : MonoBehaviour
 
     private ScoreColorSettings currentColorSettings = new ScoreColorSettings();
 
+    private const int preSwingValue = 70;
+    private const int postSwingValue = 30;
+
 
     private static int GetAccScoreFromCenterDistance(float centerDistance)
     {
@@ -86,9 +89,6 @@ public class ScoreManager : MonoBehaviour
 
     public static int GetNoteScore(ScoringType type, float preSwingAmount, float postSwingAmount, float centerDistance)
     {
-        const int preSwingValue = 70;
-        const int postSwingValue = 30;
-
         if(type == ScoringType.ChainLink)
         {
             return MaxChainLinkScore;
@@ -284,7 +284,20 @@ public class ScoreManager : MonoBehaviour
         {
             return badColor;
         }
-        else return currentColorSettings.GetScoreColor(scoringEvent.ScoreGained);
+        else if(scoringEvent.scoringType == ScoringType.ChainLink)
+        {
+            return currentColorSettings.chainLinkColor;
+        }
+        else
+        {
+            int scoreGained = scoringEvent.ScoreGained;
+            if(scoringEvent.scoringType == ScoringType.ChainHead)
+            {
+                //Adjust for the missing post swing points on chain heads
+                scoreGained += postSwingValue;
+            }
+            return currentColorSettings.GetScoreColor(scoreGained);
+        }
     }
 
 
