@@ -71,7 +71,7 @@ public class ReplayLoader
     {
         string url = String.Concat(beatleaderApiURL, scoreDirect, scoreID);
 #if UNITY_WEBGL && !UNITY_EDITOR
-        // url = WebLoader.GetCorsURL(url);
+        url = WebLoader.GetCorsURL(url);
 #endif
 
         try
@@ -111,6 +111,10 @@ public class ReplayLoader
         }
         Debug.Log($"Downloading avatar from {url}");
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+        url = WebLoader.GetCorsURL(url);
+#endif
+
         try
         {
             using UnityWebRequest uwr = UnityWebRequest.Get(url);
@@ -139,6 +143,10 @@ public class ReplayLoader
     public static async Task<BeatleaderUser> BeatleaderUserFromID(string userID)
     {
         string url = string.Concat(beatleaderApiURL, userDirect, userID);
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        url = WebLoader.GetCorsURL(url);
+#endif
 
         try
         {
@@ -194,6 +202,10 @@ public class ReplayLoader
     public static async Task<BeatleaderLeaderboardResponse> LeaderboardFromHash(string hash)
     {
         string url = string.Concat(beatleaderApiURL, leaderboardDirect, hash);
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        url = WebLoader.GetCorsURL(url);
+#endif
 
         try
         {
