@@ -45,6 +45,7 @@ public class ScoreManager : MonoBehaviour
     [Space]
     [SerializeField] private TextMeshProUGUI multiplierText;
     [SerializeField] private Image comboProgressFill;
+    [SerializeField] private RectTransform FCBars;
 
     [Space]
     [SerializeField] private TMProPool scoreIndicatorPool;
@@ -486,6 +487,7 @@ public class ScoreManager : MonoBehaviour
 
         multiplierText.text = multiplierPrefix + ComboMultipliers[currentComboMult].ToString();
         comboProgressFill.fillAmount = (float)currentComboProgress / HitsNeededForComboIncrease[currentComboMult];
+        FCBars.gameObject.SetActive(currentMisses <= 0);
 
         float healthBarWidth = energyBar.sizeDelta.x;
         energyBarFill.sizeDelta = new Vector2(healthBarWidth * PlayerPositionManager.Energy, energyBarFill.sizeDelta.y);
