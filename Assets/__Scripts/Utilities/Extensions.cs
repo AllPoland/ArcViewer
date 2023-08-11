@@ -52,6 +52,29 @@ public static class Extensions
 
 
     ///<summary>
+    ///Removes the last instance trimString from the string, if it's found
+    ///</summary>
+    public static string TrimEnd(this string s, string trimString, StringComparison comparison = StringComparison.InvariantCultureIgnoreCase)
+    {
+        if(s.EndsWith(trimString, comparison))
+        {
+            return s.Substring(0, s.LastIndexOf(trimString, comparison));
+        }
+        else return s;
+    }
+
+
+    public static string TrimStart(this string s, string trimString, StringComparison comparison = StringComparison.InvariantCultureIgnoreCase)
+    {
+        if(s.StartsWith(trimString, comparison))
+        {
+            return s.Remove(s.IndexOf(trimString, comparison), trimString.Length);
+        }
+        else return s;
+    }
+
+
+    ///<summary>
     ///Removes any objects from the list matching the predicate, but only searching forward, with the search ending on the first object that doesn't match.
     ///</summary>
     public static void RemoveAllForward<T>(this List<T> list, Predicate<T> match)

@@ -39,11 +39,14 @@ public class BeatmapInfo
 
     public static string TrimCharacteristicString(string characteristicName)
     {
-        //Trims extra text added by BeatLeader in replay modes
-        if(characteristicName.EndsWith("OldDots", StringComparison.InvariantCultureIgnoreCase))
-        {
-            characteristicName = characteristicName.Substring(0, characteristicName.LastIndexOf("OldDots", StringComparison.InvariantCultureIgnoreCase));
-        }
+        //Trims extra text added by BeatLeader in modded modes
+        characteristicName = characteristicName.TrimEnd("OldDots");
+        characteristicName = characteristicName.TrimEnd("-PinkPlay_Controllable");
+
+        characteristicName = characteristicName.TrimStart("Inverse");
+        characteristicName = characteristicName.TrimStart("Inverted");
+        characteristicName = characteristicName.TrimStart("Vertical");
+        characteristicName = characteristicName.TrimStart("Horizontal");
 
         return characteristicName;
     }
