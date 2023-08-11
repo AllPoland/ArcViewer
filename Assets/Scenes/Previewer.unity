@@ -3197,7 +3197,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Enables reflecting the environment<br>(High performance impact)
+  Text: Enables reflecting all environment elemnts<br>instead of just lights<br>(High
+    performance impact)
 --- !u!1001 &92754719
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -43356,8 +43357,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Makes environment reflections respond instantly<br>instead of drawing over
-    multiple frames<br>(High performance impact)
+  Text: Makes reflections respond instantly<br>instead of drawing over multiple frames<br>(High
+    performance impact)
 --- !u!1 &1771923360 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4378467592763974619, guid: f476c7c88fc2a8c48b018512b982bb8b, type: 3}
@@ -47024,7 +47025,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts the resolution of environment reflections
+  Text: Adjusts the resolution of reflections
 --- !u!114 &1859545666
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -50529,7 +50530,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts the brightness of light reflections<br>in the environment
+  Text: Adjusts the brightness of reflections
 --- !u!1 &1967119787
 GameObject:
   m_ObjectHideFlags: 0
