@@ -6,10 +6,16 @@ using UnityEngine.Rendering;
 public class EnvironmentLightingUpdater : MonoBehaviour
 {
     [SerializeField] private ReflectionProbe probe;
+
+    [Space]
     [SerializeField] private float defaultProbeIntensity;
     [SerializeField, Range(0f, 1f)] private float ambientLightBrightness;
     [SerializeField, Range(0f, 1f)] private float noReflectionAmbientBrightness;
     [SerializeField, Range(0f, 1f)] private float ambientLightSaturation;
+
+    [Space]
+    [SerializeField] private LayerMask defaultLayerMask;
+    [SerializeField] private LayerMask environmentLayerMask;
 
     private static readonly string[] lightingSettings = new string[]
     {
@@ -17,7 +23,8 @@ public class EnvironmentLightingUpdater : MonoBehaviour
         "instantreflectionupdate",
         "reflectionquality",
         "lightreflectionbrightness",
-        "ambientlightbrightness"
+        "ambientlightbrightness",
+        "reflectenvironment"
     };
 
     private bool dynamicReflections;
@@ -129,12 +136,27 @@ public class EnvironmentLightingUpdater : MonoBehaviour
                     case 4:
                         probe.resolution = 512;
                         break;
+                    case 5:
+                        probe.resolution = 1024;
+                        break;
+                    case 6:
+                        probe.resolution = 2048;
+                        break;
                 }
+                // probe.resolution *= 4;
+
+                int newLayerMask = defaultLayerMask;
+                if(SettingsManager.GetBool("reflectenvironment"))
+                {
+                    newLayerMask |= environmentLayerMask;
+                }
+                probe.cullingMask = newLayerMask;
             }
             else
             {
                 probe.intensity = 0f;
             }
+
             UpdateColors(ColorManager.CurrentColors);
         }
         else if(setting == "staticlights" || setting == "lightglowbrightness")
