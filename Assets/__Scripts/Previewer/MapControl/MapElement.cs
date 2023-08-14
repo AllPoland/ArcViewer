@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class MapElement
+public class MapElement : IComparable<MapElement>
 {
     private float _beat;
     public float Beat
@@ -27,17 +27,31 @@ public class MapElement
             _beat = TimeManager.BeatFromTime(_time);
         }
     }
+
+
+    public int CompareTo(MapElement other)
+    {
+        if(Time < other.Time)
+        {
+            return -1;
+        }
+        else if(Time > other.Time)
+        {
+            return 1;
+        }
+        else return 0;
+    }
 }
 
 
 public class MapElementList<T> : IEnumerable<T> where T : MapElement
 {
-    public bool IsSorted { get; private set; }
+    public bool IsSorted { get; protected set; }
 
-    private List<T> Elements;
+    protected List<T> Elements;
 
-    private int lastStartIndex;
-    private float lastStartTime;
+    protected int lastStartIndex;
+    protected float lastStartTime;
 
     public MapElementList()
     {
@@ -121,7 +135,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     {
         if(!IsSorted)
         {
-            Elements = Elements.OrderBy(x => x.Beat).ToList();
+            Elements.Sort();
             IsSorted = true;
         }
     }

@@ -23,7 +23,9 @@ public class LightHandler : MonoBehaviour
             return;
         }
 
-        if(eventArgs.lightEvent?.AffectsID(id) ?? true && (eventArgs.nextEvent?.AffectsID(id) ?? true))
+        bool useThisEvent = eventArgs.lightEvent?.AffectsID(id) ?? true;
+        bool useNextEvent = eventArgs.nextEvent?.AffectsID(id) ?? true;
+        if(useThisEvent && useNextEvent)
         {
             //The current event and next events affect this id, so no need to recalculate anything
             //This will always be the case in vanilla lightshows without lightID
@@ -33,29 +35,30 @@ public class LightHandler : MonoBehaviour
         {
             //Either the current event or the next don't affect this ID
             //Find the last event that does - if any, and apply color based on that
-            int startIndex = Mathf.Clamp(eventArgs.eventIndex, 0, eventArgs.eventList.Count - 1);
-            int lastIndex = eventArgs.eventList.FindLastIndex(startIndex, x => x.AffectsID(id));
-
             Color eventColor = Color.clear;
-            if(lastIndex >= 0)
+            float glowBrightness = 0f;
+
+            LightEvent lightEvent;
+
+            if(useThisEvent)
             {
-                LightEvent lightEvent = eventArgs.eventList[lastIndex];
-
-                //Find the next event that affects this id to check for transition events
-                startIndex = Mathf.Min(lastIndex + 1, eventArgs.eventList.Count - 1);
-                int nextIndex = eventArgs.eventList.FindIndex(startIndex, x => x.AffectsID(id));
-    
-                LightEvent nextEvent = nextIndex >= 0 ? eventArgs.eventList[nextIndex] : null;
-
-                eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
+                lightEvent = eventArgs.lightEvent;
             }
+            else
+            {
+                int startIndex = Mathf.Max(eventArgs.eventIndex - 1, 0);
+                int lastIndex = eventArgs.eventList.FindLastIndex(startIndex, x => x.AffectsID(id));
+
+                lightEvent = lastIndex > -1 ? eventArgs.eventList[lastIndex] : null;
+            }
+
+            LightEvent nextEvent = useNextEvent ? eventArgs.nextEvent : lightEvent?.GetNextEvent(id);
+            eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
 
             float v;
             Color.RGBToHSV(eventColor, out _, out _, out v);
-            float glowBrightness = v * eventColor.a;
+            glowBrightness = v * eventColor.a;
 
-            //The fact that this has to route to the LightManager instance is yucky
-            //but I don't know what to do about it so haha ball
             eventArgs.sender.SetLightProperties(eventColor, glowBrightness, ref laserProperties, ref glowProperties);
             UpdateProperties(laserProperties, glowProperties, glowBrightness);
         }
