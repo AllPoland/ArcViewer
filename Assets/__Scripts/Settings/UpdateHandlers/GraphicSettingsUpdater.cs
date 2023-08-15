@@ -44,7 +44,7 @@ public class GraphicSettingsUpdater : MonoBehaviour
             switch(antiAliasing)
             {
                 case <= 0:
-                    urpAsset.msaaSampleCount = 0;
+                    urpAsset.msaaSampleCount = 1;
                     break;
                 case 1:
                     urpAsset.msaaSampleCount = 2;

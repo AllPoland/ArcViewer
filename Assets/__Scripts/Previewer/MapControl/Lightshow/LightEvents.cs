@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class LightEvent : MapElement
@@ -149,15 +150,21 @@ public class LightEventList : MapElementList<LightEvent>
                 continue;
             }
 
+            lightEvent.lastEvents = lastEvents.ToDictionary(x => x.Key, x => x.Value);
+
             foreach(KeyValuePair<int, bool> value in lightEvent.lightIDs)
             {
                 int id = value.Key;
 
-                LightEvent lastEvent = lastEvents.TryGetValue(id, out LightEvent x) ? x
-                    : i > 0 ? Elements[i - 1] : null;
+                LightEvent lastEvent;
+                if(lastEvents.Count == 0)
+                {
+                    lastEvent = i > 0 ? Elements[i - 1] : null;
+                }
+                else lastEvent = lastEvents.TryGetValue(id, out LightEvent x) ? x : null;
+
                 if(lastEvent != null)
                 {
-                    lightEvent.lastEvents[id] = lastEvent;
                     lastEvent.nextEvents[id] = lightEvent;
                 }
                 lastEvents[id] = lightEvent;
