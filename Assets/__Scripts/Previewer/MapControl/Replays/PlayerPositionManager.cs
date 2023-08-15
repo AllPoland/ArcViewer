@@ -9,9 +9,6 @@ public class PlayerPositionManager : MonoBehaviour
     public static Vector3 HeadPosition { get; private set; }
     public static Quaternion HeadRotation { get; private set; }
 
-    public static Vector3 LeftSaberTipPosition { get; private set; }
-    public static Vector3 RightSaberTipPosition { get; private set; }
-
     public static float Energy { get; private set; }
 
     [Header("Components")]
@@ -24,9 +21,6 @@ public class PlayerPositionManager : MonoBehaviour
     [SerializeField] private Vector3 defaultHmdPosition;
     [SerializeField] private Vector3 defaultLeftSaberPosition;
     [SerializeField] private Vector3 defaultRightSaberPosition;
-
-    [Space]
-    [SerializeField] private float saberTipOffset;
 
     [Header("Visuals")]
     [SerializeField] private Texture2D[] trailTextures;
@@ -144,8 +138,6 @@ public class PlayerPositionManager : MonoBehaviour
     {
         HeadPosition = headset.transform.position;
         HeadRotation = headset.transform.rotation;
-        LeftSaberTipPosition = leftSaber.transform.position + (leftSaber.transform.forward * saberTipOffset);
-        RightSaberTipPosition = rightSaber.transform.position + (rightSaber.transform.forward * saberTipOffset);
     }
 
 
