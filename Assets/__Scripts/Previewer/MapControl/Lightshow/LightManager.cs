@@ -154,10 +154,7 @@ public class LightManager : MonoBehaviour
     private void UpdateLightEvent(LightEventType type, LightEvent lightEvent, LightEvent nextEvent, MapElementList<LightEvent> events, int eventIndex)
     {
         Color eventColor = GetEventColor(lightEvent, nextEvent);
-
-        float v;
-        Color.RGBToHSV(eventColor, out _, out _, out v);
-        float glowBrightness = v * eventColor.a;
+        float glowBrightness = eventColor.GetValue() * eventColor.a;
 
         SetLightProperties(eventColor, glowBrightness, ref lightProperties, ref glowProperties);
 
@@ -199,8 +196,7 @@ public class LightManager : MonoBehaviour
 
     private Color GetLightColor(Color baseColor)
     {
-        float s;
-        Color.RGBToHSV(baseColor, out _, out s, out _);
+        float s = baseColor.GetSaturation();
 
         Color newColor = baseColor.SetSaturation(s * lightSaturation);
         newColor.a = Mathf.Clamp(baseColor.a, 0f, 1f);

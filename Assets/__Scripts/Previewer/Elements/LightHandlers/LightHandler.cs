@@ -43,13 +43,10 @@ public class LightHandler : MonoBehaviour
             {
                 lightEvent = lightEvent.GetLastEvent(id);
             }
-
             LightEvent nextEvent = useNextEvent ? eventArgs.nextEvent : lightEvent?.GetNextEvent(id);
-            eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
 
-            float v;
-            Color.RGBToHSV(eventColor, out _, out _, out v);
-            glowBrightness = v * eventColor.a;
+            eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
+            glowBrightness = eventColor.GetValue() * eventColor.a;
 
             eventArgs.sender.SetLightProperties(eventColor, glowBrightness, ref laserProperties, ref glowProperties);
             UpdateProperties(laserProperties, glowProperties, glowBrightness);

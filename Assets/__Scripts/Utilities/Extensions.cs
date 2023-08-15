@@ -87,6 +87,27 @@ public static class Extensions
 
 
     ///<summary>
+    ///Returns the V value of the color in HSV
+    ///</summary>
+    public static float GetValue(this Color color)
+    {
+        return Mathf.Max(color.r, color.g, color.b);
+    }
+
+
+    ///<summary>
+    ///Returns the S value of the color in HSV
+    ///</summary>
+    public static float GetSaturation(this Color color)
+    {
+        float max = Mathf.Max(color.r, color.g, color.b);
+        float min = Mathf.Min(color.r, color.g, color.b);
+        float c = max - min;
+        return c / max;
+    }
+
+
+    ///<summary>
     ///Returns the color adjusted with the specified HSV values.
     ///</summary>
     ///<param name="color">The base color to adjust.</param>
