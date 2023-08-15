@@ -36,6 +36,8 @@ public class LightManager : MonoBehaviour
 
     public const float FlashIntensity = 1.2f;
 
+    private static float LightGlowBrightness = 1f;
+
     private static ColorPalette colors => ColorManager.CurrentColors;
     private static Color lightColor1 => BoostActive ? colors.BoostLightColor1 : colors.LightColor1;
     private static Color lightColor2 => BoostActive ? colors.BoostLightColor2 : colors.LightColor2;
@@ -190,7 +192,7 @@ public class LightManager : MonoBehaviour
         laserProperties.SetColor("_EmissionColor", GetLightEmission(baseColor));
 
         laserGlowProperties.SetColor("_BaseColor", baseColor);
-        laserGlowProperties.SetFloat("_Alpha", Mathf.Clamp(glowBrightness, 0, 1) * SettingsManager.GetFloat("lightglowbrightness"));
+        laserGlowProperties.SetFloat("_Alpha", Mathf.Clamp(glowBrightness, 0, 1) * LightGlowBrightness);
     }
 
 
@@ -400,6 +402,7 @@ public class LightManager : MonoBehaviour
 
     public void UpdateLightParameters()
     {
+        LightGlowBrightness = SettingsManager.GetFloat("lightglowbrightness");
         if(StaticLights)
         {
             SetStaticLayout();
