@@ -398,7 +398,7 @@ public class BeatmapCustomObstacleDataV2 : BeatmapCustomObjectDataV2
 public class BeatmapCustomEventDataV2
 {
     [JsonConverter(typeof(LightIDConverter))]
-    public List<int> _lightID;
+    public int[] _lightID;
     public float[] _color;
     public string _easing;
     public string _lerpType;

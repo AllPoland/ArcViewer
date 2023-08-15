@@ -328,7 +328,7 @@ public class BeatmapCustomSliderData : BeatmapCustomObjectData
 public class BeatmapCustomBasicEventData
 {
     [JsonConverter(typeof(LightIDConverter))]
-    public List<int> lightID;
+    public int[] lightID;
     public float[] color;
     public string easing;
     public string lerpType;
@@ -358,15 +358,15 @@ public class LightIDConverter : JsonConverter
 
     public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
-        List<int> val = null;
+        int[] val = null;
         if (reader.TokenType == JsonToken.StartObject)
         {
             int id = serializer.Deserialize<int>(reader);
-            val = new List<int>() { id };
+            val = new int[] { id };
         }
         else if (reader.TokenType == JsonToken.StartArray)
         {
-            val = serializer.Deserialize<List<int>>(reader);
+            val = serializer.Deserialize<int[]>(reader);
         }
         return val;
     }
