@@ -480,11 +480,11 @@ public class LightManager : MonoBehaviour
         rightLaserEvents.SortElementsByBeat();
         centerLightEvents.SortElementsByBeat();
 
-        backLaserEvents.PrecalculateNextEvents();
-        ringEvents.PrecalculateNextEvents();
-        leftLaserEvents.PrecalculateNextEvents();
-        rightLaserEvents.PrecalculateNextEvents();
-        centerLightEvents.PrecalculateNextEvents();
+        backLaserEvents.PrecalculateNeighboringEvents();
+        ringEvents.PrecalculateNeighboringEvents();
+        leftLaserEvents.PrecalculateNeighboringEvents();
+        rightLaserEvents.PrecalculateNeighboringEvents();
+        centerLightEvents.PrecalculateNeighboringEvents();
 
         leftLaserSpeedEvents.SortElementsByBeat();
         rightLaserEvents.SortElementsByBeat();

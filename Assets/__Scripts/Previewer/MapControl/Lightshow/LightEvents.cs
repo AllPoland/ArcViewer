@@ -13,7 +13,8 @@ public class LightEvent : MapElement
     public Easings.EasingDelegate TransitionEasing;
     public bool HsvLerp = false;
 
-    public Dictionary<int, LightEvent> nextEvents;
+    public Dictionary<int, LightEvent> lastEvents = new Dictionary<int, LightEvent>();
+    public Dictionary<int, LightEvent> nextEvents = new Dictionary<int, LightEvent>();
 
     public bool isTransition => Value == LightEventValue.RedTransition || Value == LightEventValue.BlueTransition || Value == LightEventValue.WhiteTransition;
 
@@ -48,7 +49,6 @@ public class LightEvent : MapElement
                 {
                     lightIDs.TryAdd(id, true);
                 }
-                nextEvents = new Dictionary<int, LightEvent>();
             }
             if(customData.easing != null)
             {
@@ -105,12 +105,16 @@ public class LightEvent : MapElement
     }
 
 
+    public LightEvent GetLastEvent(int id)
+    {
+        return lastEvents.TryGetValue(id, out LightEvent lightEvent)
+            ? lightEvent
+            : AffectsID(id) ? this : null;
+    }
+
+
     public LightEvent GetNextEvent(int id)
     {
-        if(nextEvents == null)
-        {
-            return null;
-        }
         return nextEvents.TryGetValue(id, out LightEvent lightEvent) ? lightEvent : null;
     }
 }
@@ -118,21 +122,31 @@ public class LightEvent : MapElement
 
 public class LightEventList : MapElementList<LightEvent>
 {
-    public void PrecalculateNextEvents()
+    public void PrecalculateNeighboringEvents()
     {
         if(!IsSorted)
         {
-            Debug.LogWarning("Trying to precalculate next events in an unsorted list!");
+            Debug.LogWarning("Trying to precalculate events in an unsorted list!");
             SortElementsByBeat();
         }
 
-        //Precalculate the next events that apply to each ID on this event
+        //Precalculate the events that apply to each ID on this event
         //Helps speed up lightID at runtime
+        Dictionary<int, LightEvent> lastEvents = new Dictionary<int, LightEvent>();
         for(int i = 0; i < Elements.Count; i++)
         {
             LightEvent lightEvent = Elements[i];
             if(lightEvent.lightIDs == null)
             {
+                //This event affects all IDs, so we can close all previous events with this one
+                foreach(KeyValuePair<int, LightEvent> value in lastEvents)
+                {
+                    int id = value.Key;
+                    LightEvent lastEvent = value.Value;
+
+                    lastEvent.nextEvents[id] = lightEvent;
+                }
+                lastEvents.Clear();
                 continue;
             }
 
@@ -140,11 +154,14 @@ public class LightEventList : MapElementList<LightEvent>
             {
                 int id = value.Key;
 
-                int startIndex = Mathf.Min(i + 1, Elements.Count - 1);
-                int nextEventIndex = Elements.FindIndex(startIndex, x => x.AffectsID(id));
-
-                LightEvent nextEvent = nextEventIndex > -1 ? Elements[nextEventIndex] : null;
-                lightEvent.nextEvents.Add(id, nextEvent);
+                LightEvent lastEvent = lastEvents.TryGetValue(id, out LightEvent x) ? x
+                    : i > 0 ? Elements[i - 1] : null;
+                if(lastEvent != null)
+                {
+                    lightEvent.lastEvents[id] = lastEvent;
+                    lastEvent.nextEvents[id] = lightEvent;
+                }
+                lastEvents[id] = lightEvent;
             }
         }
     }

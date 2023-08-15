@@ -38,18 +38,10 @@ public class LightHandler : MonoBehaviour
             Color eventColor = Color.clear;
             float glowBrightness = 0f;
 
-            LightEvent lightEvent;
-
-            if(useThisEvent)
+            LightEvent lightEvent = eventArgs.lightEvent;
+            if(!useThisEvent)
             {
-                lightEvent = eventArgs.lightEvent;
-            }
-            else
-            {
-                int startIndex = Mathf.Max(eventArgs.eventIndex - 1, 0);
-                int lastIndex = eventArgs.eventList.FindLastIndex(startIndex, x => x.AffectsID(id));
-
-                lightEvent = lastIndex > -1 ? eventArgs.eventList[lastIndex] : null;
+                lightEvent = lightEvent.GetLastEvent(id);
             }
 
             LightEvent nextEvent = useNextEvent ? eventArgs.nextEvent : lightEvent?.GetNextEvent(id);
