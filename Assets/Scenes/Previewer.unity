@@ -5566,7 +5566,7 @@ RectTransform:
   m_Children:
   - {fileID: 278412990}
   m_Father: {fileID: 1851035721}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
@@ -19938,12 +19938,12 @@ RectTransform:
   - {fileID: 1961707784}
   - {fileID: 616199062}
   - {fileID: 2119079366}
-  m_Father: {fileID: 1260792070}
-  m_RootOrder: 6
+  m_Father: {fileID: 1851035721}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 550, y: -337.5}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 600, y: 240}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &746789548
@@ -32012,7 +32012,7 @@ RectTransform:
   m_Children:
   - {fileID: 468725354}
   m_Father: {fileID: 1851035721}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -32578,7 +32578,6 @@ RectTransform:
   - {fileID: 1919697803}
   - {fileID: 746234559}
   - {fileID: 868110371}
-  - {fileID: 746789546}
   m_Father: {fileID: 1851035721}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -47702,6 +47701,7 @@ RectTransform:
   m_Children:
   - {fileID: 1832411087}
   - {fileID: 1260792070}
+  - {fileID: 746789546}
   - {fileID: 2129811437}
   - {fileID: 1228378706}
   - {fileID: 165372487}
@@ -50433,7 +50433,7 @@ GameObject:
   - component: {fileID: 1919697804}
   - component: {fileID: 1919697805}
   m_Layer: 5
-  m_Name: ExtraButtons
+  m_Name: LinkButtons
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -50501,6 +50501,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2af862f0696c2fa40b05a435573b83fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shareButton: {fileID: 1277346236}
   beatSaverButton: {fileID: 1493042138}
   mapDownloadButton: {fileID: 996146826}
   leaderboardButton: {fileID: 2000402391}
@@ -55764,21 +55765,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4465115620828890662, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
   m_PrefabInstance: {fileID: 2048008442}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2048008447
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1277346236}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 17009535dfb68ce48a7dd45b3c85855e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enabledTooltip: Share
-  disabledTooltip: Sharing is unavailable on locally loaded maps
-  disabledReplayTooltip: Sharing is unavailable on locally loaded replays
 --- !u!114 &2048008450
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -57844,7 +57830,7 @@ RectTransform:
   - {fileID: 965091957}
   - {fileID: 631200998}
   m_Father: {fileID: 1851035721}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}

@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class MapLinkButtons : MonoBehaviour
 {
+    [SerializeField] private GameObject shareButton;
     [SerializeField] private GameObject beatSaverButton;
     [SerializeField] private GameObject mapDownloadButton;
     [SerializeField] private GameObject leaderboardButton;
@@ -55,6 +56,21 @@ public class MapLinkButtons : MonoBehaviour
     }
 
 
+    private void UpdateShareButton()
+    {
+        if(ReplayManager.IsReplayMode)
+        {
+            bool enable = !string.IsNullOrEmpty(UrlArgHandler.LoadedReplayID) || !string.IsNullOrEmpty(UrlArgHandler.LoadedReplayURL);
+            shareButton.SetActive(enable);
+        }
+        else
+        {
+            bool enable = !string.IsNullOrEmpty(UrlArgHandler.LoadedMapID) || !string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL);
+            shareButton.SetActive(enable);
+        }
+    }
+
+
     private void OnEnable()
     {
         beatSaverButton.SetActive(false);
@@ -70,5 +86,6 @@ public class MapLinkButtons : MonoBehaviour
         }
 
         leaderboardButton.SetActive(!string.IsNullOrEmpty(ReplayManager.LeaderboardID));
+        UpdateShareButton();
     }
 }
