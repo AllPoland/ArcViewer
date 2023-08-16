@@ -6,11 +6,22 @@ public class OrthoCameraUpdater : MonoBehaviour
     [SerializeField] private float cameraHeight = 1.4f;
 
     private Camera targetCamera;
+    private int cameraSide;
+
+
+    private void UpdateClipPlane()
+    {
+        if(cameraSide == 0)
+        {
+            targetCamera.farClipPlane = BeatmapManager.HalfJumpDistance - transform.position.z;
+        }
+        else targetCamera.farClipPlane = 50f;
+    }
 
 
     private void UpdateCameraPosition()
     {
-        int cameraSide = SettingsManager.GetInt("orthocameraside");
+        cameraSide = SettingsManager.GetInt("orthocameraside");
         if(cameraSide == 0) 
         {
             //Back
@@ -29,6 +40,7 @@ public class OrthoCameraUpdater : MonoBehaviour
             transform.rotation = Quaternion.Euler(0f, 90f, 0f);
             transform.position = new Vector3(-5f, cameraHeight, 0f);
         }
+        UpdateClipPlane();
     }
 
 
@@ -36,7 +48,8 @@ public class OrthoCameraUpdater : MonoBehaviour
     {
         if(setting == "all" || setting == "useorthocamera" || setting == "orthocameraside")
         {
-            targetCamera.enabled = SettingsManager.GetBool("useorthocamera");
+            // targetCamera.enabled = SettingsManager.GetBool("useorthocamera");
+            targetCamera.enabled = true;
             if(targetCamera.enabled)
             {
                 UpdateCameraPosition();
@@ -45,35 +58,19 @@ public class OrthoCameraUpdater : MonoBehaviour
     }
 
 
-    private void UpdateUIState(UIState newState)
+    private void OnEnable()
     {
-        if(newState == UIState.Previewer && ReplayManager.IsReplayMode)
+        if(!targetCamera)
         {
-            Enable();
+            targetCamera = GetComponent<Camera>();
         }
-        else Disable();
-    }
 
-    
-    private void Awake()
-    {
-        targetCamera = GetComponent<Camera>();
-    }
-
-
-    private void Enable()
-    {
         SettingsManager.OnSettingsUpdated += UpdateSettings;
+        BeatmapManager.OnJumpSettingsChanged += UpdateClipPlane;
         if(SettingsManager.Loaded)
         {
             UpdateSettings("all");
         }
-    }
-
-
-    private void Disable()
-    {
-        SettingsManager.OnSettingsUpdated -= UpdateSettings;
-        targetCamera.enabled = false;
+        else UpdateClipPlane();
     }
 }

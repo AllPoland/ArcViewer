@@ -47,7 +47,7 @@ public class JumpSettingsPanel : MonoBehaviour
         NJSPicker.SetValueWithoutNotify(BeatmapManager.NJS);
         JumpDistancePicker.SetValueWithoutNotify(BeatmapManager.JumpDistance);
         ReactionTimePicker.SetValueWithoutNotify(BeatmapManager.ReactionTime * 1000);
-        
+
         UpdateMap();
     }
 

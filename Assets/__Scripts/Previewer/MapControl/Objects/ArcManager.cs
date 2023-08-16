@@ -38,7 +38,7 @@ public class ArcManager : MapElementManager<Arc>
 
         //Sets the distance that arcs should fade out
         const float fadeDistMultiplier = 0.8f;
-        float fadeDist = BeatmapManager.JumpDistance / 2 * fadeDistMultiplier;
+        float fadeDist = BeatmapManager.HalfJumpDistance * fadeDistMultiplier;
 
         redArcMaterialProperties.SetFloat("_FadeEndPoint", fadeDist);
         redArcMaterialProperties.SetFloat("_FadeTransitionLength", arcFadeTransitionLength);
@@ -86,7 +86,7 @@ public class ArcManager : MapElementManager<Arc>
             else
             {
                 const float fullAlphaTime = 0.8f;
-                float fullAlphaPos = BeatmapManager.JumpDistance / 2 * fullAlphaTime;
+                float fullAlphaPos = BeatmapManager.HalfJumpDistance * fullAlphaTime;
                 alpha *= 1f - Mathf.Clamp(zDist / fullAlphaPos, 0f, 1f);
             }
         }
@@ -316,7 +316,7 @@ public class ArcManager : MapElementManager<Arc>
         if(baseCurve.Length == 0) return baseCurve;
 
         float arcLength = baseCurve.Last().z;
-        float JD = BeatmapManager.JumpDistance / 2;
+        float JD = BeatmapManager.HalfJumpDistance;
 
         //Create a new curve here so we don't overwrite the input
         Vector3[] points = new Vector3[baseCurve.Length];

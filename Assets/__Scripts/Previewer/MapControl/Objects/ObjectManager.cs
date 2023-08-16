@@ -102,14 +102,14 @@ public class ObjectManager : MonoBehaviour
                 return 1f;
             }
 
-            float halfJumpDistance = BeatmapManager.JumpDistance / 2;
+            float halfJumpDistance = BeatmapManager.HalfJumpDistance;
             float adjustedJumpDistance = halfJumpDistance - CutPlanePos;
             return adjustedJumpDistance / halfJumpDistance;
         }
     }
 
     public float CutPlanePos => ReplayManager.IsReplayMode ? PlayerPositionManager.HeadPosition.z + PlayerCutPlaneDistance : 0f;
-    public float EffectiveHalfJumpDistance => ReplayManager.IsReplayMode ? (BeatmapManager.JumpDistance / 2) - CutPlanePos : BeatmapManager.JumpDistance / 2;
+    public float EffectiveHalfJumpDistance => ReplayManager.IsReplayMode ? BeatmapManager.HalfJumpDistance - CutPlanePos : BeatmapManager.HalfJumpDistance;
 
     //Give a minimum value to avoid divide by 0 errors
     public float EffectiveNJS => Mathf.Max(BeatmapManager.NJS * NjsMult, 0.0001f);
@@ -168,7 +168,7 @@ public class ObjectManager : MonoBehaviour
         {
             //Note hasn't jumped in yet. Place based on the jump-in stuff
             float timeDist = (objectTime - jumpTime) / moveTime;
-            return (BeatmapManager.JumpDistance / 2) + (moveZ * timeDist);
+            return BeatmapManager.HalfJumpDistance + (moveZ * timeDist);
         }
     }
 
