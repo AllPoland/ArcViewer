@@ -12,6 +12,7 @@ public class MapLinkButtons : MonoBehaviour
     
     private const string leaderboardDirect = "leaderboard/global/";
 
+
     public void OpenBeatSaverLink()
     {
         if(string.IsNullOrEmpty(UrlArgHandler.LoadedMapID))
