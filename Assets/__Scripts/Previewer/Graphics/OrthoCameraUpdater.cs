@@ -4,6 +4,7 @@ using UnityEngine;
 public class OrthoCameraUpdater : MonoBehaviour
 {
     [SerializeField] private float cameraHeight = 1.4f;
+    [SerializeField] private float cameraDistance = 20f;
 
     private Camera targetCamera;
     private int cameraSide;
@@ -26,19 +27,19 @@ public class OrthoCameraUpdater : MonoBehaviour
         {
             //Back
             transform.rotation = Quaternion.identity;
-            transform.position = new Vector3(0f, cameraHeight, -5f);
+            transform.position = new Vector3(0f, cameraHeight, -cameraDistance);
         }
         else if(cameraSide == 1)
         {
             //Right
             transform.rotation = Quaternion.Euler(0f, -90f, 0f);
-            transform.position = new Vector3(5f, cameraHeight, 0f);
+            transform.position = new Vector3(cameraDistance, cameraHeight, 0f);
         }
         else
         {
             //Left
             transform.rotation = Quaternion.Euler(0f, 90f, 0f);
-            transform.position = new Vector3(-5f, cameraHeight, 0f);
+            transform.position = new Vector3(-cameraDistance, cameraHeight, 0f);
         }
         UpdateClipPlane();
     }
@@ -48,8 +49,7 @@ public class OrthoCameraUpdater : MonoBehaviour
     {
         if(setting == "all" || setting == "useorthocamera" || setting == "orthocameraside")
         {
-            // targetCamera.enabled = SettingsManager.GetBool("useorthocamera");
-            targetCamera.enabled = true;
+            targetCamera.enabled = SettingsManager.GetBool("useorthocamera");
             if(targetCamera.enabled)
             {
                 UpdateCameraPosition();

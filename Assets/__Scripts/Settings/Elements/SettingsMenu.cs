@@ -20,9 +20,9 @@ public class SettingsMenu : MonoBehaviour
 
     public event Action<SettingsTab> OnTabUpdated;
 
-    [SerializeField] private GameObject settingsContainer;
+    [SerializeField] private RectTransform settingsContainer;
     [SerializeField] private GameObject settingsPanel;
-    [SerializeField] private GameObject tabButtons;
+    [SerializeField] private RectTransform tabButtons;
     [SerializeField] private Button openButton;
     [SerializeField] private float panelWidth;
     [SerializeField] private float buttonWidth;
@@ -31,8 +31,6 @@ public class SettingsMenu : MonoBehaviour
     private SettingsManager settingsManager;
     private Vector2 closedPosition;
     private Vector2 tabButtonPositions;
-    private RectTransform containerTransform;
-    private RectTransform tabButtonTransform;
     private bool moving;
     private IdleHide openButtonHider;
 
@@ -41,7 +39,7 @@ public class SettingsMenu : MonoBehaviour
     {
         if(transitionTime == 0)
         {
-            containerTransform.anchoredPosition = newPosition;
+            settingsContainer.anchoredPosition = newPosition;
             settingsPanel.SetActive(Open);
             yield break;
         }
@@ -55,6 +53,7 @@ public class SettingsMenu : MonoBehaviour
         if(Open)
         {
             settingsPanel.SetActive(true);
+            tabButtons.gameObject.SetActive(true);
             CurrentTab = SettingsTab.General;
 
             buttonStartPos.x += buttonWidth;
@@ -67,15 +66,18 @@ public class SettingsMenu : MonoBehaviour
             t += Time.deltaTime / (transitionTime / 2);
 
             float progress = Easings.Sine.Out(t);
-            containerTransform.anchoredPosition = Vector2.Lerp(startPosition, newPosition, progress);
-            tabButtonTransform.anchoredPosition = Vector2.Lerp(buttonStartPos, buttonEndPos, progress);
+            settingsContainer.anchoredPosition = Vector2.Lerp(startPosition, newPosition, progress);
+            tabButtons.anchoredPosition = Vector2.Lerp(buttonStartPos, buttonEndPos, progress);
 
             yield return null;
         }
-        containerTransform.anchoredPosition = newPosition;
-        tabButtonTransform.anchoredPosition = buttonEndPos;
+        settingsContainer.anchoredPosition = newPosition;
+        tabButtons.anchoredPosition = buttonEndPos;
 
-        if(!Open) settingsPanel.SetActive(false);
+        if(!Open) 
+        {
+            settingsPanel.SetActive(false);
+        }
 
         moving = false;
         openButton.interactable = true;
@@ -132,14 +134,10 @@ public class SettingsMenu : MonoBehaviour
     private void Start()
     {
         settingsManager = GetComponent<SettingsManager>();
-
-        containerTransform = settingsContainer.GetComponent<RectTransform>();
-        tabButtonTransform = tabButtons.GetComponent<RectTransform>();
-
         openButtonHider = GetComponent<IdleHide>();
 
-        closedPosition = containerTransform.anchoredPosition;
-        tabButtonPositions = tabButtonTransform.anchoredPosition;
+        closedPosition = settingsContainer.anchoredPosition;
+        tabButtonPositions = tabButtons.anchoredPosition;
 
         SettingsManager.OnSettingsReset += Close;
 

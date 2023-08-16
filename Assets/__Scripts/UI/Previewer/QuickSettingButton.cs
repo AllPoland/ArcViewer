@@ -20,15 +20,13 @@ public class QuickSettingButton : MonoBehaviour
     {
         if(changedSetting == "all" || changedSetting == setting)
         {
-            UpdateButton();
+            UpdateButton(SettingsManager.GetBool(setting));
         }
     }
 
 
-    private void UpdateButton()
+    private void UpdateButton(bool settingOn)
     {
-        bool settingOn = SettingsManager.GetBool(setting);
-
         buttonImage.color = settingOn ? settingOnColor : settingOffColor;
         tooltip.Text = settingOn ? settingOnTooltip : settingOffTooltip;
     }
@@ -54,7 +52,7 @@ public class QuickSettingButton : MonoBehaviour
     {
         SettingsManager.OnSettingsUpdated += UpdateSettings;
 
-        UpdateButton();
+        UpdateButton(SettingsManager.Loaded ? SettingsManager.GetBool(setting) : false);
     }
 
 
