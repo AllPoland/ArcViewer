@@ -34,7 +34,7 @@ public class ObjectManager : MonoBehaviour
     public const float DefaultPlayerHeight = 1.8f;
     public float PlayerHeightSetting => SettingsManager.GetFloat("playerheight");
     public float playerHeight => ReplayManager.IsReplayMode ? ReplayManager.PlayerHeight : PlayerHeightSetting;
-    public float playerHeightOffset => (playerHeight - DefaultPlayerHeight) / 2;
+    public float playerHeightOffset => Mathf.Clamp((playerHeight - DefaultPlayerHeight) / 2, -0.2f, 0.6f);
 
     public static readonly Vector2 GridBottomLeft = new Vector2(-0.9f, 0);
     public const float LaneWidth = 0.6f;
