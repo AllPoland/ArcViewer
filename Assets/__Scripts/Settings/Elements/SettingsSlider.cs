@@ -63,6 +63,7 @@ public class SettingsSlider : MonoBehaviour, IPointerUpHandler
             UpdateText(slider.value);
         }
         else UpdateText(slider.value);
+        EventSystemHelper.SetSelectedGameObject(null);
     }
 
 

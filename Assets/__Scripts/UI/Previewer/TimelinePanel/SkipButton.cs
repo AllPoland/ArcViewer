@@ -30,7 +30,7 @@ public class SkipButton : MonoBehaviour
             return;
         }
 
-        if(!DialogueHandler.Instance.jumpSettingsPanel.activeInHierarchy)
+        if(!EventSystemHelper.SelectedObject)
         {
             if(Input.GetButtonDown("SkipForward"))
             {

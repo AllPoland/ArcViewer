@@ -58,6 +58,7 @@ public class ValuePicker : MonoBehaviour
         {
             UpdateElements();
         }
+        EventSystemHelper.SetSelectedGameObject(null);
     }
 
 
