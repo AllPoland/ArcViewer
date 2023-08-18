@@ -10,6 +10,7 @@ public class StatsPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI chainsText;
     [SerializeField] private TextMeshProUGUI eventsText;
     [SerializeField] private TextMeshProUGUI bpmEventsText;
+    [SerializeField] private TextMeshProUGUI currentBPMText;
 
     [SerializeField] private TextMeshProUGUI npsText;
     [SerializeField] private TextMeshProUGUI peakNps16Text;
@@ -50,15 +51,32 @@ public class StatsPanel : MonoBehaviour
     }
 
 
+    private void UpdateCurrentBPM()
+    {
+        string bpm = TimeManager.CurrentBPM.ToString();
+        currentBPMText.text = $"Current BPM: {bpm}";
+    }
+
+
+    private void UpdateBeat(float beat)
+    {
+        UpdateCurrentBPM();
+    }
+
+
     private void OnEnable()
     {
-        UpdateText();
         MapStats.OnStatsUpdated += UpdateText;
+        TimeManager.OnBeatChanged += UpdateBeat;
+
+        UpdateText();
+        UpdateCurrentBPM();
     }
 
 
     private void OnDisable()
     {
         MapStats.OnStatsUpdated -= UpdateText;
+        TimeManager.OnBeatChanged -= UpdateBeat;
     }
 }
