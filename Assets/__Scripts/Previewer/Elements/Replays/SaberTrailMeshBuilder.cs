@@ -81,8 +81,8 @@ public class SaberTrailMeshBuilder : MonoBehaviour
             //UVs don't reach fully to the top/bottom because there're weird artifacts
             //for some reason
             float uvX = (float)i / segmentCount;
-            uvs[handleIndex] = new Vector2(uvX, 0.001f);
-            uvs[tipIndex] = new Vector2(uvX, 0.999f);
+            uvs[handleIndex] = new Vector2(uvX, 0f);
+            uvs[tipIndex] = new Vector2(uvX, 1f);
 
             if(i < segmentCount - 1)
             {
