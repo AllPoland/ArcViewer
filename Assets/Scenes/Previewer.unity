@@ -17991,7 +17991,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5241766548580045618, guid: 1917af5300baa7a4a8080f2e09dfc773, type: 3}
       propertyPath: ValueNames.Array.data[3]
-      value: Glitch
+      value: dotSpiral
       objectReference: {fileID: 0}
     - target: {fileID: 5241766548580045618, guid: 1917af5300baa7a4a8080f2e09dfc773, type: 3}
       propertyPath: ValueNames.Array.data[4]
@@ -18125,7 +18125,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Picks which texture to use for saber trails
+  Text: Picks which texture to use for saber trails<br>Default - A simple flat gradient<br>Curved
+    - A trail that gets thinner towards the end<br>Bright Tip - Similar to curved,
+    but with a bright line at the tip
 --- !u!114 &645335865
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -52295,6 +52297,7 @@ MonoBehaviour:
   - {fileID: 2800000, guid: 8efed6425dfdd9848a5e2640d87a47bc, type: 3}
   - {fileID: 2800000, guid: 0d053fa369e871045bc6d97f72c51434, type: 3}
   - {fileID: 2800000, guid: c26f98f80b176db4c907e51719a0f638, type: 3}
+  - {fileID: 2800000, guid: e28c5d0d1875be046847d678cd11248f, type: 3}
 --- !u!1 &1935205301
 GameObject:
   m_ObjectHideFlags: 0
