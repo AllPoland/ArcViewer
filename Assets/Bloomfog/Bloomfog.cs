@@ -16,7 +16,8 @@ public class Bloomfog : ScriptableRendererFeature
         public float fogOffset = 0f;
 
         [Header("Blur Settings")]
-        [Range(2, 15)] public int blurPasses = 2;
+        public int referenceScreenHeight = 720;
+        [Min(2)] public int blurPasses = 2;
         [Min(1)] public int downsample = 1;
         public Material blurMaterial;
 
@@ -61,6 +62,7 @@ public class Bloomfog : ScriptableRendererFeature
         private float brightnessMult;
 
         private Material blurMaterial;
+        private int referenceHeight;
         private int passes;
         private int downsample;
 
@@ -85,6 +87,7 @@ public class Bloomfog : ScriptableRendererFeature
             brightnessMult = settings.brightnessMult;
 
             blurMaterial = settings.blurMaterial;
+            referenceHeight = settings.referenceScreenHeight;
             passes = settings.blurPasses;
             downsample = settings.downsample;
             outputTextureName = settings.outputTextureName;
@@ -95,8 +98,12 @@ public class Bloomfog : ScriptableRendererFeature
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            int width = cameraTextureDescriptor.width / downsample;
-            int height = cameraTextureDescriptor.height / downsample;
+            int width = cameraTextureDescriptor.width;
+            int height = cameraTextureDescriptor.height;
+
+            float aspect = width / height;
+            height = referenceHeight / downsample;
+            width = Mathf.RoundToInt(referenceHeight * aspect) / downsample;
 
             //Create our temporary render textures for blurring
             tempID1 = Shader.PropertyToID("tempBlurRT1");
