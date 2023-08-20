@@ -124,7 +124,7 @@ Material:
     - _FakeLightAtten: 1
     - _FogHeightOffset: 0
     - _FogHeightScale: 1
-    - _FogScale: 0.05
+    - _FogScale: 0.001
     - _FogStartOffset: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.7
@@ -132,12 +132,14 @@ Material:
     - _GlossyReflections: 1
     - _Metallic: 0.5
     - _Mode: 0
+    - _NormalStrength: 3.35
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 0
     - _ReflectionSteps: 16
+    - _ReflectionStrength: 1.21
     - _ReflectionsSource: 0
     - _SPECULARHIGHLIGHTS_OFF: 0
     - _Shininess: 0
@@ -155,7 +157,7 @@ Material:
     - _ZWrite: 1
     - _ZWriteControl: 0
     m_Colors:
-    - _BaseColor: {r: 0.03364184, g: 0.033731755, b: 0.03773582, a: 1}
+    - _BaseColor: {r: 0.0095, g: 0.0095, b: 0.01, a: 1}
     - _Color: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _FakeLightColor: {r: 1, g: 1, b: 1, a: 1}
