@@ -156,9 +156,8 @@ public class LightManager : MonoBehaviour
     private void UpdateLightEvent(LightEventType type, LightEvent lightEvent, LightEvent nextEvent, MapElementList<LightEvent> events, int eventIndex)
     {
         Color eventColor = GetEventColor(lightEvent, nextEvent);
-        float glowBrightness = eventColor.GetValue() * eventColor.a;
 
-        SetLightProperties(eventColor, glowBrightness, ref lightProperties, ref glowProperties);
+        SetLightProperties(eventColor, ref lightProperties, ref glowProperties);
 
         LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
         {
@@ -168,7 +167,6 @@ public class LightManager : MonoBehaviour
             nextEvent = nextEvent,
             type = type,
             eventIndex = eventIndex,
-            glowBrightness = glowBrightness,
             laserProperties = lightProperties,
             glowProperties = glowProperties
         };
@@ -186,13 +184,13 @@ public class LightManager : MonoBehaviour
     }
 
 
-    public void SetLightProperties(Color baseColor, float glowBrightness, ref MaterialPropertyBlock laserProperties, ref MaterialPropertyBlock laserGlowProperties)
+    public void SetLightProperties(Color baseColor, ref MaterialPropertyBlock laserProperties, ref MaterialPropertyBlock laserGlowProperties)
     {
         laserProperties.SetColor("_BaseColor", GetLightColor(baseColor));
         laserProperties.SetColor("_EmissionColor", GetLightEmission(baseColor));
 
         laserGlowProperties.SetColor("_BaseColor", baseColor);
-        laserGlowProperties.SetFloat("_Alpha", Mathf.Clamp(glowBrightness, 0, 1) * LightGlowBrightness);
+        laserGlowProperties.SetFloat("_Alpha", baseColor.a * LightGlowBrightness);
     }
 
 

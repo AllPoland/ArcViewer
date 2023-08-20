@@ -13,8 +13,6 @@ public class LightHandler : MonoBehaviour
     private MaterialPropertyBlock laserProperties;
     private MaterialPropertyBlock glowProperties;
 
-    private Vector3 glowBaseScale;
-
 
     private void UpdateLight(LightingPropertyEventArgs eventArgs)
     {
@@ -29,14 +27,13 @@ public class LightHandler : MonoBehaviour
         {
             //The current event and next events affect this id, so no need to recalculate anything
             //This will always be the case in vanilla lightshows without lightID
-            UpdateProperties(eventArgs.laserProperties, eventArgs.glowProperties, eventArgs.glowBrightness);
+            UpdateProperties(eventArgs.laserProperties, eventArgs.glowProperties);
         }
         else
         {
             //Either the current event or the next don't affect this ID
             //Find the last event that does - if any, and apply color based on that
             Color eventColor = Color.clear;
-            float glowBrightness = 0f;
 
             LightEvent lightEvent = eventArgs.lightEvent;
             if(!useThisEvent)
@@ -46,74 +43,17 @@ public class LightHandler : MonoBehaviour
             LightEvent nextEvent = useNextEvent ? eventArgs.nextEvent : lightEvent?.GetNextEvent(id);
 
             eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
-            glowBrightness = eventColor.GetValue() * eventColor.a;
 
-            eventArgs.sender.SetLightProperties(eventColor, glowBrightness, ref laserProperties, ref glowProperties);
-            UpdateProperties(laserProperties, glowProperties, glowBrightness);
+            eventArgs.sender.SetLightProperties(eventColor, ref laserProperties, ref glowProperties);
+            UpdateProperties(laserProperties, glowProperties);
         }
     }
 
 
-    private void UpdateProperties(MaterialPropertyBlock newLaserProperties, MaterialPropertyBlock newGlowProperties, float glowBrightness)
+    private void UpdateProperties(MaterialPropertyBlock newLaserProperties, MaterialPropertyBlock newGlowProperties)
     {
         meshRenderer.SetPropertyBlock(newLaserProperties);
-
-        bool enableGlow = glowBrightness > 0.001f;
-        SetGlowActive(enableGlow);
-        if(enableGlow)
-        {
-            glowRenderer.SetPropertyBlock(newGlowProperties);
-            UpdateGlowScale(glowBrightness);
-        }
-    }
-
-
-    private void SetGlowActive(bool active)
-    {
-        if(glowRenderer && glowRenderer.gameObject.activeInHierarchy != active)
-        {
-            glowRenderer.gameObject.SetActive(active);
-        }
-    }
-
-
-    private void UpdateGlowScale(float brightness)
-    {
-        if(brightness <= 1f)
-        {
-            glowRenderer.transform.localScale = glowBaseScale;
-        }
-        else
-        {
-            Vector2 baseScaleDifference = (Vector2)glowBaseScale - Vector2.one;
-            baseScaleDifference.x = Mathf.Max(baseScaleDifference.x, 0f);
-            baseScaleDifference.y = Mathf.Max(baseScaleDifference.y, 0f);
-
-            Vector2 newScaleAmount = baseScaleDifference * brightness;
-            glowRenderer.transform.localScale = Vector3.one + (Vector3)newScaleAmount;
-        }
-    }
-
-
-    public void UpdateGlowRotation()
-    {
-        if(!glowRenderer)
-        {
-            return;
-        }
-
-        Vector3 lookDirection = glowRenderer.transform.position - Camera.main.transform.position;
-        lookDirection = glowRenderer.transform.InverseTransformDirection(lookDirection);
-        lookDirection.y = 0f;
-        lookDirection = glowRenderer.transform.TransformDirection(lookDirection);
-
-        glowRenderer.transform.rotation = Quaternion.LookRotation(lookDirection, glowRenderer.transform.up);
-
-        //The x and z rotations can sometimes get nudged around and break things
-        Vector3 eulerAngles = glowRenderer.transform.localEulerAngles;
-        eulerAngles.x = 0f;
-        eulerAngles.z = 0f;
-        glowRenderer.transform.localEulerAngles = eulerAngles;
+        glowRenderer.SetPropertyBlock(newGlowProperties);
     }
 
 
@@ -127,17 +67,11 @@ public class LightHandler : MonoBehaviour
     private void OnEnable()
     {
         LightManager.OnLightPropertiesChanged += UpdateLight;
-        CameraUpdater.OnCameraPositionUpdated += UpdateGlowRotation;
-
-        glowBaseScale = glowRenderer.transform.localScale;
-
-        UpdateGlowRotation();
     }
 
 
     private void OnDisable()
     {
         LightManager.OnLightPropertiesChanged -= UpdateLight;
-        CameraUpdater.OnCameraPositionUpdated -= UpdateGlowRotation;
     }
 }

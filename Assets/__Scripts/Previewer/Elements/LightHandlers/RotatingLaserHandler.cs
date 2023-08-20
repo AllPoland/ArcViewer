@@ -43,7 +43,6 @@ public class RotatingLaserHandler : MonoBehaviour
     private void SetLaserRotation(LightHandler target, float angle)
     {
         target.transform.localEulerAngles = GetLaserEulerAngles(target.transform, angle);
-        target.UpdateGlowRotation();
     }
 
 

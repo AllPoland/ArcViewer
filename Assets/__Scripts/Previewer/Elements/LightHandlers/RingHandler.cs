@@ -45,16 +45,6 @@ public class RingHandler : MonoBehaviour
         Vector3 eulerAngles = transform.localEulerAngles;
         eulerAngles.z = angle % 360;
         transform.localEulerAngles = eulerAngles;
-        UpdateLightHandlerRotations();
-    }
-
-
-    private void UpdateLightHandlerRotations()
-    {
-        foreach(LightHandler lightHandler in lightHandlers)
-        {
-            lightHandler.UpdateGlowRotation();
-        }
     }
 
 

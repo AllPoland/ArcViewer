@@ -290,8 +290,6 @@ public class LightingPropertyEventArgs
     public LightEventType type;
     public int eventIndex;
 
-    public float glowBrightness;
-
     public MaterialPropertyBlock laserProperties;
     public MaterialPropertyBlock glowProperties;
 }
