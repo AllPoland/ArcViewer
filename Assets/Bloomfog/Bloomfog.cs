@@ -4,6 +4,11 @@ using UnityEngine.Rendering.Universal;
 
 public class Bloomfog : ScriptableRendererFeature
 {
+    //These are static fields for graphics settings to access
+    public static bool Enabled = true;
+    public static int Downsample = 2;
+    public static int BlurPasses = 16;
+
     [System.Serializable]
     public class BloomFogSettings
     {
@@ -38,6 +43,9 @@ public class Bloomfog : ScriptableRendererFeature
 
     public override void Create()
     {
+        Downsample = settings.downsample;
+        BlurPasses = settings.blurPasses;
+
         cameraConfigPass = new CameraConfigPass(settings);
         cameraConfigPass.renderPassEvent = RenderPassEvent.BeforeRendering;
 
@@ -116,8 +124,6 @@ public class Bloomfog : ScriptableRendererFeature
 
         private Material blurMaterial;
         private int referenceHeight;
-        private int passes;
-        private int downsample;
 
         private string outputTextureName;
         private Material outputMaterial;
@@ -143,8 +149,6 @@ public class Bloomfog : ScriptableRendererFeature
 
             blurMaterial = fogSettings.blurMaterial;
             referenceHeight = fogSettings.referenceScreenHeight;
-            passes = fogSettings.blurPasses;
-            downsample = fogSettings.downsample;
             outputTextureName = fogSettings.outputTextureName;
 
             outputMaterial = fogSettings.outputMaterial;
@@ -153,8 +157,8 @@ public class Bloomfog : ScriptableRendererFeature
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            int width = settings.textureWidth / downsample;
-            int height = settings.textureHeight / downsample;
+            int width = settings.textureWidth / Bloomfog.Downsample;
+            int height = settings.textureHeight / Bloomfog.Downsample;
 
             //Create our temporary render textures for blurring
             tempID1 = Shader.PropertyToID("tempBlurRT1");
@@ -169,6 +173,16 @@ public class Bloomfog : ScriptableRendererFeature
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if(!Enabled)
+            {
+                if(!string.IsNullOrEmpty(outputTextureName))
+                {
+                    //Bloomfog shouldn't be used, just output a black texture
+                    Shader.SetGlobalTexture(outputTextureName, Texture2D.blackTexture);
+                }
+                return;
+            }
+
             CommandBuffer cmd = CommandBufferPool.Get("KawaseBlur");
 
             //Copy the source into the first temp texture, applying brightness threshold
@@ -176,7 +190,7 @@ public class Bloomfog : ScriptableRendererFeature
             cmd.SetGlobalFloat("_BrightnessMult", brightnessMult);
             cmd.Blit(SourceTexture, tempRT1, thresholdMaterial);
 
-            for(int i = 0; i < passes - 1; i++)
+            for(int i = 0; i < Bloomfog.BlurPasses - 1; i++)
             {
                 //Copy between temp textures, blurring more each time
                 cmd.SetGlobalFloat("_Offset", 0.5f + i);
@@ -188,7 +202,7 @@ public class Bloomfog : ScriptableRendererFeature
             }
 
             //Final pass, outputting final blurred result
-            cmd.SetGlobalFloat("_Offset", 0.5f + passes - 1);
+            cmd.SetGlobalFloat("_Offset", 0.5f + Bloomfog.BlurPasses - 1);
             if(string.IsNullOrEmpty(outputTextureName))
             {
                 cmd.Blit(tempRT1, SourceTexture, outputMaterial);
