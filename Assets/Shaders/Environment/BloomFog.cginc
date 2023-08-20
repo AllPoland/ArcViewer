@@ -6,10 +6,15 @@ uniform float _CustomFogOffset;
 uniform float _CustomFogAttenuation;
 uniform float _CustomFogHeightFogStartY;
 uniform float _CustomFogHeightFogHeight;
+uniform float2 _FogTextureToScreenRatio;
 
 inline float2 GetFogCoord(float4 clipPos) {
   float4 screenPos = ComputeScreenPos(clipPos);
-  return screenPos.xy / screenPos.w;
+  float2 uv = screenPos.xy / screenPos.w;
+  return float2(
+    (uv.x + -0.5) * _FogTextureToScreenRatio.x + 0.5,
+    (uv.y + -0.5) * _FogTextureToScreenRatio.y + 0.5
+  );
 }
 
 inline float GetHeightFogIntensity(float3 worldPos, float fogHeightOffset, float fogHeightScale) {

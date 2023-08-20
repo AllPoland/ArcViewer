@@ -10,6 +10,7 @@ public class Bloomfog : ScriptableRendererFeature
         public Material thresholdMaterial;
 
         [Space]
+        public float bloomCaptureExtraFov = 0f;
         public float threshold = 1f;
         public float brightnessMult = 1f;
         public float attenuation = 1f;
@@ -24,15 +25,22 @@ public class Bloomfog : ScriptableRendererFeature
         [Header("Output Settings")]
         public Material outputMaterial;
         public string outputTextureName;
+
+        [System.NonSerialized] public int textureWidth;
+        [System.NonSerialized] public int textureHeight;
     }
 
     [SerializeField] private BloomFogSettings settings = new BloomFogSettings();
 
+    private CameraConfigPass cameraConfigPass;
     private BloomFogPass bloomFogPass;
 
 
     public override void Create()
     {
+        cameraConfigPass = new CameraConfigPass(settings);
+        cameraConfigPass.renderPassEvent = RenderPassEvent.BeforeRendering;
+
         bloomFogPass = new BloomFogPass(settings);
         bloomFogPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
 
@@ -45,8 +53,51 @@ public class Bloomfog : ScriptableRendererFeature
     {
         if(settings.blurMaterial && settings.outputMaterial && settings.thresholdMaterial)
         {
+            renderer.EnqueuePass(cameraConfigPass);
+
             bloomFogPass.SourceTexture = renderer.cameraColorTarget;
             renderer.EnqueuePass(bloomFogPass);
+        }
+    }
+
+
+    private class CameraConfigPass : ScriptableRenderPass
+    {
+        private BloomFogSettings settings;
+
+        
+        public CameraConfigPass(BloomFogSettings fogSettings)
+        {
+            settings = fogSettings;
+        }
+
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            Camera mainCamera = Camera.main;
+            Camera renderCamera = renderingData.cameraData.camera;
+
+            //Update the camera field of view
+            renderCamera.fieldOfView = Mathf.Clamp(mainCamera.fieldOfView + settings.bloomCaptureExtraFov, 30, 160);
+
+            float verticalFov = Mathf.Deg2Rad * renderCamera.fieldOfView;
+            float horizontalFov = 2 * Mathf.Atan(Mathf.Tan(verticalFov / 2) * renderCamera.aspect);
+
+            //Calculate the new texture ratio based on camera fov
+            float originalVertFov = Mathf.Deg2Rad * mainCamera.fieldOfView;
+            float screenPlaneDistance = (settings.referenceScreenHeight / 2) / Mathf.Tan(originalVertFov / 2);
+
+            //Set the new texture size
+            settings.textureWidth = Mathf.RoundToInt(Mathf.Tan(horizontalFov / 2) * screenPlaneDistance * 2);
+            settings.textureHeight = Mathf.RoundToInt(Mathf.Tan(verticalFov / 2) * screenPlaneDistance * 2);
+
+            float referenceWidth = settings.referenceScreenHeight * mainCamera.aspect;
+            float widthRatio = referenceWidth / settings.textureWidth;
+            float heightRatio = (float)settings.referenceScreenHeight / settings.textureHeight;
+
+            // Debug.Log($"fov: {verticalFov} horizontal: {horizontalFov} width: {settings.textureWidth} height: {settings.textureHeight} ratio: {widthRatio}, {heightRatio}");
+
+            Shader.SetGlobalVector("_FogTextureToScreenRatio", new Vector2(widthRatio, heightRatio));
         }
     }
 
@@ -54,6 +105,8 @@ public class Bloomfog : ScriptableRendererFeature
     private class BloomFogPass : ScriptableRenderPass
     {
         public RenderTargetIdentifier SourceTexture;
+
+        private BloomFogSettings settings;
 
         private LayerMask environmentLayerMask;
         private Material environmentMaskMaterial;
@@ -80,30 +133,28 @@ public class Bloomfog : ScriptableRendererFeature
         private RenderTargetIdentifier maskRT;
 
 
-        public BloomFogPass(BloomFogSettings settings)
+        public BloomFogPass(BloomFogSettings fogSettings)
         {
-            thresholdMaterial = settings.thresholdMaterial;
-            threshold = settings.threshold;
-            brightnessMult = settings.brightnessMult;
+            settings = fogSettings;
 
-            blurMaterial = settings.blurMaterial;
-            referenceHeight = settings.referenceScreenHeight;
-            passes = settings.blurPasses;
-            downsample = settings.downsample;
-            outputTextureName = settings.outputTextureName;
+            thresholdMaterial = fogSettings.thresholdMaterial;
+            threshold = fogSettings.threshold;
+            brightnessMult = fogSettings.brightnessMult;
 
-            outputMaterial = settings.outputMaterial;
+            blurMaterial = fogSettings.blurMaterial;
+            referenceHeight = fogSettings.referenceScreenHeight;
+            passes = fogSettings.blurPasses;
+            downsample = fogSettings.downsample;
+            outputTextureName = fogSettings.outputTextureName;
+
+            outputMaterial = fogSettings.outputMaterial;
         }
 
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            int width = cameraTextureDescriptor.width;
-            int height = cameraTextureDescriptor.height;
-
-            float aspect = width / height;
-            height = referenceHeight / downsample;
-            width = Mathf.RoundToInt(referenceHeight * aspect) / downsample;
+            int width = settings.textureWidth / downsample;
+            int height = settings.textureHeight / downsample;
 
             //Create our temporary render textures for blurring
             tempID1 = Shader.PropertyToID("tempBlurRT1");

@@ -20,6 +20,7 @@ Shader "Custom/Bloomfog/BloomfogSkyboxQuad" {
       };
 
       sampler2D _BloomfogTex;
+      float2 _FogTextureToScreenRatio;
 
       v2f vert(appdata v) {
         v2f o;
@@ -30,7 +31,11 @@ Shader "Custom/Bloomfog/BloomfogSkyboxQuad" {
 
       float4 frag(v2f i) : SV_Target {
         float2 screenSpaceUV = i.screenPos.xy / i.screenPos.w;
-        return tex2D(_BloomfogTex, screenSpaceUV);
+        float2 scaledUV = float2(
+          (screenSpaceUV.x + -0.5) * _FogTextureToScreenRatio.x + 0.5,
+          (screenSpaceUV.y + -0.5) * _FogTextureToScreenRatio.y + 0.5
+        );
+        return tex2D(_BloomfogTex, scaledUV);
       }
       ENDCG
     }
