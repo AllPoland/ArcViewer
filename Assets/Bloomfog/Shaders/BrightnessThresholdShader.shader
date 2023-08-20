@@ -3,6 +3,8 @@ Shader "Custom/Bloomfog/BrightnessThresholdShader"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _FadeStart ("Fade Start", float) = 0.2
+        _FadeEnd ("Fade End", float) = 0.1
     }
     SubShader
     {
@@ -33,11 +35,12 @@ Shader "Custom/Bloomfog/BrightnessThresholdShader"
             sampler2D _MainTex;
             float4 _MainTex_TexelSize;
             float4 _MainTex_ST;
+            float _FadeStart, _FadeEnd;
 
             float _Threshold;
             float _BrightnessMult;
 
-            v2f vert (appdata v)
+            v2f vert(appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
@@ -50,7 +53,13 @@ Shader "Custom/Bloomfog/BrightnessThresholdShader"
                 float2 uv_MainTex;
             };
 
-            fixed4 frag (v2f input) : SV_Target
+            float remap(float2 input, float2 minMax, float2 outMinMax)
+            {
+                float value = max(input.x, input.y);
+                return outMinMax.x + (value - minMax.x) * (outMinMax.y - outMinMax.x) / (minMax.y - minMax.x);
+            }
+
+            fixed4 frag(v2f input) : SV_Target
             {
                 float t = _Threshold;
                 float m = _BrightnessMult;
@@ -62,6 +71,10 @@ Shader "Custom/Bloomfog/BrightnessThresholdShader"
                 maximum = max(maximum, col.b);
 
                 col.rgb *= (maximum > t) * m;
+
+                float2 distFromCenter = abs((input.uv - float2(0.5, 0.5)) * 2);
+                float fadeoutAmount = remap(distFromCenter, float2(1.0 - _FadeStart, 1.0 - _FadeEnd), float2(0.0, 1.0));
+                col.rgb = lerp(col.rgb, float3(0, 0, 0), clamp(fadeoutAmount, 0, 1));
 
                 return col;
             }
