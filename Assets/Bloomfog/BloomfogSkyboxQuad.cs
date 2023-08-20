@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[RequireComponent(typeof(MeshFilter))]
+[RequireComponent(typeof(MeshFilter)), ExecuteInEditMode]
 public class BloomfogSkyboxQuad : MonoBehaviour
 {
 	private void Awake()
