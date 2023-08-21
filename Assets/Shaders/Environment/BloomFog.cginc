@@ -8,9 +8,8 @@ uniform float _CustomFogHeightFogStartY;
 uniform float _CustomFogHeightFogHeight;
 uniform float2 _FogTextureToScreenRatio;
 
-inline float2 GetFogCoord(float4 clipPos) {
-  float4 screenPos = ComputeScreenPos(clipPos);
-  float2 uv = screenPos.xy / screenPos.w;
+inline float2 GetFogCoord(float4 screenPos) {
+  float2 uv = clamp(screenPos.xy / screenPos.w, 0, 1);
   return float2(
     (uv.x + -0.5) * _FogTextureToScreenRatio.x + 0.5,
     (uv.y + -0.5) * _FogTextureToScreenRatio.y + 0.5
@@ -32,17 +31,22 @@ inline float GetFogIntensity(float3 distance, float fogStartOffset, float fogSca
   return -fogIntensity;
 }
 
-#define BLOOM_FOG_COORDS(fogCoordIndex, worldPosIndex) \
+#define BLOOM_FOG_COORDS(screenPosIndex, fogCoordIndex, worldPosIndex) \
+  float4 screenPos : TEXCOORD##screenPosIndex; \
   float2 fogCoord : TEXCOORD##fogCoordIndex; \
-  float3 worldPos : TEXCOORD##worldPosIndex;
+  float3 worldPos : TEXCOORD##worldPosIndex
 
 #define BLOOM_FOG_SURFACE_INPUT \
+  float4 screenPos; \
   float2 fogCoord; \
   float3 worldPos;
 
-#define BLOOM_FOG_INITIALIZE(outputStruct, inputVertex) \
-  outputStruct.fogCoord = GetFogCoord(UnityObjectToClipPos(inputVertex)); \
+#define BLOOM_FOG_INITIALIZE_VERT(outputStruct, inputVertex) \
+  outputStruct.screenPos = ComputeScreenPos(UnityObjectToClipPos(inputVertex)); \
   outputStruct.worldPos = mul(unity_ObjectToWorld, inputVertex)
+
+#define BLOOM_FOG_INITIALIZE_FRAG(inoutStruct) \
+  inoutStruct.fogCoord = GetFogCoord(inoutStruct.screenPos)
 
 #define BLOOM_FOG_SAMPLE(fogCoord) \
   tex2D(_BloomfogTex, fogCoord)

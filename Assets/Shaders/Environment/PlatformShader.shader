@@ -9,7 +9,6 @@ Shader "Custom/PlatformShader"
         _FogScale ("Fog Scale", float) = 1
         _AmbientStrength ("Ambient Light", float) = 1
         _ReflectionStrength ("Reflection Strength", float) = 1
-        _ReflectAngleStrength ("Reflcetion Angle Strength", float) = 1
     }
     SubShader
     {
@@ -39,7 +38,7 @@ Shader "Custom/PlatformShader"
                 float3 normal : TEXCOORD1;
                 float3 tangent : TEXCOORD2;
                 float3 binormal : TEXCOORD3;
-                BLOOM_FOG_COORDS(4, 5)
+                BLOOM_FOG_COORDS(4, 5, 6);
                 float4 vertex : SV_POSITION;
             };
 
@@ -49,7 +48,7 @@ Shader "Custom/PlatformShader"
             fixed4 _BaseColor;
             float _FogStartOffset, _FogScale;
             float _AmbientStrength;
-            float _ReflectionStrength, _ReflectAngleStrength;
+            float _ReflectionStrength;
 
             v2f vert(appdata v)
             {
@@ -63,33 +62,45 @@ Shader "Custom/PlatformShader"
                 float3 binormal = cross(v.normal, v.tangent.xyz);
                 o.binormal = mul((float3x3)unity_ObjectToWorld, binormal);
 
-                BLOOM_FOG_INITIALIZE(o, v.vertex);
+                BLOOM_FOG_INITIALIZE_VERT(o, v.vertex);
                 return o;
             }
 
             fixed4 frag(v2f i) : SV_Target
             {
-                fixed4 col = _BaseColor * tex2D(_MainTex, i.uv);
+                BLOOM_FOG_INITIALIZE_FRAG(i);
 
+                fixed4 col = _BaseColor;
+
+                //Read the normal map and convert to worldspace
                 float3 tangentNormal = UnpackNormal(tex2D(_NormalMap, i.uv));
-
                 float3x3 TBN = float3x3(normalize(i.tangent), normalize(i.binormal), normalize(i.normal));
-
                 float3 worldNormal = normalize(mul(tangentNormal, TBN));
 
+                //Use the viewspace normal to create fake environment reflections
+                float3 viewNormal = normalize(mul((float3x3)UNITY_MATRIX_V, worldNormal));
+                //Remap from -1, 1 to 0, 1
+                viewNormal = (viewNormal / 2) + 0.5;
+
+                //Sample the fog in the direction of the screen normal
+                float4 reflectionScreenPos = float4(viewNormal, 1);
+                float2 reflectionSamplePos = GetFogCoord(reflectionScreenPos);
+
+                //Scale reflections with how much the face points toward the camera
+                //because they'd be reflecting backwards where there's no fog
+                float reflectionMult = _ReflectionStrength * (1 - abs(viewNormal.z));
+                col += BLOOM_FOG_SAMPLE(reflectionSamplePos) * reflectionMult;
+
+                //Apply albedo texture
+                col *= tex2D(_MainTex, i.uv);
+
+                //Apply ambient lighting based on the up/down facing of the normal
                 fixed4 skyCol = unity_AmbientSky * clamp(worldNormal.y, 0, 1);
                 fixed4 equatorCol = unity_AmbientEquator * (1 - abs(worldNormal.y));
                 fixed4 groundCol = unity_AmbientGround * abs(clamp(worldNormal.y, -1, 0));
                 col += (skyCol + equatorCol + groundCol) * _AmbientStrength;
 
-                float3 worldSpaceViewDir = normalize(_WorldSpaceCameraPos.xyz - i.worldPos);
-                float3 reflectionDir = reflect(worldSpaceViewDir, worldNormal);
-
-                float2 reflectionSamplePos = GetFogCoord(i.vertex + float4(reflectionDir, 1) * _ReflectAngleStrength);
-
                 BLOOM_FOG_APPLY(i, col, _FogStartOffset, _FogScale);
-                // col.rgb = worldNormal.yyy;
-                // col = BLOOM_FOG_SAMPLE(reflectionSamplePos) * _ReflectionStrength;
                 return col;
             }
             ENDCG
