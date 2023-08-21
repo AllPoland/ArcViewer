@@ -1,91 +1,17 @@
-using System.Collections;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class EnvironmentLightingUpdater : MonoBehaviour
 {
-    [SerializeField] private ReflectionProbe probe;
-
-    [Space]
-    [SerializeField] private float defaultProbeIntensity;
     [SerializeField, Range(0f, 1f)] private float ambientLightBrightness;
-    [SerializeField, Range(0f, 1f)] private float noReflectionAmbientBrightness;
     [SerializeField, Range(0f, 1f)] private float ambientLightSaturation;
-
-    [Space]
-    [SerializeField] private LayerMask defaultLayerMask;
-    [SerializeField] private LayerMask environmentLayerMask;
 
     private static readonly string[] lightingSettings = new string[]
     {
-        "dynamicreflections",
-        "instantreflectionupdate",
-        "reflectionquality",
-        "lightreflectionbrightness",
-        "ambientlightbrightness",
-        "reflectenvironment"
+        "ambientlightbrightness"
     };
 
-    private bool dynamicReflections;
-    private int renderId;
-    private bool isRendering => dynamicReflections && !probe.IsFinishedRendering(renderId) && probe.timeSlicingMode != ReflectionProbeTimeSlicingMode.NoTimeSlicing;
-    private float ambientBrightness => (dynamicReflections ? ambientLightBrightness : noReflectionAmbientBrightness) * SettingsManager.GetFloat("ambientlightbrightness");
-
-
-    private void UpdateReflection()
-    {
-        if(dynamicReflections)
-        {
-            renderId = probe.RenderProbe();
-        }
-    }
-
-
-    private IEnumerator ForceUpdateReflectionsCoroutine()
-    {
-        yield return new WaitUntil(() => !isRendering);
-        UpdateReflection();
-    }
-
-
-    public void UpdateStaticLights()
-    {
-        if(dynamicReflections)
-        {
-            if(LightManager.StaticLights && probe.timeSlicingMode != ReflectionProbeTimeSlicingMode.NoTimeSlicing)
-            {
-                //Wait for the current rendering to finish so lighting correctly updates
-                StartCoroutine(ForceUpdateReflectionsCoroutine());
-            }
-            else
-            {
-                UpdateReflection();
-            }
-        }
-        else
-        {
-            UpdateColors(ColorManager.CurrentColors);
-        }
-    }
-
-
-    public void UpdatePlaying(bool playing)
-    {
-        if(!playing && !LightManager.StaticLights && probe.timeSlicingMode != ReflectionProbeTimeSlicingMode.NoTimeSlicing)
-        {
-            StartCoroutine(ForceUpdateReflectionsCoroutine());
-        }
-    }
-
-
-    public void UpdateBeat(float beat)
-    {
-        if(!LightManager.StaticLights && probe.intensity > 0.001f)
-        {
-            UpdateReflection();
-        }
-    }
+    private float ambientBrightness => ambientLightBrightness * SettingsManager.GetFloat("ambientlightbrightness");
 
 
     private void SetGradient(ColorPalette colors, float brightness)
@@ -102,7 +28,6 @@ public class EnvironmentLightingUpdater : MonoBehaviour
     public void UpdateColors(ColorPalette newColors)
     {
         SetGradient(newColors, ambientBrightness);
-        UpdateReflection();
     }
 
 
@@ -110,69 +35,15 @@ public class EnvironmentLightingUpdater : MonoBehaviour
     {
         if(setting == "all" || lightingSettings.Contains(setting))
         {
-            dynamicReflections = SettingsManager.GetBool("dynamicreflections");
-            if(dynamicReflections)
-            {
-                probe.intensity = defaultProbeIntensity * SettingsManager.GetFloat("lightreflectionbrightness");
-
-                bool instantUpdate = SettingsManager.GetBool("instantreflectionupdate");
-                probe.timeSlicingMode = instantUpdate ? ReflectionProbeTimeSlicingMode.NoTimeSlicing : ReflectionProbeTimeSlicingMode.AllFacesAtOnce;
-
-                switch(SettingsManager.GetInt("reflectionquality"))
-                {
-                    default:
-                    case 0:
-                        probe.resolution = 32;
-                        break;
-                    case 1:
-                        probe.resolution = 64;
-                        break;
-                    case 2:
-                        probe.resolution = 128;
-                        break;
-                    case 3:
-                        probe.resolution = 256;
-                        break;
-                    case 4:
-                        probe.resolution = 512;
-                        break;
-                    case 5:
-                        probe.resolution = 1024;
-                        break;
-                    case 6:
-                        probe.resolution = 2048;
-                        break;
-                }
-                // probe.resolution *= 4;
-
-                int newLayerMask = defaultLayerMask;
-                if(SettingsManager.GetBool("reflectenvironment"))
-                {
-                    newLayerMask |= environmentLayerMask;
-                }
-                probe.cullingMask = newLayerMask;
-            }
-            else
-            {
-                probe.intensity = 0f;
-            }
-
             UpdateColors(ColorManager.CurrentColors);
-        }
-        else if(setting == "staticlights" || setting == "lightglowbrightness")
-        {
-            UpdateStaticLights();
         }
     }
 
 
     private void Start()
     {
-        TimeManager.OnBeatChanged += UpdateBeat;
-        TimeManager.OnPlayingChanged += UpdatePlaying;
         ColorManager.OnColorsChanged += UpdateColors;
         SettingsManager.OnSettingsUpdated += UpdateSettings;
-        LightManager.OnStaticLightsChanged += UpdateStaticLights;
 
         UpdateSettings("all");
     }
@@ -180,10 +51,7 @@ public class EnvironmentLightingUpdater : MonoBehaviour
 
     private void OnDestroy()
     {
-        TimeManager.OnBeatChanged -= UpdateBeat;
-        TimeManager.OnPlayingChanged -= UpdatePlaying;
         ColorManager.OnColorsChanged -= UpdateColors;
         SettingsManager.OnSettingsUpdated -= UpdateSettings;
-        LightManager.OnStaticLightsChanged -= UpdateStaticLights;
     }
 }
