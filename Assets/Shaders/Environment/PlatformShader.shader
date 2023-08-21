@@ -9,6 +9,7 @@ Shader "Custom/PlatformShader"
         _FogScale ("Fog Scale", float) = 1
         _AmbientStrength ("Ambient Light", float) = 1
         _ReflectionStrength ("Reflection Strength", float) = 1
+        _AmbientReflectionStrength ("Ambient Reflection", float) = 0.01
     }
     SubShader
     {
@@ -48,7 +49,7 @@ Shader "Custom/PlatformShader"
             fixed4 _BaseColor;
             float _FogStartOffset, _FogScale;
             float _AmbientStrength;
-            float _ReflectionStrength;
+            float _ReflectionStrength, _AmbientReflectionStrength;
 
             v2f vert(appdata v)
             {
@@ -75,20 +76,20 @@ Shader "Custom/PlatformShader"
                 //Read the normal map and convert to worldspace
                 float3 tangentNormal = UnpackNormal(tex2D(_NormalMap, i.uv));
                 float3x3 TBN = float3x3(normalize(i.tangent), normalize(i.binormal), normalize(i.normal));
-                float3 worldNormal = normalize(mul(tangentNormal, TBN));
+                float3 worldNormal = mul(tangentNormal, TBN);
 
                 //Use the viewspace normal to create fake environment reflections
-                float3 viewNormal = normalize(mul((float3x3)UNITY_MATRIX_V, worldNormal));
+                float3 viewNormal = mul((float3x3)UNITY_MATRIX_V, worldNormal);
                 //Remap from -1, 1 to 0, 1
                 viewNormal = (viewNormal / 2) + 0.5;
 
                 //Sample the fog in the direction of the screen normal
-                float4 reflectionScreenPos = float4(viewNormal, 1);
+                float4 reflectionScreenPos = i.screenPos + float4(viewNormal, 1);
                 float2 reflectionSamplePos = GetFogCoord(reflectionScreenPos);
 
                 //Scale reflections with how much the face points toward the camera
                 //because they'd be reflecting backwards where there's no fog
-                float reflectionMult = _ReflectionStrength * (1 - abs(viewNormal.z));
+                float reflectionMult = lerp(_ReflectionStrength, _AmbientReflectionStrength, abs(viewNormal.z));
                 col += BLOOM_FOG_SAMPLE(reflectionSamplePos) * reflectionMult;
 
                 //Apply albedo texture
