@@ -44,18 +44,18 @@ inline float GetFogIntensity(float3 distance, float fogStartOffset, float fogSca
   outputStruct.fogCoord = GetFogCoord(UnityObjectToClipPos(inputVertex)); \
   outputStruct.worldPos = mul(unity_ObjectToWorld, inputVertex)
 
-#define BLOOM_FOG_SAMPLE(fogData) \
-  tex2D(_BloomfogTex, fogData.fogCoord)
+#define BLOOM_FOG_SAMPLE(fogCoord) \
+  tex2D(_BloomfogTex, fogCoord)
 
 #define BLOOM_FOG_APPLY(fogData, col, fogStartOffset, fogScale) \
   float3 fogDistance = fogData.worldPos + -_WorldSpaceCameraPos; \
-  float4 fogCol = -float4(col.rgb, 1) + BLOOM_FOG_SAMPLE(fogData); \
+  float4 fogCol = -float4(col.rgb, 1) + BLOOM_FOG_SAMPLE(fogData.fogCoord); \
   fogCol.a = -col.a; \
   col = col + ((GetFogIntensity(fogDistance, fogStartOffset, fogScale) + 1) * fogCol)
 
 #define BLOOM_HEIGHT_FOG_APPLY(fogData, col, fogStartOffset, fogScale, fogHeightOffset, fogHeightScale) \
   float3 fogDistance = fogData.worldPos + -_WorldSpaceCameraPos; \
-  float4 fogCol = -float4(col.rgb, 1) + BLOOM_FOG_SAMPLE(fogData); \
+  float4 fogCol = -float4(col.rgb, 1) + BLOOM_FOG_SAMPLE(fogData.fogCoord); \
   fogCol.a = -col.a; \
   col = col + (((GetHeightFogIntensity(fogData.worldPos, fogHeightOffset, fogHeightScale) * GetFogIntensity(fogDistance, fogStartOffset, fogScale)) + 1) * fogCol)
 
