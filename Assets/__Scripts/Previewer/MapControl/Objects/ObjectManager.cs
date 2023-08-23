@@ -267,7 +267,7 @@ public class ObjectManager : MonoBehaviour
             {
                 angle -= 360;
             }
-            return angle * -1;
+            return -angle;
         }
         return null;
     }
@@ -327,14 +327,25 @@ public class ObjectManager : MonoBehaviour
     {
         if(BeatmapManager.MappingExtensions)
         {
-            float? angle = MappingExtensionsAngle(cutDirection);
-            if(angle != null)
+            float? meAngle = MappingExtensionsAngle(cutDirection);
+            if(meAngle != null)
             {
                 //Mapping extensions angle applies
-                return (float)angle;
+                return (float)meAngle;
             }
         }
-        return DirectionAngles[Mathf.Clamp(cutDirection, 0, 8)] + angleOffset;
+
+        float angle = DirectionAngles[Mathf.Clamp(cutDirection, 0, 8)] + angleOffset;
+        angle %= 360;
+        if(angle > 180)
+        {
+            angle -= 360;
+        }
+        else if(angle < -180)
+        {
+            angle += 360;
+        }
+        return angle;
     }
 
 
