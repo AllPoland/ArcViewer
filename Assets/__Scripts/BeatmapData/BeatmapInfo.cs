@@ -56,6 +56,15 @@ public class BeatmapInfo
     {
         characteristicName = TrimCharacteristicString(characteristicName);
 
+        if(characteristicName.Equals("360Degree", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return DifficultyCharacteristic.ThreeSixty;
+        }
+        if(characteristicName.Equals("90Degree", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return DifficultyCharacteristic.Ninety;
+        }
+
         DifficultyCharacteristic characteristic;
         bool success = Enum.TryParse(characteristicName, true, out characteristic);
         if(!success)
