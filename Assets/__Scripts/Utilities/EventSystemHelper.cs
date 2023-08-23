@@ -15,5 +15,14 @@ public static class EventSystemHelper
     }
 
 
+    public static void Deselect()
+    {
+        if(!eventSystem.alreadySelecting)
+        {
+            eventSystem.SetSelectedGameObject(null);
+        }
+    }
+
+
     public static GameObject SelectedObject => eventSystem.currentSelectedGameObject;
 }
