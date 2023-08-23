@@ -4,7 +4,9 @@ Shader "Custom/PlatformShader"
     {
         _BaseColor ("Color", Color) = (1,1,1,1)
         _MainTex ("Main Texture", 2D) = "white" {}
+        _TextureDistance ("Max Texture Distance", float) = 100.0
         _NormalMap ("Normal Map", 2D) = "bump" {}
+        _NormalDistance ("Max Normal Map Distance", float) = 100.0
         _FogStartOffset ("Fog Start Offset", float) = 0
         _FogScale ("Fog Scale", float) = 1
         _AmbientStrength ("Ambient Light", float) = 1
@@ -46,6 +48,8 @@ Shader "Custom/PlatformShader"
             sampler2D _MainTex;
             float4 _MainTex_ST;
             sampler2D _NormalMap;
+            float _TextureDistance, _NormalDistance;
+
             fixed4 _BaseColor;
             float _FogStartOffset, _FogScale;
             float _AmbientStrength;
@@ -73,8 +77,12 @@ Shader "Custom/PlatformShader"
 
                 fixed4 col = _BaseColor;
 
+                float cameraDistance = distance(i.worldPos, _WorldSpaceCameraPos);
+
                 //Read the normal map and convert to worldspace
                 float3 tangentNormal = UnpackNormal(tex2D(_NormalMap, i.uv));
+                tangentNormal = lerp(tangentNormal, float3(0, 0, 1), clamp(cameraDistance / _NormalDistance, 0.001, 1));
+
                 float3x3 TBN = float3x3(normalize(i.tangent), normalize(i.binormal), normalize(i.normal));
                 float3 worldNormal = mul(tangentNormal, TBN);
 
@@ -93,7 +101,7 @@ Shader "Custom/PlatformShader"
                 col += BLOOM_FOG_SAMPLE(reflectionSamplePos) * reflectionMult;
 
                 //Apply albedo texture
-                col *= tex2D(_MainTex, i.uv);
+                col = lerp(col * tex2D(_MainTex, i.uv), col, clamp(cameraDistance / _TextureDistance, 0.001, 1));
 
                 //Apply ambient lighting based on the up/down facing of the normal
                 fixed4 skyCol = unity_AmbientSky * clamp(worldNormal.y, 0, 1);
