@@ -19,14 +19,17 @@ public class FileCache
         set
         {
             _maxCacheSize = value;
-            if(CachedFiles != null && CachedFiles.Count > value)
+
+            if(CachedFiles == null)
             {
-                while(CachedFiles.Count > value)
-                {
-                    RemoveLastFile();
-                }
-                SaveCacheData();
+                LoadCachedFiles();
             }
+
+            while(CachedFiles.Count > value)
+            {
+                RemoveLastFile();
+            }
+            SaveCacheData();
         }
     }
 

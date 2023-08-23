@@ -8,7 +8,7 @@ public static class EventSystemHelper
 
     public static void SetSelectedGameObject(GameObject selected)
     {
-        if(!eventSystem.alreadySelecting)
+        if(!eventSystem?.alreadySelecting ?? false)
         {
             eventSystem.SetSelectedGameObject(selected);
         }
@@ -17,7 +17,7 @@ public static class EventSystemHelper
 
     public static void Deselect()
     {
-        if(!eventSystem.alreadySelecting)
+        if(!eventSystem?.alreadySelecting ?? false)
         {
             eventSystem.SetSelectedGameObject(null);
         }

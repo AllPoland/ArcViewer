@@ -1,10 +1,9 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using TMPro;
 
-public class SettingsSlider : MonoBehaviour, IPointerUpHandler
+public class SettingsSlider : MonoBehaviour
 {
     [Header("Components")]
     [SerializeField] private Slider slider;
@@ -31,11 +30,7 @@ public class SettingsSlider : MonoBehaviour, IPointerUpHandler
     [SerializeField] private Color enabledColor;
     [SerializeField] private Color disabledColor;
 
-
-    public void OnPointerUp(PointerEventData eventData)
-    {
-        SetValue(slider.value);
-    }
+    private SliderPointerUpHandler pointerUpHandler;
 
 
     public void SetValue(float value)
@@ -56,11 +51,12 @@ public class SettingsSlider : MonoBehaviour, IPointerUpHandler
 
             if(integerValue)
             {
-                slider.value = Mathf.RoundToInt(number);
+                number = Mathf.RoundToInt(number);
             }
-            else slider.value = number;
+            slider.SetValueWithoutNotify(number);
 
-            UpdateText(slider.value);
+            SetValue(number);
+            UpdateText(number);
         }
         else UpdateText(slider.value);
         EventSystemHelper.SetSelectedGameObject(null);
@@ -106,6 +102,11 @@ public class SettingsSlider : MonoBehaviour, IPointerUpHandler
         }
 #endif
 
+        if(!pointerUpHandler)
+        {
+            pointerUpHandler = slider.GetComponent<SliderPointerUpHandler>();
+        }
+
         slider.wholeNumbers = integerValue;
         slider.minValue = minValue;
         slider.maxValue = maxValue;
@@ -130,6 +131,10 @@ public class SettingsSlider : MonoBehaviour, IPointerUpHandler
         if(realTimeUpdates)
         {
             slider.onValueChanged.AddListener(SetValue);
+        }
+        else
+        {
+            pointerUpHandler.OnSliderEnd.AddListener(SetValue);
         }
 
         if(requiredSetting.Enabled)
