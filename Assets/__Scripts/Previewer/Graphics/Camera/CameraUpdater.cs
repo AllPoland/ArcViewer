@@ -5,12 +5,34 @@ using UnityEngine;
 
 public class CameraUpdater : MonoBehaviour
 {
-    public static bool FreeCam = false;
+    private static bool _freecam = false;
+    public static bool Freecam
+    {
+        get => _freecam;
+        set
+        {
+            if(value == _freecam)
+            {
+                return;
+            }
 
-    public static event Action OnCameraPositionUpdated;
+            _freecam = value && UIStateManager.CurrentState == UIState.Previewer;
+            OnFreecamUpdated?.Invoke();
+        }
+    }
+
+    public static event Action OnFreecamUpdated;
 
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private List<Camera> affectedCameras;
+    [SerializeField] private FreecamController freecamController;
+
+    private string[] previewSettings = new string[]
+    {
+        "cameraposition",
+        "cameratilt",
+        "playerheight"
+    };
 
     private string[] replaySettings = new string[]
     {
@@ -20,7 +42,8 @@ public class CameraUpdater : MonoBehaviour
         "firstpersonreplay"
     };
 
-    private bool firstPerson;
+    private static bool firstPerson;
+
 
     private void SetPreviewCamera()
     {
@@ -36,8 +59,6 @@ public class CameraUpdater : MonoBehaviour
 
         cameraTransform.localPosition = new Vector3(0f, cameraY, cameraZ);
         cameraTransform.eulerAngles = new Vector3(-cameraTilt, 0f, 0f);
-
-        OnCameraPositionUpdated?.Invoke();
     }
 
 
@@ -51,13 +72,12 @@ public class CameraUpdater : MonoBehaviour
 
         cameraTransform.localPosition = new Vector3(0f, cameraY, cameraZ);
         cameraTransform.eulerAngles = new Vector3(-cameraTilt, 0f, 0f);
-
-        OnCameraPositionUpdated?.Invoke();
     }
 
 
     private void SetFirstPersonCamera()
     {
+        Freecam = false;
         firstPerson = true;
         UpdateFirstPersonCamera(false);
     }
@@ -102,12 +122,38 @@ public class CameraUpdater : MonoBehaviour
 
         cameraTransform.position = cameraPosition;
         cameraTransform.rotation = cameraRotation;
-
-        OnCameraPositionUpdated?.Invoke();
     }
 
 
     private void UpdateBeat(float _) => UpdateFirstPersonCamera(true);
+
+
+    private void UpdateFreecam()
+    {
+        freecamController.enabled = Freecam;
+
+        if(!Freecam)
+        {
+            if(ReplayManager.IsReplayMode)
+            {
+                SetReplayCamera();
+            }
+            else SetPreviewCamera();
+        }
+        else if(firstPerson)
+        {
+            //Hack to avoid force updating the camera
+            SettingsManager.OnSettingsUpdated -= UpdateCameraSettings;
+
+            SettingsManager.SetRule("firstpersonreplay", false);
+#if !UNITY_WEBGL || UNITY_EDITOR
+            SettingsManager.SaveSettingsStatic();
+#endif
+            firstPerson = false;
+
+            SettingsManager.OnSettingsUpdated += UpdateCameraSettings;
+        }
+    }
 
 
     public void UpdateCameraSettings(string setting)
@@ -123,12 +169,12 @@ public class CameraUpdater : MonoBehaviour
                     SetFirstPersonCamera();
                 }
             }
-            else if(allSettings || replaySettings.Contains(setting))
+            else if(!Freecam && (allSettings || replaySettings.Contains(setting)))
             {
                 SetReplayCamera();
             }
         }
-        else if(allSettings || setting == "cameraposition" || setting == "cameratilt" || setting == "playerheight")
+        else if(!Freecam && (allSettings || previewSettings.Contains(setting)))
         {
             SetPreviewCamera();
         }
@@ -150,6 +196,12 @@ public class CameraUpdater : MonoBehaviour
     }
 
 
+    private void UpdateUIState(UIState newState)
+    {
+        Freecam = false;
+    }
+
+
     private void LateUpdate()
     {
         if(firstPerson)
@@ -161,8 +213,12 @@ public class CameraUpdater : MonoBehaviour
 
     private void Start()
     {
+        freecamController.enabled = false;
+
+        UIStateManager.OnUIStateChanged += UpdateUIState;
         SettingsManager.OnSettingsUpdated += UpdateCameraSettings;
         ReplayManager.OnReplayModeChanged += (_) => UpdateCameraSettings("all");
+        OnFreecamUpdated += UpdateFreecam;
 
         UpdateCameraSettings("all");
     }

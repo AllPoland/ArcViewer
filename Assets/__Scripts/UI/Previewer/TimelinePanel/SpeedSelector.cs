@@ -120,15 +120,18 @@ public class SpeedSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
             HideSlider();
         }
         
-        if(Input.GetButtonDown("IncreaseSpeed"))
+        if(!EventSystemHelper.SelectedObject)
         {
-            SetTimeScale(TimeSyncHandler.TimeScale + bindingStepScale);
-            UpdateValueDisplay();
-        }
-        else if(Input.GetButtonDown("DecreaseSpeed"))
-        {
-            SetTimeScale(TimeSyncHandler.TimeScale - bindingStepScale);
-            UpdateValueDisplay();
+            if(Input.GetButtonDown("IncreaseSpeed"))
+            {
+                SetTimeScale(TimeSyncHandler.TimeScale + bindingStepScale);
+                UpdateValueDisplay();
+            }
+            else if(Input.GetButtonDown("DecreaseSpeed"))
+            {
+                SetTimeScale(TimeSyncHandler.TimeScale - bindingStepScale);
+                UpdateValueDisplay();
+            }
         }
     }
 

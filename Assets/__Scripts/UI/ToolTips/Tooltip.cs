@@ -20,8 +20,11 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public void ForceUpdate()
     {
-        TooltipManager.RemoveTooltip(this);
-        TooltipManager.AddTooltip(this);
+        if(TooltipManager.HasTooltip(this))
+        {
+            TooltipManager.RemoveTooltip(this);
+            TooltipManager.AddTooltip(this);
+        }
     }
 
 

@@ -7,7 +7,7 @@ public class Bloomfog : ScriptableRendererFeature
     //These are static fields for graphics settings to access
     public static bool Enabled = true;
     public static int Downsample = 2;
-    public static int BlurPasses = 16;
+    public static int BlurPasses = 18;
 
     [System.Serializable]
     public class BloomFogSettings

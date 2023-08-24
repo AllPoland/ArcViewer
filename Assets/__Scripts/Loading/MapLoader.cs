@@ -536,36 +536,41 @@ public class MapLoader : MonoBehaviour
         throw new InvalidOperationException("Loading from directory doesn't work on WebGL!");
 #else
 
-        if(!File.Exists(directory))
+        if(File.Exists(directory))
+        {
+            if(directory.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
+            {
+                LoadMapZip(directory);
+                HotReloader.loadedMapPath = directory;
+                return;
+            }
+
+            if(directory.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase))
+            {
+                StartCoroutine(LoadReplayDirectoryCoroutine(directory));
+                return;
+            }
+
+            if(directory.EndsWith(".dat", StringComparison.InvariantCultureIgnoreCase))
+            {
+                //User is trying to load an unzipped map, get the parent directory
+                DirectoryInfo parentDir = Directory.GetParent(directory);
+                FileReader fileReader = new FileReader(parentDir.FullName);
+                StartCoroutine(LoadMapFileCoroutine(fileReader));
+                HotReloader.loadedMapPath = directory;
+            }
+        }
+        else if(Directory.Exists(directory))
+        {
+            FileReader fileReader = new FileReader(directory);
+            StartCoroutine(LoadMapFileCoroutine(fileReader));
+            HotReloader.loadedMapPath = directory;
+        }
+        else
         {
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "That file or directory doesn't exist!");
-            Debug.LogWarning("Trying to load a map from a file that doesn't exist!");
-            return;
+            Debug.LogWarning($"Trying to load a map from a file that doesn't exist!");
         }
-
-        if(directory.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
-        {
-            LoadMapZip(directory);
-            HotReloader.loadedMapPath = directory;
-            return;
-        }
-
-        if(directory.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase))
-        {
-            StartCoroutine(LoadReplayDirectoryCoroutine(directory));
-            return;
-        }
-
-        if(directory.EndsWith(".dat", StringComparison.InvariantCultureIgnoreCase))
-        {
-            //User is trying to load an unzipped map, get the parent directory
-            DirectoryInfo parentDir = Directory.GetParent(directory);
-            directory = parentDir.FullName;
-        }
-
-        FileReader fileReader = new FileReader(directory);
-        StartCoroutine(LoadMapFileCoroutine(fileReader));
-        HotReloader.loadedMapPath = directory;
 #endif
     }
 

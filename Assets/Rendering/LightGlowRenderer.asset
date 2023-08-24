@@ -1,44 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-7405321893151849323
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b3d386ba5cd94485973aee1479b272e, type: 3}
-  m_Name: RenderObjects
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  settings:
-    passTag: RenderObjects
-    Event: 450
-    filterSettings:
-      RenderQueueType: 1
-      LayerMask:
-        serializedVersion: 2
-        m_Bits: 2048
-      PassNames: []
-    overrideMaterial: {fileID: 0}
-    overrideMaterialPassIndex: 0
-    overrideDepthState: 0
-    depthCompareFunction: 4
-    enableWrite: 1
-    stencilSettings:
-      overrideStencilState: 0
-      stencilReference: 0
-      stencilCompareFunction: 8
-      passOperation: 0
-      failOperation: 0
-      zFailOperation: 0
-    cameraSettings:
-      overrideCamera: 0
-      restoreCamera: 1
-      offset: {x: 0, y: 0, z: 0, w: 0}
-      cameraFieldOfView: 60
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54,10 +15,8 @@ MonoBehaviour:
   debugShaders:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7, type: 3}
   m_RendererFeatures:
-  - {fileID: 3236592756933023606}
-  - {fileID: -7405321893151849323}
   - {fileID: 5368229730383077877}
-  m_RendererFeatureMap: 765798d7f6afea2c95c44227f9023b99f5a12c687fc87f4a
+  m_RendererFeatureMap: f5a12c687fc87f4a
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 0}
   shaders:
@@ -78,7 +37,7 @@ MonoBehaviour:
     m_Bits: 0
   m_TransparentLayerMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 2048
   m_DefaultStencilState:
     overrideStencilState: 0
     stencilReference: 0
@@ -94,45 +53,6 @@ MonoBehaviour:
   m_ClusteredRendering: 0
   m_TileSize: 32
   m_IntermediateTextureMode: 1
---- !u!114 &3236592756933023606
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b3d386ba5cd94485973aee1479b272e, type: 3}
-  m_Name: RenderObjects
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  settings:
-    passTag: RenderObjects
-    Event: 300
-    filterSettings:
-      RenderQueueType: 0
-      LayerMask:
-        serializedVersion: 2
-        m_Bits: 512
-      PassNames: []
-    overrideMaterial: {fileID: 2100000, guid: e895724e47862b64398b04345cfe3c35, type: 2}
-    overrideMaterialPassIndex: 0
-    overrideDepthState: 1
-    depthCompareFunction: 4
-    enableWrite: 1
-    stencilSettings:
-      overrideStencilState: 0
-      stencilReference: 0
-      stencilCompareFunction: 8
-      passOperation: 0
-      failOperation: 0
-      zFailOperation: 0
-    cameraSettings:
-      overrideCamera: 0
-      restoreCamera: 1
-      offset: {x: 0, y: 0, z: 0, w: 0}
-      cameraFieldOfView: 60
 --- !u!114 &5368229730383077877
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -148,14 +68,12 @@ MonoBehaviour:
   m_Active: 1
   settings:
     thresholdMaterial: {fileID: 2100000, guid: 99b73f444864ea74cbbaf5ee4688e435, type: 2}
-    bloomCaptureExtraFov: 18
+    bloomCaptureExtraFov: 20
     threshold: 0
-    brightnessMult: 11
+    brightnessMult: 6
     attenuation: 0.1
     fogOffset: 0
     referenceScreenHeight: 720
-    blurPasses: 32
-    downsample: 1
     blurMaterial: {fileID: 2100000, guid: bb0d314e7f1b9414ab8ffe0ca05d43aa, type: 2}
     outputMaterial: {fileID: 2100000, guid: 7b75f1d02ba324240bf8f93cd8d5aa95, type: 2}
     outputTextureName: _BloomfogTex

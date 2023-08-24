@@ -14,30 +14,32 @@ public class FreecamButton : MonoBehaviour
     [SerializeField] private string freecamOffTooltip;
     [SerializeField] private string freecamOnTooltip;
 
-    private bool freeCam => CameraUpdater.FreeCam;
+    private bool freecam => CameraUpdater.Freecam;
 
 
     private void UpdateButton()
     {
-        buttonImage.color = freeCam ? freecamOnColor : freecamOffColor;
-        tooltip.Text = freeCam ? freecamOnTooltip : freecamOffTooltip;
+        buttonImage.color = freecam ? freecamOnColor : freecamOffColor;
+        tooltip.Text = freecam ? freecamOnTooltip : freecamOffTooltip;
+        tooltip.ForceUpdate();
     }
 
 
-    public void ToggleFreecam(bool updateTooltip)
+    public void ToggleFreecam()
     {
-        UpdateButton();
+        CameraUpdater.Freecam = !freecam;
     }
 
 
     private void OnEnable()
     {
-        
+        CameraUpdater.OnFreecamUpdated += UpdateButton;
+        UpdateButton();
     }
 
 
     private void OnDisable()
     {
-        
+        CameraUpdater.OnFreecamUpdated -= UpdateButton;
     }
 }
