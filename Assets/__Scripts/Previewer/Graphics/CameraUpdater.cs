@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class CameraUpdater : MonoBehaviour
 {
+    public static bool FreeCam = false;
+
     public static event Action OnCameraPositionUpdated;
 
     [SerializeField] private Transform cameraTransform;

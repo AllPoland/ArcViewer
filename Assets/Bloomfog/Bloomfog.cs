@@ -23,8 +23,6 @@ public class Bloomfog : ScriptableRendererFeature
 
         [Header("Blur Settings")]
         public int referenceScreenHeight = 720;
-        [Min(2)] public int blurPasses = 2;
-        [Min(1)] public int downsample = 1;
         public Material blurMaterial;
 
         [Header("Output Settings")]
@@ -43,9 +41,6 @@ public class Bloomfog : ScriptableRendererFeature
 
     public override void Create()
     {
-        Downsample = settings.downsample;
-        BlurPasses = settings.blurPasses;
-
         cameraConfigPass = new CameraConfigPass(settings);
         cameraConfigPass.renderPassEvent = RenderPassEvent.BeforeRendering;
 

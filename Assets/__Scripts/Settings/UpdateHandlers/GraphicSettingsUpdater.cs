@@ -154,6 +154,9 @@ public class GraphicSettingsUpdater : MonoBehaviour
         }
 
         SettingsManager.OnSettingsUpdated += UpdateGraphicsSettings;
-        UpdateGraphicsSettings("all");
+        if(SettingsManager.Loaded)
+        {
+            UpdateGraphicsSettings("all");
+        }
     }
 }
