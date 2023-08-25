@@ -93,6 +93,13 @@ public class SpeedSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     }
 
 
+    public void ResetSpeed()
+    {
+        SetTimeScale(ReplayManager.IsReplayMode ? ReplayManager.ReplayTimeScale : 1f);
+        UpdateValueDisplay();
+    }
+
+
     private void SetTimeScale(float timeScale)
     {
         timeScale = (float)Math.Round(timeScale, 2);
