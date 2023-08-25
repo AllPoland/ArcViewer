@@ -67,12 +67,17 @@ public class FullscreenButton : MonoBehaviour, IPointerDownHandler
             ToggleFullscreen();
         }
 #endif
-        UpdateButton();
     }
 
 
     private void OnEnable()
     {
-        UpdateButton();
+        ScreenSizeHelper.OnScreenSizeChanged += UpdateButton;
+    }
+
+
+    private void OnDisable()
+    {
+        ScreenSizeHelper.OnScreenSizeChanged -= UpdateButton;
     }
 }

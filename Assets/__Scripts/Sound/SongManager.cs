@@ -139,6 +139,7 @@ public class SongManager : MonoBehaviour
             if(mapTime < 0 || mapTime >= GetSongLength())
             {
                 StopSong();
+                TimeManager.SetPlaying(false);
                 return;
             }
 
