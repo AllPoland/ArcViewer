@@ -93,7 +93,7 @@ Shader "Custom/PlatformShader"
                 //Push the fog sample pos in the direction of the normal
                 //Multiply by distance from screen origin to effectively mirror the screen
                 float2 screenReflectPos = originalFogCoord + (viewNormal.xy * length(originalFogCoord));
-                screenReflectPos = clamp((screenReflectPos + 1) / 2, 0, 1);
+                screenReflectPos = (screenReflectPos + 1) / 2;
 
                 //Scale reflections with how much the face points toward the camera
                 //because they'd be reflecting backwards where there's no fog
