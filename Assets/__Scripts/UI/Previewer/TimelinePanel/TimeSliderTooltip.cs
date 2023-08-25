@@ -15,13 +15,13 @@ public class TimeSliderTooltip : MonoBehaviour
 
     public void UpdateText(float time, float beat)
     {
-        ulong currentSeconds = (ulong)time % 60;
-        ulong currentMinutes = (ulong)time / 60;
+        int currentSeconds = Mathf.RoundToInt(time % 60);
+        int currentMinutes = Mathf.RoundToInt(time / 60);
 
         string secondsString = currentSeconds >= 10 ? $"{currentSeconds}" : $"0{currentSeconds}";
 
         timeText.text = $"{currentMinutes}:{secondsString}";
-        beatText.text = ((ulong)beat).ToString();
+        beatText.text = Mathf.FloorToInt(beat).ToString();
     }
 
 

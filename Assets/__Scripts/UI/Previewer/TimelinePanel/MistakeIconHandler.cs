@@ -30,8 +30,11 @@ public class MistakeIconHandler : MonoBehaviour
 
     private void SetIconProperties(ref MistakeIcon icon, ScoringEvent scoringEvent)
     {
-        int timeSeconds = Mathf.RoundToInt(scoringEvent.ObjectTime);
-        string timeString = $"{timeSeconds / 60}:{timeSeconds % 60}";
+        int totalSeconds = Mathf.RoundToInt(scoringEvent.ObjectTime);
+        int seconds = totalSeconds % 60;
+
+        string secondsString = seconds >= 10 ? $"{seconds}" : $"0{seconds}";
+        string timeString = $"{totalSeconds / 60}:{secondsString}";
 
         icon.SetParentReferences(iconParent, parentCanvas);
         icon.SetTime(scoringEvent.ObjectTime);
