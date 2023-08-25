@@ -59,7 +59,7 @@ public class FreecamController : MonoBehaviour
         }
         else
         {
-            if(Input.GetMouseButton(1))
+            if(Input.GetMouseButton(1) && !UserIdleDetector.MouseOnUI && UserIdleDetector.MouseOnScreen())
             {
                 //Right click is pressed
                 SetControlsEnabled(true);

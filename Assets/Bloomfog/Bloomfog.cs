@@ -7,12 +7,12 @@ public class Bloomfog : ScriptableRendererFeature
     //These are static fields for graphics settings to access
     public static bool Enabled = true;
     public static int Downsample = 2;
-    public static int BlurPasses = 18;
+    public static int BlurPasses = 16;
 
     [System.Serializable]
     public class BloomFogSettings
     {
-        public Material thresholdMaterial;
+        public Material prepassMaterial;
 
         [Space]
         public float bloomCaptureExtraFov = 0f;
@@ -54,7 +54,7 @@ public class Bloomfog : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if(settings.blurMaterial && settings.outputMaterial && settings.thresholdMaterial)
+        if(settings.blurMaterial && settings.outputMaterial && settings.prepassMaterial)
         {
             renderer.EnqueuePass(cameraConfigPass);
 
@@ -113,7 +113,7 @@ public class Bloomfog : ScriptableRendererFeature
 
         private LayerMask environmentLayerMask;
         private Material environmentMaskMaterial;
-        private Material thresholdMaterial;
+        private Material prepassMaterial;
         private float threshold;
         private float brightnessMult;
 
@@ -138,7 +138,7 @@ public class Bloomfog : ScriptableRendererFeature
         {
             settings = fogSettings;
 
-            thresholdMaterial = fogSettings.thresholdMaterial;
+            prepassMaterial = fogSettings.prepassMaterial;
             threshold = fogSettings.threshold;
             brightnessMult = fogSettings.brightnessMult;
 
@@ -183,9 +183,10 @@ public class Bloomfog : ScriptableRendererFeature
             //Copy the source into the first temp texture, applying brightness threshold
             cmd.SetGlobalFloat("_Threshold", threshold);
             cmd.SetGlobalFloat("_BrightnessMult", brightnessMult);
-            cmd.Blit(SourceTexture, tempRT1, thresholdMaterial);
+            cmd.SetGlobalFloat("_Offset", 0.5f);
+            cmd.Blit(SourceTexture, tempRT1, prepassMaterial);
 
-            for(int i = 0; i < Bloomfog.BlurPasses - 1; i++)
+            for(int i = 1; i < Bloomfog.BlurPasses - 1; i++)
             {
                 //Copy between temp textures, blurring more each time
                 cmd.SetGlobalFloat("_Offset", 0.5f + i);

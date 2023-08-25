@@ -53,7 +53,7 @@ Shader "Custom/PlatformShader"
             fixed4 _BaseColor;
             float _FogStartOffset, _FogScale;
             float _AmbientStrength;
-            float _ReflectionStrength, _AmbientReflectionStrength;
+            float _ReflectionStrength, _AmbientReflectionStrength, _NormalWeight;
 
             v2f vert(appdata v)
             {
@@ -87,18 +87,18 @@ Shader "Custom/PlatformShader"
                 float3 worldNormal = mul(tangentNormal, TBN);
 
                 //Use the viewspace normal to create fake environment reflections
+                float2 originalFogCoord = (i.fogCoord * 2) - 1;
                 float3 viewNormal = mul((float3x3)UNITY_MATRIX_V, worldNormal);
-                //Remap from -1, 1 to 0, 1
-                viewNormal = (viewNormal / 2) + 0.5;
 
-                //Sample the fog in the direction of the screen normal
-                float4 reflectionScreenPos = i.screenPos + float4(viewNormal, 1);
-                float2 reflectionSamplePos = GetFogCoord(reflectionScreenPos);
+                //Push the fog sample pos in the direction of the normal
+                //Multiply by distance from screen origin to effectively mirror the screen
+                float2 screenReflectPos = originalFogCoord + (viewNormal.xy * length(originalFogCoord));
+                screenReflectPos = clamp((screenReflectPos + 1) / 2, 0, 1);
 
                 //Scale reflections with how much the face points toward the camera
                 //because they'd be reflecting backwards where there's no fog
                 float reflectionMult = lerp(_ReflectionStrength, _AmbientReflectionStrength, abs(viewNormal.z));
-                col += BLOOM_FOG_SAMPLE(reflectionSamplePos) * reflectionMult;
+                col += BLOOM_FOG_SAMPLE(screenReflectPos) * reflectionMult;
 
                 //Apply albedo texture
                 col = lerp(col * tex2D(_MainTex, i.uv), col, clamp(cameraDistance / _TextureDistance, 0.001, 1));
