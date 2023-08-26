@@ -13,7 +13,7 @@ public class GraphicSettingsUpdater : MonoBehaviour
 
     //The number of passes used with no downsampling
     //Determines how far bloomfog blurs
-    private const int baseBloomfogPasses = 28;
+    private const int baseBloomfogPasses = 22;
 
     //Multiplier to decrease passes when increasing downsampling
     //Used to keep the blur consistent since lower resolution needs fewer passes
