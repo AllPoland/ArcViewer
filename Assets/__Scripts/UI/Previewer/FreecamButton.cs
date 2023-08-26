@@ -4,12 +4,8 @@ using UnityEngine.EventSystems;
 
 public class FreecamButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    [SerializeField] private Image buttonImage;
+    [SerializeField] private Button button;
     [SerializeField] private Tooltip tooltip;
-
-    [Space]
-    [SerializeField] private Color freecamOffColor;
-    [SerializeField] private Color freecamOnColor;
 
     [Space]
     [SerializeField] private string freecamOffTooltip;
@@ -22,7 +18,7 @@ public class FreecamButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
     private void UpdateButton()
     {
-        buttonImage.color = freecam ? freecamOnColor : freecamOffColor;
+        button.interactable = freecam;
         tooltip.Text = freecam ? freecamOnTooltip : freecamOffTooltip;
         tooltip.ForceUpdate();
     }
