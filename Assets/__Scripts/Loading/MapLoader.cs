@@ -225,6 +225,7 @@ public class MapLoader : MonoBehaviour
             yield break;
         }
 
+        mapURL = System.Web.HttpUtility.UrlDecode(mapURL);
         StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, mapHash));
     }
 
@@ -276,6 +277,8 @@ public class MapLoader : MonoBehaviour
             OnReplayMapPrompt?.Invoke();
             yield break;
         }
+
+        mapURL = System.Web.HttpUtility.UrlDecode(mapURL);
 
         UrlArgHandler.ignoreMapForSharing = true;
         if(!string.IsNullOrEmpty(mapID))
@@ -467,6 +470,7 @@ public class MapLoader : MonoBehaviour
             yield break;
         }
 
+        replayURL = System.Web.HttpUtility.UrlDecode(replayURL);
         StartCoroutine(LoadReplayURLCoroutine(replayURL, mapURL, mapID, noProxy));
     }
 
@@ -597,35 +601,34 @@ public class MapLoader : MonoBehaviour
         }
         UrlArgHandler.ignoreMapForSharing = false;
 
-        if(input.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase) || input.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase))
+        string decodedURL = System.Web.HttpUtility.UrlDecode(input);
+        if(decodedURL.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase) || input.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase))
         {
-            input = System.Web.HttpUtility.UrlDecode(input);
-
-            if(input.Contains("beatsaver.com/maps"))
+            if(decodedURL.Contains("beatsaver.com/maps"))
             {
                 //Direct beatsaver link, should load based on ID instead
-                string ID = input.Split("/").Last();
+                string ID = decodedURL.Split("/").Last();
                 StartCoroutine(LoadMapIDCoroutine(ID));
 
                 UrlArgHandler.LoadedMapID = ID;
                 return;
             }
 
-            if(input.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
+            if(decodedURL.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
             {
-                StartCoroutine(LoadMapZipURLCoroutine(input));
-                UrlArgHandler.LoadedMapURL = input;
+                StartCoroutine(LoadMapZipURLCoroutine(decodedURL));
+                UrlArgHandler.LoadedMapURL = decodedURL;
                 return;
             }
 
-            if(!ReplayManager.IsReplayMode && input.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase))
+            if(!ReplayManager.IsReplayMode && decodedURL.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase))
             {
-                StartCoroutine(LoadReplayURLCoroutine(input));
-                UrlArgHandler.LoadedReplayURL = input;
+                StartCoroutine(LoadReplayURLCoroutine(decodedURL));
+                UrlArgHandler.LoadedReplayURL = decodedURL;
                 return;
             }
 
-            Debug.LogWarning($"{input} doesn't link to a valid map!");
+            Debug.LogWarning($"{decodedURL} doesn't link to a valid map!");
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Invalid URL!");
             return;
         }

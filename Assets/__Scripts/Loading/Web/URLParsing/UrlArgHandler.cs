@@ -135,9 +135,12 @@ public class UrlArgHandler : MonoBehaviour
         bool setTime = false;
         bool setDiff = false;
 
+        string decodedReplayURL = !string.IsNullOrEmpty(replayURL) ? System.Web.HttpUtility.UrlDecode(replayURL) : null;
+        string decodedMapUrl = !string.IsNullOrEmpty(mapURL) ? System.Web.HttpUtility.UrlDecode(mapURL) : null;
+
         if(!string.IsNullOrEmpty(replayID))
         {
-            StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, mapURL, mapID, noProxy));
+            StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, decodedMapUrl, mapID, noProxy));
             LoadedReplayID = replayID;
             
             //Don't set the diff cause that depends on the replay
@@ -145,8 +148,8 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(replayURL))
         {
-            StartCoroutine(mapLoader.LoadReplayURLCoroutine(replayURL, mapURL, mapID, noProxy));
-            LoadedReplayURL = replayURL;
+            StartCoroutine(mapLoader.LoadReplayURLCoroutine(decodedReplayURL, decodedMapUrl, mapID, noProxy));
+            LoadedReplayURL = decodedReplayURL;
 
             setTime = true;
         }
@@ -160,8 +163,8 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
-            StartCoroutine(mapLoader.LoadMapZipURLCoroutine(mapURL, null, null, noProxy));
-            LoadedMapURL = mapURL;
+            StartCoroutine(mapLoader.LoadMapZipURLCoroutine(decodedMapUrl, null, null, noProxy));
+            LoadedMapURL = decodedMapUrl;
 
             setTime = true;
             setDiff = true;
