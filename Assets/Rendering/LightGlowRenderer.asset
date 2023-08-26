@@ -71,8 +71,10 @@ MonoBehaviour:
     bloomCaptureExtraFov: 20
     threshold: 0
     brightnessMult: 5
-    attenuation: 0.2
+    attenuation: 0.25
     fogOffset: 0
+    fogHeight: 20
+    fogStartY: -80
     referenceScreenHeight: 640
     blurMaterial: {fileID: 2100000, guid: bb0d314e7f1b9414ab8ffe0ca05d43aa, type: 2}
     outputMaterial: {fileID: 2100000, guid: 7b75f1d02ba324240bf8f93cd8d5aa95, type: 2}

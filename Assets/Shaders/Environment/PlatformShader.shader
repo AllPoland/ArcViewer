@@ -9,6 +9,8 @@ Shader "Custom/PlatformShader"
         _NormalDistance ("Max Normal Map Distance", float) = 100.0
         _FogStartOffset ("Fog Start Offset", float) = 0
         _FogScale ("Fog Scale", float) = 1
+        _FogHeightOffset ("Fog Height Offset", float) = 0
+        _FogHeightScale ("Fog Height Scale", float) = 1
         _AmbientStrength ("Ambient Light", float) = 1
         _ReflectionStrength ("Reflection Strength", float) = 1
         _AmbientReflectionStrength ("Ambient Reflection", float) = 0.01
@@ -52,6 +54,7 @@ Shader "Custom/PlatformShader"
 
             fixed4 _BaseColor;
             float _FogStartOffset, _FogScale;
+            float _FogHeightOffset, _FogHeightScale;
             float _AmbientStrength;
             float _ReflectionStrength, _AmbientReflectionStrength, _NormalWeight;
 
@@ -109,7 +112,7 @@ Shader "Custom/PlatformShader"
                 fixed4 groundCol = unity_AmbientGround * abs(clamp(worldNormal.y, -1, 0));
                 col += (skyCol + equatorCol + groundCol) * _AmbientStrength;
 
-                BLOOM_FOG_APPLY(i, col, _FogStartOffset, _FogScale);
+                BLOOM_HEIGHT_FOG_APPLY(i, col, _FogStartOffset, _FogScale, _FogHeightOffset, _FogHeightScale);
                 return col;
             }
             ENDCG

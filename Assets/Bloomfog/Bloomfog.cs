@@ -20,6 +20,8 @@ public class Bloomfog : ScriptableRendererFeature
         public float brightnessMult = 1f;
         public float attenuation = 1f;
         public float fogOffset = 0f;
+        public float fogHeight = 0f;
+        public float fogStartY = 0f;
 
         [Header("Blur Settings")]
         public int referenceScreenHeight = 720;
@@ -49,6 +51,8 @@ public class Bloomfog : ScriptableRendererFeature
 
         Shader.SetGlobalFloat("_CustomFogAttenuation", settings.attenuation);
         Shader.SetGlobalFloat("_CustomFogOffset", settings.fogOffset);
+        Shader.SetGlobalFloat("_CustomFogHeightFogHeight", settings.fogHeight);
+        Shader.SetGlobalFloat("_CustomFogHeightFogStartY", settings.fogStartY);
     }
 
 
