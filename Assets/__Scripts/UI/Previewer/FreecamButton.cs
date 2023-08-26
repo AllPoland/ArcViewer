@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
-public class FreecamButton : MonoBehaviour
+public class FreecamButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] private Image buttonImage;
     [SerializeField] private Tooltip tooltip;
@@ -16,6 +17,8 @@ public class FreecamButton : MonoBehaviour
 
     private bool freecam => CameraUpdater.Freecam;
 
+    private bool hovered;
+
 
     private void UpdateButton()
     {
@@ -27,7 +30,32 @@ public class FreecamButton : MonoBehaviour
 
     public void ToggleFreecam()
     {
-        CameraUpdater.Freecam = !freecam;
+        if(CameraUpdater.Freecam)
+        {
+            CameraUpdater.Freecam = false;
+        }
+    }
+
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        hovered = true;
+    }
+
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        hovered = false;
+    }
+
+
+    private void Update()
+    {
+        if(hovered && !CameraUpdater.Freecam && Input.GetMouseButtonDown(1))
+        {
+            //Allows right click to still enable freecam when this button is hovered over
+            CameraUpdater.Freecam = true;
+        }
     }
 
 

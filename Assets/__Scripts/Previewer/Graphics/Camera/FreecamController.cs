@@ -34,7 +34,7 @@ public class FreecamController : MonoBehaviour
     }
 
 
-    private void SetControlsEnabled(bool enableControls)
+    private static void SetControlsEnabled(bool enableControls)
     {
         Cursor.lockState = enableControls ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !enableControls;
@@ -58,13 +58,10 @@ public class FreecamController : MonoBehaviour
                 UpdateInput();
             }
         }
-        else
+        else if(Input.GetMouseButton(1) && !UserIdleDetector.MouseOnUI && UserIdleDetector.MouseOnScreen())
         {
-            if(Input.GetMouseButton(1) && !UserIdleDetector.MouseOnUI && UserIdleDetector.MouseOnScreen())
-            {
-                //Right click is pressed
-                SetControlsEnabled(true);
-            }
+            //Right click is pressed
+            SetControlsEnabled(true);
         }
     }
 
@@ -80,6 +77,9 @@ public class FreecamController : MonoBehaviour
         }
 
         transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, 0f);
+
+        //Force enable controls if right mouse button is already pressed
+        SetControlsEnabled(Input.GetMouseButton(1));
     }
 
 
