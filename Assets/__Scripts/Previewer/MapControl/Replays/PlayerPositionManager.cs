@@ -73,7 +73,7 @@ public class PlayerPositionManager : MonoBehaviour
         rightSaber.transform.localPosition = defaultRightSaberPosition;
         rightSaber.transform.localRotation = Quaternion.identity;
 
-        UpdatePositions();
+        UpdateHeadPosition();
     }
 
 
@@ -130,11 +130,11 @@ public class PlayerPositionManager : MonoBehaviour
 
         Energy = currentFrame.Energy;
 
-        UpdatePositions();
+        UpdateHeadPosition();
     }
 
 
-    private void UpdatePositions()
+    private void UpdateHeadPosition()
     {
         HeadPosition = headset.transform.position;
         HeadRotation = headset.transform.rotation;
