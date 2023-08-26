@@ -7,7 +7,7 @@ public class SettingsMenu : MonoBehaviour
 {
     public static bool Open { get; private set; }
 
-    private SettingsTab _currentTab;
+    private SettingsTab _currentTab = SettingsTab.General;
     public SettingsTab CurrentTab
     {
         get => _currentTab;
@@ -54,7 +54,6 @@ public class SettingsMenu : MonoBehaviour
         {
             settingsPanel.SetActive(true);
             tabButtons.gameObject.SetActive(true);
-            CurrentTab = SettingsTab.General;
 
             buttonStartPos.x += buttonWidth;
         }
