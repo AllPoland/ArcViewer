@@ -91,12 +91,15 @@ public class CameraUpdater : MonoBehaviour
         float cameraOffset = SettingsManager.GetFloat("fpcameraposition");
         headPosition.z -= cameraOffset;
 
+        Vector3 eulerAngles = headRotation.eulerAngles;
         if(SettingsManager.GetBool("forcefpcameraupright"))
         {
-            Vector3 eulerAngles = headRotation.eulerAngles;
             eulerAngles.x = 0f;
-            headRotation = Quaternion.Euler(eulerAngles);
         }
+        int xRotOffset = SettingsManager.GetInt("fpcamerarotoffset");
+        eulerAngles.x -= xRotOffset;
+
+        headRotation = Quaternion.Euler(eulerAngles);
 
         Vector3 cameraPosition = cameraTransform.position;
         Quaternion cameraRotation = cameraTransform.rotation;
