@@ -149,7 +149,7 @@ public class UIColorPalette
     {
         standardColor = baseColor;
         backgroundColor = baseColor * UIColorManager.Instance.BackgroundBrightness;
-        background2Color = baseColor.SetValue(UIColorManager.Instance.DarkBackgroundBrightness);
+        background2Color = baseColor * UIColorManager.Instance.DarkBackgroundBrightness;
 
         transparentBackgroundColor = backgroundColor;
         transparentBackgroundColor.a = UIColorManager.Instance.TransparentBackgroundOpacity;
