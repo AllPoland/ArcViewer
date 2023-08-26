@@ -221,6 +221,7 @@ GameObject:
   - component: {fileID: 7781980353231731161}
   - component: {fileID: 3326827438448980093}
   - component: {fileID: 4728514126620165718}
+  - component: {fileID: 2108604675101822981}
   m_Layer: 5
   m_Name: Slider
   m_TagString: Untagged
@@ -307,15 +308,15 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 2
+  m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_HighlightedColor: {r: 0.7529412, g: 0.7529412, b: 0.7529412, a: 1}
+    m_PressedColor: {r: 0.32941177, g: 0.32941177, b: 0.32941177, a: 1}
+    m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_DisabledColor: {r: 0.22745098, g: 0.22745098, b: 0.22745098, a: 1}
     m_ColorMultiplier: 1
-    m_FadeDuration: 0.1
+    m_FadeDuration: 0
   m_SpriteState:
     m_HighlightedSprite: {fileID: 1717216546, guid: a6a675725f9775246bb4332629dcce11, type: 3}
     m_PressedSprite: {fileID: -1077463345, guid: a6a675725f9775246bb4332629dcce11, type: 3}
@@ -354,6 +355,20 @@ MonoBehaviour:
   OnSliderEnd:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2108604675101822981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3682364738703858425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7320bdfed93aa65458ed9d08d2aec15a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  graphic: {fileID: 4378467592403539594}
+  graphicType: 0
 --- !u!1 &4378467591776399378
 GameObject:
   m_ObjectHideFlags: 0
@@ -477,6 +492,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4378467592763974618}
   - component: {fileID: 4378467592763974616}
+  - component: {fileID: 2806953688782704220}
   m_Layer: 5
   m_Name: SettingsSlider
   m_TagString: Untagged
@@ -539,6 +555,20 @@ MonoBehaviour:
         value: 0
   enabledColor: {r: 1, g: 1, b: 1, a: 1}
   disabledColor: {r: 0.19607843, g: 0.2, b: 0.20784314, a: 1}
+--- !u!114 &2806953688782704220
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4378467592763974619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7320bdfed93aa65458ed9d08d2aec15a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  graphic: {fileID: 4378467593144019315}
+  graphicType: 3
 --- !u!1 &4378467592891346163
 GameObject:
   m_ObjectHideFlags: 0
