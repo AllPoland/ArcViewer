@@ -9,14 +9,14 @@ public class TimeText : MonoBehaviour
 
     public void UpdateText(float beat)
     {
-        ulong currentTime = (ulong)TimeManager.CurrentTime;
-        ulong currentSeconds = currentTime % 60;
-        ulong currentMinutes = currentTime / 60;
+        int totalSeconds = Mathf.FloorToInt(TimeManager.CurrentTime);
+        int currentSeconds = totalSeconds % 60;
+        int currentMinutes = totalSeconds / 60;
 
         string secondsString = currentSeconds >= 10 ? $"{currentSeconds}" : $"0{currentSeconds}";
 
         timeText.text = $"{currentMinutes}:{secondsString}";
-        beatText.text = ((ulong)beat).ToString();
+        beatText.text = Mathf.FloorToInt(beat).ToString();
     }
 
 

@@ -68,16 +68,16 @@ MonoBehaviour:
   m_Active: 1
   settings:
     prepassMaterial: {fileID: 2100000, guid: 99b73f444864ea74cbbaf5ee4688e435, type: 2}
-    bloomCaptureExtraFov: 25
+    bloomCaptureExtraFov: 22.5
     threshold: 0
     brightnessMult: 4
-    attenuation: 0.3
+    attenuation: 0.2
     fogOffset: 0
-    fogHeight: 20
+    fogHeight: 25
     fogStartY: -80
     referenceScreenHeight: 640
     blurMaterial: {fileID: 2100000, guid: bb0d314e7f1b9414ab8ffe0ca05d43aa, type: 2}
-    backgroundBrightness: 0.75
+    backgroundBrightness: 0.6
     backgroundMaterial: {fileID: 2100000, guid: 9573e4979efb331419586eaca156b34b, type: 2}
     outputMaterial: {fileID: 2100000, guid: 7b75f1d02ba324240bf8f93cd8d5aa95, type: 2}
     outputTextureName: _BloomfogTex

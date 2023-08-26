@@ -11,12 +11,14 @@ public class MistakeIconHandler : MonoBehaviour
     [SerializeField] private Sprite missSprite;
     [SerializeField] private Sprite bombSprite;
     [SerializeField] private Sprite wallSprite;
+    [SerializeField] private Sprite pauseSprite;
 
     [Space]
     [SerializeField] private Color badcutColor = Color.red;
     [SerializeField] private Color missColor = Color.white;
     [SerializeField] private Color bombColor = Color.yellow;
     [SerializeField] private Color wallColor = Color.magenta;
+    [SerializeField] private Color pauseColor = Color.cyan;
 
     [Space]
     [SerializeField] private string badcutTooltip;
@@ -28,13 +30,19 @@ public class MistakeIconHandler : MonoBehaviour
     private Canvas parentCanvas;
 
 
-    private void SetIconProperties(ref MistakeIcon icon, ScoringEvent scoringEvent)
+    private string GetTimeString(float time)
     {
-        int totalSeconds = Mathf.RoundToInt(scoringEvent.ObjectTime);
+        int totalSeconds = Mathf.FloorToInt(time);
         int seconds = totalSeconds % 60;
 
         string secondsString = seconds >= 10 ? $"{seconds}" : $"0{seconds}";
-        string timeString = $"{totalSeconds / 60}:{secondsString}";
+        return $"{totalSeconds / 60}:{secondsString}";
+    }
+
+
+    private void SetIconProperties(ref MistakeIcon icon, ScoringEvent scoringEvent)
+    {
+        string timeString = GetTimeString(scoringEvent.ObjectTime);
 
         icon.SetParentReferences(iconParent, parentCanvas);
         icon.SetTime(scoringEvent.ObjectTime);
@@ -65,9 +73,27 @@ public class MistakeIconHandler : MonoBehaviour
     }
 
 
+    private void SetPauseIconProperties(ref MistakeIcon icon, Pause pauseEvent)
+    {
+        string timeString = GetTimeString(pauseEvent.time);
+        string durationString = $"{Mathf.RoundToInt(pauseEvent.duration)}s";
+
+        icon.SetParentReferences(iconParent, parentCanvas);
+        icon.SetTime(pauseEvent.time);
+
+        icon.SetVisual(pauseSprite, pauseColor);
+        icon.SetTooltip($"Pause for {durationString} at {timeString}");
+    }
+
+
     private void GenerateIcons()
     {
         ClearIcons();
+
+        if(!ReplayManager.IsReplayMode)
+        {
+            return;
+        }
 
         MapElementList<ScoringEvent> scoringEvents = ScoreManager.ScoringEvents;
 
@@ -90,6 +116,16 @@ public class MistakeIconHandler : MonoBehaviour
             SetIconProperties(ref newIcon, scoringEvent);
             icons.Add(newIcon);
         }
+
+        foreach(Pause pauseEvent in ReplayManager.CurrentReplay.pauses)
+        {
+            GameObject newIconObject = Instantiate(iconPrefab, iconParent, false);
+            MistakeIcon newIcon = newIconObject.GetComponent<MistakeIcon>();
+
+            //We've already confirmed that the prefab has the component in the above loop
+            SetPauseIconProperties(ref newIcon, pauseEvent);
+            icons.Add(newIcon);
+        }
     }
 
 
@@ -106,10 +142,7 @@ public class MistakeIconHandler : MonoBehaviour
 
     private void UpdateReplayMode(bool replayMode)
     {
-        if(replayMode)
-        {
-            GenerateIcons();
-        }
+        GenerateIcons();
     }
 
 
@@ -126,10 +159,7 @@ public class MistakeIconHandler : MonoBehaviour
         ReplayManager.OnReplayModeChanged += UpdateReplayMode;
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
 
-        if(ReplayManager.IsReplayMode)
-        {
-            GenerateIcons();
-        }
+        GenerateIcons();
     }
 
 

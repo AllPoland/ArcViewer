@@ -33,7 +33,7 @@ public class MistakeIcon : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         rectTransform.sizeDelta = new Vector2(hoveredSize, hoveredSize);
 
         float padding = (hoveredSize - normalSize) / 2;
-        image.raycastPadding = new Vector4(padding, padding, padding, padding);
+        image.raycastPadding = new Vector4(padding, padding, padding, 0);
     }
 
 

@@ -15,8 +15,9 @@ public class TimeSliderTooltip : MonoBehaviour
 
     public void UpdateText(float time, float beat)
     {
-        int currentSeconds = Mathf.RoundToInt(time % 60);
-        int currentMinutes = Mathf.RoundToInt(time / 60);
+        int totalSeconds = Mathf.FloorToInt(time);
+        int currentSeconds = totalSeconds % 60;
+        int currentMinutes = totalSeconds / 60;
 
         string secondsString = currentSeconds >= 10 ? $"{currentSeconds}" : $"0{currentSeconds}";
 
