@@ -15,6 +15,7 @@ public class AudioSettingsUpdater : MonoBehaviour
         "hitsound",
         "spatialhitsounds",
         "randomhitsoundpitch",
+        "usebadhitsound",
         "badhitsound",
         "mutemisses"
     };
