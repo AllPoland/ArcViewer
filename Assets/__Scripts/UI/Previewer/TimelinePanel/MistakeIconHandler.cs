@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class MistakeIconHandler : MonoBehaviour
 {
-    [SerializeField] private GameObject iconPrefab;
+    [SerializeField] private MistakeIcon iconPrefab;
     [SerializeField] private RectTransform iconParent;
 
     [Space]
@@ -104,14 +104,7 @@ public class MistakeIconHandler : MonoBehaviour
                 continue;
             }
 
-            GameObject newIconObject = Instantiate(iconPrefab, iconParent, false);
-            MistakeIcon newIcon = newIconObject.GetComponent<MistakeIcon>();
-
-            if(!newIcon)
-            {
-                Debug.LogError("The mistake icon prefab doesn't include a MistakeIcon component!");
-                return;
-            }
+            MistakeIcon newIcon = Instantiate(iconPrefab, iconParent, false);
 
             SetIconProperties(ref newIcon, scoringEvent);
             icons.Add(newIcon);
@@ -119,10 +112,8 @@ public class MistakeIconHandler : MonoBehaviour
 
         foreach(Pause pauseEvent in ReplayManager.CurrentReplay.pauses)
         {
-            GameObject newIconObject = Instantiate(iconPrefab, iconParent, false);
-            MistakeIcon newIcon = newIconObject.GetComponent<MistakeIcon>();
+            MistakeIcon newIcon = Instantiate(iconPrefab, iconParent, false);
 
-            //We've already confirmed that the prefab has the component in the above loop
             SetPauseIconProperties(ref newIcon, pauseEvent);
             icons.Add(newIcon);
         }
