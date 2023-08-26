@@ -662,13 +662,13 @@ public class ObjectManager : MonoBehaviour
 
                     if(matchingEvent == null || matchingEvent.noteEventType == NoteEventType.miss)
                     {
-                        newNote.WasHit = false; 
-
-                        float missTime = matchingEvent?.Time ?? currentTime + Instance.BehindCameraTime;
+                        newNote.WasHit = false;
+                        newNote.wasMissed = matchingEvent?.noteEventType == NoteEventType.miss;
                     }
                     else
                     {
                         newNote.WasHit = true;
+                        newNote.wasMissed = false;
                         newNote.WasBadCut = matchingEvent.noteEventType == NoteEventType.bad;
                         newNote.HitOffset = matchingEvent.HitTimeOffset;
                     }
@@ -841,6 +841,7 @@ public abstract class HitSoundEmitter : MapObject
 {
     public AudioSource source;
     public bool WasHit;
+    public bool wasMissed;
     public bool WasBadCut;
     public float HitOffset;
 }

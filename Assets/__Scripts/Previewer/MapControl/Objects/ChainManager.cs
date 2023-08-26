@@ -104,16 +104,19 @@ public class ChainManager : MapElementManager<ChainLink>
                 if(matchingEvent == null)
                 {
                     newLink.WasHit = false;
+                    newLink.wasMissed = false;
                 }
                 else
                 {
                     if(matchingEvent.noteEventType == NoteEventType.miss)
                     {
                         newLink.WasHit = false;
+                        newLink.wasMissed = true;
                     }
                     else
                     {
                         newLink.WasHit = true;
+                        newLink.wasMissed = false;
                         newLink.WasBadCut = matchingEvent.noteEventType == NoteEventType.bad;
                         newLink.HitOffset = matchingEvent.HitTimeOffset;
                     }
@@ -197,6 +200,20 @@ public class ChainManager : MapElementManager<ChainLink>
             {
                 HitSoundManager.ScheduleHitsound(cl);
             }
+
+            if(ReplayManager.IsReplayMode && SettingsManager.GetBool("highlighterrors"))
+            {
+                if(cl.wasMissed)
+                {
+                    cl.ChainLinkHandler.SetOutline(true, SettingsManager.GetColor("missoutlinecolor"));
+                }
+                else if(cl.WasBadCut)
+                {
+                    cl.ChainLinkHandler.SetOutline(true, SettingsManager.GetColor("badcutoutlinecolor"));
+                }
+                else cl.ChainLinkHandler.SetOutline(false);
+            }
+            else cl.ChainLinkHandler.SetOutline(false);
 
             RenderedObjects.Add(cl);
         }

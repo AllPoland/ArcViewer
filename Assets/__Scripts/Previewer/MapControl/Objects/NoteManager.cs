@@ -147,6 +147,20 @@ public class NoteManager : MapElementManager<Note>
                 HitSoundManager.ScheduleHitsound(n);
             }
 
+            if(ReplayManager.IsReplayMode && SettingsManager.GetBool("highlighterrors"))
+            {
+                if(n.wasMissed)
+                {
+                    n.NoteHandler.SetOutline(true, SettingsManager.GetColor("missoutlinecolor"));
+                }
+                else if(n.WasBadCut)
+                {
+                    n.NoteHandler.SetOutline(true, SettingsManager.GetColor("badcutoutlinecolor"));
+                }
+                else n.NoteHandler.SetOutline(false);
+            }
+            else n.NoteHandler.SetOutline(false);
+
             RenderedObjects.Add(n);
         }
 

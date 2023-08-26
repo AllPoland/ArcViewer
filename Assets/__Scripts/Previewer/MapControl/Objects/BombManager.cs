@@ -58,6 +58,12 @@ public class BombManager : MapElementManager<Bomb>
                 HitSoundManager.ScheduleHitsound(b);
             }
 
+            if(ReplayManager.IsReplayMode && b.WasBadCut && SettingsManager.GetBool("highlighterrors"))
+            {
+                b.BombHandler.SetOutline(true, SettingsManager.GetColor("badcutoutlinecolor"));
+            }
+            else b.BombHandler.SetOutline(false);
+
             b.Visual.SetActive(true);
             RenderedObjects.Add(b);
         }

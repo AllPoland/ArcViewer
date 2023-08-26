@@ -27,6 +27,13 @@ public class ObjectSettingsUpdater : MonoBehaviour
         "arcwidth"
     };
 
+    private static readonly string[] outlineSettings = new string[]
+    {
+        "highlighterrors",
+        "missoutlinecolor",
+        "badcutoutlinecolor"
+    };
+
 
     public void UpdateObjectSettings(string setting)
     {
@@ -50,16 +57,18 @@ public class ObjectSettingsUpdater : MonoBehaviour
         }
         else
         {
+            bool outlineSetting = outlineSettings.Contains(setting);
+
             if(allSettings || arcSettings.Contains(setting))
             {
                 arcManager.ClearRenderedVisuals();
                 arcManager.UpdateVisuals();
             }
-            if(allSettings || setting == "simplebombs")
+            if(allSettings || outlineSetting || setting == "simplebombs")
             {
                 bombManager.ReloadBombs();
             }
-            if(allSettings || setting == "simplenotes" || setting == "lookanimations")
+            if(allSettings || outlineSetting || setting == "simplenotes" || setting == "lookanimations")
             {
                 HitSoundManager.ClearScheduledSounds();
                 noteManager.UpdateMaterials();
