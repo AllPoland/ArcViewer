@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using UnityEngine;
 
 [Serializable]
 public class BeatmapDifficulty
@@ -19,20 +20,20 @@ public class BeatmapDifficulty
     public bool useNormalEventsAsCompatibleEvents;
 
 
-    public static BeatmapDifficulty Empty = new BeatmapDifficulty
+    public BeatmapDifficulty()
     {
-        version = "",
-        bpmEvents = new BeatmapBpmEvent[0],
-        rotationEvents = new BeatmapRotationEvent[0],
-        colorNotes = new BeatmapColorNote[0],
-        bombNotes = new BeatmapBombNote[0],
-        obstacles = new BeatmapObstacle[0],
-        sliders = new BeatmapSlider[0],
-        burstSliders = new BeatmapBurstSlider[0],
-        basicBeatMapEvents = new BeatmapBasicBeatmapEvent[0],
-        colorBoostBeatMapEvents = new BeatmapColorBoostBeatmapEvent[0],
-        useNormalEventsAsCompatibleEvents = false
-    };
+        version = "";
+        bpmEvents = new BeatmapBpmEvent[0];
+        rotationEvents = new BeatmapRotationEvent[0];
+        colorNotes = new BeatmapColorNote[0];
+        bombNotes = new BeatmapBombNote[0];
+        obstacles = new BeatmapObstacle[0];
+        sliders = new BeatmapSlider[0];
+        burstSliders = new BeatmapBurstSlider[0];
+        basicBeatMapEvents = new BeatmapBasicBeatmapEvent[0];
+        colorBoostBeatMapEvents = new BeatmapColorBoostBeatmapEvent[0];
+        useNormalEventsAsCompatibleEvents = false;
+    }
 
 
     public void AddNulls()
@@ -67,11 +68,43 @@ public class BeatmapRotationEvent
     public float r;
 }
 
-public class BeatmapObject
+public abstract class BeatmapObject
 {
     public float b;
     public int x;
     public int y;
+
+
+    public abstract void Mirror();
+
+
+    public int MirrorPosition(int x)
+    {
+        if(Mathf.Abs(x) >= 1000)
+        {
+            float position = ObjectManager.MappingExtensionsPrecision(x);
+            position = -(position - 2) + 1;
+            return Mathf.RoundToInt((position * 1000) + Mathf.Sign(position) * 1000);
+        }
+        else return -(x - 2) + 1;
+    }
+
+
+    public int MirrorDirection(int d)
+    {
+        if(d >= 1000)
+        {
+            int angle = (d - 1000) % 360;
+            if(angle > 180)
+            {
+                angle -= 360;
+            }
+            angle *= -1;
+            
+            return 1000 + (angle < 0 ? angle + 360 : angle);
+        }
+        else return ObjectManager.MirroredCutDirection[Mathf.Clamp(d, 0, 8)];
+    }
 }
 
 
@@ -83,6 +116,27 @@ public class BeatmapColorNote : BeatmapObject
     public int a;
 
     public BeatmapCustomNoteData customData;
+
+    
+    public override void Mirror()
+    {
+        x = MirrorPosition(x);
+        c = c == 1 ? 0 : 1;
+        d = MirrorDirection(d);
+        a = -a;
+
+        if(customData != null)
+        {
+            if(customData.coordinates != null && customData.coordinates.Length != 0)
+            {
+                customData.coordinates[0] = -customData.coordinates[0];
+            }
+            if(customData.angle != null)
+            {
+                customData.angle = -customData.angle;
+            }
+        }
+    }
 }
 
 
@@ -90,6 +144,17 @@ public class BeatmapColorNote : BeatmapObject
 public class BeatmapBombNote : BeatmapObject
 {
     public BeatmapCustomObjectData customData;
+
+
+    public override void Mirror()
+    {
+        x = MirrorPosition(x);
+
+        if(customData?.coordinates != null && customData.coordinates.Length != 0)
+        {
+            customData.coordinates[0] = -customData.coordinates[0];
+        }
+    }
 }
 
 
@@ -101,6 +166,31 @@ public class BeatmapObstacle : BeatmapObject
     public int h;
 
     public BeatmapCustomObstacleData customData;
+
+
+    public override void Mirror()
+    {
+        if(Mathf.Abs(x) >= 1000 || Mathf.Abs(w) >= 1000)
+        {
+            float width = ObjectManager.MappingExtensionsPrecision(w);
+            float position = ObjectManager.MappingExtensionsPrecision(x);
+            position = -(position + (width - 1) - 2) + 1;
+            x = Mathf.RoundToInt((position * 1000) + Mathf.Sign(position) * 1000);
+        }
+        else x = MirrorPosition(x + (w - 1));
+
+        if(customData != null)
+        {
+            if(customData.coordinates != null && customData.coordinates.Length != 0)
+            {
+                customData.coordinates[0] = -customData.coordinates[0];
+            }
+            if(customData.size != null && customData.size.Length != 0)
+            {
+                customData.size[0] = -customData.size[0];
+            }
+        }
+    }
 }
 
 
@@ -118,6 +208,32 @@ public class BeatmapSlider : BeatmapObject
     public int m;
 
     public BeatmapCustomSliderData customData;
+
+
+    public override void Mirror()
+    {
+        x = MirrorPosition(x);
+        c = c == 1 ? 0 : 1;
+        d = MirrorDirection(d);
+
+        tx = -(tx - 2) + 1;
+        tc = MirrorDirection(tc);
+
+        m = m == 0 ? 0
+            : m == 1 ? 2 : 1;
+
+        if(customData != null)
+        {
+            if(customData.coordinates != null && customData.coordinates.Length != 0)
+            {
+                customData.coordinates[0] = -customData.coordinates[0];
+            }
+            if(customData.tailCoordinates != null && customData.tailCoordinates.Length != 0)
+            {
+                customData.tailCoordinates[0] = -customData.tailCoordinates[0];
+            }
+        }
+    }
 }
 
 
@@ -132,7 +248,29 @@ public class BeatmapBurstSlider : BeatmapObject
     public int sc;
     public float s;
 
-    public BeatmapCustomObjectData customData;
+    public BeatmapCustomSliderData customData;
+
+
+    public override void Mirror()
+    {
+        x = MirrorPosition(x);
+        c = c == 1 ? 0 : 1;
+        d = MirrorDirection(d);
+
+        tx = -(tx - 2) + 1;
+
+        if(customData != null)
+        {
+            if(customData.coordinates != null && customData.coordinates.Length != 0)
+            {
+                customData.coordinates[0] = -customData.coordinates[0];
+            }
+            if(customData.tailCoordinates != null && customData.tailCoordinates.Length != 0)
+            {
+                customData.tailCoordinates[0] = -customData.tailCoordinates[0];
+            }
+        }
+    }
 }
 
 
@@ -190,7 +328,7 @@ public class BeatmapCustomSliderData : BeatmapCustomObjectData
 public class BeatmapCustomBasicEventData
 {
     [JsonConverter(typeof(LightIDConverter))]
-    public List<int> lightID;
+    public int[] lightID;
     public float[] color;
     public string easing;
     public string lerpType;
@@ -220,15 +358,15 @@ public class LightIDConverter : JsonConverter
 
     public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
-        List<int> val = null;
+        int[] val = null;
         if (reader.TokenType == JsonToken.StartObject)
         {
             int id = serializer.Deserialize<int>(reader);
-            val = new List<int>() { id };
+            val = new int[] { id };
         }
         else if (reader.TokenType == JsonToken.StartArray)
         {
-            val = serializer.Deserialize<List<int>>(reader);
+            val = serializer.Deserialize<int[]>(reader);
         }
         return val;
     }

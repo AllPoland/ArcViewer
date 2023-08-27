@@ -19,23 +19,47 @@ public class ExplorerManager : MonoBehaviour, IPointerDownHandler
         //This is called when a file is selected by the user in WebGL
         mapLoader.LoadMapZipWebGL(url);
     }
+
+
+    public void OnReplayUploaded(string url)
+    {
+        mapLoader.LoadReplayDirectoryWebGL(url);
+    }
 #endif
 
 
     public void OnPointerDown(PointerEventData eventData)
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-        UploadFile(gameObject.name, "OnFileUploaded", ".zip", false);
+        if(!ReplayManager.IsReplayMode && SettingsManager.GetBool("replaymode"))
+        {
+            UploadFile(gameObject.name, "OnReplayUploaded", ".bsor", false);
+        }
+        else
+        {
+            UploadFile(gameObject.name, "OnFileUploaded", ".zip", false);
+        }
 #endif
     }
 
 
     public void OpenFileExplorer()
     {
-        ExtensionFilter[] extensions = new []
+        ExtensionFilter[] extensions;
+        if(!ReplayManager.IsReplayMode && SettingsManager.GetBool("replaymode"))
         {
-            new ExtensionFilter("Map Files", new string[] {"zip", "dat"})
-        };
+            extensions = new []
+            {
+                new ExtensionFilter("Replay Files", new string[] {"bsor"})
+            };
+        }
+        else
+        {
+            extensions = new []
+            {
+                new ExtensionFilter("Map Files", new string[] {"zip", "dat"})
+            };
+        }
 
         string[] paths = StandaloneFileBrowser.OpenFilePanel("Select Map", "", extensions, false);
         

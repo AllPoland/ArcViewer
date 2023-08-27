@@ -28,10 +28,8 @@ public class EnumPicker : MonoBehaviour
     [SerializeField] private Image valueContainerImage;
     
     [Space]
-    [SerializeField] private Color enabledTextColor;
-    [SerializeField] private Color disabledTextColor;
-    [SerializeField] private Sprite enabledPanelSprite;
-    [SerializeField] private Sprite disabledPanelSprite;
+    [SerializeField] private Color enabledColor;
+    [SerializeField] private Color disabledColor;
 
     private int maxValue => ValueNames.Length - 1;
 
@@ -62,11 +60,15 @@ public class EnumPicker : MonoBehaviour
         leftButton.interactable = interactable;
         rightButton.interactable = interactable;
 
-        Color textColor = interactable ? enabledTextColor : disabledTextColor;
-        labelText.color = textColor;
-        valueText.color = textColor;
-
-        valueContainerImage.sprite = interactable ? enabledPanelSprite : disabledPanelSprite;
+        Color color = interactable ? enabledColor : disabledColor;
+        labelText.color = color;
+        valueText.color = color;
+        valueContainerImage.color = UIColorManager.ColorPalette.standardColor * color;
+        
+        if(interactable)
+        {
+            UpdateElements();
+        }
     }
 
 

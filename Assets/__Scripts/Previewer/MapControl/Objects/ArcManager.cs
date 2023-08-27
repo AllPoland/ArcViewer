@@ -37,15 +37,12 @@ public class ArcManager : MapElementManager<Arc>
         ClearRenderedVisuals();
 
         //Sets the distance that arcs should fade out
-        const float closeFadeDist = 0f;
         const float fadeDistMultiplier = 0.8f;
-        float fadeDist = BeatmapManager.JumpDistance / 2 * fadeDistMultiplier;
+        float fadeDist = BeatmapManager.HalfJumpDistance * fadeDistMultiplier;
 
-        redArcMaterialProperties.SetFloat("_FadeStartPoint", closeFadeDist);
         redArcMaterialProperties.SetFloat("_FadeEndPoint", fadeDist);
         redArcMaterialProperties.SetFloat("_FadeTransitionLength", arcFadeTransitionLength);
 
-        blueArcMaterialProperties.SetFloat("_FadeStartPoint", closeFadeDist);
         blueArcMaterialProperties.SetFloat("_FadeEndPoint", fadeDist);
         blueArcMaterialProperties.SetFloat("_FadeTransitionLength", arcFadeTransitionLength);
 
@@ -89,7 +86,7 @@ public class ArcManager : MapElementManager<Arc>
             else
             {
                 const float fullAlphaTime = 0.8f;
-                float fullAlphaPos = BeatmapManager.JumpDistance / 2 * fullAlphaTime;
+                float fullAlphaPos = BeatmapManager.HalfJumpDistance * fullAlphaTime;
                 alpha *= 1f - Mathf.Clamp(zDist / fullAlphaPos, 0f, 1f);
             }
         }
@@ -111,17 +108,26 @@ public class ArcManager : MapElementManager<Arc>
             arcColor = (Color)a.CustomColor;
         }
 
-        a.arcHandler.SetProperties(alpha, textureOffset, arcColor);
+        a.arcHandler.SetProperties(alpha, textureOffset, arcColor, objectManager.CutPlanePos);
 
         if(objectManager.doMovementAnimation)
         {
-            float headOffsetY = objectManager.GetObjectY(a.HeadStartY, a.Position.y, a.Time) - a.Position.y;
-            float tailOffsetY = objectManager.GetObjectY(a.TailStartY, a.TailPosition.y, a.TailTime) - a.TailPosition.y;
+            //Need to "undo" the player height so startY remains consistent with different heights
+            float headStartY = a.HeadStartY - objectManager.playerHeightOffset;
+            float tailStartY = a.TailStartY - objectManager.playerHeightOffset;
 
-            a.arcHandler.SetArcPoints(GetArcSpawnAnimationOffset(a.BaseCurve, headOffsetY, tailOffsetY)); // arc visuals get reset on settings change, so fine to only update in here
+            float headOffsetY = objectManager.GetObjectY(headStartY, a.Position.y, a.Time) - a.Position.y;
+            float tailOffsetY = objectManager.GetObjectY(tailStartY, a.TailPosition.y, a.TailTime) - a.TailPosition.y;
+
+            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, headOffsetY, tailOffsetY, objectManager.NjsMult)); // arc visuals get reset on settings change, so fine to only update in here
+        }
+        else if(ReplayManager.IsReplayMode)
+        {
+            //The arc curve still needs to be squashed because of variable NJS
+            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, 0f, 0f, objectManager.NjsMult));
         }
 
-        a.Visual.transform.localPosition = new Vector3(0, 0, zDist);
+        a.Visual.transform.localPosition = new Vector3(0, objectManager.playerHeightOffset, zDist);
     }
 
 
@@ -305,12 +311,12 @@ public class ArcManager : MapElementManager<Arc>
     }
 
 
-    public static Vector3[] GetArcSpawnAnimationOffset(Vector3[] baseCurve, float headOffsetY, float tailOffsetY)
+    public static Vector3[] GetAdjustedArcCurve(Vector3[] baseCurve, float headOffsetY, float tailOffsetY, float lengthMult)
     {
         if(baseCurve.Length == 0) return baseCurve;
 
         float arcLength = baseCurve.Last().z;
-        float JD = BeatmapManager.JumpDistance / 2;
+        float JD = BeatmapManager.HalfJumpDistance;
 
         //Create a new curve here so we don't overwrite the input
         Vector3[] points = new Vector3[baseCurve.Length];
@@ -331,6 +337,9 @@ public class ArcManager : MapElementManager<Arc>
             //Weight the adjustment based on which end of the arc the point is closer to
             float relativePosition = point.z / arcLength;
             point.y += Mathf.Lerp(headPreferredOffset, tailPreferredOffset, relativePosition);
+
+            //Squish the arc if needed
+            point.z *= lengthMult;
 
             points[i] = point;
         }

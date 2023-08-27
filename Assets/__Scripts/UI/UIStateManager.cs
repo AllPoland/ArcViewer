@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class UIStateManager
+public static class UIStateManager
 {
     private static UIState _currentState;
     public static UIState CurrentState

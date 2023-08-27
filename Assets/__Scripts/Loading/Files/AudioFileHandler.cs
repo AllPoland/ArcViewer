@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Winista.Mime;
 
-public class AudioFileHandler
+public static class AudioFileHandler
 {
 #if UNITY_WEBGL && !UNITY_EDITOR
     private static AudioUploadState uploadState;
@@ -115,10 +115,9 @@ public class AudioFileHandler
 
         if(!File.Exists(directory)) return AudioType.UNKNOWN;
 
-        //Unable to match type based on file extension, use mime types
         try
         {
-            Debug.Log($"Unable to match audio type by file extension from {fileName}");
+            // Debug.Log($"Unable to match audio type by file extension from {fileName}");
             byte[] audioData = await File.ReadAllBytesAsync(directory);
             return GetAudioTypeFromData(audioData);
         }

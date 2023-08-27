@@ -36,6 +36,8 @@ public class LightManager : MonoBehaviour
 
     public const float FlashIntensity = 1.2f;
 
+    private static float LightGlowBrightness = 1f;
+
     private static ColorPalette colors => ColorManager.CurrentColors;
     private static Color lightColor1 => BoostActive ? colors.BoostLightColor1 : colors.LightColor1;
     private static Color lightColor2 => BoostActive ? colors.BoostLightColor2 : colors.LightColor2;
@@ -100,11 +102,11 @@ public class LightManager : MonoBehaviour
 
     private static MapElementList<BoostEvent> boostEvents = new MapElementList<BoostEvent>();
 
-    public MapElementList<LightEvent> backLaserEvents = new MapElementList<LightEvent>();
-    public MapElementList<LightEvent> ringEvents = new MapElementList<LightEvent>();
-    public MapElementList<LightEvent> leftLaserEvents = new MapElementList<LightEvent>();
-    public MapElementList<LightEvent> rightLaserEvents = new MapElementList<LightEvent>();
-    public MapElementList<LightEvent> centerLightEvents = new MapElementList<LightEvent>();
+    public LightEventList backLaserEvents = new LightEventList();
+    public LightEventList ringEvents = new LightEventList();
+    public LightEventList leftLaserEvents = new LightEventList();
+    public LightEventList rightLaserEvents = new LightEventList();
+    public LightEventList centerLightEvents = new LightEventList();
 
     public MapElementList<LaserSpeedEvent> leftLaserSpeedEvents = new MapElementList<LaserSpeedEvent>();
     public MapElementList<LaserSpeedEvent> rightLaserSpeedEvents = new MapElementList<LaserSpeedEvent>();
@@ -112,7 +114,6 @@ public class LightManager : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float lightSaturation;
     [SerializeField, Range(0f, 1f)] private float lightEmissionSaturation;
     [SerializeField] private float lightEmission;
-    [SerializeField] private Color platformColor;
 
 
     public void UpdateLights(float beat)
@@ -156,11 +157,7 @@ public class LightManager : MonoBehaviour
     {
         Color eventColor = GetEventColor(lightEvent, nextEvent);
 
-        float v;
-        Color.RGBToHSV(eventColor, out _, out _, out v);
-        float glowBrightness = v * eventColor.a;
-
-        SetLightProperties(eventColor, glowBrightness, ref lightProperties, ref glowProperties);
+        SetLightProperties(eventColor, ref lightProperties, ref glowProperties);
 
         LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
         {
@@ -170,7 +167,6 @@ public class LightManager : MonoBehaviour
             nextEvent = nextEvent,
             type = type,
             eventIndex = eventIndex,
-            glowBrightness = glowBrightness,
             laserProperties = lightProperties,
             glowProperties = glowProperties
         };
@@ -188,20 +184,19 @@ public class LightManager : MonoBehaviour
     }
 
 
-    public void SetLightProperties(Color baseColor, float glowBrightness, ref MaterialPropertyBlock laserProperties, ref MaterialPropertyBlock laserGlowProperties)
+    public void SetLightProperties(Color baseColor, ref MaterialPropertyBlock laserProperties, ref MaterialPropertyBlock laserGlowProperties)
     {
         laserProperties.SetColor("_BaseColor", GetLightColor(baseColor));
         laserProperties.SetColor("_EmissionColor", GetLightEmission(baseColor));
 
         laserGlowProperties.SetColor("_BaseColor", baseColor);
-        laserGlowProperties.SetFloat("_Alpha", Mathf.Clamp(glowBrightness, 0, 1) * SettingsManager.GetFloat("lightglowbrightness"));
+        laserGlowProperties.SetFloat("_Alpha", baseColor.a * LightGlowBrightness);
     }
 
 
     private Color GetLightColor(Color baseColor)
     {
-        float s;
-        Color.RGBToHSV(baseColor, out _, out s, out _);
+        float s = baseColor.GetSaturation();
 
         Color newColor = baseColor.SetSaturation(s * lightSaturation);
         newColor.a = Mathf.Clamp(baseColor.a, 0f, 1f);
@@ -405,6 +400,7 @@ public class LightManager : MonoBehaviour
 
     public void UpdateLightParameters()
     {
+        LightGlowBrightness = SettingsManager.GetFloat("lightglowbrightness");
         if(StaticLights)
         {
             SetStaticLayout();
@@ -480,6 +476,12 @@ public class LightManager : MonoBehaviour
         leftLaserEvents.SortElementsByBeat();
         rightLaserEvents.SortElementsByBeat();
         centerLightEvents.SortElementsByBeat();
+
+        backLaserEvents.PrecalculateNeighboringEvents();
+        ringEvents.PrecalculateNeighboringEvents();
+        leftLaserEvents.PrecalculateNeighboringEvents();
+        rightLaserEvents.PrecalculateNeighboringEvents();
+        centerLightEvents.PrecalculateNeighboringEvents();
 
         leftLaserSpeedEvents.SortElementsByBeat();
         rightLaserEvents.SortElementsByBeat();
@@ -618,260 +620,4 @@ public class LightManager : MonoBehaviour
         lightProperties = new MaterialPropertyBlock();
         glowProperties = new MaterialPropertyBlock();
     }
-}
-
-
-public class LightEvent : MapElement
-{
-    public LightEventType Type;
-    public LightEventValue Value;
-    public float FloatValue = 1f;
-
-    public Color? CustomColor;
-    List<int> LightIDs = new List<int>();
-    public Easings.EasingDelegate TransitionEasing;
-    public bool HsvLerp = false;
-
-    public bool isTransition => Value == LightEventValue.RedTransition || Value == LightEventValue.BlueTransition || Value == LightEventValue.WhiteTransition;
-
-
-    public LightEvent() {}
-
-    public LightEvent(BeatmapBasicBeatmapEvent beatmapEvent)
-    {
-        Beat = beatmapEvent.b;
-        Type = (LightEventType)beatmapEvent.et;
-        Value = (LightEventValue)beatmapEvent.i;
-        FloatValue = beatmapEvent.f;
-        TransitionEasing = Easings.Linear;
-
-        if(Type == LightEventType.BackLasers && LightManager.FlipBackLasers)
-        {
-            //Back laser events need to have red/blue values swapped in some envs
-            MirrorColor();
-        }
-
-        if(beatmapEvent.customData != null)
-        {
-            BeatmapCustomBasicEventData customData = beatmapEvent.customData;
-            if(customData.color != null)
-            {
-                CustomColor = ColorManager.ColorFromCustomDataColor(customData.color);
-            }
-            if(customData.lightID != null)
-            {
-                LightIDs = new List<int>(customData.lightID);
-            }
-            if(customData.easing != null)
-            {
-                TransitionEasing = Easings.EasingFromString(customData.easing);
-            }
-            if(customData.lerpType != null)
-            {
-                HsvLerp = customData.lerpType == "HSV";
-            }
-        }
-    }
-
-
-    public void MirrorColor()
-    {
-        //Mirrors the red/blue value of the event. Doesn't affect white or off
-        switch(Value)
-        {
-            case LightEventValue.BlueOn:
-                Value = LightEventValue.RedOn;
-                break;
-            case LightEventValue.BlueFlash:
-                Value = LightEventValue.RedFlash;
-                break;
-            case LightEventValue.BlueFade:
-                Value = LightEventValue.RedFade;
-                break;
-            case LightEventValue.BlueTransition:
-                Value = LightEventValue.RedTransition;
-                break;
-            case LightEventValue.RedOn:
-                Value = LightEventValue.BlueOn;
-                break;
-            case LightEventValue.RedFlash:
-                Value = LightEventValue.BlueFlash;
-                break;
-            case LightEventValue.RedFade:
-                Value = LightEventValue.BlueFade;
-                break;
-            case LightEventValue.RedTransition:
-                Value = LightEventValue.BlueTransition;
-                break;
-        }
-    }
-
-
-    public bool AffectsID(int id)
-    {
-        return LightIDs.Count == 0 || LightIDs.Contains(id);
-    }
-}
-
-
-public class LaserSpeedEvent : LightEvent
-{
-    public const float DefaultRotationSpeedMult = 20f;
-
-    public float RotationSpeed;
-    public bool LockRotation = false;
-    public int Direction = -1;
-
-    public List<LaserRotationData> RotationValues;
-
-
-    public struct LaserRotationData
-    {
-        public float startPosition;
-        public bool direction;
-    }
-
-
-    public LaserSpeedEvent() {}
-
-    public LaserSpeedEvent(BeatmapBasicBeatmapEvent beatmapEvent)
-    {
-        Beat = beatmapEvent.b;
-        Type = (LightEventType)beatmapEvent.et;
-        Value = (LightEventValue)beatmapEvent.i;
-        FloatValue = beatmapEvent.f;
-
-        RotationSpeed = (int)Value * DefaultRotationSpeedMult;
-
-        if(beatmapEvent.customData != null)
-        {
-            BeatmapCustomBasicEventData customData = beatmapEvent.customData;
-            RotationSpeed = customData.speed ?? RotationSpeed;
-            LockRotation = customData.lockRotation ?? false;
-            Direction = customData.direction ?? -1;
-        }
-    }
-
-
-    public void PopulateRotationData(int laserCount, LaserSpeedEvent previous)
-    {
-        RotationValues = new List<LaserRotationData>();
-        for(int i = 0; i < laserCount; i++)
-        {
-            LaserRotationData newData = new LaserRotationData();
-            if((int)Value > 0)
-            {
-                newData.startPosition = UnityEngine.Random.Range(0f, 360f);
-
-                if(Direction < 0)
-                {
-                    newData.direction = UnityEngine.Random.value >= 0.5f;
-                }
-                else newData.direction = Direction == 1;
-            }
-            else
-            {
-                newData.startPosition = 0f;
-            }
-
-            if(LockRotation)
-            {
-                //Overwrite startPosition with the current laser position instead
-                newData.startPosition = previous?.GetLaserRotation(Time, i) ?? 0f;
-            }
-            RotationValues.Add(newData);
-        }
-    }
-
-
-    public float GetLaserRotation(float currentTime, int laserID)
-    {
-        if(laserID >= RotationValues.Count)
-        {
-            Debug.LogWarning($"Not enough randomized laser values to accomodate id {laserID}!");
-            return 0f;
-        }
-
-        float timeDifference = currentTime - Time;
-
-        LaserSpeedEvent.LaserRotationData rotationData = RotationValues[laserID];
-        float rotationAmount = RotationSpeed * timeDifference;
-        if(rotationData.direction)
-        {
-            //A true direction means clockwise rotation (negative euler angle)
-            rotationAmount = -rotationAmount;
-        }
-
-        return (rotationData.startPosition + rotationAmount) % 360;
-    }
-}
-
-
-public class BoostEvent : MapElement
-{
-    public bool Value;
-
-
-    public BoostEvent(BeatmapColorBoostBeatmapEvent beatmapBoostEvent)
-    {
-        Beat = beatmapBoostEvent.b;
-        Value = beatmapBoostEvent.o;
-    }
-}
-
-
-public class LightingPropertyEventArgs
-{
-    public LightManager sender;
-
-    public List<LightEvent> eventList;
-    public LightEvent lightEvent;
-    public LightEvent nextEvent;
-    public LightEventType type;
-    public int eventIndex;
-
-    public float glowBrightness;
-
-    public MaterialPropertyBlock laserProperties;
-    public MaterialPropertyBlock glowProperties;
-}
-
-
-public enum LightEventType
-{
-    BackLasers = 0,
-    Rings = 1,
-    LeftRotatingLasers = 2,
-    RightRotatingLasers = 3,
-    CenterLights = 4,
-    LeftSideExtra = 6,
-    RightSideExtra = 7,
-    RingSpin = 8,
-    RingZoom = 9,
-    BillieLeftLasers = 10,
-    BillieRightLasers = 11,
-    LeftRotationSpeed = 12,
-    RightRotationSpeed = 13,
-    InterscopeHydraulicsDown = 16,
-    InterscopeHydraulicsUp = 17,
-    GagaLeftTowerHeight = 18,
-    GagaRightTowerHeight = 19
-}
-
-
-public enum LightEventValue
-{
-    Off,
-    BlueOn,
-    BlueFlash,
-    BlueFade,
-    BlueTransition,
-    RedOn,
-    RedFlash,
-    RedFade,
-    RedTransition,
-    WhiteOn,
-    WhiteFlash,
-    WhiteFade,
-    WhiteTransition
 }

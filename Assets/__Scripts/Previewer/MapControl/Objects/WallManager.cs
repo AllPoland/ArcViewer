@@ -36,7 +36,7 @@ public class WallManager : MapElementManager<Wall>
 
     public override void UpdateVisual(Wall w)
     {
-        float wallLength = objectManager.WorldSpaceFromTime(w.DurationTime);
+        float wallLength = objectManager.WorldSpaceFromTime(w.DurationTime) * objectManager.NjsMult;
         wallLength = Mathf.Max(wallLength, MinWallSize);
 
         //Subtract 0.25 to make front face of wall line up with front face of note (walls just built like that)
@@ -50,8 +50,6 @@ public class WallManager : MapElementManager<Wall>
 
             w.Visual.transform.SetParent(wallParent.transform);
             w.Visual.SetActive(true);
-
-            w.WallHandler.transform.localScale = new Vector3(w.Width, w.Height, wallLength);
 
             if(SettingsManager.GetBool("chromaobjectcolors") && w.CustomColor != null)
             {
@@ -67,7 +65,35 @@ public class WallManager : MapElementManager<Wall>
 
             RenderedObjects.Add(w);
         }
-        w.Visual.transform.localPosition = new Vector3(w.Position.x, w.Position.y, worldDist);
+
+        Vector3 worldPos = new Vector3(w.Position.x, w.Position.y, worldDist);
+        Vector3 worldScale = new Vector3(w.Width, w.Height, wallLength);
+
+        worldPos.y += objectManager.playerHeightOffset;
+
+        if(w.ClampPlayerHeight)
+        {
+            //The wall position is clamped to keep the bottom edge above the floor
+            float bottomEdgeY = worldPos.y - (worldScale.y / 2);
+            if(bottomEdgeY < 0)
+            {
+                worldPos.y -= bottomEdgeY;
+            }
+
+            //Wall height is clamped to keep the top of the wall below 3m
+            const float maxWallHeight = 3f;
+            float topEdgeY = worldPos.y + (worldScale.y / 2);
+            if(topEdgeY > maxWallHeight)
+            {
+                float heightDifference = topEdgeY - maxWallHeight;
+                worldScale.y -= heightDifference;
+                //Account for the bottom edge of the wall moving up when decreasing scale
+                worldPos.y -= heightDifference / 2;
+            }
+        }
+
+        w.Visual.transform.localPosition = worldPos;
+        w.WallHandler.transform.localScale = worldScale;
     }
 
 
@@ -207,6 +233,7 @@ public class Wall : MapObject
 
     public float Width;
     public float Height;
+    public bool ClampPlayerHeight;
 
     public WallHandler WallHandler;
     public MaterialPropertyBlock CustomProperties;
@@ -253,8 +280,9 @@ public class Wall : MapObject
         Beat = beat;
         Position = position;
         DurationBeats = duration;
-        Width = Mathf.Max(worldWidth, WallManager.MinWallSize);
-        Height = Mathf.Max(worldHeight, WallManager.MinWallSize);
+        Width = Mathf.Max(Mathf.Abs(worldWidth), WallManager.MinWallSize) * Mathf.Sign(worldWidth);
+        Height = Mathf.Max(Mathf.Abs(worldHeight), WallManager.MinWallSize) * Mathf.Sign(worldHeight);
+        ClampPlayerHeight = o.customData?.coordinates == null && !(BeatmapManager.MappingExtensions && Mathf.Abs(o.y) >= 1000);
 
         if(o.customData?.color != null)
         {

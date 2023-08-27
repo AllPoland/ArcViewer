@@ -10,12 +10,14 @@ public class TimeManager : MonoBehaviour
 
     public static List<BpmChange> BpmChanges = new List<BpmChange>();
 
+    public static event Action<float> OnBeatChangedEarly;
     public static event Action<float> OnBeatChanged;
+
     public static event Action<bool> OnPlayingChanged;
 
     public static event Action<Difficulty> OnDifficultyBpmEventsLoaded;
 
-    private static float SongLength => AudioManager.GetSongLength();
+    private static float SongLength => SongManager.GetSongLength();
     private static float _currentTime = 0;
     public static float CurrentTime
     {
@@ -27,7 +29,7 @@ public class TimeManager : MonoBehaviour
                 _currentTime = SongLength;
                 CurrentBeat = BeatFromTime(_currentTime);
 
-                OnBeatChanged?.Invoke(CurrentBeat);
+                InvokeBeatChanged();
                 SetPlaying(false);
                 return;
             }
@@ -36,7 +38,7 @@ public class TimeManager : MonoBehaviour
 
             _currentTime = value;
             CurrentBeat = BeatFromTime(value);
-            OnBeatChanged?.Invoke(CurrentBeat);
+            InvokeBeatChanged();
         }
     }
 
@@ -59,6 +61,13 @@ public class TimeManager : MonoBehaviour
             }
             return lastChange.BPM;
         }
+    }
+
+
+    private static void InvokeBeatChanged()
+    {
+        OnBeatChangedEarly?.Invoke(CurrentBeat);
+        OnBeatChanged?.Invoke(CurrentBeat);
     }
 
 
@@ -134,7 +143,7 @@ public class TimeManager : MonoBehaviour
 
     private void UpdateInfo(BeatmapInfo info)
     {
-        OnBeatChanged?.Invoke(CurrentBeat);
+        InvokeBeatChanged();
     }
 
 

@@ -52,6 +52,29 @@ public static class Extensions
 
 
     ///<summary>
+    ///Removes the last instance trimString from the string, if it's found
+    ///</summary>
+    public static string TrimEnd(this string s, string trimString, StringComparison comparison = StringComparison.InvariantCultureIgnoreCase)
+    {
+        if(s.EndsWith(trimString, comparison))
+        {
+            return s.Substring(0, s.LastIndexOf(trimString, comparison));
+        }
+        else return s;
+    }
+
+
+    public static string TrimStart(this string s, string trimString, StringComparison comparison = StringComparison.InvariantCultureIgnoreCase)
+    {
+        if(s.StartsWith(trimString, comparison))
+        {
+            return s.Remove(s.IndexOf(trimString, comparison), trimString.Length);
+        }
+        else return s;
+    }
+
+
+    ///<summary>
     ///Removes any objects from the list matching the predicate, but only searching forward, with the search ending on the first object that doesn't match.
     ///</summary>
     public static void RemoveAllForward<T>(this List<T> list, Predicate<T> match)
@@ -60,6 +83,27 @@ public static class Extensions
         {
             list.RemoveAt(0);
         }
+    }
+
+
+    ///<summary>
+    ///Returns the V value of the color in HSV
+    ///</summary>
+    public static float GetValue(this Color color)
+    {
+        return Mathf.Max(color.r, color.g, color.b);
+    }
+
+
+    ///<summary>
+    ///Returns the S value of the color in HSV
+    ///</summary>
+    public static float GetSaturation(this Color color)
+    {
+        float max = Mathf.Max(color.r, color.g, color.b);
+        float min = Mathf.Min(color.r, color.g, color.b);
+        float c = max - min;
+        return c / max;
     }
 
 

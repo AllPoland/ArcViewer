@@ -8,7 +8,7 @@ public abstract class ObjectPool<T> : MonoBehaviour where T : MonoBehaviour
 
     public int PoolSize { get; private set; }
 
-    [SerializeField] GameObject prefab;
+    [SerializeField] T prefab;
     [SerializeField] private int startSize;
 
 
@@ -58,15 +58,10 @@ public abstract class ObjectPool<T> : MonoBehaviour where T : MonoBehaviour
         //Instantiated objects are set inactive by default
         //It's the caller's responsibility to activate the object, set its parent,
         //and any other initialization that needs to happen
-        GameObject newObject = Instantiate(prefab);
-        newObject.transform.SetParent(transform);
-        newObject.SetActive(false);
+        T newItem = Instantiate(prefab);
+        newItem.transform.SetParent(transform);
+        newItem.gameObject.SetActive(false);
 
-        T newItem = newObject.GetComponent<T>();
-        if(!newItem)
-        {
-            throw new System.Exception($"The required component {typeof(T)} is not present on the prefab!");
-        }
         return newItem;
     }
 

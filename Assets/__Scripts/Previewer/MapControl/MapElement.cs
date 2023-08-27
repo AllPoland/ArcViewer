@@ -1,9 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class MapElement
+public class MapElement : IComparable<MapElement>
 {
     private float _beat;
     public float Beat
@@ -12,21 +13,45 @@ public class MapElement
         set
         {
             _beat = value;
-            Time = TimeManager.TimeFromBeat(_beat);
+            _time = TimeManager.TimeFromBeat(_beat);
         }
     }
-    public float Time { get; private set; }
+
+    private float _time;
+    public float Time
+    {
+        get => _time;
+        set
+        {
+            _time = value;
+            _beat = TimeManager.BeatFromTime(_time);
+        }
+    }
+
+
+    public int CompareTo(MapElement other)
+    {
+        if(Time < other.Time)
+        {
+            return -1;
+        }
+        else if(Time > other.Time)
+        {
+            return 1;
+        }
+        else return 0;
+    }
 }
 
 
 public class MapElementList<T> : IEnumerable<T> where T : MapElement
 {
-    public bool IsSorted { get; private set; }
+    public bool IsSorted { get; protected set; }
 
-    private List<T> Elements;
+    protected List<T> Elements;
 
-    private int lastStartIndex;
-    private float lastStartTime;
+    protected int lastStartIndex;
+    protected float lastStartTime;
 
     public MapElementList()
     {
@@ -46,11 +71,14 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
 
     public int Count => Elements.Count;
 
+    public T Last => Elements.Count > 0 ? Elements[Elements.Count - 1] : null;
+    public List<T> FindAll(Predicate<T> match) => Elements.FindAll(match);
+
 
     public void Add(T item)
     {
         //If the new item is in order, don't wanna bother resorting the whole list
-        IsSorted = Count == 0 || (IsSorted && item.Beat >= Elements.Last().Beat);
+        IsSorted = Count == 0 || (IsSorted && item.Beat >= Last.Beat);
         Elements.Add(item);
     }
 
@@ -62,6 +90,20 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
             //Use the custom Add() to tell if the list is sorted
             Add(item);
         }
+    }
+
+
+    public void InsertSorted(T item)
+    {
+        //Inserts the item to where it would be, based on its time
+        if(!IsSorted)
+        {
+            Debug.LogWarning("Trying to insert an item into an unsorted list!");
+            SortElementsByBeat();
+        }
+
+        int lastItemIndex = GetLastIndexUnoptimized(x => x.Time < item.Time);
+        Elements.Insert(lastItemIndex + 1, item);
     }
 
 
@@ -93,7 +135,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     {
         if(!IsSorted)
         {
-            Elements = Elements.OrderBy(x => x.Beat).ToList();
+            Elements.Sort();
             IsSorted = true;
         }
     }
@@ -177,5 +219,13 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
         }
 
         return lastStartIndex;
+    }
+
+
+    public int GetLastIndexUnoptimized(CheckInRangeDelegate checkMethod)
+    {
+        int result = GetLastIndex(-1f, checkMethod);
+        lastStartIndex = 0;
+        return result;
     }
 }

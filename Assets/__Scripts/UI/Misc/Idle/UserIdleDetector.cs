@@ -57,7 +57,11 @@ public class UserIdleDetector : MonoBehaviour, IPointerEnterHandler, IPointerExi
         userIdle = true;
 
         OnUserIdle?.Invoke();
-        Cursor.visible = !MouseOnScreen();
+
+        if(!FreecamController.ControlsEnabled)
+        {
+            Cursor.visible = !MouseOnScreen();
+        }
     }
 
 
@@ -67,7 +71,11 @@ public class UserIdleDetector : MonoBehaviour, IPointerEnterHandler, IPointerExi
         userIdle = false;
 
         OnUserActive?.Invoke();
-        Cursor.visible = true;
+
+        if(!FreecamController.ControlsEnabled)
+        {
+            Cursor.visible = true;
+        }
     }
 
 
@@ -98,6 +106,11 @@ public class UserIdleDetector : MonoBehaviour, IPointerEnterHandler, IPointerExi
         {
             //Not in a state where idling should be a thing
             SetUserActive();
+        }
+        
+        if(!CameraUpdater.Freecam && Input.GetMouseButtonDown(1) && !MouseOnUI && MouseOnScreen())
+        {
+            CameraUpdater.Freecam = true;
         }
     }
 

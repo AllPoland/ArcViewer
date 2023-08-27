@@ -7,7 +7,18 @@ public class GraphicSettingsUpdater : MonoBehaviour
     [SerializeField] private Camera targetCamera;
     [SerializeField] private Volume bloomVolume;
     [SerializeField] private UniversalRenderPipelineAsset urpAsset;
+
+    [Space]
     [SerializeField] private float defaultBloomStrength;
+
+    //The number of passes used with no downsampling
+    //Determines how far bloomfog blurs
+    private const int baseBloomfogPasses = 22;
+
+    //Multiplier to decrease passes when increasing downsampling
+    //Used to keep the blur consistent since lower resolution needs fewer passes
+    //to blur the same amount
+    private const float passesMult = 0.5f * 1.2f;
 
     private Bloom bloom;
 
@@ -43,8 +54,9 @@ public class GraphicSettingsUpdater : MonoBehaviour
 
             switch(antiAliasing)
             {
-                case <= 0:
-                    urpAsset.msaaSampleCount = 0;
+                default:
+                case 0:
+                    urpAsset.msaaSampleCount = 1;
                     break;
                 case 1:
                     urpAsset.msaaSampleCount = 2;
@@ -52,7 +64,7 @@ public class GraphicSettingsUpdater : MonoBehaviour
                 case 2:
                     urpAsset.msaaSampleCount = 4;
                     break;
-                case >= 3:
+                case 3:
                     urpAsset.msaaSampleCount = 8;
                     break;
             }
@@ -82,6 +94,50 @@ public class GraphicSettingsUpdater : MonoBehaviour
             bool useUpscaling = SettingsManager.GetBool("upscaling");
             urpAsset.upscalingFilter = useUpscaling ? UpscalingFilterSelection.FSR : UpscalingFilterSelection.Auto;
         }
+
+        if(allSettings || setting == "bloomfogquality" || setting == "lightglowbrightness")
+        {
+            float bloomfogBrightness = SettingsManager.GetFloat("lightglowbrightness");
+            if(bloomfogBrightness < 0.001f)
+            {
+                Bloomfog.Enabled = false;
+            }
+            else
+            {
+                Bloomfog.Enabled = true;
+                int bloomfogQuality = SettingsManager.GetInt("bloomfogquality");
+
+                int downsample;
+                switch(bloomfogQuality)
+                {
+                    default:
+                    case 0:
+                        downsample = 16;
+                        break;
+                    case 1:
+                        downsample = 8;
+                        break;
+                    case 2:
+                        downsample = 4;
+                        break;
+                    case 3:
+                        downsample = 2;
+                        break;
+                    case 4:
+                        downsample = 1;
+                        break;
+                }
+
+                int passes = baseBloomfogPasses;
+                for(int i = 1; i < downsample; i *= 2)
+                {
+                    passes = Mathf.CeilToInt((float)passes * passesMult);
+                }
+
+                Bloomfog.Downsample = downsample;
+                Bloomfog.BlurPasses = passes;
+            }
+        }
     }
 
 
@@ -98,6 +154,9 @@ public class GraphicSettingsUpdater : MonoBehaviour
         }
 
         SettingsManager.OnSettingsUpdated += UpdateGraphicsSettings;
-        UpdateGraphicsSettings("all");
+        if(SettingsManager.Loaded)
+        {
+            UpdateGraphicsSettings("all");
+        }
     }
 }

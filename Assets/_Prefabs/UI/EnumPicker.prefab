@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5241766548028883361}
   - component: {fileID: 5241766548028883367}
   - component: {fileID: 5241766548028883366}
+  - component: {fileID: 632040422949331457}
   m_Layer: 5
   m_Name: TextContainer
   m_TagString: Untagged
@@ -77,6 +78,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &632040422949331457
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5241766548028883360}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7320bdfed93aa65458ed9d08d2aec15a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  graphic: {fileID: 5241766548028883366}
+  graphicType: 0
 --- !u!1 &5241766548308073845
 GameObject:
   m_ObjectHideFlags: 0
@@ -202,6 +217,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5241766548580045628}
   - component: {fileID: 5241766548580045618}
+  - component: {fileID: 5871193122281462550}
   m_Layer: 5
   m_Name: EnumPicker
   m_TagString: Untagged
@@ -250,10 +266,22 @@ MonoBehaviour:
   labelText: {fileID: 5241766548641530022}
   valueText: {fileID: 5241766549002488903}
   valueContainerImage: {fileID: 5241766548028883366}
-  enabledTextColor: {r: 1, g: 1, b: 1, a: 1}
-  disabledTextColor: {r: 0.19607843, g: 0.2, b: 0.20784314, a: 1}
-  enabledPanelSprite: {fileID: -429812325, guid: a6a675725f9775246bb4332629dcce11, type: 3}
-  disabledPanelSprite: {fileID: 97385571, guid: a6a675725f9775246bb4332629dcce11, type: 3}
+  enabledColor: {r: 1, g: 1, b: 1, a: 1}
+  disabledColor: {r: 0.22745098, g: 0.22745098, b: 0.22745098, a: 1}
+--- !u!114 &5871193122281462550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5241766548580045631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7320bdfed93aa65458ed9d08d2aec15a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  graphic: {fileID: 5241766548308073867}
+  graphicType: 3
 --- !u!1 &5241766548641530016
 GameObject:
   m_ObjectHideFlags: 0
@@ -587,6 +615,18 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: -1092545569, guid: a6a675725f9775246bb4332629dcce11, type: 3}
+    - target: {fileID: 4465115620828890661, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4465115620828890661, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4465115620828890661, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4465115620828890662, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
       propertyPath: m_Pivot.x
       value: 1
@@ -752,6 +792,18 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: -1092545569, guid: a6a675725f9775246bb4332629dcce11, type: 3}
+    - target: {fileID: 4465115620828890661, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4465115620828890661, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4465115620828890661, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4465115620828890662, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
       propertyPath: m_Pivot.x
       value: 1

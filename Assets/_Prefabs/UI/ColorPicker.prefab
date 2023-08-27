@@ -273,7 +273,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1561165406, guid: a6a675725f9775246bb4332629dcce11, type: 3}
+  m_Sprite: {fileID: -1092545569, guid: a6a675725f9775246bb4332629dcce11, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -493,6 +493,7 @@ GameObject:
   - component: {fileID: 4512801155836330159}
   - component: {fileID: 4512801155836330157}
   - component: {fileID: 4512801155836330158}
+  - component: {fileID: 3970341808512502174}
   m_Layer: 5
   m_Name: Picker
   m_TagString: Untagged
@@ -561,6 +562,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &3970341808512502174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4512801155836330152}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7320bdfed93aa65458ed9d08d2aec15a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  graphic: {fileID: 4512801155836330158}
+  graphicType: 3
 --- !u!1 &4512801156296981172
 GameObject:
   m_ObjectHideFlags: 0
@@ -572,6 +587,7 @@ GameObject:
   - component: {fileID: 4512801156296981179}
   - component: {fileID: 4512801156296981177}
   - component: {fileID: 4512801156296981178}
+  - component: {fileID: 5991326160898337216}
   m_Layer: 5
   m_Name: Header
   m_TagString: Untagged
@@ -640,6 +656,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5991326160898337216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4512801156296981172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7320bdfed93aa65458ed9d08d2aec15a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  graphic: {fileID: 4512801156296981178}
+  graphicType: 3
 --- !u!1 &4512801156611350481
 GameObject:
   m_ObjectHideFlags: 0
@@ -981,6 +1011,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: DropdownButton
       objectReference: {fileID: 0}
+    - target: {fileID: 4465115620828890657, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4465115620828890660, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
       propertyPath: m_Transition
       value: 1
@@ -1205,7 +1239,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 1716383666859359801, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
 --- !u!114 &240931868804604669 stripped
 MonoBehaviour:
@@ -1490,7 +1525,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8146764821472800232, guid: 0d8d0c02ba6f730439f338a495c13696, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 0d8d0c02ba6f730439f338a495c13696, type: 3}
 --- !u!224 &4052536478142769168 stripped
 RectTransform:

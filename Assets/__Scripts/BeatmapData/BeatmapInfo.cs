@@ -37,16 +37,55 @@ public class BeatmapInfo
     }
 
 
+    public static string TrimCharacteristicString(string characteristicName)
+    {
+        //Trims extra text added by BeatLeader in modded modes
+        characteristicName = characteristicName.TrimEnd("OldDots");
+        characteristicName = characteristicName.TrimEnd("-PinkPlay_Controllable");
+
+        characteristicName = characteristicName.TrimStart("Inverse");
+        characteristicName = characteristicName.TrimStart("Inverted");
+        characteristicName = characteristicName.TrimStart("Vertical");
+        characteristicName = characteristicName.TrimStart("Horizontal");
+
+        return characteristicName;
+    }
+
+
     public static DifficultyCharacteristic CharacteristicFromString(string characteristicName)
     {
+        characteristicName = TrimCharacteristicString(characteristicName);
+
+        if(characteristicName.Equals("360Degree", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return DifficultyCharacteristic.ThreeSixty;
+        }
+        if(characteristicName.Equals("90Degree", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return DifficultyCharacteristic.Ninety;
+        }
+
         DifficultyCharacteristic characteristic;
         bool success = Enum.TryParse(characteristicName, true, out characteristic);
         if(!success)
         {
-            Debug.LogWarning("Could not match characteristic name!");
+            Debug.LogWarning($"Could not match characteristic name: {characteristicName}");
             return DifficultyCharacteristic.Unknown;
         }
         else return characteristic;
+    }
+
+
+    public static DifficultyRank DifficultyRankFromString(string difficultyName)
+    {
+        DifficultyRank difficulty;
+        bool success = Enum.TryParse(difficultyName, true, out difficulty);
+        if(!success)
+        {
+            Debug.LogWarning("Could not match difficulty name!");
+            return DifficultyRank.ExpertPlus;
+        }
+        else return difficulty;
     }
 
 

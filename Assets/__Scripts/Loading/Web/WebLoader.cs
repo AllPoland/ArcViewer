@@ -33,22 +33,11 @@ public class WebLoader
     }
 
 
-    public static async Task<Stream> LoadMapURL(string url, bool noProxy)
+    public static async Task<Stream> LoadFileURL(string url, bool noProxy)
     {
         await Task.Yield();
 
-        MemoryStream stream = null;
-
-        if(!url.EndsWith(".zip"))
-        {
-            ErrorHandler.Instance?.QueuePopup(ErrorType.Error, "The url doesn't link to a zip!");
-            Debug.LogWarning("Attempted to load a map from a non-zip url.");
-            return stream;
-        }
-
-        stream = await StreamFromURL(url, noProxy);
-
-        return stream;
+        return await StreamFromURL(url, noProxy);
     }
 
 
@@ -115,7 +104,7 @@ public class WebLoader
         }
         catch(Exception e)
         {
-            Debug.LogWarning($"Map download failed with exception: {e.Message}, {e.StackTrace}");
+            Debug.LogWarning($"Download failed with exception: {e.Message}, {e.StackTrace}");
         }
         finally
         {

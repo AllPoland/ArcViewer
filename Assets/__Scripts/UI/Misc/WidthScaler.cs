@@ -26,12 +26,6 @@ public class WidthScaler : MonoBehaviour
     }
 
 
-    private void Update()
-    {
-        UpdateWidth();
-    }
-
-
     private void OnEnable()
     {
         if(!rectTransform)
@@ -45,5 +39,14 @@ public class WidthScaler : MonoBehaviour
 
         rectTransform.anchorMin = new Vector2(0.5f, rectTransform.anchorMin.y);
         rectTransform.anchorMax = new Vector2(0.5f, rectTransform.anchorMax.y);
+
+        ScreenSizeHelper.OnScreenSizeChanged += UpdateWidth;
+        UpdateWidth();
+    }
+
+
+    private void OnDisable()
+    {
+        ScreenSizeHelper.OnScreenSizeChanged -= UpdateWidth;
     }
 }

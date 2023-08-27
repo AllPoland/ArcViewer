@@ -37,7 +37,7 @@ public static class MapStats
     private static Difficulty currentDifficulty => BeatmapManager.CurrentDifficulty;
     private static BeatmapDifficulty currentBeatmapDifficulty => currentDifficulty.beatmapDifficulty;
 
-    private static float songLength => AudioManager.GetSongLength();
+    private static float songLength => SongManager.GetSongLength();
 
     private static float startPlayRange = 0f;
     private static float endPlayRange = 0f;

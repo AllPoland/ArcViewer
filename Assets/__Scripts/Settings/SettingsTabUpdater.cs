@@ -16,17 +16,21 @@ public class SettingsTabUpdater : MonoBehaviour
 
         foreach(SettingsTabObject tabObject in tabObjects)
         {
-            if(tabObject.Object)
+            bool enableTab = newTab == tabObject.Tab;
+
+            tabObject.Handler.gameObject.SetActive(enableTab);
+            if(enableTab)
             {
-                tabObject.Object.SetActive(newTab == tabObject.Tab);
+                tabObject.Handler.ResetScroll();
             }
         }
     }
 
 
-    private void OnEnable()
+    private void Start()
     {
         settingsMenu.OnTabUpdated += UpdateTab;
+        UpdateTab(settingsMenu.CurrentTab);
     }
 }
 
@@ -35,7 +39,7 @@ public class SettingsTabUpdater : MonoBehaviour
 public struct SettingsTabObject
 {
     public SettingsTab Tab;
-    public GameObject Object;
+    public SettingsTabHandler Handler;
 }
 
 
@@ -44,6 +48,7 @@ public enum SettingsTab
     General,
     Visuals,
     Graphics,
+    Replays,
     Colors,
     Advanced
 }

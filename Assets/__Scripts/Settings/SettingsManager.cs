@@ -349,6 +349,9 @@ public class SettingsManager : MonoBehaviour
 
     public static void SetDefaults()
     {
+        bool staticLightsWarningAcknowledged = GetBool("staticlightswarningacknowledged");
+        bool replayMode = GetBool("replaymode");
+
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.DeleteAll();
         CurrentSettings = new Settings();
@@ -356,8 +359,10 @@ public class SettingsManager : MonoBehaviour
         CurrentSettings = Settings.GetDefaultSettings();
 #endif
         
-        //Make sure the static lights warning doesn't appear again
-        SetRule("staticlightswarningacknowledged", true, false);
+        //Some settings should still persist or else they'll be annoying
+        SetRule("staticlightswarningacknowledged", staticLightsWarningAcknowledged, false);
+        SetRule("replaymode", replayMode, false);
+
         OnSettingsReset?.Invoke();
         OnSettingsUpdated?.Invoke("all");
     }

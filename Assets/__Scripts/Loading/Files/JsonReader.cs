@@ -34,7 +34,7 @@ public static class JsonReader
 
         try
         {
-            info = JsonConvert.DeserializeObject<BeatmapInfo>(json);
+            info = DeserializeObject<BeatmapInfo>(json);
         }
         catch(Exception err)
         {
@@ -94,14 +94,13 @@ public static class JsonReader
             if(v3Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V3 format.");
-                difficulty = JsonConvert.DeserializeObject<BeatmapDifficulty>(json);
+                difficulty = DeserializeObject<BeatmapDifficulty>(json);
             }
             else if(v2Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V2 format.");
 
-                BeatmapDifficultyV2 v2Diff = JsonConvert.DeserializeObject<BeatmapDifficultyV2>(json);
-                v2Diff.AddNulls();
+                BeatmapDifficultyV2 v2Diff = DeserializeObject<BeatmapDifficultyV2>(json);
                 difficulty = v2Diff.ConvertToV3();
             }
             else
@@ -109,7 +108,7 @@ public static class JsonReader
                 Debug.LogWarning($"Unable to match map version for {filename}. The map has either a missing or unsupported version.");
 
                 Debug.Log($"Trying to fallback load {filename} in V3 format.");
-                BeatmapDifficulty v3Diff = JsonConvert.DeserializeObject<BeatmapDifficulty>(json);
+                BeatmapDifficulty v3Diff = DeserializeObject<BeatmapDifficulty>(json);
 
                 if(v3Diff.colorNotes != null)
                 {
@@ -119,18 +118,17 @@ public static class JsonReader
                 else
                 {
                     Debug.Log($"Fallback for {filename} failed in V3, trying V2.");
-                    BeatmapDifficultyV2 v2Diff = JsonConvert.DeserializeObject<BeatmapDifficultyV2>(json);
+                    BeatmapDifficultyV2 v2Diff = DeserializeObject<BeatmapDifficultyV2>(json);
 
                     if(v2Diff._notes != null)
                     {
                         Debug.Log($"Fallback for {filename} succeeded in V2.");
-                        v2Diff.AddNulls();
                         difficulty = v2Diff.ConvertToV3();
                     }
                     else
                     {
                         ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to find difficulty version from {filename}!");
-                        Debug.LogWarning($"{filename} failed to load due to unsupported or missing version!");
+                        Debug.LogWarning($"{filename} is in an unsupported or missing version!");
                         return new BeatmapDifficulty();
                     }
                 }
@@ -167,5 +165,21 @@ public static class JsonReader
             Debug.LogWarning($"Unable to read the text from file with error: {err.Message}, {err.StackTrace}.");
             return "";
         }
+    }
+
+
+    public static T DeserializeObject<T>(string json)
+    {
+        return JsonConvert.DeserializeObject<T>(json, new JsonSerializerSettings
+        {
+            Error = HandleDeserializationError
+        });
+    }
+
+
+    public static void HandleDeserializationError(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args)
+    {
+        Debug.LogWarning($"Error parsing json: {args.ErrorContext.Error.Message}");
+        args.ErrorContext.Handled = true;
     }
 }

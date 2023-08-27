@@ -8,6 +8,8 @@ public class BombManager : MapElementManager<Bomb>
     [SerializeField] private Material complexMaterial;
     [SerializeField] private Material simpleMaterial;
 
+    private static bool playBadCutSound => TimeManager.Playing && SettingsManager.GetBool("usebadhitsound") && SettingsManager.GetFloat("hitsoundvolume") > 0;
+
 
     public void ReloadBombs()
     {
@@ -19,8 +21,9 @@ public class BombManager : MapElementManager<Bomb>
     public override void UpdateVisual(Bomb b)
     {
         float worldDist = objectManager.GetZPosition(b.Time);
-
         Vector3 worldPos = new Vector3(b.Position.x, b.Position.y, worldDist);
+
+        worldPos.y += objectManager.playerHeightOffset;
 
         if(objectManager.doMovementAnimation)
         {
@@ -31,8 +34,10 @@ public class BombManager : MapElementManager<Bomb>
         {
             b.BombHandler = bombPool.GetObject();
             b.Visual = b.BombHandler.gameObject;
+            b.source = b.BombHandler.audioSource;
+
             b.Visual.transform.SetParent(transform);
-            b.Visual.SetActive(true);
+            b.BombHandler.EnableVisual();
 
             b.BombHandler.SetMaterial(objectManager.useSimpleBombMaterial ? simpleMaterial : complexMaterial);
 
@@ -47,6 +52,19 @@ public class BombManager : MapElementManager<Bomb>
                 b.BombHandler.ClearProperties();
             }
 
+            if(b.WasHit && playBadCutSound)
+            {
+                //This bomb should play
+                HitSoundManager.ScheduleHitsound(b);
+            }
+
+            if(ReplayManager.IsReplayMode && b.WasBadCut && SettingsManager.GetBool("highlighterrors"))
+            {
+                b.BombHandler.SetOutline(true, SettingsManager.GetColor("badcutoutlinecolor"));
+            }
+            else b.BombHandler.SetOutline(false);
+
+            b.Visual.SetActive(true);
             RenderedObjects.Add(b);
         }
         b.Visual.transform.localPosition = worldPos;
@@ -55,15 +73,41 @@ public class BombManager : MapElementManager<Bomb>
 
     public override bool VisualInSpawnRange(Bomb b)
     {
-        return objectManager.CheckInSpawnRange(b.Time, true);
+        return objectManager.CheckInSpawnRange(b.Time, true, true, b.HitOffset);
     }
 
 
     public override void ReleaseVisual(Bomb b)
     {
+        b.source.Stop();
         bombPool.ReleaseObject(b.BombHandler);
+
         b.Visual = null;
+        b.source = null;
         b.BombHandler = null;
+    }
+
+
+    public override void ClearOutsideVisuals()
+    {
+        for(int i = RenderedObjects.Count - 1; i >= 0; i--)
+        {
+            Bomb b = RenderedObjects[i];
+            if(!objectManager.CheckInSpawnRange(b.Time, !b.WasHit, true, b.HitOffset))
+            {
+                if(b.source.isPlaying || (ReplayManager.IsReplayMode && b.Time > TimeManager.CurrentTime && b.Time < TimeManager.CurrentTime + 0.5f))
+                {
+                    //Only clear the visual elements if the hitsound is still playing
+                    b.BombHandler.DisableVisual();
+                }
+                else
+                {
+                    ReleaseVisual(b);
+                    RenderedObjects.Remove(b);
+                }
+            }
+            else b.BombHandler.EnableVisual();
+        }
     }
 
 
@@ -85,17 +129,32 @@ public class BombManager : MapElementManager<Bomb>
         for(int i = startIndex; i < Objects.Count; i++)
         {
             Bomb b = Objects[i];
-            if(objectManager.CheckInSpawnRange(b.Time, true))
+            if(objectManager.CheckInSpawnRange(b.Time, !b.WasHit, true, b.HitOffset))
             {
                 UpdateVisual(b);
             }
-            else break;
+            else if(!VisualInSpawnRange(b))
+            {
+                break;
+            }
+        }
+    }
+
+
+    public void RescheduleHitsounds()
+    {
+        foreach(Bomb b in RenderedObjects)
+        {
+            if(b.WasHit && playBadCutSound && b.source != null)
+            {
+                HitSoundManager.ScheduleHitsound(b);
+            }
         }
     }
 }
 
 
-public class Bomb : MapObject
+public class Bomb : HitSoundEmitter
 {
     public float StartY;
 
@@ -108,6 +167,10 @@ public class Bomb : MapObject
 
         Beat = b.b;
         Position = position;
+
+        WasHit = false;
+        WasBadCut = false;
+        HitOffset = 0f;
 
         if(b.customData?.color != null)
         {

@@ -17,6 +17,7 @@ public class NoteManager : MapElementManager<Note>
     [SerializeField] public Material complexMaterial;
     [SerializeField] public Material simpleMaterial;
     [SerializeField] private float noteEmission;
+    [SerializeField] private float simpleNoteSaturation;
     [SerializeField] private float simpleNoteEmission;
     [SerializeField, Range(0f, 1f)] private float arrowSaturation;
     [SerializeField, Range(0f, 1f)] private float arrowBrightness;
@@ -53,9 +54,10 @@ public class NoteManager : MapElementManager<Note>
         float h, s, v;
         Color.RGBToHSV(baseColor, out h, out s, out v);
 
+        float saturation = objectManager.useSimpleNoteMaterial ? simpleNoteSaturation : 1f;
         float emission = objectManager.useSimpleNoteMaterial ? simpleNoteEmission : noteEmission;
-        noteProperties.SetColor("_BaseColor", baseColor);
-        noteProperties.SetColor("_EmissionColor", baseColor.SetValue(emission * v, true));
+        noteProperties.SetColor("_BaseColor", baseColor.SetSaturation(saturation * s));
+        noteProperties.SetColor("_EmissionColor", baseColor.SetHSV(null, saturation * s, emission * v, true));
 
         arrowProperties.SetColor("_BaseColor", baseColor.SetHSV(null, arrowSaturation * s, arrowBrightness * v));
         arrowProperties.SetColor("_EmissionColor", baseColor.SetHSV(null, arrowGlowSaturation * s, arrowEmission, true));
@@ -68,6 +70,8 @@ public class NoteManager : MapElementManager<Note>
 
         float worldDist = objectManager.GetZPosition(n.Time);
         Vector3 worldPos = new Vector3(n.Position.x, n.Position.y, worldDist);
+
+        worldPos.y += objectManager.playerHeightOffset;
 
         if(objectManager.doMovementAnimation)
         {
@@ -107,14 +111,16 @@ public class NoteManager : MapElementManager<Note>
                 angle *= angleDist;
             }
         }
+        Quaternion worldRotation = Quaternion.AngleAxis(angle, Vector3.forward);
 
         if(n.Visual == null)
         {
             n.NoteHandler = notePool.GetObject();
             n.Visual = n.NoteHandler.gameObject;
+            n.source = n.NoteHandler.audioSource;
 
             n.Visual.transform.SetParent(transform);
-            n.source = n.NoteHandler.audioSource;
+            n.NoteHandler.EnableVisual();
 
             n.NoteHandler.SetMesh(n.IsChainHead ? chainHeadMesh : noteMesh);
             n.NoteHandler.SetArrow(!n.IsDot);
@@ -138,20 +144,43 @@ public class NoteManager : MapElementManager<Note>
 
             if(TimeManager.Playing && SettingsManager.GetFloat("hitsoundvolume") > 0)
             {
-                HitSoundManager.ScheduleHitsound(n.Time, n.source);
+                HitSoundManager.ScheduleHitsound(n);
             }
+
+            if(ReplayManager.IsReplayMode && SettingsManager.GetBool("highlighterrors"))
+            {
+                if(n.wasMissed)
+                {
+                    n.NoteHandler.SetOutline(true, SettingsManager.GetColor("missoutlinecolor"));
+                }
+                else if(n.WasBadCut)
+                {
+                    n.NoteHandler.SetOutline(true, SettingsManager.GetColor("badcutoutlinecolor"));
+                }
+                else n.NoteHandler.SetOutline(false);
+            }
+            else n.NoteHandler.SetOutline(false);
 
             RenderedObjects.Add(n);
         }
 
         n.Visual.transform.localPosition = worldPos;
-        n.Visual.transform.localRotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
+        if(objectManager.doLookAnimation && !n.IsChainHead)
+        {
+            //Notes look towards the player's head in replays
+            n.Visual.transform.localRotation = objectManager.LookAtPlayer(n.Visual.transform, worldRotation, jumpProgress);
+        }
+        else
+        {
+            n.Visual.transform.localRotation = worldRotation;
+        }
     }
 
 
     public override bool VisualInSpawnRange(Note n)
     {
-        return objectManager.CheckInSpawnRange(n.Time);
+        return objectManager.CheckInSpawnRange(n.Time, true, true, n.HitOffset);
     }
 
 
@@ -171,22 +200,20 @@ public class NoteManager : MapElementManager<Note>
         for(int i = RenderedObjects.Count - 1; i >= 0; i--)
         {
             Note n = RenderedObjects[i];
-            if(!objectManager.CheckInSpawnRange(n.Time))
+            if(!objectManager.CheckInSpawnRange(n.Time, !n.WasHit, true, n.HitOffset))
             {
-                if(n.source.isPlaying)
+                if(n.source.isPlaying || (ReplayManager.IsReplayMode && n.Time > TimeManager.CurrentTime && n.Time < TimeManager.CurrentTime + 0.5f))
                 {
                     //Only clear the visual elements if the hitsound is still playing
                     n.NoteHandler.DisableVisual();
-                    continue;
                 }
-
-                ReleaseVisual(n);
-                RenderedObjects.Remove(n);
+                else
+                {
+                    ReleaseVisual(n);
+                    RenderedObjects.Remove(n);
+                }
             }
-            else if(!n.NoteHandler.Visible)
-            {
-                n.NoteHandler.EnableVisual();
-            }
+            else n.NoteHandler.EnableVisual();
         }
     }
 
@@ -210,11 +237,14 @@ public class NoteManager : MapElementManager<Note>
         {
             //Update each note's position
             Note n = Objects[i];
-            if(objectManager.CheckInSpawnRange(n.Time))
+            if(objectManager.CheckInSpawnRange(n.Time, !n.WasHit, true, n.HitOffset))
             {
                 UpdateVisual(n);
             }
-            else break;
+            else if(!VisualInSpawnRange(n))
+            {
+                break;
+            }
         }
     }
 
@@ -225,7 +255,7 @@ public class NoteManager : MapElementManager<Note>
         {
             if(n.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0)
             {
-                HitSoundManager.ScheduleHitsound(n.Time, n.source);
+                HitSoundManager.ScheduleHitsound(n);
             }
         }
     }
@@ -419,6 +449,10 @@ public class Note : HitSoundEmitter
         Angle = n.customData?.angle ?? angle;
         FlipStartX = position.x;
         IsDot = n.d == 8;
+
+        WasHit = true;
+        WasBadCut = false;
+        HitOffset = 0f;
 
         if(n.customData?.color != null)
         {

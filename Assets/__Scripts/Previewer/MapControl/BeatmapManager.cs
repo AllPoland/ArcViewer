@@ -64,7 +64,12 @@ public class BeatmapManager : MonoBehaviour
                         break;
                 }
             }
-            JumpDistance = GetJumpDistance(HJD, Info._beatsPerMinute, NJS);
+            if(ReplayManager.IsReplayMode)
+            {
+                defaultJumpDistance = ReplayManager.CurrentReplay.info.jumpDistance;
+            }
+            else defaultJumpDistance = GetJumpDistance(HJD, Info._beatsPerMinute, NJS);
+            JumpDistance = defaultJumpDistance;
 
             MappingExtensions = _currentDifficulty.requirements.Contains("Mapping Extensions");
             NoodleExtensions = _currentDifficulty.requirements.Contains("Noodle Extensions");
@@ -92,10 +97,34 @@ public class BeatmapManager : MonoBehaviour
 
     public static bool MappingExtensions { get; private set; }
     public static bool NoodleExtensions { get; private set; }
+    public static float defaultJumpDistance { get; private set; }
 
-    public static float NJS;
     public static float SpawnOffset;
-    public static float JumpDistance;
+
+    private static float _njs;
+    public static float NJS
+    {
+        get => _njs;
+        set
+        {
+            _njs = value;
+            OnJumpSettingsChanged?.Invoke();
+        }
+    }
+
+    private static float _jumpDistance;
+    public static float JumpDistance
+    {
+        get => _jumpDistance;
+        set
+        {
+            _jumpDistance = value;
+            HalfJumpDistance = value / 2;
+            OnJumpSettingsChanged?.Invoke();
+        }
+    }
+
+    public static float HalfJumpDistance { get; private set; }
 
     public static float HJD => Mathf.Max(DefaultHJD + SpawnOffset, 0.25f);
     public static float ReactionTime => JumpDistance / 2 / NJS;
@@ -199,6 +228,8 @@ public class BeatmapManager : MonoBehaviour
     public static event Action<BeatmapInfo> OnBeatmapInfoChanged;
     public static event Action<Difficulty> OnBeatmapDifficultyChanged;
 
+    public static event Action OnJumpSettingsChanged;
+
 
     private void OnEnable()
     {
@@ -227,7 +258,7 @@ public class Difficulty
     {
         characteristic = DifficultyCharacteristic.Unknown,
         difficultyRank = DifficultyRank.ExpertPlus,
-        beatmapDifficulty = BeatmapDifficulty.Empty,
+        beatmapDifficulty = new BeatmapDifficulty(),
         noteJumpSpeed = 0,
         spawnOffset = 0,
         environmentName = "",

@@ -1,19 +1,45 @@
 using System;
 using System.Threading.Tasks;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class BeatSaverHandler
+public static class BeatSaverHandler
 {
     private const string beatSaverApiURL = "https://api.beatsaver.com/";
-    private const string mapDirect = "maps/id/";
+    private const string idDirect = "maps/id/";
+    private const string hashDirect = "maps/hash/";
 
 
-    public static async Task<string> GetBeatSaverMapURL(string mapID)
+    public static async Task<(string, string)> GetBeatSaverMapHash(string hash)
     {
-        string json = await GetApiResponse(mapID);
+        string json = await GetApiResponse(hashDirect, hash, false);
 
-        if(json == "") return "";
+        if(string.IsNullOrEmpty(json)) return ("", "");
+
+        BeatSaverResponse response = JsonUtility.FromJson<BeatSaverResponse>(json);
+
+        if(response.versions == null || response.versions.Length == 0)
+        {
+            return ("", "");
+        }
+
+        string url = response.versions.FirstOrDefault(x => x.hash.Equals(hash, StringComparison.InvariantCultureIgnoreCase))?.downloadURL;
+        if(url == null)
+        {
+            Debug.LogWarning("BeatSaver response doesn't contain this outdated version!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "This replay is for an outdated map version!");
+            url = response.versions.First().downloadURL;
+        }
+        return (url, response.id);
+    }
+
+
+    public static async Task<string> GetBeatSaverMapID(string mapID)
+    {
+        string json = await GetApiResponse(idDirect, mapID, true);
+
+        if(string.IsNullOrEmpty(json)) return "";
 
         BeatSaverResponse response = JsonUtility.FromJson<BeatSaverResponse>(json);
 
@@ -26,33 +52,39 @@ public class BeatSaverHandler
     }
 
 
-    public static async Task<string> GetApiResponse(string mapID)
+    private static async Task<string> GetApiResponse(string apiDirect, string mapID, bool showError)
     {
-        string url = string.Concat(beatSaverApiURL, mapDirect, mapID);
+        string url = string.Concat(beatSaverApiURL, apiDirect, mapID);
 
         try
         {
-            using(UnityWebRequest uwr = UnityWebRequest.Get(url))
+            using UnityWebRequest uwr = UnityWebRequest.Get(url);
+            uwr.SendWebRequest();
+
+            while(!uwr.isDone) await Task.Yield();
+
+            if(uwr.result == UnityWebRequest.Result.Success)
             {
-                uwr.SendWebRequest();
-
-                while(!uwr.isDone) await Task.Yield();
-
-                if(uwr.result == UnityWebRequest.Result.Success)
+                return uwr.downloadHandler.text;
+            }
+            else
+            {
+                if(showError)
                 {
-                    return uwr.downloadHandler.text;
+                    ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find BeatSaver map {mapID}! {uwr.error}");
                 }
-                else
-                {
-                    Debug.LogWarning(uwr.error);
-                    ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find beatsaver map {mapID}! {uwr.error}");
-                    return "";
-                }
+
+                Debug.LogWarning(uwr.error);
+                return "";
             }
         }
         catch(Exception err)
         {
-            ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find beatsaver map {mapID}! {err.Message}");
+            if(showError)
+            {
+                ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find BeatSaver map {mapID}! {err.Message}");
+            }
+
             Debug.LogWarning($"Failed to get BeatSaver api response with error: {err.Message}, {err.StackTrace}");
             return "";
         }
@@ -60,7 +92,8 @@ public class BeatSaverHandler
 }
 
 
-[Serializable] public struct BeatSaverResponse
+[Serializable]
+public class BeatSaverResponse
 {
     public string id;
     public string name;
@@ -74,7 +107,8 @@ public class BeatSaverHandler
 }
 
 
-[Serializable] public struct BeatSaverVersion
+[Serializable]
+public class BeatSaverVersion
 {
     public string hash;
     public string state;
@@ -89,7 +123,8 @@ public class BeatSaverHandler
 }
 
 
-[Serializable] public struct BeatSaverDiff
+[Serializable]
+public class BeatSaverDiff
 {
     public float njs;
     public float offset;
@@ -111,7 +146,8 @@ public class BeatSaverHandler
 }
 
 
-[Serializable] public struct BeatSaverParitySummary
+[Serializable]
+public class BeatSaverParitySummary
 {
     public int errors;
     public int warns;

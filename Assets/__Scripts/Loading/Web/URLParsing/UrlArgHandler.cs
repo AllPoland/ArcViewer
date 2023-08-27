@@ -8,6 +8,7 @@ public class UrlArgHandler : MonoBehaviour
 {
     public const string ArcViewerName = "ArcViewer";
     public const string ArcViewerURL = "https://allpoland.github.io/ArcViewer/";
+    public const string BeatLeaderViewerURL = "https://replay.beatleader.xyz/";
 
     [DllImport("__Internal")]
     public static extern string GetParameters();
@@ -39,12 +40,39 @@ public class UrlArgHandler : MonoBehaviour
         }
     }
 
+    private static string _loadedReplayID;
+    public static string LoadedReplayID
+    {
+        get => _loadedReplayID;
+
+        set
+        {
+            _loadedReplayID = value;
+            _loadedReplayURL = null;
+        }
+    }
+
+    private static string _loadedReplayURL;
+    public static string LoadedReplayURL
+    {
+        get => _loadedReplayURL;
+
+        set
+        {
+            _loadedReplayURL = value;
+            _loadedReplayID = null;
+        }
+    }
+
     public static DifficultyCharacteristic? LoadedCharacteristic;
     public static DifficultyRank? LoadedDiffRank;
+    public static bool ignoreMapForSharing;
 
     private static string mapID;
     private static string mapURL;
     private static string mapPath;
+    private static string replayID;
+    private static string replayURL;
     private static float startTime;
     private static DifficultyCharacteristic? mode;
     private static DifficultyRank? diffRank;
@@ -72,6 +100,12 @@ public class UrlArgHandler : MonoBehaviour
             case "url":
                 mapURL = value;
                 break;
+            case "scoreID":
+                replayID = value;
+                break;
+            case "replayURL":
+                replayURL = value;
+                break;
             case "t":
                 if(!float.TryParse(value, out startTime)) startTime = 0;
                 break;
@@ -98,41 +132,61 @@ public class UrlArgHandler : MonoBehaviour
 
     private void ApplyArguments()
     {
-        bool autoLoad = false;
-        if(!string.IsNullOrEmpty(mapID))
+        bool setTime = false;
+        bool setDiff = false;
+
+        string decodedReplayURL = !string.IsNullOrEmpty(replayURL) ? System.Web.HttpUtility.UrlDecode(replayURL) : null;
+        string decodedMapUrl = !string.IsNullOrEmpty(mapURL) ? System.Web.HttpUtility.UrlDecode(mapURL) : null;
+
+        if(!string.IsNullOrEmpty(replayID))
+        {
+            StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, decodedMapUrl, mapID, noProxy));
+            LoadedReplayID = replayID;
+            
+            //Don't set the diff cause that depends on the replay
+            setTime = true;
+        }
+        else if(!string.IsNullOrEmpty(replayURL))
+        {
+            StartCoroutine(mapLoader.LoadReplayURLCoroutine(decodedReplayURL, decodedMapUrl, mapID, noProxy));
+            LoadedReplayURL = decodedReplayURL;
+
+            setTime = true;
+        }
+        else if(!string.IsNullOrEmpty(mapID))
         {
             StartCoroutine(mapLoader.LoadMapIDCoroutine(mapID));
             LoadedMapID = mapID;
 
-            autoLoad = true;
+            setTime = true;
+            setDiff = true;
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
-            StartCoroutine(mapLoader.LoadMapURLCoroutine(mapURL, null, noProxy));
-            LoadedMapURL = mapURL;
+            StartCoroutine(mapLoader.LoadMapZipURLCoroutine(decodedMapUrl, null, null, noProxy));
+            LoadedMapURL = decodedMapUrl;
 
-            autoLoad = true;
+            setTime = true;
+            setDiff = true;
         }
 #if !UNITY_WEBGL || UNITY_EDITOR
         else if(!string.IsNullOrEmpty(mapPath))
         {
             mapLoader.LoadMapDirectory(mapPath);
-            autoLoad = true;
+            setTime = true;
+            setDiff = true;
         }
 #endif
 
-        if(autoLoad)
+        //Only apply start time and diff when a map is also included in the arguments
+        if(setTime && startTime > 0)
         {
-            //Only apply start time and diff when a map is also included in the arguments
-            if(startTime > 0)
-            {
-                MapLoader.OnMapLoaded += SetTime;
-            }
+            MapLoader.OnMapLoaded += SetTime;
+        }
 
-            if(mode != null || diffRank != null)
-            {
-                MapLoader.OnMapLoaded += SetDifficulty;
-            }
+        if(setDiff && (mode != null || diffRank != null))
+        {
+            MapLoader.OnMapLoaded += SetDifficulty;
         }
     }
 

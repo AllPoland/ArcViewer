@@ -59,9 +59,10 @@ public class ArcHandler : MonoBehaviour
     }
 
 
-    public void SetProperties(float alpha, float textureOffset, Color? customColor)
+    public void SetProperties(float alpha, float textureOffset, Color? customColor, float closeFadeDist)
     {
         materialProperties.SetFloat("_TextureOffset", textureOffset);
+        materialProperties.SetFloat("_FadeStartPoint", closeFadeDist);
 
         Color color = customColor ?? materialProperties.GetColor("_BaseColor");
         color.a = alpha;

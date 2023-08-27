@@ -19,21 +19,24 @@ public class FileCache
         set
         {
             _maxCacheSize = value;
-            if(CachedFiles != null && CachedFiles.Count > value)
+
+            if(CachedFiles == null)
             {
-                while(CachedFiles.Count > value)
-                {
-                    RemoveLastFile();
-                }
-                SaveCacheData();
+                LoadCachedFiles();
             }
+
+            while(CachedFiles.Count > value)
+            {
+                RemoveLastFile();
+            }
+            SaveCacheData();
         }
     }
 
     private static List<CachedFile> CachedFiles;
 
 
-    public static string GetCachedFile(string key)
+    public static CachedFile GetCachedFile(string url = null, string id = null, string hash = null)
     {
         if(CachedFiles == null)
         {
@@ -42,32 +45,45 @@ public class FileCache
 
         if(CachedFiles.Count <= 0)
         {
-            return "";
+            return null;
         }
 
-        CachedFile match = CachedFiles.FirstOrDefault(x => x.Key == key);
+        CachedFile match = CachedFiles.FirstOrDefault(x => x.MatchInput(url, id, hash));
         if(match != null)
         {
             //Move this file to the end of the list
             CachedFiles.Remove(match);
             CachedFiles.Add(match);
+
+            //Update fields if we have new ones
+            if(!string.IsNullOrEmpty(url)) match.URL = url;
+            if(!string.IsNullOrEmpty(id)) match.ID = id;
+            if(!string.IsNullOrEmpty(hash)) match.Hash = hash;
+
             SaveCacheData();
         }
 
-        return match?.FilePath ?? "";
+        return match;
     }
 
 
-    public static void SaveFileToCache(Stream fileStream, string key)
+    public static void SaveFileToCache(Stream fileStream, string url = null, string id = null, string hash = null)
     {
         if(CachedFiles == null)
         {
             LoadCachedFiles();
         }
 
-        if(CachedFiles.Any(x => x.Key == key))
+        CachedFile match = CachedFiles.FirstOrDefault(x => x.MatchInput(url, id, hash));
+        if(match != null)
         {
-            //This file has already been cached
+            //This file has already been cached, update fields if we have new ones
+            if(!string.IsNullOrEmpty(url)) match.URL = url;
+            if(!string.IsNullOrEmpty(id)) match.ID = id;
+            if(!string.IsNullOrEmpty(hash)) match.Hash = hash;
+
+            SaveCacheData();
+            Debug.Log("Tried to save an already cached file.");
             return;
         }
 
@@ -93,7 +109,9 @@ public class FileCache
 
         CachedFile newFile = new CachedFile
         {
-            Key = key,
+            URL = url,
+            ID = id,
+            Hash = hash,
             FilePath = newFilePath
         };
 
@@ -216,12 +234,31 @@ public class FileCache
             Debug.LogWarning($"Failed to write cache data with error: {e.Message}, {e.StackTrace}");
         }
     }
+}
 
 
-    [Serializable]
-    public class CachedFile
+[Serializable]
+public class CachedFile
+{
+    public string URL;
+    public string ID;
+    public string Hash;
+    public string FilePath;
+
+    public bool MatchInput(string url, string id, string hash)
     {
-        public string Key;
-        public string FilePath;
+        if(!string.IsNullOrEmpty(url) && url == URL)
+        {
+            return true;
+        }
+        else if(!string.IsNullOrEmpty(id) && id == ID)
+        {
+            return true;
+        }
+        else if(!string.IsNullOrEmpty(hash) && hash == Hash)
+        {
+            return true;
+        }
+        else return false;
     }
 }
