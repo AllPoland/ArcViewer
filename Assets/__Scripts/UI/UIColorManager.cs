@@ -101,9 +101,19 @@ public class UIColorManager : MonoBehaviour
     }
 
 
+    private void UpdateUIState(UIState newState)
+    {
+        if(newState == UIState.Previewer)
+        {
+            UpdateSettings("all");
+        }
+    }
+
+
     private void Start()
     {
         SettingsManager.OnSettingsUpdated += UpdateSettings;
+        UIStateManager.OnUIStateChanged += UpdateUIState;
         ReplayManager.OnReplayModeChanged += UpdateReplayMode;
 
         if(SettingsManager.Loaded)
