@@ -66,13 +66,17 @@ public class SkipButton : MonoBehaviour
             {
                 Skip(-2 * scaledSkipAmount);
             }
-            else if(Input.GetButtonDown("SkipForwardFrame"))
+
+            if(!TimeManager.Playing)
             {
-                SkipFrame(isForward: true);
-            }
-            else if(Input.GetButtonDown("SkipBackwardFrame"))
-            {
-                SkipFrame(isForward: false);
+                if(Input.GetButtonDown("SkipForwardFrame"))
+                {
+                    SkipFrame(isForward: true);
+                }
+                else if(Input.GetButtonDown("SkipBackwardFrame"))
+                {
+                    SkipFrame(isForward: false);
+                }
             }
         }
 
