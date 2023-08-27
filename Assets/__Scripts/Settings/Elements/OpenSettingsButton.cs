@@ -4,7 +4,12 @@ using UnityEngine.UI;
 public class OpenSettingsButton : MonoBehaviour
 {
     [SerializeField] private Button button;
+    [SerializeField] private Image image;
     [SerializeField] private Tooltip tooltip;
+
+    [Space]
+    [SerializeField] private Sprite openSprite;
+    [SerializeField] private Sprite closedSprite;
     [SerializeField] private string openTooltip;
     [SerializeField] private string closedTooltip;
 
@@ -13,6 +18,7 @@ public class OpenSettingsButton : MonoBehaviour
 
     public void UpdateTooltip()
     {
+        image.sprite = SettingsMenu.Open ? openSprite : closedSprite;
         tooltip.Text = SettingsMenu.Open ? openTooltip : closedTooltip;
     }
 
