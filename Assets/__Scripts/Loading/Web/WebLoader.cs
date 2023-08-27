@@ -14,7 +14,9 @@ public class WebLoader
     public static readonly string[] WhitelistURLs = new string[]
     {
         "https://r2cdn.beatsaver.com",
-        "https://cdn.beatsaver.com"
+        "https://cdn.beatsaver.com",
+        "https://api.beatleader.xyz",
+        "https://cdn.replays.beatleader.xyz/"
     };
 
     public static ulong DownloadSize;
