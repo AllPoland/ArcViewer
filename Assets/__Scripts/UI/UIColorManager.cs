@@ -31,6 +31,7 @@ public class UIColorManager : MonoBehaviour
     [SerializeField] private float transitionTime = 0.5f;
 
     private bool initializedSettings = false;
+    private Coroutine colorChangeCoroutine;
 
 
     public IEnumerator SetUIColorCoroutine(Color newColor)
@@ -53,9 +54,14 @@ public class UIColorManager : MonoBehaviour
 
     public static void SetUIColor(Color newColor, bool animate = true)
     {
+        if(Instance.colorChangeCoroutine != null)
+        {
+            Instance.StopCoroutine(Instance.colorChangeCoroutine);
+        }
+
         if(animate)
         {
-            Instance.StartCoroutine(Instance.SetUIColorCoroutine(newColor));
+            Instance.colorChangeCoroutine = Instance.StartCoroutine(Instance.SetUIColorCoroutine(newColor));
         }
         else
         {
@@ -70,7 +76,8 @@ public class UIColorManager : MonoBehaviour
         {
             if(SettingsManager.GetBool("useuicolor"))
             {
-                SetUIColor(SettingsManager.GetColor("uicolor"), false);
+                bool animate = (setting == "useuicolor" || setting == "all") && initializedSettings;
+                SetUIColor(SettingsManager.GetColor("uicolor"), animate);
             }
             else if(SettingsManager.GetBool(TheSoup.Rule))
             {
