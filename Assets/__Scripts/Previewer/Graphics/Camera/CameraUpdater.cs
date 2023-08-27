@@ -154,6 +154,13 @@ public class CameraUpdater : MonoBehaviour
 #endif
             firstPerson = false;
 
+            foreach(Camera camera in affectedCameras)
+            {
+                //Reset fov to normal replay fov
+                //We know we're in a replay couse there's no other way to be in first person
+                camera.fieldOfView = SettingsManager.GetInt("replaycamerafov");
+            }
+
             SettingsManager.OnSettingsUpdated += UpdateCameraSettings;
         }
     }
@@ -182,7 +189,7 @@ public class CameraUpdater : MonoBehaviour
             SetPreviewCamera();
         }
 
-        if(allSettings || setting == "camerafov" || setting == "replaycamerafov" || setting == "fpcamerafov")
+        if(allSettings || setting == "firstpersonreplay" || setting == "camerafov" || setting == "replaycamerafov" || setting == "fpcamerafov")
         {
             int fov;
             if(ReplayManager.IsReplayMode)
