@@ -7,6 +7,7 @@ public class GraphicSettingsUpdater : MonoBehaviour
     [SerializeField] private Camera targetCamera;
     [SerializeField] private Volume bloomVolume;
     [SerializeField] private UniversalRenderPipelineAsset urpAsset;
+    [SerializeField] private RenderTexture orthoCameraTexture;
 
     [Space]
     [SerializeField] private float defaultBloomStrength;
@@ -21,6 +22,16 @@ public class GraphicSettingsUpdater : MonoBehaviour
     private const float passesMult = 0.5f * 1.2f;
 
     private Bloom bloom;
+
+
+    private void SetOrthoCameraMSAA(int msaa)
+    {
+#if !UNITY_WEBGL && !UNITY_EDITOR
+        orthoCameraTexture.Release();
+        orthoCameraTexture.antiAliasing = msaa;
+        orthoCameraTexture.Create();
+#endif
+    }
 
 
     public void UpdateGraphicsSettings(string setting)
@@ -57,15 +68,19 @@ public class GraphicSettingsUpdater : MonoBehaviour
                 default:
                 case 0:
                     urpAsset.msaaSampleCount = 1;
+                    SetOrthoCameraMSAA(1);
                     break;
                 case 1:
                     urpAsset.msaaSampleCount = 2;
+                    SetOrthoCameraMSAA(2);
                     break;
                 case 2:
                     urpAsset.msaaSampleCount = 4;
+                    SetOrthoCameraMSAA(4);
                     break;
                 case 3:
                     urpAsset.msaaSampleCount = 8;
+                    SetOrthoCameraMSAA(8);
                     break;
             }
         }

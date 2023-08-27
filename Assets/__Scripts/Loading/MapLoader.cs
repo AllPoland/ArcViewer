@@ -561,7 +561,7 @@ public class MapLoader : MonoBehaviour
                 DirectoryInfo parentDir = Directory.GetParent(directory);
                 FileReader fileReader = new FileReader(parentDir.FullName);
                 StartCoroutine(LoadMapFileCoroutine(fileReader));
-                HotReloader.loadedMapPath = directory;
+                HotReloader.loadedMapPath = parentDir.FullName;
             }
         }
         else if(Directory.Exists(directory))
