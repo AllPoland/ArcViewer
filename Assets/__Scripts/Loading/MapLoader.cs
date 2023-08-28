@@ -512,23 +512,7 @@ public class MapLoader : MonoBehaviour
         else CoverImageHandler.Instance.ClearImage();
 
         BeatmapManager.Difficulties = newMap.Difficulties;
-        if(ReplayManager.IsReplayMode)
-        {
-            //Load the matching difficulty for a replay
-            ReplayInfo replayInfo = ReplayManager.CurrentReplay.info;
-            DifficultyCharacteristic characteristic = BeatmapInfo.CharacteristicFromString(replayInfo.mode);
-            DifficultyRank difficultyRank = BeatmapInfo.DifficultyRankFromString(replayInfo.difficulty);
-
-            List<Difficulty> difficulties = BeatmapManager.GetDifficultiesByCharacteristic(characteristic);
-            if(difficulties.Count == 0 || !difficulties.Any(x => x.difficultyRank == difficultyRank))
-            {
-                Debug.LogWarning("Unable to find matching difficulty for replay!");
-                ErrorHandler.Instance.ShowPopup(ErrorType.Warning, "Unable to find the right difficulty for this replay!");
-                BeatmapManager.CurrentDifficulty = BeatmapManager.GetDefaultDifficulty();
-            }
-            else BeatmapManager.CurrentDifficulty = difficulties.First(x => x.difficultyRank == difficultyRank);
-        }
-        else BeatmapManager.CurrentDifficulty = BeatmapManager.GetDefaultDifficulty();
+        BeatmapManager.CurrentDifficulty = BeatmapManager.GetDefaultDifficulty();
 
         OnMapLoaded?.Invoke();
     }

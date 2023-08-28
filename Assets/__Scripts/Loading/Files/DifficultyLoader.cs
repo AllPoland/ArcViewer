@@ -8,6 +8,11 @@ public static class DifficultyLoader
 {
     public static async Task<List<Difficulty>> GetDifficultiesAsync(BeatmapInfo info, string directory)
     {
+        if(ReplayManager.IsReplayMode)
+        {
+            return await LoadDifficultyReplay(info, directory);
+        }
+
 #if UNITY_WEBGL && !UNITY_EDITOR
         return await LoadDifficultiesAsync(info, directory);
 #else
@@ -22,6 +27,11 @@ public static class DifficultyLoader
 
     public static async Task<List<Difficulty>> GetDifficultiesAsync(BeatmapInfo info, ZipArchive archive)
     {
+        if(ReplayManager.IsReplayMode)
+        {
+            return await LoadDifficultyReplay(info, null, archive);
+        }
+
 #if UNITY_WEBGL && !UNITY_EDITOR
         return await LoadDifficultiesAsync(info, null, archive);
 #else
@@ -31,6 +41,59 @@ public static class DifficultyLoader
         }
         else return await LoadDifficultiesAsync(info, null, archive);
 #endif
+    }
+
+
+    private static async Task<List<Difficulty>> LoadDifficultyReplay(BeatmapInfo info, string directory = null, ZipArchive archive = null)
+    {
+        Debug.Log("Loading single difficulty for replay.");
+
+        DifficultyCharacteristic replayCharacteristic = BeatmapInfo.CharacteristicFromString(ReplayManager.CurrentReplay.info.mode);
+        DifficultyRank replayDiffRank = BeatmapInfo.DifficultyRankFromString(ReplayManager.CurrentReplay.info.difficulty);
+
+        foreach(DifficultyBeatmapSet set in info._difficultyBeatmapSets)
+        {
+            string characteristicName = set._beatmapCharacteristicName;
+            DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
+
+            if(setCharacteristic != replayCharacteristic)
+            {
+                //This characteristic doesn't match the replay, so we don't need it
+                continue;
+            }
+
+            if(set._difficultyBeatmaps.Length == 0)
+            {
+                Debug.LogWarning($"{characteristicName} lists no difficulties!");
+                break;
+            }
+
+            foreach(DifficultyBeatmap beatmap in set._difficultyBeatmaps)
+            {
+                DifficultyRank beatmapRank = BeatmapInfo.DifficultyRankFromString(beatmap._difficulty);
+                if(beatmapRank != replayDiffRank)
+                {
+                    //This diff doesn't match the replay, so we don't need it
+                    continue;
+                }
+
+                MapLoader.LoadingMessage = $"Loading {beatmap._beatmapFilename}";
+                Debug.Log($"Loading {beatmap._beatmapFilename}");
+
+                await Task.Yield();
+                Difficulty newDifficulty = await LoadDifficultyFile(info, beatmap, setCharacteristic, directory, archive);
+                if(newDifficulty == null) break;
+
+                //Return just this singular difficulty
+                return new List<Difficulty> { newDifficulty };
+            }
+        }
+
+        //If we exited the loop without loading a difficulty, it means we didn't find a match
+        Debug.LogWarning($"No matching difficulty found for {replayCharacteristic}, {replayDiffRank}!");
+        ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Found no matching difficulty for the replay!");
+
+        return null;
     }
 
 
