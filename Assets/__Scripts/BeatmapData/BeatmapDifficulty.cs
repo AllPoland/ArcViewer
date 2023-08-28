@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -18,6 +17,12 @@ public class BeatmapDifficulty
     public BeatmapBasicBeatmapEvent[] basicBeatMapEvents;
     public BeatmapColorBoostBeatmapEvent[] colorBoostBeatMapEvents;
     public bool useNormalEventsAsCompatibleEvents;
+
+    public bool HasObjects => colorNotes.Length + bombNotes?.Length
+        + obstacles.Length + sliders.Length
+        + burstSliders.Length + basicBeatMapEvents.Length
+        + colorBoostBeatMapEvents.Length + bpmEvents.Length
+        + rotationEvents.Length > 0;
 
 
     public BeatmapDifficulty()

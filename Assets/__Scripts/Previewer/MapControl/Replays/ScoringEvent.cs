@@ -119,8 +119,20 @@ public class ScoringEvent : MapElement
         int type = noteID / 10000;
 
         Vector2 newPosition = ObjectManager.CalculateObjectPosition(x, y);
-        newPosition.y = ObjectManager.Instance.objectYToWorldSpace(newPosition.y);
+        newPosition = ObjectManager.Instance.ObjectSpaceToWorldSpace(newPosition);
 
         SetEventValues((ScoringType)type, newPosition);
     }
+}
+
+
+public enum ScoringType
+{
+    Ignore = 1,
+    NoScore = 2,
+    Note = 3,
+    ArcHead = 4,
+    ArcTail = 5,
+    ChainHead = 6,
+    ChainLink = 7
 }

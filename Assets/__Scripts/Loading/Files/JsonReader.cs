@@ -110,7 +110,7 @@ public static class JsonReader
                 Debug.Log($"Trying to fallback load {filename} in V3 format.");
                 BeatmapDifficulty v3Diff = DeserializeObject<BeatmapDifficulty>(json);
 
-                if(v3Diff.colorNotes != null)
+                if(v3Diff?.HasObjects ?? false)
                 {
                     Debug.Log($"Fallback for {filename} succeeded in V3.");
                     difficulty = v3Diff;
@@ -120,7 +120,7 @@ public static class JsonReader
                     Debug.Log($"Fallback for {filename} failed in V3, trying V2.");
                     BeatmapDifficultyV2 v2Diff = DeserializeObject<BeatmapDifficultyV2>(json);
 
-                    if(v2Diff._notes != null)
+                    if(v2Diff?.HasObjects ?? false)
                     {
                         Debug.Log($"Fallback for {filename} succeeded in V2.");
                         difficulty = v2Diff.ConvertToV3();
@@ -168,13 +168,10 @@ public static class JsonReader
     }
 
 
-    public static T DeserializeObject<T>(string json)
+    public static T DeserializeObject<T>(string json) => JsonConvert.DeserializeObject<T>(json, new JsonSerializerSettings
     {
-        return JsonConvert.DeserializeObject<T>(json, new JsonSerializerSettings
-        {
-            Error = HandleDeserializationError
-        });
-    }
+        Error = HandleDeserializationError
+    });
 
 
     public static void HandleDeserializationError(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args)

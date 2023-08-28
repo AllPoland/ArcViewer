@@ -169,7 +169,19 @@ public class NoteManager : MapElementManager<Note>
         if(objectManager.doLookAnimation && !n.IsChainHead)
         {
             //Notes look towards the player's head in replays
-            n.Visual.transform.localRotation = objectManager.LookAtPlayer(n.Visual.transform, worldRotation, jumpProgress);
+            if(jumpProgress < 1f)
+            {
+                n.Visual.transform.localRotation = objectManager.LookAtPlayer(n.Visual.transform.position, PlayerPositionManager.HeadPosition, worldRotation, jumpProgress);
+            }
+            else
+            {
+                //Notes stop rotating after passing the player's head
+                //Recreate the positions when the note passed the cut plane
+                Vector3 endRotationPosition = objectManager.ObjectSpaceToWorldSpace(n.Position);
+                endRotationPosition.z = n.EndHeadPosition.z + ObjectManager.PlayerCutPlaneDistance;
+
+                n.Visual.transform.localRotation = objectManager.LookAtPlayer(endRotationPosition, n.EndHeadPosition, worldRotation, jumpProgress);
+            }
         }
         else
         {
@@ -432,6 +444,8 @@ public class Note : HitSoundEmitter
     public float FlipYHeight;
     public bool IsDot;
     public bool IsChainHead;
+
+    public Vector3 EndHeadPosition;
 
     public NoteHandler NoteHandler;
     public MaterialPropertyBlock CustomNoteProperties;

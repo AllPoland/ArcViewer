@@ -7,7 +7,7 @@ public class Bloomfog : ScriptableRendererFeature
     //These are static fields for graphics settings to access
     public static bool Enabled = true;
     public static int Downsample = 2;
-    public static int BlurPasses = 13;
+    public static int BlurPasses = 12;
 
     [System.Serializable]
     public class BloomFogSettings
@@ -131,12 +131,16 @@ public class Bloomfog : ScriptableRendererFeature
 
         private int tempID1;
         private int tempID2;
+        
+        private int littleID;
+        private int smallID;
         private int tinyID;
-
-        private int maskID;
 
         private RenderTargetIdentifier tempRT1;
         private RenderTargetIdentifier tempRT2;
+
+        private RenderTargetIdentifier littleRT;
+        private RenderTargetIdentifier smallRT;
         private RenderTargetIdentifier tinyRT;
 
         private RenderTargetIdentifier maskRT;
@@ -166,13 +170,23 @@ public class Bloomfog : ScriptableRendererFeature
             //Create our temporary render textures for blurring
             tempID1 = Shader.PropertyToID("tempBlurRT1");
             tempID2 = Shader.PropertyToID("tempBlurRT2");
+
+            littleID = Shader.PropertyToID("littleRT");
+            smallID = Shader.PropertyToID("smallRT");
             tinyID = Shader.PropertyToID("tinyRT");
+
             cmd.GetTemporaryRT(tempID1, width, height, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
             cmd.GetTemporaryRT(tempID2, width, height, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
+
+            cmd.GetTemporaryRT(littleID, 64, 64, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
+            cmd.GetTemporaryRT(smallID, 32, 32, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
             cmd.GetTemporaryRT(tinyID, 16, 16, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
 
             tempRT1 = new RenderTargetIdentifier(tempID1);
             tempRT2 = new RenderTargetIdentifier(tempID2);
+
+            littleRT = new RenderTargetIdentifier(littleID);
+            smallRT = new RenderTargetIdentifier(smallID);
             tinyRT = new RenderTargetIdentifier(tinyID);
         }
 
@@ -212,7 +226,9 @@ public class Bloomfog : ScriptableRendererFeature
             //by blitting to a tiny texture and add that as a global background
             //This makes fog not reach full blackness when lights are on
             cmd.SetGlobalFloat("_BrightnessMult", settings.backgroundBrightness);
-            cmd.Blit(tempRT1, tinyRT);
+            cmd.Blit(tempRT1, littleRT);
+            cmd.Blit(littleRT, smallRT);
+            cmd.Blit(smallRT, tinyRT);
             cmd.Blit(tinyRT, tempRT1, settings.backgroundMaterial);
 
             //Final pass, outputting final blurred result

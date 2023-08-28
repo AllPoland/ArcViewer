@@ -23,7 +23,7 @@ public class PlayButton : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetButtonDown("Pause") && !DialogueHandler.LogActive)
+        if((Input.GetButtonDown("Pause") || Input.GetButtonDown("PauseAlt")) && !DialogueHandler.LogActive)
         {
             TogglePlaying();
         }
