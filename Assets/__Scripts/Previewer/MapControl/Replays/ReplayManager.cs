@@ -110,7 +110,7 @@ public class ReplayManager : MonoBehaviour
 
     public static void SetAvatarImageData(byte[] imageData)
     {
-        ClearAvatar();
+        Avatar?.Dispose();
 
         using MemoryStream stream = new MemoryStream(imageData);
         var gifImage = new GIFLoader().Load(stream);
@@ -142,14 +142,9 @@ public class ReplayManager : MonoBehaviour
     }
 
 
-    private static void ClearAvatar()
+    public static void ClearAvatar()
     {
-        if(Avatar == null)
-        {
-            return;
-        }
-
-        Avatar.Dispose();
+        Avatar?.Dispose();
         Avatar = null;
 
         OnAvatarUpdated?.Invoke(null);
@@ -291,6 +286,8 @@ public class ReplayManager : MonoBehaviour
         SettingsManager.OnSettingsUpdated += UpdateSettings;
 
         OnAvatarUpdated += UpdateAvatar;
+
+        ClearAvatar();
     }
 }
 

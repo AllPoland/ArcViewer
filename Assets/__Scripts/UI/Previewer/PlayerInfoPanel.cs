@@ -40,12 +40,11 @@ public class PlayerInfoPanel : MonoBehaviour
 
     private void UpdateAvatar(AnimatedAvatar newAvatar)
     {
-        Vector2 infoPosition = infoContainer.anchoredPosition;
         if(ReplayManager.IsReplayMode)
         {
             avatarImage.texture = ReplayManager.AvatarRenderTexture;
             avatarImage.gameObject.SetActive(true);
-            animateAvatarButton.gameObject.SetActive(newAvatar.IsAnimated);
+            animateAvatarButton.gameObject.SetActive(newAvatar?.IsAnimated ?? false);
         }
         else
         {
@@ -53,7 +52,6 @@ public class PlayerInfoPanel : MonoBehaviour
             avatarImage.gameObject.SetActive(false);
             animateAvatarButton.gameObject.SetActive(false);
         }
-        infoContainer.anchoredPosition = infoPosition;
     }
 
 

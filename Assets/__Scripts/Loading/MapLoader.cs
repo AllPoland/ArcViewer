@@ -309,7 +309,7 @@ public class MapLoader : MonoBehaviour
             yield return new WaitUntil(() => avatarTask.IsCompleted);
 
             byte[] avatarData = avatarTask.Result;
-            if(avatarData != null)
+            if(avatarData != null && avatarData.Length > 0)
             {
                 ReplayManager.SetAvatarImageData(avatarData);
             }
