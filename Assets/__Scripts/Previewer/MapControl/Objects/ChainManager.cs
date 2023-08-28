@@ -121,8 +121,7 @@ public class ChainManager : MapElementManager<ChainLink>
                         newLink.HitOffset = matchingEvent.HitTimeOffset;
                     }
 
-                    Vector2 worldPosition = newLink.Position;
-                    worldPosition.y = objectManager.objectYToWorldSpace(worldPosition.y);
+                    Vector2 worldPosition = objectManager.ObjectSpaceToWorldSpace(newLink.Position);
                     matchingEvent.SetEventValues(ScoringType.ChainLink, worldPosition);
 
                     usedScoringEvents.Add(matchingEvent);

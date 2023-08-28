@@ -119,7 +119,7 @@ public class ScoringEvent : MapElement
         int type = noteID / 10000;
 
         Vector2 newPosition = ObjectManager.CalculateObjectPosition(x, y);
-        newPosition.y = ObjectManager.Instance.objectYToWorldSpace(newPosition.y);
+        newPosition = ObjectManager.Instance.ObjectSpaceToWorldSpace(newPosition);
 
         SetEventValues((ScoringType)type, newPosition);
     }

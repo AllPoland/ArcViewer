@@ -44,7 +44,14 @@ public class PlayerPositionManager : MonoBehaviour
     private int trailIndex => Mathf.Clamp(SettingsManager.GetInt("sabertrailtype"), 0, trailTextures.Length - 1);
 
 
-    public static Vector3 HeadPositionAtTime(float time)
+    public static Vector3 PlayerSpaceToWorldSpace(Vector3 pos)
+    {
+        pos.z += ObjectManager.PlayerCutPlaneDistance;
+        return pos;
+    }
+
+
+    public static Vector3 HeadPositionAtTime(float time, bool worldSpace = true)
     {
         if(ReplayFrames.Count == 0)
         {
@@ -58,7 +65,12 @@ public class PlayerPositionManager : MonoBehaviour
             lastFrameIndex = 0;
         }
 
-        return ReplayFrames[lastFrameIndex].headPosition;
+        Vector3 headPosition = ReplayFrames[lastFrameIndex].headPosition;
+        if(worldSpace)
+        {
+            return PlayerSpaceToWorldSpace(headPosition);
+        }
+        else return headPosition;
     }
 
 

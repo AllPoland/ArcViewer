@@ -117,7 +117,11 @@ public class ObjectManager : MonoBehaviour
     public static event Action OnObjectsLoaded;
 
 
-    public float objectYToWorldSpace(float y) => (y - objectFloorOffset) + 0.25f;
+    public Vector3 ObjectSpaceToWorldSpace(Vector3 pos)
+    {
+        pos.y += -objectFloorOffset + 0.25f;
+        return pos;
+    }
 
 
     public static bool CheckSameTime(float time1, float time2)
@@ -221,12 +225,9 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public Quaternion LookAtPlayer(Transform target, Quaternion baseRotation, float jumpProgress)
+    public Quaternion LookAtPlayer(Vector3 objectPosition, Vector3 headPosition, Quaternion baseRotation, float jumpProgress)
     {
         const float verticalLookStrength = 0.8f;
-
-        Vector3 objectPosition = target.position;
-        Vector3 headPosition = PlayerPositionManager.HeadPosition;
 
         headPosition.y = Mathf.Lerp(headPosition.y, objectPosition.y, verticalLookStrength);
 
@@ -598,8 +599,8 @@ public class ObjectManager : MonoBehaviour
 
                 if(ReplayManager.IsReplayMode)
                 {
-                    Vector2 worldPosition = newNote.Position;
-                    worldPosition.y = Instance.objectYToWorldSpace(worldPosition.y);
+                    newNote.EndHeadPosition = PlayerPositionManager.HeadPositionAtTime(newNote.Time);
+                    Vector2 worldPosition = Instance.ObjectSpaceToWorldSpace(newNote.Position);
 
                     //Find the replay event that matches this note
                     //This needs to be done by calculating object ID
@@ -738,8 +739,7 @@ public class ObjectManager : MonoBehaviour
                         newBomb.WasBadCut = true;
                         newBomb.HitOffset = matchingEvent.ObjectTime - matchingEvent.Time;
 
-                        Vector2 worldPosition = newBomb.Position;
-                        worldPosition.y = Instance.objectYToWorldSpace(worldPosition.y);
+                        Vector2 worldPosition = Instance.ObjectSpaceToWorldSpace(newBomb.Position);
                         matchingEvent.SetEventValues(ScoringType.NoScore, worldPosition);
                     }
                     scoringEventsOnBeat.Remove(matchingEvent);
