@@ -79,7 +79,7 @@ public class ObjectSettingsUpdater : MonoBehaviour
         
         if(allSettings || setting == "wallopacity")
         {
-            wallManager.UpdateMaterial();
+            wallManager.ReloadWalls();
         }
     }
 

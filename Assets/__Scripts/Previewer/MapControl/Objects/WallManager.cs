@@ -12,24 +12,10 @@ public class WallManager : MapElementManager<Wall>
     [SerializeField] private ObjectPool<WallHandler> wallPool;
     [SerializeField] private GameObject wallParent;
 
-    private MaterialPropertyBlock wallMaterialProperties;
-
 
     public void ReloadWalls()
     {
         ClearRenderedVisuals();
-        UpdateVisuals();
-    }
-
-
-    public void UpdateMaterial()
-    {
-        ClearRenderedVisuals();
-
-        Color newColor = WallColor;
-        newColor.a = SettingsManager.GetFloat("wallopacity");
-        wallMaterialProperties.SetColor("_BaseColor", newColor);
-
         UpdateVisuals();
     }
 
@@ -54,14 +40,13 @@ public class WallManager : MapElementManager<Wall>
             if(SettingsManager.GetBool("chromaobjectcolors") && w.CustomColor != null)
             {
                 //This wall uses a unique chroma color
-                w.WallHandler.SetProperties(w.CustomProperties);
-                //Alpha needs to be set here as well
-                w.WallHandler.SetAlpha(SettingsManager.GetFloat("wallopacity"));
+                w.WallHandler.SetColor((Color)w.CustomColor);
             }
             else
             {
-                w.WallHandler.SetProperties(wallMaterialProperties);
+                w.WallHandler.SetColor(WallColor);
             }
+            w.WallHandler.SetAlpha(SettingsManager.GetFloat("wallopacity"));
 
             RenderedObjects.Add(w);
         }
@@ -93,7 +78,7 @@ public class WallManager : MapElementManager<Wall>
         }
 
         w.Visual.transform.localPosition = worldPos;
-        w.WallHandler.transform.localScale = worldScale;
+        w.WallHandler.SetScale(worldScale);
     }
 
 
@@ -108,20 +93,6 @@ public class WallManager : MapElementManager<Wall>
         wallPool.ReleaseObject(w.WallHandler);
         w.Visual = null;
         w.WallHandler = null;
-    }
-
-
-    private void UpdateWallSortingOrder()
-    {
-        const int minSortingOrder = -32768;
-
-        //WallHandlers can be sorted by distance through the IComparable interface
-        RenderedObjects.Sort((x, y) => x.WallHandler.CompareTo(y.WallHandler));
-        for(int i = 0; i < RenderedObjects.Count; i++)
-        {
-            //Since walls are sorted by their distance, we can set their order here
-            RenderedObjects[i].WallHandler.SetSortingOrder(minSortingOrder + i);
-        }
     }
 
 
@@ -158,8 +129,6 @@ public class WallManager : MapElementManager<Wall>
                 break;
             }
         }
-
-        UpdateWallSortingOrder();
     }
 
 
@@ -205,12 +174,6 @@ public class WallManager : MapElementManager<Wall>
         position.y += y * ObjectManager.WallHScale;
         return position;
     }
-
-
-    private void Awake()
-    {
-        wallMaterialProperties = new MaterialPropertyBlock();
-    }
 }
 
 
@@ -236,7 +199,6 @@ public class Wall : MapObject
     public bool ClampPlayerHeight;
 
     public WallHandler WallHandler;
-    public MaterialPropertyBlock CustomProperties;
 
 
     public Wall(BeatmapObstacle o)
@@ -287,9 +249,6 @@ public class Wall : MapObject
         if(o.customData?.color != null)
         {
             CustomColor = ColorManager.ColorFromCustomDataColor(o.customData.color);
-
-            CustomProperties = new MaterialPropertyBlock();
-            CustomProperties.SetColor("_BaseColor", (Color)CustomColor);
         }
     }
 }

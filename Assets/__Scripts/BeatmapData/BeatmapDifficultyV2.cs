@@ -14,6 +14,19 @@ public class BeatmapDifficultyV2
     public BeatmapEventV2[] _events;
     //Waypoints ommitted
 
+    public bool HasObjects => _notes.Length + _obstacles.Length
+        + _sliders.Length + _events.Length > 0;
+
+
+    public BeatmapDifficultyV2()
+    {
+        _version = "";
+        _notes = new BeatmapNoteV2[0];
+        _sliders = new BeatmapSliderV2[0];
+        _obstacles = new BeatmapObstacleV2[0];
+        _events = new BeatmapEventV2[0];
+    }
+
 
     public void AddNulls()
     {

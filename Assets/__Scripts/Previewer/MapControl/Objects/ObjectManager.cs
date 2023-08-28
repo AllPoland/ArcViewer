@@ -399,7 +399,7 @@ public class ObjectManager : MonoBehaviour
         chainManager.UpdateVisuals();
 
         arcManager.UpdateMaterials();
-        wallManager.UpdateMaterial();
+        wallManager.ReloadWalls();
     }
 
 
