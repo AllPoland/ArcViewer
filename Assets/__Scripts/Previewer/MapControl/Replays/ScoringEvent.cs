@@ -124,3 +124,15 @@ public class ScoringEvent : MapElement
         SetEventValues((ScoringType)type, newPosition);
     }
 }
+
+
+public enum ScoringType
+{
+    Ignore = 1,
+    NoScore = 2,
+    Note = 3,
+    ArcHead = 4,
+    ArcTail = 5,
+    ChainHead = 6,
+    ChainLink = 7
+}

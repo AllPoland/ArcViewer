@@ -7,15 +7,17 @@ public class PlayerInfoPanel : MonoBehaviour
 {
     private const string userDirect = "u/";
 
-    [SerializeField] private Image avatarImage;
+    [SerializeField] private RawImage avatarImage;
     [SerializeField] private RectTransform infoContainer;
-    [SerializeField] private TextMeshProUGUI infoText;
-    [SerializeField] private TextMeshProUGUI modifierText;
-    [SerializeField] private Tooltip modifierTooltip;
-    [SerializeField] private Button playerProfileButton;
 
     [Space]
-    [SerializeField] private Sprite defaultImage;
+    [SerializeField] private TextMeshProUGUI infoText;
+    [SerializeField] private TextMeshProUGUI modifierText;
+
+    [Space]
+    [SerializeField] private Tooltip modifierTooltip;
+    [SerializeField] private Button playerProfileButton;
+    [SerializeField] private Button animateAvatarButton;
 
     private readonly Dictionary<string, string> modifierDescriptions = new Dictionary<string, string>
     {
@@ -36,23 +38,20 @@ public class PlayerInfoPanel : MonoBehaviour
     };
 
 
-    private void UpdateAvatar(Sprite newAvatar)
+    private void UpdateAvatar(AnimatedAvatar newAvatar)
     {
         Vector2 infoPosition = infoContainer.anchoredPosition;
         if(ReplayManager.IsReplayMode)
         {
-            if(newAvatar == null)
-            {
-                newAvatar = defaultImage;
-            }
-
-            avatarImage.sprite = newAvatar;
+            avatarImage.texture = ReplayManager.AvatarRenderTexture;
             avatarImage.gameObject.SetActive(true);
+            animateAvatarButton.gameObject.SetActive(newAvatar.IsAnimated);
         }
         else
         {
-            avatarImage.sprite = null;
+            avatarImage.texture = null;
             avatarImage.gameObject.SetActive(false);
+            animateAvatarButton.gameObject.SetActive(false);
         }
         infoContainer.anchoredPosition = infoPosition;
     }

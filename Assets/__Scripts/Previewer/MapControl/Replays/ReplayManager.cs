@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Linq;
+using B83.Image.GIF;
 using UnityEngine;
 
 public class ReplayManager : MonoBehaviour
@@ -9,13 +11,14 @@ public class ReplayManager : MonoBehaviour
     public static bool IsReplayMode { get; private set; }
     public static Replay CurrentReplay { get; private set; }
 
-    public static Sprite Avatar { get; private set; }
+    public static AnimatedAvatar Avatar { get; private set; }
+    public static RenderTexture AvatarRenderTexture { get; private set; }
+
     public static BeatleaderUser PlayerInfo;
     public static string LeaderboardID = "";
 
     public static event Action<bool> OnReplayModeChanged;
-
-    public static event Action<Sprite> OnAvatarUpdated;
+    public static event Action<AnimatedAvatar> OnAvatarUpdated;
 
     public static float PlayerHeight;
     public static string[] Modifiers = new string[0];
@@ -36,6 +39,12 @@ public class ReplayManager : MonoBehaviour
     public static bool HasFailed => Failed && TimeManager.CurrentTime >= FailTime;
 
     private static MapElementList<PlayerHeightEvent> playerHeightEvents = new MapElementList<PlayerHeightEvent>();
+
+    private static bool animatingAvatar = false;
+    private static Coroutine animateAvatarCoroutine;
+    
+    [SerializeField] private RenderTexture _avatarRenderTexture;
+    [SerializeField] private Texture2D defaultAvatarImage;
 
 
     private static bool HasModifier(string modifier)
@@ -103,23 +112,32 @@ public class ReplayManager : MonoBehaviour
     {
         ClearAvatar();
 
-        Texture2D newTexture = new Texture2D(2, 2);
-        bool loaded = newTexture.LoadImage(imageData);
+        using MemoryStream stream = new MemoryStream(imageData);
+        var gifImage = new GIFLoader().Load(stream);
 
-        if(!loaded)
+        Texture2D newTexture;
+        if(gifImage != null)
         {
-            Debug.LogWarning("Unable to load player avatar!");
-            ErrorHandler.Instance?.ShowPopup(ErrorType.Warning, "Unable to load avatar image!");
-
-            Destroy(newTexture);
-            Avatar = null;
+            newTexture = new Texture2D(gifImage.screen.width, gifImage.screen.height, TextureFormat.RGBA32, false);
+            Avatar = new AnimatedAvatar(newTexture, gifImage, AvatarRenderTexture);
         }
         else
         {
-            Avatar = Sprite.Create(newTexture,
-                new Rect(0, 0, newTexture.width, newTexture.height),
-                new Vector2(0.5f, 0.5f), 100);
+            newTexture = new Texture2D(2, 2);
+            if(newTexture.LoadImage(imageData))
+            {
+                Avatar = AnimatedAvatar.StaticAvatar(newTexture, AvatarRenderTexture);
+            }
+            else
+            {
+                Debug.LogWarning("Unable to load player avatar!");
+                ErrorHandler.Instance?.ShowPopup(ErrorType.Warning, "Unable to load avatar image!");
+
+                Destroy(newTexture);
+                Avatar = null;
+            }
         }
+
         OnAvatarUpdated?.Invoke(Avatar);
     }
 
@@ -131,10 +149,10 @@ public class ReplayManager : MonoBehaviour
             return;
         }
 
-        OnAvatarUpdated?.Invoke(null);
-        Destroy(Avatar.texture);
-        Destroy(Avatar);
+        Avatar.Dispose();
         Avatar = null;
+
+        OnAvatarUpdated?.Invoke(null);
     }
 
 
@@ -188,10 +206,91 @@ public class ReplayManager : MonoBehaviour
     }
 
 
+    private void StopAnimatingAvatar()
+    {
+        if(animatingAvatar)
+        {
+            if(animateAvatarCoroutine != null)
+            {
+                StopCoroutine(animateAvatarCoroutine);
+            }
+            animatingAvatar = false;
+        }
+    }
+
+
+    private void StartAnimatingAvatar()
+    {
+        if(!animatingAvatar)
+        {
+            animateAvatarCoroutine = StartCoroutine(Avatar.PlaybackCoroutine());
+            animatingAvatar = true;
+        }
+    }
+
+
+    private void UpdateAvatar(AnimatedAvatar newAvatar)
+    {
+        StopAnimatingAvatar();
+
+        if(newAvatar != null)
+        {
+            if(!newAvatar.IsAnimated || SettingsManager.GetBool("animateavatar"))
+            {
+                StartAnimatingAvatar();
+            }
+            else
+            {
+                newAvatar.SetFirstFrame();
+            }
+        }
+        else
+        {
+            Graphics.Blit(defaultAvatarImage, AvatarRenderTexture);
+        }
+    }
+
+
+    private void UpdateSettings(string setting)
+    {
+        if(!IsReplayMode)
+        {
+            return;
+        }
+
+        bool allSettings = setting == "all";
+        if(Avatar != null && (allSettings || setting == "animateavatar"))
+        {
+            bool animateAvatar = SettingsManager.GetBool("animateavatar");
+            if(animateAvatar)
+            {
+                if(Avatar.IsAnimated)
+                {
+                    StartAnimatingAvatar();
+                }
+            }
+            else
+            {
+                StopAnimatingAvatar();
+                Avatar.SetFirstFrame();
+            }
+        }
+    }
+
+
+    private void Awake()
+    {
+        AvatarRenderTexture = _avatarRenderTexture;
+    }
+
+
     private void Start()
     {
         UIStateManager.OnUIStateChanged += UpdateUIState;
         MapLoader.OnLoadingFailed += Reset;
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
+
+        OnAvatarUpdated += UpdateAvatar;
     }
 }
 
@@ -205,16 +304,4 @@ public class PlayerHeightEvent : MapElement
         Time = a.time;
         Height = a.height;
     }
-}
-
-
-public enum ScoringType
-{
-    Ignore = 1,
-    NoScore = 2,
-    Note = 3,
-    ArcHead = 4,
-    ArcTail = 5,
-    ChainHead = 6,
-    ChainLink = 7
 }
