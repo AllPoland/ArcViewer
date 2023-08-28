@@ -168,13 +168,10 @@ public static class JsonReader
     }
 
 
-    public static T DeserializeObject<T>(string json)
+    public static T DeserializeObject<T>(string json) => JsonConvert.DeserializeObject<T>(json, new JsonSerializerSettings
     {
-        return JsonConvert.DeserializeObject<T>(json, new JsonSerializerSettings
-        {
-            Error = HandleDeserializationError
-        });
-    }
+        Error = HandleDeserializationError
+    });
 
 
     public static void HandleDeserializationError(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args)
