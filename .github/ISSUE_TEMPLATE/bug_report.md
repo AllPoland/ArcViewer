@@ -7,21 +7,22 @@ assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+### Describe the bug:
+*A clear and concise description of what the bug is.*
 
-**To Reproduce**
+### How to Reproduce:
 Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. See error
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+- *Go to '...'*
+- *Click on '....'*
+- *See error*
 
-**Build Info:**
- - Platform: [OS/Browser, e.g. Windows/Linux/Chrome/Firefox]
- - Version [e.g. 0.2.0]
+### Expected behavior:
+*A clear and concise description of what you expected to happen.*
 
-**Additional context**
-Add any other context about the problem here.
+### Build Info:
+ - Platform: *[OS or Browser, e.g. Windows/Linux or Chrome/Firefox etc.]*
+ - Version: *[e.g. 0.2.0]*
+
+### Additional context:
+*Add any other context about the problem, such as images, videos, or map/replay links here.*
