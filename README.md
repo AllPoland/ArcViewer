@@ -4,6 +4,8 @@ An open source 3D Beat Saber map previewer, designed to give users an accurate r
 ## Features
 - **Quickly load maps** from local zips/directories, direct URLs, or BeatSaver IDs and links
 
+- **View Replays** from local/online .bsor files, or BeatLeader score IDs
+
 - **Game-accurate visuals** with properly recreated proportions and spawn animations
 
 - **V3 map support** including arcs, chains, angle offset (diagonal dots), V3 wall shenanigans, and official BPM changes
@@ -19,11 +21,6 @@ An open source 3D Beat Saber map previewer, designed to give users an accurate r
 - **Chroma support** with Chroma colored light events and objects, as well as lightID, Chroma ring spins/zooms, and Chroma laser speed events
 
 - **Basic modded map support** displaying precision placement through Mapping Extensions and Noodle Extensions
-
-## Planned Features
-These features aren't included yet, but are very likely to be added in the future.
-
-- 360/90 degree gamemode support (currently just displays as a regular map without rotation events)
 
 ## Unplanned Features
 These features aren't included, and most likely never will be. If you ask for these I will unceremoniously tell you no.
