@@ -46,7 +46,7 @@ public class PlayerPositionManager : MonoBehaviour
 
     public static Vector3 PlayerSpaceToWorldSpace(Vector3 pos)
     {
-        pos.z += ObjectManager.PlayerCutPlaneDistance;
+        pos.z -= ObjectManager.PlayerCutPlaneDistance;
         return pos;
     }
 
@@ -85,7 +85,8 @@ public class PlayerPositionManager : MonoBehaviour
         rightSaber.transform.localPosition = defaultRightSaberPosition;
         rightSaber.transform.localRotation = Quaternion.identity;
 
-        UpdateHeadPosition();
+        HeadPosition = PlayerSpaceToWorldSpace(defaultHmdPosition);
+        HeadRotation = Quaternion.identity;
     }
 
 
@@ -142,14 +143,8 @@ public class PlayerPositionManager : MonoBehaviour
 
         Energy = currentFrame.Energy;
 
-        UpdateHeadPosition();
-    }
-
-
-    private void UpdateHeadPosition()
-    {
-        HeadPosition = headset.transform.position;
-        HeadRotation = headset.transform.rotation;
+        HeadPosition = PlayerSpaceToWorldSpace(currentFrame.headPosition);
+        HeadRotation = currentFrame.headRotation;
     }
 
 
