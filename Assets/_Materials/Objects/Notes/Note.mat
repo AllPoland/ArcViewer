@@ -21,12 +21,10 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Note
-  m_Shader: {fileID: -6465566751694194690, guid: 80258e4e9b4a5264ba5ec405f90e8db1, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: c8255bea248eb4a8094594d8a99cf760, type: 3}
   m_ValidKeywords:
-  - _ENVIRONMENTREFLECTIONS_OFF
   - _SPECULARHIGHLIGHTS_OFF
-  m_InvalidKeywords:
-  - _RECEIVE_SHADOWS_OFF
+  m_InvalidKeywords: []
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -112,6 +110,7 @@ Material:
     - _ClearCoat: 0
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 1
+    - _Color_Intensity: 0.75
     - _CubemapBlur: 2.5
     - _CubemapStrength: 5
     - _Cull: 2
@@ -127,15 +126,17 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.65
     - _GlossyReflections: 1
-    - _Metallic: 0.1
+    - _Metallic: 1
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 0
+    - _RimIntensity: 0.25
+    - _RimPower: 1
     - _SPECULARHIGHLIGHTS_OFF: 1
-    - _Smoothness: 1
+    - _Smoothness: 0.8
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 0
     - _SrcBlend: 1

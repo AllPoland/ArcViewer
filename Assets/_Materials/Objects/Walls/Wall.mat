@@ -23,13 +23,12 @@ Material:
   m_Name: Wall
   m_Shader: {fileID: -6465566751694194690, guid: 187dd32523407c242996675aff053c5a, type: 3}
   m_ValidKeywords:
-  - _ENVIRONMENTREFLECTIONS_OFF
   - _SPECULARHIGHLIGHTS_OFF
   m_InvalidKeywords: []
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: 2990
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -106,7 +105,7 @@ Material:
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 10
-    - _ENVIRONMENTREFLECTIONS_OFF: 1
+    - _ENVIRONMENTREFLECTIONS_OFF: 0
     - _EdgeAlpha: 0.942
     - _EdgeEmission: 3
     - _EdgeMaxWidth: 0.02
@@ -124,7 +123,7 @@ Material:
     - _Mode: 3
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _QueueControl: 0
+    - _QueueControl: 1
     - _QueueOffset: 0
     - _ReceiveShadows: 0
     - _SPECULARHIGHLIGHTS_OFF: 1
