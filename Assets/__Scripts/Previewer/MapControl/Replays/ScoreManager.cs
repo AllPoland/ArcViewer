@@ -38,6 +38,7 @@ public class ScoreManager : MonoBehaviour
     [Space]
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI scorePercentageText;
+    [SerializeField] private TextMeshProUGUI fcPercentageText;
     [SerializeField] private TextMeshProUGUI gradeText;
     [SerializeField] private TextMeshProUGUI comboText;
     [SerializeField] private TextMeshProUGUI missText;
@@ -120,14 +121,19 @@ public class ScoreManager : MonoBehaviour
     public static void InitializeMapScore()
     {
         int currentScore = 0;
+        int fcScore = 0;
         int maxScore = 0;
+        int maxScoreNoMisses = 0;
 
         int combo = 0;
         byte comboMult = 0;
         byte comboProgress = 0;
 
-        int fcComboMult = 0;
-        int fcComboProgress = 0;
+        byte maxComboMult = 0;
+        byte maxComboProgress = 0;
+
+        byte fcComboMult = 0;
+        byte fcComboProgress = 0;
 
         int misses = 0;
 
@@ -157,6 +163,34 @@ public class ScoreManager : MonoBehaviour
                 continue;
             }
 
+            if(maxComboMult < ComboMultipliers.Length - 1 && currentEvent.scoringType != ScoringType.NoScore)
+            {
+                //Increment max combo, which is used to calculate max score
+                maxComboProgress++;
+                if(maxComboProgress >= HitsNeededForComboIncrease[maxComboMult])
+                {
+                    maxComboMult++;
+                    maxComboProgress = 0;
+                }
+            }
+
+            int maxEventScore = 0;
+            switch(currentEvent.scoringType)
+            {
+                case ScoringType.Note:
+                case ScoringType.ArcHead:
+                case ScoringType.ArcTail:
+                    maxEventScore = MaxNoteScore;
+                    break;
+                case ScoringType.ChainHead:
+                    maxEventScore = MaxChainHeadScore;
+                    break;
+                case ScoringType.ChainLink:
+                    maxEventScore = MaxChainLinkScore;
+                    break;
+            }
+            maxScore += maxEventScore * ComboMultipliers[maxComboMult];
+
             if(currentEvent.IsBadHit)
             {
                 combo = 0;
@@ -184,42 +218,34 @@ public class ScoreManager : MonoBehaviour
                 }
 
                 currentScore += currentEvent.ScoreGained * ComboMultipliers[comboMult];
-            }
 
-            if(fcComboMult < ComboMultipliers.Length - 1 && currentEvent.scoringType != ScoringType.NoScore)
-            {
-                //Increment FC combo, which is used to calculate max score
-                fcComboProgress++;
-                if(fcComboProgress >= HitsNeededForComboIncrease[fcComboMult])
+                //Count this hit towards the FC score
+                if(fcComboMult < ComboMultipliers.Length - 1 && currentEvent.scoringType != ScoringType.NoScore)
                 {
-                    fcComboMult++;
-                    fcComboProgress = 0;
+                    //Increment FC combo, which is used to calculate FC percentage
+                    fcComboProgress++;
+                    if(fcComboProgress >= HitsNeededForComboIncrease[fcComboMult])
+                    {
+                        fcComboMult++;
+                        fcComboProgress = 0;
+                    }
                 }
-            }
 
-            switch(currentEvent.scoringType)
-            {
-                case ScoringType.Note:
-                case ScoringType.ArcHead:
-                case ScoringType.ArcTail:
-                    maxScore += MaxNoteScore * ComboMultipliers[fcComboMult];
-                    break;
-                case ScoringType.ChainHead:
-                    maxScore += MaxChainHeadScore * ComboMultipliers[fcComboMult];
-                    break;
-                case ScoringType.ChainLink:
-                    maxScore += MaxChainLinkScore * ComboMultipliers[fcComboMult];
-                    break;
+                fcScore += currentEvent.ScoreGained * ComboMultipliers[fcComboMult];
+                maxScoreNoMisses += maxEventScore * ComboMultipliers[fcComboMult];
             }
 
             currentEvent.TotalScore = currentScore;
+            currentEvent.FCScore = fcScore;
             currentEvent.MaxScore = maxScore;
+            currentEvent.MaxScoreNoMisses = maxScoreNoMisses;
             currentEvent.Combo = combo;
             currentEvent.ComboMult = comboMult;
             currentEvent.ComboProgress = comboProgress;
             currentEvent.Misses = misses;
 
             currentEvent.ScorePercentage = maxScore == 0 ? 100f : ((float)currentScore / maxScore) * 100;
+            currentEvent.FCScorePercentage = maxScoreNoMisses == 0 ? 100f : ((float)fcScore / maxScoreNoMisses) * 100;
             // Debug.Log($"Event #{i} | Time: {Math.Round(currentEvent.Time, 2)} | Type: {currentEvent.scoringType} | Score: {currentEvent.ScoreGained} | Total score: {currentScore} | Max score: {maxScore} | Combo: {combo} | Combo mult: {ComboMultipliers[comboMult]}x");
         }
 
@@ -276,6 +302,27 @@ public class ScoreManager : MonoBehaviour
             return "D";
         }
         else return "E";
+    }
+
+
+    private static string GetPercentageString(float percentage)
+    {
+        float roundedPercentage = (float)Math.Round(percentage, 2);
+        string percentageString = roundedPercentage.ToString(CultureInfo.InvariantCulture);
+        string[] split = percentageString.Split('.');
+        int decimals = split.Length > 1 ? split[1].Length : 0;
+
+        if(decimals == 0)
+        {
+            percentageString = $"{percentageString}.00%";
+        }
+        else if(decimals == 1)
+        {
+            percentageString = $"{percentageString}0%";
+        }
+        else percentageString = $"{percentageString}%";
+
+        return percentageString;
     }
 
 
@@ -411,6 +458,7 @@ public class ScoreManager : MonoBehaviour
 
         int currentScore;
         float currentPercentage;
+        float currentFCPercentage;
         int currentCombo;
         int currentComboMult;
         int currentComboProgress;
@@ -421,6 +469,7 @@ public class ScoreManager : MonoBehaviour
 
             currentScore = lastEvent.TotalScore;
             currentPercentage = lastEvent.ScorePercentage;
+            currentFCPercentage = lastEvent.FCScorePercentage;
             currentCombo = lastEvent.Combo;
             currentComboMult = lastEvent.ComboMult;
             currentComboProgress = lastEvent.ComboProgress;
@@ -432,6 +481,7 @@ public class ScoreManager : MonoBehaviour
         {
             currentScore = 0;
             currentPercentage = 100f;
+            currentFCPercentage = 100f;
             currentCombo = 0;
             currentComboMult = 0;
             currentComboProgress = 0;
@@ -468,22 +518,8 @@ public class ScoreManager : MonoBehaviour
 
         scoreText.text = scoreString;
 
-        float roundedPercentage = (float)Math.Round(currentPercentage, 2);
-        string percentageString = roundedPercentage.ToString(CultureInfo.InvariantCulture);
-        string[] split = percentageString.Split('.');
-        int decimals = split.Length > 1 ? split[1].Length : 0;
-
-        if(decimals == 0)
-        {
-            percentageString = $"{percentageString}.00%";
-        }
-        else if(decimals == 1)
-        {
-            percentageString = $"{percentageString}0%";
-        }
-        else percentageString = $"{percentageString}%";
-
-        scorePercentageText.text = percentageString;
+        scorePercentageText.text = GetPercentageString(effectivePercentage);
+        fcPercentageText.text = $"FC : {GetPercentageString(currentFCPercentage)}";
 
         multiplierText.text = multiplierPrefix + ComboMultipliers[currentComboMult].ToString();
         comboProgressFill.fillAmount = (float)currentComboProgress / HitsNeededForComboIncrease[currentComboMult];
@@ -562,6 +598,12 @@ public class ScoreManager : MonoBehaviour
             {
                 UpdateBeat(TimeManager.CurrentBeat);
             }
+        }
+        
+        if(allSettings || setting == "fcacc")
+        {
+            bool showFCPercentage = SettingsManager.GetBool("fcacc");
+            fcPercentageText.gameObject.SetActive(showFCPercentage);
         }
     }
 
