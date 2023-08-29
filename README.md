@@ -1,7 +1,7 @@
 # ArcViewer
 An open source 3D Beat Saber map previewer, designed to give users an accurate representation of Beat Saber maps in a quick, easy to use application
 
-## Changes from repo this is based on.
+## Changes from project this is forked on.
 Currently, this repo adds changes to the ShaderGraphs and GameHUD UI elements. The specific changes in detail are listed below.
 - Note shader is completely different and requires a reflection probe instead of a cubemap.
 - Wall shader has Depth Write on
