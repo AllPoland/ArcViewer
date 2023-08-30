@@ -44,6 +44,9 @@ public class CameraUpdater : MonoBehaviour
 
     private static bool firstPerson;
 
+    private Vector3 fpCameraVelocity = Vector3.zero;
+    private Vector3 fpCameraRotationVelocity = Vector3.zero;
+
 
     private void SetPreviewCamera()
     {
@@ -79,6 +82,10 @@ public class CameraUpdater : MonoBehaviour
     {
         Freecam = false;
         firstPerson = true;
+
+        fpCameraVelocity = Vector3.zero;
+        fpCameraRotationVelocity = Vector3.zero;
+
         UpdateFirstPersonCamera(false);
     }
 
@@ -109,13 +116,11 @@ public class CameraUpdater : MonoBehaviour
             //This is a rare case where I actually don't want this to be deterministic
             //Cause then scrubbing would suck
             float smoothAmount = SettingsManager.GetFloat("fpcamerasmoothing");
-            float moveAmount = Mathf.Max(smoothAmount, 0.1f) / Mathf.Max(Time.deltaTime, 0.001f);
 
-            float moveMagnitude = (cameraPosition - headPosition).magnitude;
-            cameraPosition = Vector3.MoveTowards(cameraPosition, headPosition, moveMagnitude / moveAmount);
+            cameraPosition = Vector3.SmoothDamp(cameraPosition, headPosition, ref fpCameraVelocity, smoothAmount);
 
             float angleDifference = Quaternion.Angle(cameraRotation, headRotation);
-            cameraRotation = Quaternion.RotateTowards(cameraRotation, headRotation, angleDifference / moveAmount);
+            cameraRotation = Quaternion.Slerp(cameraRotation, headRotation, Time.deltaTime / Mathf.Max(smoothAmount, 0.01f));
         }
         else
         {
