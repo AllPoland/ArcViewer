@@ -19,6 +19,11 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if(clicking || !Input.GetMouseButtonDown(0))
+        {
+            return;
+        }
+
         clicking = true;
 
         //Force the song to pause if it's playing
@@ -34,6 +39,11 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
 
     public void OnPointerUp(PointerEventData eventData)
     {
+        if(!clicking || Input.GetMouseButton(0))
+        {
+            return;
+        }
+
         TimeManager.Scrubbing = false;
         if(TimeManager.ForcePause && TimeManager.Progress < 1)
         {

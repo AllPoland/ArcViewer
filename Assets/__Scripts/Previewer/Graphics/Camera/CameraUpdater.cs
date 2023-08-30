@@ -45,7 +45,7 @@ public class CameraUpdater : MonoBehaviour
     private static bool firstPerson;
 
     private Vector3 fpCameraVelocity = Vector3.zero;
-    private Quaternion fpCameraRotationVelocity = Quaternion.identity;
+    private Quaternion fpCameraRotationDeriv = new Quaternion(0f, 0f, 0f, 0f);
 
 
     private void SetPreviewCamera()
@@ -84,7 +84,7 @@ public class CameraUpdater : MonoBehaviour
         firstPerson = true;
 
         fpCameraVelocity = Vector3.zero;
-        fpCameraRotationVelocity = Quaternion.identity;
+        fpCameraRotationDeriv = new Quaternion(0f, 0f, 0f, 0f);
 
         UpdateFirstPersonCamera(false);
     }
@@ -118,7 +118,7 @@ public class CameraUpdater : MonoBehaviour
             float smoothAmount = SettingsManager.GetFloat("fpcamerasmoothing");
 
             cameraPosition = Vector3.SmoothDamp(cameraPosition, headPosition, ref fpCameraVelocity, smoothAmount);
-            cameraRotation = cameraRotation.SmoothDamp(headRotation, ref fpCameraRotationVelocity, smoothAmount);
+            cameraRotation = cameraRotation.SmoothDamp(headRotation, ref fpCameraRotationDeriv, smoothAmount);
         }
         else
         {
