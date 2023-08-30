@@ -10,6 +10,7 @@ public class PlayerPositionManager : MonoBehaviour
     public static Quaternion HeadRotation { get; private set; }
 
     public static float Energy { get; private set; }
+    public static int AverageFPS { get; private set; }
 
     [Header("Components")]
     [SerializeField] private HeadsetHandler headset;
@@ -142,6 +143,7 @@ public class PlayerPositionManager : MonoBehaviour
         }
 
         Energy = currentFrame.Energy;
+        AverageFPS = currentFrame.AverageFPS;
 
         HeadPosition = PlayerSpaceToWorldSpace(currentFrame.headPosition);
         HeadRotation = currentFrame.headRotation;
@@ -151,6 +153,11 @@ public class PlayerPositionManager : MonoBehaviour
     private void UpdateReplay(Replay newReplay)
     {
         ReplayFrames.Clear();
+
+        float lastCheckedFramerateTime = 0f;
+        int checkedFrameCount = 0;
+        int totalFPS = 0;
+        int averageFramerate = 0;
 
         List<Frame> frames = newReplay.frames;
         for(int i = 0; i < frames.Count; i++)
@@ -165,6 +172,33 @@ public class PlayerPositionManager : MonoBehaviour
                 //So we get the time difference between the last two frames
                 newFrame.DeltaTime = lastFrame.Time - secondLastFrame.Time;
             }
+            else
+            {
+                //DeltaTime can be approximated based on framerate
+                newFrame.DeltaTime = 1f / newFrame.FPS;
+            }
+
+            //Calculate average framerates for displaying on the frame counter
+            checkedFrameCount++;
+            totalFPS += newFrame.FPS;
+
+            if(i == 0)
+            {
+                averageFramerate = newFrame.FPS;
+            }
+            else
+            {
+                float timeDifference = newFrame.Time - lastCheckedFramerateTime;
+                if(timeDifference >= FpsDisplay.FramerateSampleTime)
+                {
+                    averageFramerate = totalFPS / checkedFrameCount;
+
+                    lastCheckedFramerateTime = newFrame.Time;
+                    checkedFrameCount = 0;
+                    totalFPS = 0;
+                }
+            }
+            newFrame.AverageFPS = averageFramerate;
 
             ReplayFrames.Add(newFrame);
         }
@@ -354,6 +388,8 @@ public class PlayerPositionManager : MonoBehaviour
 
         bool headInWall = false;
         float wallExitEnergy = 0f;
+        
+        bool initailizedEnergy = false;
 
         int scoringEventIndex = 0;
         for(int i = 0; i < ReplayFrames.Count; i++)
@@ -432,10 +468,11 @@ public class PlayerPositionManager : MonoBehaviour
             energy = Mathf.Min(energy, 1f);
             currentFrame.Energy = energy;
 
-            if(i == 0)
+            if(!initailizedEnergy && currentFrame.Time >= TimeManager.CurrentTime)
             {
                 //Initialize the global energy value with the first frame
                 Energy = energy;
+                initailizedEnergy = true;
             }
         }
     }
@@ -479,6 +516,8 @@ public class ReplayFrame : MapElement
 
     public float DeltaTime;
     public float Energy;
+    public int FPS;
+    public int AverageFPS;
 
     public ReplayFrame(Frame f)
     {
@@ -495,5 +534,6 @@ public class ReplayFrame : MapElement
 
         DeltaTime = 0f;
         Energy = 0f;
+        FPS = f.fps;
     }
 }
