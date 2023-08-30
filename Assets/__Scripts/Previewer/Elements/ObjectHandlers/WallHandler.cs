@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class WallHandler : MonoBehaviour
 {
+    private static float centerScaleOffset = 0.001f;
+
     [SerializeField] private MeshRenderer meshRenderer;
     [SerializeField] private MeshRenderer edgeRenderer;
 
@@ -11,7 +13,12 @@ public class WallHandler : MonoBehaviour
 
     public void SetScale(Vector3 newScale)
     {
-        transform.localScale = newScale;
+        //Make the wall body slightly smaller than edges
+        //To avoid Z fighting with touching wall edges
+        Vector3 centerScale = new Vector3(newScale.x - centerScaleOffset, newScale.y - centerScaleOffset, newScale.z - centerScaleOffset);
+        transform.localScale = centerScale;
+
+        edgeRenderer.transform.localScale = new Vector3(newScale.x / centerScale.x, newScale.y / centerScale.y, newScale.z / centerScale.z);
 
         edgeProperties.SetVector("_WallScale", newScale);
         edgeRenderer.SetPropertyBlock(edgeProperties);

@@ -20,8 +20,11 @@ public class ScoringEvent : MapElement
 
     public int ScoreGained;
     public int TotalScore;
+    public int FCScore;
     public int MaxScore;
+    public int MaxScoreNoMisses;
     public float ScorePercentage;
+    public float FCScorePercentage;
 
     public Vector2 position;
     public float endX;
