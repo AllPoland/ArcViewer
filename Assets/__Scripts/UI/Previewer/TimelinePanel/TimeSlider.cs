@@ -19,6 +19,11 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if(!Input.GetMouseButtonDown(0))
+        {
+            return;
+        }
+
         clicking = true;
 
         //Force the song to pause if it's playing
