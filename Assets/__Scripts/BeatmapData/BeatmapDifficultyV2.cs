@@ -72,6 +72,14 @@ public class BeatmapDifficultyV2
 
             if(n._type == 0 || n._type == 1)
             {
+                int cutDirection = n._cutDirection;
+                if(n._customData?._cutDirection != null)
+                {
+                    //Notes with custom cut direction are serialized as 1 _cutDirection
+                    //Except for dot notes
+                    cutDirection = cutDirection != 8 ? 1 : 8;
+                }
+
                 //Color note
                 colorNotes.Add(
                     new BeatmapColorNote
@@ -80,7 +88,7 @@ public class BeatmapDifficultyV2
                         x = n._lineIndex,
                         y = n._lineLayer,
                         c = n._type,
-                        d = n._cutDirection,
+                        d = cutDirection,
                         a = 0,
                         customData = n._customData?.ConvertToV3() ?? null
                     }
