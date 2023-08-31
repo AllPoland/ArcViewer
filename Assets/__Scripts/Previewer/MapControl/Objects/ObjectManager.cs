@@ -208,7 +208,7 @@ public class ObjectManager : MonoBehaviour
 
         float movementRange = targetHeight - baseHeight;
 
-        return -(movementRange / dSquared) * tSquared + targetHeight;
+        return Mathf.Clamp(-(movementRange / dSquared) * tSquared + targetHeight, -9999f, 9999f);
     }
 
 

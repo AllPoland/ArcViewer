@@ -273,7 +273,8 @@ public class ArcManager : MapElementManager<Arc>
 
         //Calculate the number of points we'll need to make this arc based on the density setting
         //A minimum value is given because very short arcs would otherwise potentially get no segments at all (very bad)
-        int pointCount = Mathf.Max((int)ArcSegmentDensity / 2, (int)(ArcSegmentDensity * duration) + 1);
+        //A maximum value is given to avoid cross-map arcs destroying performance
+        int pointCount = Mathf.Clamp((int)(ArcSegmentDensity * duration) + 1, (int)ArcSegmentDensity / 2, (int)ArcSegmentDensity * 5);
         if(a.MidRotationDirection != ArcRotationDirection.None)
         {
             //Calculating points is different with a midpoint rotation direction
