@@ -82,7 +82,12 @@ public class ReplayManager : MonoBehaviour
         NoWalls = HasModifier("NO");
         NoBombs = HasModifier("NB");
 
-        if(HasModifier("SF"))
+        if(CurrentReplay.info.speed > 0f)
+        {
+            //Speed is saved in practice mode
+            ReplayTimeScale = CurrentReplay.info.speed;
+        }
+        else if(HasModifier("SF"))
         {
             //Super fast song
             ReplayTimeScale = 1.5f;
