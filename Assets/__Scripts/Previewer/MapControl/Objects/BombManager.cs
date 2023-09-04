@@ -171,6 +171,7 @@ public class Bomb : HitSoundEmitter
         WasHit = false;
         WasBadCut = false;
         HitOffset = 0f;
+        ActualHitTime = true;
 
         if(b.customData?.color != null)
         {

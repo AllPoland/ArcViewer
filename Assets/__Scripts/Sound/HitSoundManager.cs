@@ -111,7 +111,7 @@ public class HitSoundManager : MonoBehaviour
         {
             parentList = scheduledSounds,
             source = source,
-            time = emitter.Time
+            time = emitter.ActualHitTime ? emitter.Time - emitter.HitOffset : emitter.Time
         };
         scheduledSounds.Add(sound);
     }
