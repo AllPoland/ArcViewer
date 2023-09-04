@@ -491,7 +491,11 @@ public class ScoreManager : MonoBehaviour
         comboText.text = currentCombo.ToString();
         missText.text = currentMisses.ToString();
 
-        float effectivePercentage = ReplayManager.HasFailed ? currentPercentage / 2 : currentPercentage;
+        float effectivePercentage = currentPercentage * ReplayManager.ModifierMult;
+        if(ReplayManager.HasFailed)
+        {
+            effectivePercentage *= 0.5f;
+        }
         gradeText.text = GradeFromPercentage(effectivePercentage);
 
         //The score gets a space inserted between every 3 decimals
@@ -518,7 +522,7 @@ public class ScoreManager : MonoBehaviour
 
         scoreText.text = scoreString;
 
-        scorePercentageText.text = GetPercentageString(effectivePercentage);
+        scorePercentageText.text = GetPercentageString(currentPercentage);
         fcPercentageText.text = $"FC : {GetPercentageString(currentFCPercentage)}";
 
         multiplierText.text = multiplierPrefix + ComboMultipliers[currentComboMult].ToString();
