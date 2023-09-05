@@ -19,6 +19,10 @@ public class ScoringEvent : MapElement
     public float HitTimeOffset;
 
     public int ScoreGained;
+    public int PreSwingScore;
+    public int PostSwingScore;
+    public int AccuracyScore;
+
     public int TotalScore;
     public int FCScore;
     public int MaxScore;

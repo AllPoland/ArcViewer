@@ -344,7 +344,7 @@ public class ScoreManager : MonoBehaviour
                 //Adjust for the missing post swing points on chain heads
                 scoreGained += postSwingValue;
             }
-            return currentColorSettings.GetScoreColor(scoreGained);
+            return currentColorSettings.GetScoreText(scoringEvent).color;
         }
     }
 
