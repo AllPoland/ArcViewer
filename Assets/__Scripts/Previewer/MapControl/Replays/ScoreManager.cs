@@ -17,6 +17,9 @@ public class ScoreManager : MonoBehaviour
     public const int MaxChainHeadScore = 85;
     public const int MaxChainLinkScore = 20;
 
+    public const int PreSwingValue = 70;
+    public const int PostSwingValue = 30;
+
     public static readonly byte[] ComboMultipliers = new byte[]
     {
         1,
@@ -77,45 +80,6 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private ScoreColorSettings[] colorSettings;
 
     private ScoreColorSettings currentColorSettings = new ScoreColorSettings();
-
-    private const int preSwingValue = 70;
-    private const int postSwingValue = 30;
-
-
-    private static int GetAccScoreFromCenterDistance(float centerDistance)
-    {
-        const int maxAccScore = 15;
-        return Mathf.RoundToInt(maxAccScore * (1f - Mathf.Clamp01(centerDistance / 0.3f)));
-    }
-
-
-    public static int GetNoteScore(ScoringType type, float preSwingAmount, float postSwingAmount, float centerDistance)
-    {
-        if(type == ScoringType.ChainLink)
-        {
-            return MaxChainLinkScore;
-        }
-
-        if(type == ScoringType.ArcHead)
-        {
-            //Arc heads get post swing for free
-            postSwingAmount = 1f;
-        }
-        else if(type == ScoringType.ArcTail)
-        {
-            //Arc tails get pre swing for free
-            preSwingAmount = 1f;
-        }
-        else if(type == ScoringType.ChainHead)
-        {
-            //Chain heads don't get post swing points at all
-            postSwingAmount = 0f;
-        }
-
-        int preSwingScore = Mathf.RoundToInt(Mathf.Clamp01(preSwingAmount) * preSwingValue);
-        int postSwingScore = Mathf.RoundToInt(Mathf.Clamp01(postSwingAmount) * postSwingValue);
-        return preSwingScore + postSwingScore + GetAccScoreFromCenterDistance(Mathf.Abs(centerDistance));
-    }
 
 
     public static void InitializeMapScore()
@@ -342,7 +306,7 @@ public class ScoreManager : MonoBehaviour
             if(scoringEvent.scoringType == ScoringType.ChainHead)
             {
                 //Adjust for the missing post swing points on chain heads
-                scoreGained += postSwingValue;
+                scoreGained += PostSwingValue;
             }
             return currentColorSettings.GetScoreText(scoringEvent).color;
         }

@@ -22,6 +22,7 @@ public class ScoringEvent : MapElement
     public int PreSwingScore;
     public int PostSwingScore;
     public int AccuracyScore;
+    public float TimeDependency;
 
     public int TotalScore;
     public int FCScore;
@@ -63,6 +64,7 @@ public class ScoringEvent : MapElement
             PostSwingAmount = noteEvent.noteCutInfo.afterCutRating;
             SwingCenterDistance = noteEvent.noteCutInfo.cutDistanceToCenter;
             HitTimeOffset = noteEvent.noteCutInfo.timeDeviation;
+            TimeDependency = Mathf.Abs(noteEvent.noteCutInfo.cutNormal.z);
         }
     }
 
@@ -81,6 +83,44 @@ public class ScoringEvent : MapElement
     }
 
 
+    private static int GetAccScoreFromCenterDistance(float centerDistance)
+    {
+        const int maxAccScore = 15;
+        return Mathf.RoundToInt(maxAccScore * (1f - Mathf.Clamp01(centerDistance / 0.3f)));
+    }
+
+
+    private void CalculateNoteScore()
+    {
+        if(scoringType == ScoringType.ChainLink)
+        {
+            ScoreGained = ScoreManager.MaxChainLinkScore;
+            PreSwingScore = 0;
+            PostSwingScore = 0;
+        }
+
+        if(scoringType == ScoringType.ArcHead)
+        {
+            //Arc heads get post swing for free
+            PostSwingAmount = 1f;
+        }
+        else if(scoringType == ScoringType.ArcTail)
+        {
+            //Arc tails get pre swing for free
+            PreSwingAmount = 1f;
+        }
+        else if(scoringType == ScoringType.ChainHead)
+        {
+            //Chain heads don't get post swing points at all
+            PostSwingAmount = 0f;
+        }
+
+        PreSwingScore = Mathf.RoundToInt(Mathf.Clamp01(PreSwingAmount) * ScoreManager.PreSwingValue);
+        PostSwingScore = Mathf.RoundToInt(Mathf.Clamp01(PostSwingAmount) * ScoreManager.PostSwingValue);
+        ScoreGained = PreSwingScore + PostSwingScore + GetAccScoreFromCenterDistance(Mathf.Abs(SwingCenterDistance));
+    }
+
+
     public void SetEventValues(ScoringType newScoringType, Vector2 newPosition)
     {
         const float scoreIndicatorXRandomness = 0.15f;
@@ -92,7 +132,7 @@ public class ScoringEvent : MapElement
 
         if(noteEventType == NoteEventType.good)
         {
-            ScoreGained = ScoreManager.GetNoteScore(scoringType, PreSwingAmount, PostSwingAmount, SwingCenterDistance);
+            CalculateNoteScore();
         }
 
         Initialized = true;
