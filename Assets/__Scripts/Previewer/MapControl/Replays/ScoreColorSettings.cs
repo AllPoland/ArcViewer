@@ -38,12 +38,13 @@ public class ScoreColorSettings
         builder.Replace("%s", scoringEvent.ScoreGained.ToString());
         builder.Replace("%t", timeDependency.ToString());
 
-        builder.Replace("%B", preSwingJudgement.text);
-        builder.Replace("%C", accJudgement.text);
-        builder.Replace("%A", postSwingJudgement.text);
-        builder.Replace("%T", timeDependencyJudgement.text);
-        
+        builder.Replace("%B", preSwingJudgement?.text ?? "");
+        builder.Replace("%C", accJudgement?.text ?? "");
+        builder.Replace("%A", postSwingJudgement?.text ?? "");
+        builder.Replace("%T", timeDependencyJudgement?.text ?? "");
+
         builder.Replace("%n", "<br>");
+        builder.Replace("%%", "%");
 
         return builder.ToString();
     }
@@ -86,7 +87,7 @@ public class ScoreColorSettings
     }
 
 
-    public ScoreTextInfo GetScoreText(ScoringEvent scoringEvent)
+    public ScoreTextInfo GetScoreTextInfo(ScoringEvent scoringEvent)
     {
         for(int i = 0; i < scoreJudgements.Count; i++)
         {
@@ -128,7 +129,7 @@ public class ScoreColorSettings
         }
 
         timeDependencyDecimals = Mathf.Clamp(config.timeDependencyDecimalPrecision, 0, 99);
-        timeDependencyMult = (int)Mathf.Pow(Mathf.Clamp(config.timeDependencyDecimalOffset, 0, 38), 10);
+        timeDependencyMult = (int)Mathf.Pow(10, Mathf.Clamp(config.timeDependencyDecimalOffset, 0, 38));
 
         if(config.judgements != null && config.judgements.Length > 0)
         {
@@ -207,5 +208,10 @@ public class ScoreTextInfo
     public ScoreTextInfo(int score)
     {
         text = score.ToString();
+    }
+
+    public ScoreTextInfo(Color scoreColor)
+    {
+        color = scoreColor;
     }
 }

@@ -290,15 +290,15 @@ public class ScoreManager : MonoBehaviour
     }
 
 
-    private Color GetIndicatorColor(ScoringEvent scoringEvent)
+    private ScoreTextInfo GetIndicatorInfo(ScoringEvent scoringEvent)
     {
         if(scoringEvent.IsBadHit)
         {
-            return badColor;
+            return new ScoreTextInfo(badColor);
         }
         else if(scoringEvent.scoringType == ScoringType.ChainLink)
         {
-            return currentColorSettings.chainLinkColor;
+            return new ScoreTextInfo(currentColorSettings.chainLinkColor);
         }
         else
         {
@@ -308,13 +308,40 @@ public class ScoreManager : MonoBehaviour
                 //Adjust for the missing post swing points on chain heads
                 scoreGained += PostSwingValue;
             }
-            return currentColorSettings.GetScoreText(scoringEvent).color;
+            return currentColorSettings.GetScoreTextInfo(scoringEvent);
         }
     }
 
 
     private void UpdateScoreIndicator(ScoringEvent scoringEvent)
     {
+        if(scoringEvent.visual == null)
+        {
+            scoringEvent.visual = scoreIndicatorPool.GetObject();
+            scoringEvent.visual.transform.SetParent(scoreIndicatorParent);
+            scoringEvent.visual.gameObject.SetActive(true);
+
+            RenderedScoringEvents.Add(scoringEvent);
+
+            //Get the score text and color based on HSV config
+            scoringEvent.textInfo = GetIndicatorInfo(scoringEvent);
+            if(scoringEvent.noteEventType == NoteEventType.bad || scoringEvent.noteEventType == NoteEventType.bomb)
+            {
+                //Use the X icon for this indicator
+                scoringEvent.visual.SetIconActive(true);
+            }
+            else
+            {
+                //If the note was missed, use the miss text
+                //Otherwise, use the formatted string from the config
+                bool isMiss = scoringEvent.noteEventType == NoteEventType.miss;
+                string indicatorText = isMiss ? missString : scoringEvent.textInfo.text;
+
+                scoringEvent.visual.SetIconActive(false);
+                scoringEvent.visual.SetText(indicatorText);
+            }
+        }
+
         float timeDifference = TimeManager.CurrentTime - scoringEvent.Time;
         float t = timeDifference / indicatorLifetime;
 
@@ -328,7 +355,7 @@ public class ScoreManager : MonoBehaviour
         Vector3 endPos = new Vector3(scoringEvent.endX, endY, endZ);
         Vector3 position = Vector3.Lerp(startPos, endPos, Easings.Quart.Out(t));
 
-        Color color = GetIndicatorColor(scoringEvent);
+        Color color = scoringEvent.textInfo.color;
         if(timeDifference < indicatorFadeInTime)
         {
             color.a = timeDifference / indicatorFadeInTime;
@@ -344,30 +371,8 @@ public class ScoreManager : MonoBehaviour
             }
         }
 
-        if(scoringEvent.visual == null)
-        {
-            scoringEvent.visual = scoreIndicatorPool.GetObject();
-            scoringEvent.visual.transform.SetParent(scoreIndicatorParent);
-            scoringEvent.visual.gameObject.SetActive(true);
-
-            RenderedScoringEvents.Add(scoringEvent);
-        }
-
-        scoringEvent.visual.transform.position = position;
-
-        if(scoringEvent.noteEventType == NoteEventType.bad || scoringEvent.noteEventType == NoteEventType.bomb)
-        {
-            scoringEvent.visual.SetIconActive(true);
-        }
-        else
-        {
-            bool isMiss = scoringEvent.noteEventType == NoteEventType.miss;
-            string indicatorText = isMiss ? missString : scoringEvent.ScoreGained.ToString();
-
-            scoringEvent.visual.SetIconActive(false);
-            scoringEvent.visual.SetText(indicatorText);
-        }
         scoringEvent.visual.SetColor(color);
+        scoringEvent.visual.transform.position = position;
     }
 
 
@@ -564,6 +569,7 @@ public class ScoreManager : MonoBehaviour
 
             if(ReplayManager.IsReplayMode)
             {
+                ClearIndicators();
                 UpdateBeat(TimeManager.CurrentBeat);
             }
         }

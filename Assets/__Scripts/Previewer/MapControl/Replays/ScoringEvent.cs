@@ -41,6 +41,7 @@ public class ScoringEvent : MapElement
     public int Misses;
 
     public ScoreIndicatorHandler visual;
+    public ScoreTextInfo textInfo;
 
     public bool IsBadHit => noteEventType == NoteEventType.bad
         || noteEventType == NoteEventType.miss
