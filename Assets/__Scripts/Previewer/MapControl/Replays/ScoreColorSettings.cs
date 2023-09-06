@@ -131,31 +131,31 @@ public class ScoreColorSettings
         timeDependencyDecimals = Mathf.Clamp(config.timeDependencyDecimalPrecision, 0, 99);
         timeDependencyMult = (int)Mathf.Pow(10, Mathf.Clamp(config.timeDependencyDecimalOffset, 0, 38));
 
-        if(config.judgements != null && config.judgements.Length > 0)
+        if(config.judgments != null && config.judgments.Length > 0)
         {
             scoreJudgements = new List<ScoreJudgement>();
-            foreach(HsvJudgement judgement in config.judgements)
+            foreach(HsvJudgement judgement in config.judgments)
             {
                 scoreJudgements.Add(new ScoreJudgement(judgement));
             }
+            scoreJudgements = scoreJudgements.OrderByDescending(x => x.scoreThreshold).ToList();
         }
-        scoreJudgements = scoreJudgements.OrderByDescending(x => x.scoreThreshold).ToList();
 
-        if(config.beforeCutAngleJudgements != null)
+        if(config.beforeCutAngleJudgments != null)
         {
-            preSwingJudgements.AddRange(config.beforeCutAngleJudgements.OrderByDescending(x => x.threshold));
+            preSwingJudgements.AddRange(config.beforeCutAngleJudgments.OrderByDescending(x => x.threshold));
         }
-        if(config.accuracyJudgements != null)
+        if(config.accuracyJudgments != null)
         {
-            accJudgements.AddRange(config.accuracyJudgements.OrderByDescending(x => x.threshold));
+            accJudgements.AddRange(config.accuracyJudgments.OrderByDescending(x => x.threshold));
         }
-        if(config.afterCutAngleJudgements != null)
+        if(config.afterCutAngleJudgments != null)
         {
-            postSwingJudgements.AddRange(config.afterCutAngleJudgements.OrderByDescending(x => x.threshold));
+            postSwingJudgements.AddRange(config.afterCutAngleJudgments.OrderByDescending(x => x.threshold));
         }
-        if(config.timeDependencyJudgements != null)
+        if(config.timeDependencyJudgments != null)
         {
-            timeDependencyJudgements.AddRange(config.timeDependencyJudgements.OrderByDescending(x => x.threshold));
+            timeDependencyJudgements.AddRange(config.timeDependencyJudgments.OrderByDescending(x => x.threshold));
         }
     }
 

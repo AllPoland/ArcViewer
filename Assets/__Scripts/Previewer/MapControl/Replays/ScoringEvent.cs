@@ -118,7 +118,8 @@ public class ScoringEvent : MapElement
 
         PreSwingScore = Mathf.RoundToInt(Mathf.Clamp01(PreSwingAmount) * ScoreManager.PreSwingValue);
         PostSwingScore = Mathf.RoundToInt(Mathf.Clamp01(PostSwingAmount) * ScoreManager.PostSwingValue);
-        ScoreGained = PreSwingScore + PostSwingScore + GetAccScoreFromCenterDistance(Mathf.Abs(SwingCenterDistance));
+        AccuracyScore = GetAccScoreFromCenterDistance(Mathf.Abs(SwingCenterDistance));
+        ScoreGained = PreSwingScore + PostSwingScore + AccuracyScore;
     }
 
 

@@ -7,11 +7,11 @@ public class HsvConfig
     public int timeDependencyDecimalPrecision;
     public int timeDependencyDecimalOffset;
 
-    public HsvJudgement[] judgements;
-    public HsvJudgementSegment[] beforeCutAngleJudgements;
-    public HsvJudgementSegment[] accuracyJudgements;
-    public HsvJudgementSegment[] afterCutAngleJudgements;
-    public HsvTimeDependencyJudgement[] timeDependencyJudgements;
+    public HsvJudgement[] judgments;
+    public HsvJudgementSegment[] beforeCutAngleJudgments;
+    public HsvJudgementSegment[] accuracyJudgments;
+    public HsvJudgementSegment[] afterCutAngleJudgments;
+    public HsvTimeDependencyJudgement[] timeDependencyJudgments;
 }
 
 

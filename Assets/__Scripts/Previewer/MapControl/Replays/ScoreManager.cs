@@ -558,20 +558,42 @@ public class ScoreManager : MonoBehaviour
     }
 
 
-    private void UpdateSettings(string setting)
+    private void UpdateScoreColorSettings()
     {
-        bool allSettings = setting == "all";
-        if(colorSettings.Length > 0 && (allSettings || setting == "scorecolortype"))
+        if(SettingsManager.GetBool("customhsvconfig") && HsvLoader.CustomHSV != null)
+        {
+            currentColorSettings = HsvLoader.CustomHSV;
+        }
+        else
         {
             int colorSettingsIndex = SettingsManager.GetInt("scorecolortype");
             colorSettingsIndex = Mathf.Clamp(colorSettingsIndex, 0, colorSettings.Length - 1);
             currentColorSettings = colorSettings[colorSettingsIndex];
+        }
 
-            if(ReplayManager.IsReplayMode)
-            {
-                ClearIndicators();
-                UpdateBeat(TimeManager.CurrentBeat);
-            }
+        if(ReplayManager.IsReplayMode)
+        {
+            ClearIndicators();
+            UpdateBeat(TimeManager.CurrentBeat);
+        }
+    }
+
+
+    private void UpdateCustomHSV()
+    {
+        if(SettingsManager.Loaded && SettingsManager.GetBool("customhsvconfig"))
+        {
+            UpdateScoreColorSettings();
+        }
+    }
+
+
+    private void UpdateSettings(string setting)
+    {
+        bool allSettings = setting == "all";
+        if(colorSettings.Length > 0 && (allSettings || setting == "scorecolortype" || setting == "customhsvconfig"))
+        {
+            UpdateScoreColorSettings();
         }
         
         if(allSettings || setting == "fcacc")
@@ -587,6 +609,7 @@ public class ScoreManager : MonoBehaviour
         ReplayManager.OnReplayModeChanged += UpdateReplayMode;
         UIStateManager.OnUIStateChanged += UpdateUIState;
         SettingsManager.OnSettingsUpdated += UpdateSettings;
+        HsvLoader.OnCustomHSVUpdated += UpdateCustomHSV;
 
         if(SettingsManager.Loaded)
         {
