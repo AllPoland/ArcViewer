@@ -29,7 +29,7 @@ public class ScoreColorSettings
         HsvJudgementSegment accJudgement = accJudgements.FirstOrDefault(x => x.threshold <= scoringEvent.AccuracyScore);
         HsvJudgementSegment postSwingJudgement = postSwingJudgements.FirstOrDefault(x => x.threshold <= scoringEvent.PostSwingScore);
 
-        HsvTimeDependencyJudgement timeDependencyJudgement = timeDependencyJudgements.FirstOrDefault(x => x.threshold <= timeDependency);
+        HsvTimeDependencyJudgement timeDependencyJudgement = timeDependencyJudgements.FirstOrDefault(x => x.threshold <= scoringEvent.TimeDependency);
 
         StringBuilder builder = new StringBuilder(judgement.text);
         builder.Replace("%b", scoringEvent.PreSwingScore.ToString());
