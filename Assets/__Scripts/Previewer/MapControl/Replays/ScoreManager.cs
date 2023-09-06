@@ -294,11 +294,11 @@ public class ScoreManager : MonoBehaviour
     {
         if(scoringEvent.IsBadHit)
         {
-            return new ScoreTextInfo(badColor);
+            return new ScoreTextInfo(0, badColor);
         }
         else if(scoringEvent.scoringType == ScoringType.ChainLink)
         {
-            return new ScoreTextInfo(currentColorSettings.chainLinkColor);
+            return new ScoreTextInfo(MaxChainLinkScore, currentColorSettings.chainLinkColor);
         }
         else
         {
@@ -358,7 +358,7 @@ public class ScoreManager : MonoBehaviour
         Color color = scoringEvent.textInfo.color;
         if(timeDifference < indicatorFadeInTime)
         {
-            color.a = timeDifference / indicatorFadeInTime;
+            color.a *= timeDifference / indicatorFadeInTime;
         }
         else
         {
@@ -367,7 +367,7 @@ public class ScoreManager : MonoBehaviour
             if(TimeManager.CurrentTime >= fadeStartTime)
             {
                 timeDifference = endTime - TimeManager.CurrentTime;
-                color.a = timeDifference / indicatorFadeOutTime;
+                color.a *= timeDifference / indicatorFadeOutTime;
             }
         }
 
