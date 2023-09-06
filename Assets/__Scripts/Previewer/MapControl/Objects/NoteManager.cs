@@ -467,6 +467,7 @@ public class Note : HitSoundEmitter
         WasHit = true;
         WasBadCut = false;
         HitOffset = 0f;
+        ActualHitTime = false;
 
         if(n.customData?.color != null)
         {

@@ -34,6 +34,8 @@ public class ReplayManager : MonoBehaviour
     public static bool NoWalls { get; private set; }
     public static bool NoBombs { get; private set; }
 
+    public static float ModifierMult { get; private set; }
+
     public static bool Failed = false;
     public static float FailTime = 0f;
     public static bool HasFailed => Failed && TimeManager.CurrentTime >= FailTime;
@@ -50,6 +52,51 @@ public class ReplayManager : MonoBehaviour
     private static bool HasModifier(string modifier)
     {
         return Modifiers.Any(x => x.Equals(modifier, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+
+    private static void UpdateModifierMult()
+    {
+        ModifierMult = 1f;
+
+        if(NoBombs)
+        {
+            ModifierMult -= 0.1f;
+        }
+        if(NoWalls)
+        {
+            ModifierMult -= 0.05f;
+        }
+        if(NoArrows)
+        {
+            ModifierMult -= 0.3f;
+        }
+
+        if(HasModifier("GN"))
+        {
+            ModifierMult += 0.11f;
+        }
+        else if(HasModifier("DA"))
+        {
+            ModifierMult += 0.07f;
+        }
+
+        if(ReplayTimeScale < 0.86f)
+        {
+            //Slower Song
+            //This is a scuffed way to check but uhh huhhmum uhhh y'roure mother
+            ModifierMult -= 0.3f;
+        }
+        else if(ReplayTimeScale > 1.49f)
+        {
+            //Super Fast Song
+            ModifierMult += 0.1f;
+        }
+        else if(ReplayTimeScale > 1.19f)
+        {
+            //Faster song
+            ModifierMult += 0.08f;
+        }
     }
 
 
@@ -82,7 +129,12 @@ public class ReplayManager : MonoBehaviour
         NoWalls = HasModifier("NO");
         NoBombs = HasModifier("NB");
 
-        if(HasModifier("SF"))
+        if(CurrentReplay.info.speed > 0f)
+        {
+            //Speed is saved in practice mode
+            ReplayTimeScale = CurrentReplay.info.speed;
+        }
+        else if(HasModifier("SF"))
         {
             //Super fast song
             ReplayTimeScale = 1.5f;
@@ -98,6 +150,8 @@ public class ReplayManager : MonoBehaviour
             ReplayTimeScale = 0.85f;
         }
         else ReplayTimeScale = 1f;
+
+        UpdateModifierMult();
 
         TimeManager.OnBeatChangedEarly += UpdateBeat;
 
@@ -178,6 +232,7 @@ public class ReplayManager : MonoBehaviour
         CurrentReplay = null;
         PlayerHeight = ObjectManager.DefaultPlayerHeight;
         Modifiers = new string[0];
+        ModifierMult = 1f;
 
         Failed = false;
         FailTime = 0f;

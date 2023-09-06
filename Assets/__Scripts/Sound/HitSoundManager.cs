@@ -111,7 +111,7 @@ public class HitSoundManager : MonoBehaviour
         {
             parentList = scheduledSounds,
             source = source,
-            time = emitter.Time
+            time = emitter.ActualHitTime ? emitter.Time - emitter.HitOffset : emitter.Time
         };
         scheduledSounds.Add(sound);
     }
@@ -137,6 +137,7 @@ public class HitSoundManager : MonoBehaviour
 
     public void UpdateTimeScale(float newScale)
     {
+        float currentTime = SongManager.GetSongTime();
         for(int i = scheduledSounds.Count - 1; i >= 0; i--)
         {
             ScheduledSound sound = scheduledSounds[i];
@@ -147,7 +148,7 @@ public class HitSoundManager : MonoBehaviour
                 sound.source.Stop();
                 sound.scheduled = false;
 
-                sound.UpdateTime();
+                sound.UpdateTime(currentTime);
             }
         }
     }
@@ -155,10 +156,11 @@ public class HitSoundManager : MonoBehaviour
 
     private void Update()
     {
+        float currentTime = SongManager.GetSongTime();
         for(int i = scheduledSounds.Count - 1; i >= 0; i--)
         {
             //Update each sound's priority and queue and such
-            scheduledSounds[i].UpdateTime();
+            scheduledSounds[i].UpdateTime(currentTime);
         }
     }
 
@@ -197,7 +199,7 @@ public class ScheduledSound
     }
 
 
-    public void UpdateTime()
+    public void UpdateTime(float currentTime)
     {
         if(source == null || !source.isActiveAndEnabled)
         {
@@ -205,53 +207,58 @@ public class ScheduledSound
             return;
         }
 
-        float currentTime = SongManager.GetSongTime();
-
         //Account for time scale and sound offset
         float timeDifference = (time - currentTime) / TimeSyncHandler.TimeScale;
-        float scheduleIn = timeDifference + (HitSoundManager.SoundOffset / source.pitch);
 
-        if(!scheduled && timeDifference <= 0)
+        if(!scheduled)
         {
-            //The sound should already be playing by this point
-            //Trying to schedule now would just make it off-time and wouldn't be worth it
-            Destroy();
-            return;
-        }
+            if(timeDifference <= 0)
+            {
+                //The sound should already be playing by this point
+                //Trying to schedule now would just make it off-time and wouldn't be worth it
+                Destroy();
+                return;
+            }
 
-        if(HitSoundManager.DynamicPriority)
+            float scheduleIn = timeDifference + (HitSoundManager.SoundOffset / source.pitch);
+            if(!source.isPlaying && scheduleIn <= HitSoundManager.ScheduleBuffer)
+            {
+                if(scheduleIn <= 0)
+                {
+                    //The sound should already be playing the windup
+                    //Instead, schedule the sound exactly on beat with no offset
+                    source.time = -HitSoundManager.SoundOffset;
+                    source.PlayScheduled(AudioSettings.dspTime + timeDifference);
+                }
+                else
+                {
+                    source.time = 0;
+                    source.PlayScheduled(AudioSettings.dspTime + scheduleIn);
+                }
+
+                scheduled = true;
+            }
+        }
+#if !UNITY_WEBGL || UNITY_EDITOR
+        else 
         {
-            //Dynamically set sound priority so playing sounds don't get overridden by scheduled sounds
-            //Thanks galx for making this code
-            if(currentTime - time > 0)
+            if(HitSoundManager.DynamicPriority)
             {
-                const float priorityFalloff = 384;
-                source.priority = Mathf.Clamp(1 + Mathf.RoundToInt((float)(currentTime - time) * priorityFalloff), 1, 254);
+                //Dynamically set sound priority so playing sounds don't get overridden by scheduled sounds
+                //Thanks galx for making this code
+                if(currentTime - time > 0)
+                {
+                    const float priorityFalloff = 384;
+                    source.priority = Mathf.Clamp(1 + Mathf.RoundToInt((float)(currentTime - time) * priorityFalloff), 1, 254);
+                }
+                else
+                {
+                    const float priorityRampup = 192;
+                    source.priority = Mathf.Clamp(1 + Mathf.RoundToInt((float)(time - currentTime) * priorityRampup), 1, 255);
+                }
             }
-            else
-            {
-                const float priorityRampup = 192;
-                source.priority = Mathf.Clamp(1 + Mathf.RoundToInt((float)(time - currentTime) * priorityRampup), 1, 255);
-            }
+            else source.priority = 100;
         }
-        else source.priority = 100;
-
-        if(!scheduled && !source.isPlaying && scheduleIn <= HitSoundManager.ScheduleBuffer)
-        {
-            if(scheduleIn <= 0)
-            {
-                //The sound should already be playing the windup
-                //Instead, schedule the sound exactly on beat with no offset
-                source.time = -HitSoundManager.SoundOffset;
-                source.PlayScheduled(AudioSettings.dspTime + timeDifference);
-            }
-            else
-            {
-                source.time = 0;
-                source.PlayScheduled(AudioSettings.dspTime + scheduleIn);
-            }
-
-            scheduled = true;
-        }
+#endif
     }
 }

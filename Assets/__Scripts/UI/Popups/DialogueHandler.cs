@@ -8,7 +8,7 @@ public class DialogueHandler : MonoBehaviour
 
     public static List<DialogueBox> OpenBoxes = new List<DialogueBox>();
     public static bool LogActive => Instance.logCanvas.activeInHierarchy;
-    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy || Instance.staticLightsWarningPanel.activeInHierarchy || LogActive;
+    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy || Instance.staticLightsWarningPanel.activeInHierarchy || Instance.customHsvPanel.activeInHierarchy || LogActive;
     public static bool PopupActive => DialogueActive || Instance.sharePanel.activeInHierarchy || Instance.jumpSettingsPanel.activeInHierarchy || Instance.statsPanel.activeInHierarchy;
 
     [SerializeField] private GameObject dialogueBoxPrefab;
@@ -20,6 +20,7 @@ public class DialogueHandler : MonoBehaviour
     public GameObject jumpSettingsPanel;
     public GameObject statsPanel;
     public GameObject staticLightsWarningPanel;
+    public GameObject customHsvPanel;
 
 
     public static void ShowDialogueBox(DialogueBoxType type, string text, Action<DialogueResponse> callback = null)
@@ -37,28 +38,13 @@ public class DialogueHandler : MonoBehaviour
     }
 
 
-    public void SetInfoPanelActive(bool active)
-    {
-        infoPanel.SetActive(active);
-    }
+    public void SetInfoPanelActive(bool active) => infoPanel.SetActive(active);
 
+    public void SetSharePanelActive(bool active) => sharePanel.SetActive(active);
 
-    public void SetSharePanelActive(bool active)
-    {
-        sharePanel.SetActive(active);
-    }
+    public void SetJumpSettingsPanelActive(bool active) => jumpSettingsPanel.SetActive(active);
 
-
-    public void SetJumpSettingsPanelActive(bool active)
-    {
-        jumpSettingsPanel.SetActive(active);
-    }
-
-
-    public void SetStatsPanelActive(bool active)
-    {
-        statsPanel.SetActive(active);
-    }
+    public void SetStatsPanelActive(bool active) => statsPanel.SetActive(active);
 
 
     public void ShowLog(Log log)
@@ -69,23 +55,13 @@ public class DialogueHandler : MonoBehaviour
     }
 
 
-    public static void ClearDialogueBoxes()
-    {
-        for(int i = OpenBoxes.Count - 1; i >= 0; i--)
-        {
-            OpenBoxes[i].Close();
-        }
-
-        ClearExtraPopups();
-    }
-
-
     public static void ClearExtraPopups()
     {
         Instance.SetInfoPanelActive(false);
         Instance.SetSharePanelActive(false);
         Instance.SetJumpSettingsPanelActive(false);
         Instance.SetStatsPanelActive(false);
+        Instance.customHsvPanel.SetActive(false);
     }
 
 
@@ -121,6 +97,12 @@ public class DialogueHandler : MonoBehaviour
                 if(infoPanel.activeInHierarchy)
                 {
                     SetInfoPanelActive(false);
+                    return;
+                }
+
+                if(customHsvPanel.activeInHierarchy)
+                {
+                    customHsvPanel.SetActive(false);
                     return;
                 }
 

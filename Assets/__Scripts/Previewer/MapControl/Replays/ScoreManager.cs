@@ -17,6 +17,9 @@ public class ScoreManager : MonoBehaviour
     public const int MaxChainHeadScore = 85;
     public const int MaxChainLinkScore = 20;
 
+    public const int PreSwingValue = 70;
+    public const int PostSwingValue = 30;
+
     public static readonly byte[] ComboMultipliers = new byte[]
     {
         1,
@@ -77,45 +80,6 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private ScoreColorSettings[] colorSettings;
 
     private ScoreColorSettings currentColorSettings = new ScoreColorSettings();
-
-    private const int preSwingValue = 70;
-    private const int postSwingValue = 30;
-
-
-    private static int GetAccScoreFromCenterDistance(float centerDistance)
-    {
-        const int maxAccScore = 15;
-        return Mathf.RoundToInt(maxAccScore * (1f - Mathf.Clamp01(centerDistance / 0.3f)));
-    }
-
-
-    public static int GetNoteScore(ScoringType type, float preSwingAmount, float postSwingAmount, float centerDistance)
-    {
-        if(type == ScoringType.ChainLink)
-        {
-            return MaxChainLinkScore;
-        }
-
-        if(type == ScoringType.ArcHead)
-        {
-            //Arc heads get post swing for free
-            postSwingAmount = 1f;
-        }
-        else if(type == ScoringType.ArcTail)
-        {
-            //Arc tails get pre swing for free
-            preSwingAmount = 1f;
-        }
-        else if(type == ScoringType.ChainHead)
-        {
-            //Chain heads don't get post swing points at all
-            postSwingAmount = 0f;
-        }
-
-        int preSwingScore = Mathf.RoundToInt(Mathf.Clamp01(preSwingAmount) * preSwingValue);
-        int postSwingScore = Mathf.RoundToInt(Mathf.Clamp01(postSwingAmount) * postSwingValue);
-        return preSwingScore + postSwingScore + GetAccScoreFromCenterDistance(Mathf.Abs(centerDistance));
-    }
 
 
     public static void InitializeMapScore()
@@ -326,15 +290,15 @@ public class ScoreManager : MonoBehaviour
     }
 
 
-    private Color GetIndicatorColor(ScoringEvent scoringEvent)
+    private ScoreTextInfo GetIndicatorInfo(ScoringEvent scoringEvent)
     {
         if(scoringEvent.IsBadHit)
         {
-            return badColor;
+            return new ScoreTextInfo(badColor);
         }
         else if(scoringEvent.scoringType == ScoringType.ChainLink)
         {
-            return currentColorSettings.chainLinkColor;
+            return new ScoreTextInfo(currentColorSettings.chainLinkColor);
         }
         else
         {
@@ -342,15 +306,42 @@ public class ScoreManager : MonoBehaviour
             if(scoringEvent.scoringType == ScoringType.ChainHead)
             {
                 //Adjust for the missing post swing points on chain heads
-                scoreGained += postSwingValue;
+                scoreGained += PostSwingValue;
             }
-            return currentColorSettings.GetScoreColor(scoreGained);
+            return currentColorSettings.GetScoreTextInfo(scoringEvent);
         }
     }
 
 
     private void UpdateScoreIndicator(ScoringEvent scoringEvent)
     {
+        if(scoringEvent.visual == null)
+        {
+            scoringEvent.visual = scoreIndicatorPool.GetObject();
+            scoringEvent.visual.transform.SetParent(scoreIndicatorParent);
+            scoringEvent.visual.gameObject.SetActive(true);
+
+            RenderedScoringEvents.Add(scoringEvent);
+
+            //Get the score text and color based on HSV config
+            scoringEvent.textInfo = GetIndicatorInfo(scoringEvent);
+            if(scoringEvent.noteEventType == NoteEventType.bad || scoringEvent.noteEventType == NoteEventType.bomb)
+            {
+                //Use the X icon for this indicator
+                scoringEvent.visual.SetIconActive(true);
+            }
+            else
+            {
+                //If the note was missed, use the miss text
+                //Otherwise, use the formatted string from the config
+                bool isMiss = scoringEvent.noteEventType == NoteEventType.miss;
+                string indicatorText = isMiss ? missString : scoringEvent.textInfo.text;
+
+                scoringEvent.visual.SetIconActive(false);
+                scoringEvent.visual.SetText(indicatorText);
+            }
+        }
+
         float timeDifference = TimeManager.CurrentTime - scoringEvent.Time;
         float t = timeDifference / indicatorLifetime;
 
@@ -364,7 +355,7 @@ public class ScoreManager : MonoBehaviour
         Vector3 endPos = new Vector3(scoringEvent.endX, endY, endZ);
         Vector3 position = Vector3.Lerp(startPos, endPos, Easings.Quart.Out(t));
 
-        Color color = GetIndicatorColor(scoringEvent);
+        Color color = scoringEvent.textInfo.color;
         if(timeDifference < indicatorFadeInTime)
         {
             color.a = timeDifference / indicatorFadeInTime;
@@ -380,30 +371,8 @@ public class ScoreManager : MonoBehaviour
             }
         }
 
-        if(scoringEvent.visual == null)
-        {
-            scoringEvent.visual = scoreIndicatorPool.GetObject();
-            scoringEvent.visual.transform.SetParent(scoreIndicatorParent);
-            scoringEvent.visual.gameObject.SetActive(true);
-
-            RenderedScoringEvents.Add(scoringEvent);
-        }
-
-        scoringEvent.visual.transform.position = position;
-
-        if(scoringEvent.noteEventType == NoteEventType.bad || scoringEvent.noteEventType == NoteEventType.bomb)
-        {
-            scoringEvent.visual.SetIconActive(true);
-        }
-        else
-        {
-            bool isMiss = scoringEvent.noteEventType == NoteEventType.miss;
-            string indicatorText = isMiss ? missString : scoringEvent.ScoreGained.ToString();
-
-            scoringEvent.visual.SetIconActive(false);
-            scoringEvent.visual.SetText(indicatorText);
-        }
         scoringEvent.visual.SetColor(color);
+        scoringEvent.visual.transform.position = position;
     }
 
 
@@ -491,7 +460,11 @@ public class ScoreManager : MonoBehaviour
         comboText.text = currentCombo.ToString();
         missText.text = currentMisses.ToString();
 
-        float effectivePercentage = ReplayManager.HasFailed ? currentPercentage / 2 : currentPercentage;
+        float effectivePercentage = currentPercentage * ReplayManager.ModifierMult;
+        if(ReplayManager.HasFailed)
+        {
+            effectivePercentage *= 0.5f;
+        }
         gradeText.text = GradeFromPercentage(effectivePercentage);
 
         //The score gets a space inserted between every 3 decimals
@@ -518,7 +491,7 @@ public class ScoreManager : MonoBehaviour
 
         scoreText.text = scoreString;
 
-        scorePercentageText.text = GetPercentageString(effectivePercentage);
+        scorePercentageText.text = GetPercentageString(currentPercentage);
         fcPercentageText.text = $"FC : {GetPercentageString(currentFCPercentage)}";
 
         multiplierText.text = multiplierPrefix + ComboMultipliers[currentComboMult].ToString();
@@ -585,19 +558,42 @@ public class ScoreManager : MonoBehaviour
     }
 
 
-    private void UpdateSettings(string setting)
+    private void UpdateScoreColorSettings()
     {
-        bool allSettings = setting == "all";
-        if(colorSettings.Length > 0 && (allSettings || setting == "scorecolortype"))
+        if(SettingsManager.GetBool("customhsvconfig") && HsvLoader.CustomHSV != null)
+        {
+            currentColorSettings = HsvLoader.CustomHSV;
+        }
+        else
         {
             int colorSettingsIndex = SettingsManager.GetInt("scorecolortype");
             colorSettingsIndex = Mathf.Clamp(colorSettingsIndex, 0, colorSettings.Length - 1);
             currentColorSettings = colorSettings[colorSettingsIndex];
+        }
 
-            if(ReplayManager.IsReplayMode)
-            {
-                UpdateBeat(TimeManager.CurrentBeat);
-            }
+        if(ReplayManager.IsReplayMode)
+        {
+            ClearIndicators();
+            UpdateBeat(TimeManager.CurrentBeat);
+        }
+    }
+
+
+    private void UpdateCustomHSV()
+    {
+        if(SettingsManager.Loaded && SettingsManager.GetBool("customhsvconfig"))
+        {
+            UpdateScoreColorSettings();
+        }
+    }
+
+
+    private void UpdateSettings(string setting)
+    {
+        bool allSettings = setting == "all";
+        if(colorSettings.Length > 0 && (allSettings || setting == "scorecolortype" || setting == "customhsvconfig"))
+        {
+            UpdateScoreColorSettings();
         }
         
         if(allSettings || setting == "fcacc")
@@ -613,6 +609,7 @@ public class ScoreManager : MonoBehaviour
         ReplayManager.OnReplayModeChanged += UpdateReplayMode;
         UIStateManager.OnUIStateChanged += UpdateUIState;
         SettingsManager.OnSettingsUpdated += UpdateSettings;
+        HsvLoader.OnCustomHSVUpdated += UpdateCustomHSV;
 
         if(SettingsManager.Loaded)
         {
