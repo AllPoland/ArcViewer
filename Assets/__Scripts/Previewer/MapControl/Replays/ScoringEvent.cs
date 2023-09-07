@@ -22,6 +22,7 @@ public class ScoringEvent : MapElement
     public int PreSwingScore;
     public int PostSwingScore;
     public int AccuracyScore;
+    public int MaxSwingScore;
     public float TimeDependency;
 
     public int TotalScore;
@@ -98,23 +99,29 @@ public class ScoringEvent : MapElement
             ScoreGained = ScoreManager.MaxChainLinkScore;
             PreSwingScore = 0;
             PostSwingScore = 0;
+            MaxSwingScore = ScoreManager.MaxChainLinkScore;
+            return;
         }
-
+        
         if(scoringType == ScoringType.ArcHead)
         {
             //Arc heads get post swing for free
             PostSwingAmount = 1f;
+            MaxSwingScore = ScoreManager.MaxNoteScore;
         }
         else if(scoringType == ScoringType.ArcTail)
         {
             //Arc tails get pre swing for free
             PreSwingAmount = 1f;
+            MaxSwingScore = ScoreManager.MaxNoteScore;
         }
         else if(scoringType == ScoringType.ChainHead)
         {
             //Chain heads don't get post swing points at all
             PostSwingAmount = 0f;
+            MaxSwingScore = ScoreManager.MaxChainHeadScore;
         }
+        else MaxSwingScore = ScoreManager.MaxNoteScore;
 
         PreSwingScore = Mathf.RoundToInt(Mathf.Clamp01(PreSwingAmount) * ScoreManager.PreSwingValue);
         PostSwingScore = Mathf.RoundToInt(Mathf.Clamp01(PostSwingAmount) * ScoreManager.PostSwingValue);

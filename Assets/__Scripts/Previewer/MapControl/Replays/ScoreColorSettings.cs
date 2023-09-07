@@ -23,7 +23,7 @@ public class ScoreColorSettings
 
     private string GetFormattedScoreText(ScoreJudgement judgement, ScoringEvent scoringEvent)
     {
-        float timeDependency = (float)Math.Round(scoringEvent.TimeDependency, timeDependencyDecimals) * timeDependencyMult;
+        float timeDependency = (float)Math.Round(scoringEvent.TimeDependency * timeDependencyMult, timeDependencyDecimals);
 
         HsvJudgementSegment preSwingJudgement = preSwingJudgements.FirstOrDefault(x => x.threshold <= scoringEvent.PreSwingScore);
         HsvJudgementSegment accJudgement = accJudgements.FirstOrDefault(x => x.threshold <= scoringEvent.AccuracyScore);
@@ -31,22 +31,67 @@ public class ScoreColorSettings
 
         HsvTimeDependencyJudgement timeDependencyJudgement = timeDependencyJudgements.FirstOrDefault(x => x.threshold <= scoringEvent.TimeDependency);
 
-        StringBuilder builder = new StringBuilder(judgement.text);
-        builder.Replace("%b", scoringEvent.PreSwingScore.ToString());
-        builder.Replace("%c", scoringEvent.AccuracyScore.ToString());
-        builder.Replace("%a", scoringEvent.PostSwingScore.ToString());
-        builder.Replace("%s", scoringEvent.ScoreGained.ToString());
-        builder.Replace("%t", timeDependency.ToString());
+        var builder = new StringBuilder();
+        var formatString = judgement.text;
+        var nextPercentIndex = formatString.IndexOf('%');
+        while (nextPercentIndex != -1)
+        {
+            builder.Append(formatString.Substring(0, nextPercentIndex));
+            if (formatString.Length == nextPercentIndex + 1)
+            {
+                formatString += " ";
+            }
 
-        builder.Replace("%B", preSwingJudgement?.text ?? "");
-        builder.Replace("%C", accJudgement?.text ?? "");
-        builder.Replace("%A", postSwingJudgement?.text ?? "");
-        builder.Replace("%T", timeDependencyJudgement?.text ?? "");
+            var specifier = formatString[nextPercentIndex + 1];
 
-        builder.Replace("%n", "<br>");
-        builder.Replace("%%", "%");
+            switch (specifier)
+            {
+                case 'b':
+                    builder.Append(scoringEvent.PreSwingScore);
+                    break;
+                case 'c':
+                    builder.Append(scoringEvent.AccuracyScore);
+                    break;
+                case 'a':
+                    builder.Append(scoringEvent.PostSwingScore);
+                    break;
+                case 't':
+                    builder.Append(timeDependency);
+                    break;
+                case 'B':
+                    builder.Append(preSwingJudgement.text ?? "");
+                    break;
+                case 'C':
+                    builder.Append(accJudgement.text ?? "");
+                    break;
+                case 'A':
+                    builder.Append(postSwingJudgement.text ?? "");
+                    break;
+                case 'T':
+                    builder.Append(timeDependencyJudgement.text ?? "");
+                    break;
+                case 's':
+                    builder.Append(scoringEvent.ScoreGained);
+                    break;
+                case 'p':
+                    builder.Append($"{(double)scoringEvent.ScoreGained / scoringEvent.MaxSwingScore * 100:0}");
+                    break;
+                case '%':
+                    builder.Append("%");
+                    break;
+                case 'n':
+                    builder.Append("<br>");
+                    break;
+                default:
+                    builder.Append("%" + specifier);
+                    break;
+            }
 
-        return builder.ToString();
+            formatString = formatString.Remove(0, nextPercentIndex + 2);
+            nextPercentIndex = formatString.IndexOf('%');
+        }
+
+        return builder.Append(formatString).ToString();
     }
 
 
@@ -62,7 +107,7 @@ public class ScoreColorSettings
                 return judgement.text;
             case FormatMode.ScoreOnTop:
             default:
-                return $"{judgement.text}<br>{scoringEvent.ScoreGained.ToString()}";
+                return $"{scoringEvent.ScoreGained.ToString()}<br>{judgement.text}<br>";
         }
     }
 
@@ -81,6 +126,7 @@ public class ScoreColorSettings
         }
         else newInfo.color = judgement.color;
 
+        newInfo.color.a = Mathf.Clamp(newInfo.color.a, 0f, 1f);
         newInfo.text = GetScoreText(judgement, scoringEvent);
 
         return newInfo;
@@ -89,11 +135,17 @@ public class ScoreColorSettings
 
     public ScoreTextInfo GetScoreTextInfo(ScoringEvent scoringEvent)
     {
+        int scoreGained = scoringEvent.ScoreGained;
+        if(scoringEvent.scoringType == ScoringType.ChainHead)
+        {
+            scoreGained += ScoreManager.PostSwingValue;
+        }
+
         for(int i = 0; i < scoreJudgements.Count; i++)
         {
             ScoreJudgement judgement = scoreJudgements[i];
 
-            if(judgement.scoreThreshold <= scoringEvent.ScoreGained)
+            if(judgement.scoreThreshold <= scoreGained)
             {
                 ScoreJudgement lastJudgement = i > 0 ? scoreJudgements[i - 1] : null;
                 return GetTextInfoFromScore(judgement, lastJudgement, scoringEvent);
@@ -210,8 +262,9 @@ public class ScoreTextInfo
         text = score.ToString();
     }
 
-    public ScoreTextInfo(Color scoreColor)
+    public ScoreTextInfo(int score, Color scoreColor)
     {
+        text = score.ToString();
         color = scoreColor;
     }
 }
