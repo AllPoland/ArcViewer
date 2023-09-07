@@ -10,6 +10,11 @@ public class UIHideInput : MonoBehaviour
         private set
         {
             _uiVisible = value;
+
+            if(!_uiVisible)
+            {
+                DialogueHandler.ClearExtraPopups();
+            }
             OnUIVisibleChanged?.Invoke(_uiVisible);
         }
     }
@@ -43,7 +48,10 @@ public class UIHideInput : MonoBehaviour
 
     private void Update()
     {
-        CheckInput();
+        if(!EventSystemHelper.SelectedObject)
+        {
+            CheckInput();
+        }
     }
 
 
