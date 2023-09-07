@@ -30,6 +30,9 @@ public class FpsDisplay : MonoBehaviour
     private void UpdateReplayMode(bool replayMode) => SetCountersActive();
 
 
+    private void UpdateUIState(UIState newState) => SetCountersActive();
+
+
     private void UpdateSettings(string setting)
     {
         if(setting == "all" || setting == "fpscounter")
@@ -69,23 +72,16 @@ public class FpsDisplay : MonoBehaviour
     }
 
 
-    private void OnEnable()
+    private void Start()
     {
         SettingsManager.OnSettingsUpdated += UpdateSettings;
         ReplayManager.OnReplayModeChanged += UpdateReplayMode;
+        UIStateManager.OnUIStateChanged += UpdateUIState;
         TimeManager.OnBeatChanged += UpdateBeat;
 
         if(SettingsManager.Loaded)
         {
             UpdateSettings("all");
         }
-    }
-
-
-    private void OnDisable()
-    {
-        SettingsManager.OnSettingsUpdated -= UpdateSettings;
-        ReplayManager.OnReplayModeChanged -= UpdateReplayMode;
-        TimeManager.OnBeatChanged -= UpdateBeat;
     }
 }

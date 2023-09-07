@@ -29,6 +29,14 @@ public class InfoPanel : MonoBehaviour
     public void ToggleJumpSettingsPanel()
     {
         DialogueHandler.Instance.SetJumpSettingsPanelActive(!DialogueHandler.Instance.jumpSettingsPanel.activeInHierarchy);
+        DialogueHandler.Instance.SetStatsPanelActive(false);
+    }
+
+
+    public void ToggleStatsPanel()
+    {
+        DialogueHandler.Instance.SetStatsPanelActive(!DialogueHandler.Instance.statsPanel.activeInHierarchy);
+        DialogueHandler.Instance.SetJumpSettingsPanelActive(false);
     }
 
 

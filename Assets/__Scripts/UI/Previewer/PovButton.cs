@@ -7,7 +7,7 @@ public class PovButton : MonoBehaviour
 
     private void Update()
     {
-        if(ReplayManager.IsReplayMode && Input.GetButtonDown("TogglePerspective"))
+        if(ReplayManager.IsReplayMode && !EventSystemHelper.SelectedObject && Input.GetButtonDown("TogglePerspective"))
         {
             button.ToggleSetting(false);
         }
