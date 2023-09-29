@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Web;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -81,17 +83,8 @@ public class UrlArgHandler : MonoBehaviour
     [SerializeField] private MapLoader mapLoader;
 
 
-    private void ParseParameter(string parameter)
+    private void ParseParameter(string name, string value)
     {
-        string[] args = parameter.Split('=');
-        if(args.Length != 2)
-        {
-            //A parameter should always have a single `=`, leading to two args
-            return;
-        }
-
-        string name = args[0];
-        string value = args[1];
         switch(name)
         {
             case "id":
@@ -135,12 +128,9 @@ public class UrlArgHandler : MonoBehaviour
         bool setTime = false;
         bool setDiff = false;
 
-        string decodedReplayURL = !string.IsNullOrEmpty(replayURL) ? System.Web.HttpUtility.UrlDecode(replayURL) : null;
-        string decodedMapUrl = !string.IsNullOrEmpty(mapURL) ? System.Web.HttpUtility.UrlDecode(mapURL) : null;
-
         if(!string.IsNullOrEmpty(replayID))
         {
-            StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, decodedMapUrl, mapID, noProxy));
+            StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, mapURL, mapID, noProxy));
             LoadedReplayID = replayID;
             
             //Don't set the diff cause that depends on the replay
@@ -148,8 +138,8 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(replayURL))
         {
-            StartCoroutine(mapLoader.LoadReplayURLCoroutine(decodedReplayURL, decodedMapUrl, mapID, noProxy));
-            LoadedReplayURL = decodedReplayURL;
+            StartCoroutine(mapLoader.LoadReplayURLCoroutine(replayURL, mapURL, mapID, noProxy));
+            LoadedReplayURL = replayURL;
 
             setTime = true;
         }
@@ -163,8 +153,8 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
-            StartCoroutine(mapLoader.LoadMapZipURLCoroutine(decodedMapUrl, null, null, noProxy));
-            LoadedMapURL = decodedMapUrl;
+            StartCoroutine(mapLoader.LoadMapZipURLCoroutine(mapURL, null, null, noProxy));
+            LoadedMapURL = mapURL;
 
             setTime = true;
             setDiff = true;
@@ -191,38 +181,51 @@ public class UrlArgHandler : MonoBehaviour
     }
 
 
-    public void LoadMapFromURLParameters(string parameters)
+    public void LoadMapFromShareableURL(string url)
     {
-        ResetArguments();
-
         if(MapLoader.Loading)
         {
+            Debug.Log("Tried to load from url args while already loading!");
             return;
         }
 
-        //URL arguments start with a `?`
-        parameters = parameters.TrimStart('?');
-
-        string[] args = parameters.Split('&');
-        if(args.Length <= 0) return;
-
-        for(int i = 0; i < args.Length; i++)
+        if(string.IsNullOrEmpty(url))
         {
-            ParseParameter(args[i]);
+            Debug.LogWarning("Shareable link is null or empty!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Empty shareable link!");
+            return;
+        }
+
+        ResetArguments();
+
+        url = HttpUtility.UrlDecode(url);
+        Uri uri = new Uri(url);
+
+        NameValueCollection args = HttpUtility.ParseQueryString(uri.Query);
+        if(args.AllKeys.Length == 0)
+        {
+            Debug.LogWarning($"Invalid sharing URL: {url}");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Invalid sharing URL!");
+        }
+
+        foreach(string name in args.AllKeys)
+        {
+            ParseParameter(name, args.Get(name));
         }
 
         ApplyArguments();
     }
 
 
-    public void LoadMapFromCommandLineParameters(string[] parameters)
+    private void LoadMapFromCommandLineParameters(string[] parameters)
     {
-        ResetArguments();
-
         if(MapLoader.Loading)
         {
+            Debug.LogWarning("Tried to load from command line args while already loading!");
             return;
         }
+
+        ResetArguments();
 
         if(parameters.Length <= 1)
         {
@@ -232,14 +235,21 @@ public class UrlArgHandler : MonoBehaviour
 
         for(int i = 1; i < parameters.Length; i++)
         {
-            ParseParameter(parameters[i]);
+            string[] args = parameters[i].Split('=');
+            if(args.Length != 2)
+            {
+                //A parameter should always have a single `=`, leading to two args
+                continue;
+            }
+
+            ParseParameter(args[0], args[1]);
         }
 
         ApplyArguments();
     }
 
 
-    public void SetTime()
+    private void SetTime()
     {
         TimeManager.CurrentTime = startTime;
         MapLoader.OnMapLoaded -= SetTime;
@@ -348,7 +358,7 @@ public class UrlArgHandler : MonoBehaviour
 
         if(!string.IsNullOrEmpty(parameters))
         {
-            LoadMapFromURLParameters(parameters);
+            LoadMapFromShareableURL(ArcViewerURL + parameters);
         }
 
         BeatmapManager.OnBeatmapInfoChanged += UpdateMapTitle;
