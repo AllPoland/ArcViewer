@@ -185,7 +185,7 @@ public class UrlArgHandler : MonoBehaviour
     {
         if(MapLoader.Loading)
         {
-            Debug.Log("Tried to load from url args while already loading!");
+            Debug.LogWarning("Tried to load from url args while already loading!");
             return;
         }
 
