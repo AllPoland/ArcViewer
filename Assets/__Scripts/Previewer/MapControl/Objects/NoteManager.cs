@@ -166,6 +166,9 @@ public class NoteManager : MapElementManager<Note>
 
         n.Visual.transform.localPosition = worldPos;
 
+        float noteSize = SettingsManager.GetFloat("notesize");
+        n.Visual.transform.localScale = new Vector3(noteSize, noteSize, noteSize);
+
         if(objectManager.doLookAnimation && !n.IsChainHead)
         {
             //Notes look towards the player's head in replays
