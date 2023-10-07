@@ -90,7 +90,8 @@ public class LightManager : MonoBehaviour
         "RockMixtapeEnvironment",
         "Dragons2Environment",
         "Panic2Environment",
-        "QueenEnvironment"
+        "QueenEnvironment",
+        "LinkinPark2Environment"
     };
 
     //These environments have red/blue flipped on their back/bottom lasers
