@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Specialized;
+using System.Web;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -30,57 +32,41 @@ public class MapDirectoryInput : MonoBehaviour
     private TextMeshProUGUI placeholderText;
 
 
-    private void SharingLinkError()
-    {
-        Debug.LogWarning($"Invalid sharing URL: {MapDirectory}");
-        ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Invalid sharing URL!");
-        directoryField.text = "";
-    }
-
-
     private string CombineArgument(string name, string value)
     {
         return string.Join('=', name, value);
     }
 
 
-    private List<string> ConvertBeatLeaderViewerParameters(string parameters)
+    private List<string> ConvertBeatLeaderViewerParameters(NameValueCollection parameters)
     {
-        string[] args = parameters.Split('&');
-
         List<string> convertedArgs = new List<string>();
-        foreach(string arg in args)
+        foreach(string name in parameters.AllKeys)
         {
-            string[] elements = arg.Split('=');
-            if(elements.Length != 2)
-            {
-                //The argument is improperly formatted
-                continue;
-            }
+            string value = parameters.Get(name);
 
-            string name = elements[0];
-            string value = elements[1];
+            string newName;
             switch(name)
             {
                 case "scoreId":
-                    name = "scoreID";
-                    convertedArgs.Add(CombineArgument(name, value));
+                    newName = "scoreID";
+                    convertedArgs.Add(CombineArgument(newName, value));
                     break;
                 case "link":
-                    name = "replayURL";
-                    convertedArgs.Add(CombineArgument(name, value));
+                    newName = "replayURL";
+                    convertedArgs.Add(CombineArgument(newName, value));
                     break;
                 case "mapLink":
-                    name = "url";
-                    convertedArgs.Add(CombineArgument(name, value));
+                    newName = "url";
+                    convertedArgs.Add(CombineArgument(newName, value));
                     break;
                 case "time":
-                    name = "t";
+                    newName = "t";
                     if(int.TryParse(value, out int result))
                     {
                         //BL stores timestamps in ms, while ArcViewer uses seconds
                         value = ((float)result / 1000).ToString();
-                        convertedArgs.Add(CombineArgument(name, value));
+                        convertedArgs.Add(CombineArgument(newName, value));
                     }
                     break;
             }
@@ -105,43 +91,29 @@ public class MapDirectoryInput : MonoBehaviour
         if(MapDirectory.StartsWith(UrlArgHandler.ArcViewerURL))
         {
             //Input a shared link
-            if(MapDirectory.Count(x => x == '?') == 1)
-            {
-                //URL contains one question mark, which means it has parameters
-                string parameters = MapDirectory.Split('?').Last();
-                urlArgHandler.LoadMapFromURLParameters(parameters);
-                return;
-            }
-            else
-            {
-                SharingLinkError();
-                return;
-            }
+            urlArgHandler.LoadMapFromShareableURL(MapDirectory);
+            return;
         }
 
         if(MapDirectory.StartsWith(UrlArgHandler.BeatLeaderViewerURL))
         {
             //Convert BeatLeader viewer links to ArcViewer parameters
-            if(MapDirectory.Count(x => x == '?') == 1)
-            {
-                string parameters = MapDirectory.Split('?').Last();
-                List<string> convertedArgs = ConvertBeatLeaderViewerParameters(parameters);
+            string url = HttpUtility.UrlDecode(MapDirectory);
+            Uri uri = new Uri(url);
 
-                if(convertedArgs.Count > 0)
-                {
-                    parameters = string.Join('&', convertedArgs);
-                    urlArgHandler.LoadMapFromURLParameters(parameters);
-                    return;
-                }
-                else
-                {
-                    SharingLinkError();
-                    return;
-                }
+            NameValueCollection parameters = HttpUtility.ParseQueryString(uri.Query);
+            List<string> convertedArgs = ConvertBeatLeaderViewerParameters(parameters);
+
+            if(convertedArgs.Count > 0)
+            {
+                string newQuery = string.Join('&', convertedArgs);
+                urlArgHandler.LoadMapFromShareableURL($"{UrlArgHandler.ArcViewerURL}?{newQuery}");
+                return;
             }
             else
             {
-                SharingLinkError();
+                Debug.LogWarning($"Invalid sharing URL: {MapDirectory}");
+                ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Invalid sharing URL!");
                 return;
             }
         }

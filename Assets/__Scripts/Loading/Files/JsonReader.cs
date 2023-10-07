@@ -81,7 +81,7 @@ public static class JsonReader
 
         try
         {
-            string[] v3Versions = {"3.0.0", "3.1.0", "3.2.0"};
+            string[] v3Versions = {"3.0.0", "3.1.0", "3.2.0", "3.3.0"};
             string[] v2Versions = {"2.0.0", "2.2.0", "2.5.0", "2.6.0"};
 
             Match match = VersionRx.Match(json);

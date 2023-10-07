@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Web;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -78,20 +80,43 @@ public class UrlArgHandler : MonoBehaviour
     private static DifficultyRank? diffRank;
     private static bool noProxy;
 
+    private static Dictionary<string, string> unknownArgs = new Dictionary<string, string>();
+
     [SerializeField] private MapLoader mapLoader;
 
 
-    private void ParseParameter(string parameter)
+    private static string AddUnknownParameters(Uri uri)
     {
-        string[] args = parameter.Split('=');
-        if(args.Length != 2)
+        List<string> newArguments = new List<string>();
+        foreach(KeyValuePair<string, string> arg in unknownArgs)
         {
-            //A parameter should always have a single `=`, leading to two args
+            newArguments.Add($"{arg.Key}={arg.Value}");
+        }
+
+        string newQuery = string.Join('&', newArguments);
+        string url = uri.OriginalString;
+
+        NameValueCollection existingArgs = HttpUtility.ParseQueryString(uri.Query);
+        if(existingArgs.AllKeys.Length == 0)
+        {
+            url += $"?{newQuery}";
+        }
+        else
+        {
+            url += $"&{newQuery}";
+        }
+
+        return url;
+    }
+
+
+    private void ParseParameter(string name, string value)
+    {
+        if(string.IsNullOrEmpty(name) || string.IsNullOrEmpty(value))
+        {
             return;
         }
 
-        string name = args[0];
-        string value = args[1];
         switch(name)
         {
             case "id":
@@ -126,6 +151,10 @@ public class UrlArgHandler : MonoBehaviour
                 mapPath = value;
                 break;
 #endif
+            default:
+                //Unknown arguments are stored, since they're likely to be part of a download url
+                unknownArgs.Add(name, value);
+                break;
         }
     }
 
@@ -135,12 +164,9 @@ public class UrlArgHandler : MonoBehaviour
         bool setTime = false;
         bool setDiff = false;
 
-        string decodedReplayURL = !string.IsNullOrEmpty(replayURL) ? System.Web.HttpUtility.UrlDecode(replayURL) : null;
-        string decodedMapUrl = !string.IsNullOrEmpty(mapURL) ? System.Web.HttpUtility.UrlDecode(mapURL) : null;
-
         if(!string.IsNullOrEmpty(replayID))
         {
-            StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, decodedMapUrl, mapID, noProxy));
+            StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, mapURL, mapID, noProxy));
             LoadedReplayID = replayID;
             
             //Don't set the diff cause that depends on the replay
@@ -148,8 +174,10 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(replayURL))
         {
-            StartCoroutine(mapLoader.LoadReplayURLCoroutine(decodedReplayURL, decodedMapUrl, mapID, noProxy));
-            LoadedReplayURL = decodedReplayURL;
+            replayURL = AddUnknownParameters(new Uri(replayURL));
+
+            StartCoroutine(mapLoader.LoadReplayURLCoroutine(replayURL, mapURL, mapID, noProxy));
+            LoadedReplayURL = replayURL;
 
             setTime = true;
         }
@@ -163,8 +191,10 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
-            StartCoroutine(mapLoader.LoadMapZipURLCoroutine(decodedMapUrl, null, null, noProxy));
-            LoadedMapURL = decodedMapUrl;
+            mapURL = AddUnknownParameters(new Uri(mapURL));
+
+            StartCoroutine(mapLoader.LoadMapZipURLCoroutine(mapURL, null, null, noProxy));
+            LoadedMapURL = mapURL;
 
             setTime = true;
             setDiff = true;
@@ -191,38 +221,51 @@ public class UrlArgHandler : MonoBehaviour
     }
 
 
-    public void LoadMapFromURLParameters(string parameters)
+    public void LoadMapFromShareableURL(string url)
     {
-        ResetArguments();
-
         if(MapLoader.Loading)
         {
+            Debug.LogWarning("Tried to load from url args while already loading!");
             return;
         }
 
-        //URL arguments start with a `?`
-        parameters = parameters.TrimStart('?');
-
-        string[] args = parameters.Split('&');
-        if(args.Length <= 0) return;
-
-        for(int i = 0; i < args.Length; i++)
+        if(string.IsNullOrEmpty(url))
         {
-            ParseParameter(args[i]);
+            Debug.LogWarning("Shareable link is null or empty!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Empty shareable link!");
+            return;
+        }
+
+        ResetArguments();
+
+        url = HttpUtility.UrlDecode(url);
+        Uri uri = new Uri(url);
+
+        NameValueCollection args = HttpUtility.ParseQueryString(uri.Query);
+        if(args.AllKeys.Length == 0)
+        {
+            Debug.LogWarning($"Invalid sharing URL: {url}");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Invalid sharing URL!");
+        }
+
+        foreach(string name in args.AllKeys)
+        {
+            ParseParameter(name, args.Get(name));
         }
 
         ApplyArguments();
     }
 
 
-    public void LoadMapFromCommandLineParameters(string[] parameters)
+    private void LoadMapFromCommandLineParameters(string[] parameters)
     {
-        ResetArguments();
-
         if(MapLoader.Loading)
         {
+            Debug.LogWarning("Tried to load from command line args while already loading!");
             return;
         }
+
+        ResetArguments();
 
         if(parameters.Length <= 1)
         {
@@ -232,14 +275,21 @@ public class UrlArgHandler : MonoBehaviour
 
         for(int i = 1; i < parameters.Length; i++)
         {
-            ParseParameter(parameters[i]);
+            string[] args = parameters[i].Split('=');
+            if(args.Length != 2)
+            {
+                //A parameter should always have a single `=`, leading to two args
+                continue;
+            }
+
+            ParseParameter(args[0], args[1]);
         }
 
         ApplyArguments();
     }
 
 
-    public void SetTime()
+    private void SetTime()
     {
         TimeManager.CurrentTime = startTime;
         MapLoader.OnMapLoaded -= SetTime;
@@ -283,6 +333,8 @@ public class UrlArgHandler : MonoBehaviour
         mode = null;
         diffRank = null;
         noProxy = false;
+
+        unknownArgs = new Dictionary<string, string>();
     }
 
 
@@ -348,7 +400,7 @@ public class UrlArgHandler : MonoBehaviour
 
         if(!string.IsNullOrEmpty(parameters))
         {
-            LoadMapFromURLParameters(parameters);
+            LoadMapFromShareableURL(ArcViewerURL + parameters);
         }
 
         BeatmapManager.OnBeatmapInfoChanged += UpdateMapTitle;

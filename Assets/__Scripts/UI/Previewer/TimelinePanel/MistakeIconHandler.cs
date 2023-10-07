@@ -12,6 +12,7 @@ public class MistakeIconHandler : MonoBehaviour
     [SerializeField] private Sprite bombSprite;
     [SerializeField] private Sprite wallSprite;
     [SerializeField] private Sprite pauseSprite;
+    [SerializeField] private Sprite failSprite;
 
     [Space]
     [SerializeField] private Color badcutColor = Color.red;
@@ -19,12 +20,14 @@ public class MistakeIconHandler : MonoBehaviour
     [SerializeField] private Color bombColor = Color.yellow;
     [SerializeField] private Color wallColor = Color.magenta;
     [SerializeField] private Color pauseColor = Color.cyan;
+    [SerializeField] private Color failColor = Color.grey;
 
     [Space]
     [SerializeField] private string badcutTooltip;
     [SerializeField] private string missTooltip;
     [SerializeField] private string bombTooltip;
     [SerializeField] private string wallTooltip;
+    [SerializeField] private string failTooltip;
 
     private List<MistakeIcon> icons = new List<MistakeIcon>();
     private Canvas parentCanvas;
@@ -86,6 +89,18 @@ public class MistakeIconHandler : MonoBehaviour
     }
 
 
+    private void SetFailIconProperties(ref MistakeIcon icon, float failTime)
+    {
+        string timeString = GetTimeString(failTime);
+
+        icon.SetParentReferences(iconParent, parentCanvas);
+        icon.SetTime(failTime);
+
+        icon.SetVisual(failSprite, failColor);
+        icon.SetTooltip(failTooltip + timeString);
+    }
+
+
     private void GenerateIcons()
     {
         ClearIcons();
@@ -115,6 +130,14 @@ public class MistakeIconHandler : MonoBehaviour
             MistakeIcon newIcon = Instantiate(iconPrefab, iconParent, false);
 
             SetPauseIconProperties(ref newIcon, pauseEvent);
+            icons.Add(newIcon);
+        }
+
+        if(ReplayManager.Failed)
+        {
+            MistakeIcon newIcon = Instantiate(iconPrefab, iconParent, false);
+
+            SetFailIconProperties(ref newIcon, ReplayManager.FailTime);
             icons.Add(newIcon);
         }
     }

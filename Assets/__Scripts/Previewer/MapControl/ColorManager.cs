@@ -155,6 +155,8 @@ public class ColorManager : MonoBehaviour
                 return Panic2Colors;
             case "QueenEnvironment":
                 return QueenColors;
+            case "LinkinPark2Environment":
+                return Linkin2Colors;
         }
     }
 
@@ -531,6 +533,19 @@ public class ColorManager : MonoBehaviour
         BoostLightColor2 = new Color(0.4f, 0.007843138f, 0.7254902f),
         BoostWhiteLightColor = Color.white,
         WallColor = new Color(0.9333334f, 0.6392157f, 0.1215686f)
+    };
+
+    public static ColorPalette Linkin2Colors => new ColorPalette
+    {
+        LeftNoteColor = new Color(0.6627451f, 0.1643608f, 0.1690187f),
+        RightNoteColor = new Color(0.3870196f, 0.5168997f, 0.5568628f),
+        LightColor1 = new Color(0.6627451f, 0.1647059f, 0.172549f),
+        LightColor2 = new Color(0.6235294f, 0.6901961f, 0.7098039f),
+        WhiteLightColor = Color.white,
+        BoostLightColor1 = new Color(0.922f, 0.5957885f, 0.255394f),
+        BoostLightColor2 = new Color(0.282353f, 0.4586275f, 0.6235294f),
+        BoostWhiteLightColor = Color.white,
+        WallColor = new Color(0.6627451f, 0.1647059f, 0.172549f)
     };
 }
 

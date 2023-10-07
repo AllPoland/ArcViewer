@@ -424,10 +424,64 @@ public class ObjectManager : MonoBehaviour
         public bool HasAttachment;
         public bool IsHead;
 
+        public float[] coordinates;
+
 
         public override void Mirror()
         {
             x = -(x - 2) + 1;
+        }
+
+
+        public bool AttachToObject(BeatmapColorNote other)
+        {
+            if(x == other.x && y == other.y)
+            {
+                return true;
+            }
+
+            if(other.customData?.coordinates != null && other.customData.coordinates.Length >= 2)
+            {
+                if(coordinates != null && coordinates.Length >= 2)
+                {
+                    if(coordinates[0].Approximately(other.customData.coordinates[0]) && coordinates[1].Approximately(other.customData.coordinates[1]))
+                    {
+                        return true;
+                    }
+                }
+                else if(Mathf.RoundToInt(other.customData.coordinates[0] + 2) == x && Mathf.RoundToInt(other.customData.coordinates[1] + 2) == y)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+
+        public bool AttachToObject(BeatmapBombNote other)
+        {
+            if(x == other.x && y == other.y)
+            {
+                return true;
+            }
+
+            if(other.customData?.coordinates != null && other.customData.coordinates.Length >= 2)
+            {
+                if(coordinates != null && coordinates.Length >= 2)
+                {
+                    if(coordinates[0].Approximately(other.customData.coordinates[0]) && coordinates[1].Approximately(other.customData.coordinates[1]))
+                    {
+                        return true;
+                    }
+                }
+                else if(Mathf.RoundToInt(other.customData.coordinates[0] + 2) == x && Mathf.RoundToInt(other.customData.coordinates[1] + 2) == y)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 
@@ -448,7 +502,8 @@ public class ObjectManager : MonoBehaviour
                 x = a.x,
                 y = a.y,
                 HasAttachment = false,
-                IsHead = true
+                IsHead = true,
+                coordinates = a.customData?.coordinates
             };
 
             BeatmapSliderEnd tail = new BeatmapSliderEnd
@@ -458,7 +513,8 @@ public class ObjectManager : MonoBehaviour
                 x = a.tx,
                 y = a.ty,
                 HasAttachment = false,
-                IsHead = false
+                IsHead = false,
+                coordinates = a.customData?.tailCoordinates
             };
 
             if(a.tb < a.b)
@@ -583,7 +639,7 @@ public class ObjectManager : MonoBehaviour
                 bool hasTail = false;
                 foreach(BeatmapSliderEnd a in sliderEndsOnBeat)
                 {
-                    if(!a.HasAttachment && a.x == n.x && n.y == a.y)
+                    if(!a.HasAttachment && a.AttachToObject(n))
                     {
                         a.StartY = newNote.StartY;
                         a.HasAttachment = true;
@@ -709,7 +765,7 @@ public class ObjectManager : MonoBehaviour
                 // check attachment to arcs
                 foreach(BeatmapSliderEnd a in sliderEndsOnBeat)
                 {
-                    if(!a.HasAttachment && a.x == b.x && b.y == a.y)
+                    if(!a.HasAttachment && a.AttachToObject(b))
                     {
                         a.StartY = newBomb.StartY;
                         a.HasAttachment = true;
