@@ -139,6 +139,9 @@ public class NoteManager : MapElementManager<Note>
                 n.NoteHandler.SetArrowProperties(isRed ? redArrowProperties : blueArrowProperties);
             }
 
+            float noteSize = SettingsManager.GetFloat("notesize");
+            n.Visual.transform.localScale = Vector3.one * noteSize;
+
             n.Visual.SetActive(true);
             n.NoteHandler.EnableVisual();
 
@@ -165,9 +168,6 @@ public class NoteManager : MapElementManager<Note>
         }
 
         n.Visual.transform.localPosition = worldPos;
-
-        float noteSize = SettingsManager.GetFloat("notesize");
-        n.Visual.transform.localScale = new Vector3(noteSize, noteSize, noteSize);
 
         if(objectManager.doLookAnimation && !n.IsChainHead)
         {
