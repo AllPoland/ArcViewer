@@ -80,11 +80,43 @@ public class UrlArgHandler : MonoBehaviour
     private static DifficultyRank? diffRank;
     private static bool noProxy;
 
+    private static Dictionary<string, string> unknownArgs = new Dictionary<string, string>();
+
     [SerializeField] private MapLoader mapLoader;
+
+
+    private static string AddUnknownParameters(Uri uri)
+    {
+        List<string> newArguments = new List<string>();
+        foreach(KeyValuePair<string, string> arg in unknownArgs)
+        {
+            newArguments.Add($"{arg.Key}={arg.Value}");
+        }
+
+        string newQuery = string.Join('&', newArguments);
+        string url = uri.OriginalString;
+
+        NameValueCollection existingArgs = HttpUtility.ParseQueryString(uri.Query);
+        if(existingArgs.AllKeys.Length == 0)
+        {
+            url += $"?{newQuery}";
+        }
+        else
+        {
+            url += $"&{newQuery}";
+        }
+
+        return url;
+    }
 
 
     private void ParseParameter(string name, string value)
     {
+        if(string.IsNullOrEmpty(name) || string.IsNullOrEmpty(value))
+        {
+            return;
+        }
+
         switch(name)
         {
             case "id":
@@ -119,6 +151,10 @@ public class UrlArgHandler : MonoBehaviour
                 mapPath = value;
                 break;
 #endif
+            default:
+                //Unknown arguments are stored, since they're likely to be part of a download url
+                unknownArgs.Add(name, value);
+                break;
         }
     }
 
@@ -138,6 +174,8 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(replayURL))
         {
+            replayURL = AddUnknownParameters(new Uri(replayURL));
+
             StartCoroutine(mapLoader.LoadReplayURLCoroutine(replayURL, mapURL, mapID, noProxy));
             LoadedReplayURL = replayURL;
 
@@ -153,6 +191,8 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
+            mapURL = AddUnknownParameters(new Uri(mapURL));
+
             StartCoroutine(mapLoader.LoadMapZipURLCoroutine(mapURL, null, null, noProxy));
             LoadedMapURL = mapURL;
 
@@ -293,6 +333,8 @@ public class UrlArgHandler : MonoBehaviour
         mode = null;
         diffRank = null;
         noProxy = false;
+
+        unknownArgs = new Dictionary<string, string>();
     }
 
 
