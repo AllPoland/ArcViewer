@@ -4,6 +4,9 @@ public class FreecamController : MonoBehaviour
 {
     public static bool ControlsEnabled { get; private set; }
 
+    [SerializeField] private float movementSpeed = 3f;
+    [SerializeField] private float fastMovementSpeed = 10f;
+
     private float verticalRotation;
     private float horizontalRotation;
 
@@ -17,9 +20,6 @@ public class FreecamController : MonoBehaviour
         horizontalRotation += delta.x;
 
         transform.rotation = Quaternion.Euler(verticalRotation, horizontalRotation, 0f);
-
-        const float movementSpeed = 4f;
-        const float fastMovementSpeed = 8f;
 
         float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? fastMovementSpeed : movementSpeed;
         float movementAmount = currentSpeed * Time.deltaTime;
