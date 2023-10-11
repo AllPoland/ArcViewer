@@ -70,7 +70,7 @@ MonoBehaviour:
     prepassMaterial: {fileID: 2100000, guid: 99b73f444864ea74cbbaf5ee4688e435, type: 2}
     bloomCaptureExtraFov: 40
     threshold: 0
-    brightnessMult: 2.42
+    brightnessMult: 2.75
     attenuation: 0.35
     fogOffset: 0
     fogHeight: 25
@@ -80,22 +80,22 @@ MonoBehaviour:
     outputTextureName: _BloomfogTex
     qualityPresets:
     - referenceScreenHeight: 256
-      downsamplePasses: 5
-      upsampleBlend: 5
+      downsamplePasses: 6
+      upsampleBlend: 8
       ignoreUpsampleIndex: 2
     - referenceScreenHeight: 512
-      downsamplePasses: 6
-      upsampleBlend: 14
-      ignoreUpsampleIndex: 2
-    - referenceScreenHeight: 1024
       downsamplePasses: 7
-      upsampleBlend: 13
+      upsampleBlend: 10
       ignoreUpsampleIndex: 3
-    - referenceScreenHeight: 2048
+    - referenceScreenHeight: 1024
       downsamplePasses: 8
-      upsampleBlend: 20
-      ignoreUpsampleIndex: 3
-    - referenceScreenHeight: 3072
-      downsamplePasses: 9
-      upsampleBlend: 20
+      upsampleBlend: 12
       ignoreUpsampleIndex: 4
+    - referenceScreenHeight: 2048
+      downsamplePasses: 9
+      upsampleBlend: 15
+      ignoreUpsampleIndex: 5
+    - referenceScreenHeight: 3072
+      downsamplePasses: 10
+      upsampleBlend: 13
+      ignoreUpsampleIndex: 6

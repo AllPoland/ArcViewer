@@ -190,11 +190,12 @@ public class Bloomfog : ScriptableRendererFeature
             //Blit the source image into smaller and smaller textures, applying blur
             for(int i = 1; i < settings.actualDownsamplePasses; i++)
             {
-                cmd.SetGlobalFloat("_Offset", i);
                 cmd.Blit(tempRTs[i - 1], tempRTs[i], settings.blurMaterial);
             }
 
             //Blit back up the chain, bringing the blurred image to the full res output
+            cmd.SetGlobalFloat("_Offset", 1f);
+
             float upsampleBlend = settings.upsampleBlend;
             int ignoreUpsampleIndex = settings.ignoreUpsampleIndex;
 
@@ -205,7 +206,6 @@ public class Bloomfog : ScriptableRendererFeature
                 float alpha = i <= ignoreUpsampleIndex ? 1f : Mathf.Pow(0.5f, i / upsampleBlend);
                 cmd.SetGlobalFloat("_BlurAlpha", alpha);
 
-                cmd.SetGlobalFloat("_Offset", i);
                 cmd.Blit(tempRTs[i], tempRTs[i - 1], settings.blurMaterial);
             }
 
