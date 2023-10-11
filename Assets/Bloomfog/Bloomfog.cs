@@ -6,11 +6,10 @@ public class Bloomfog : ScriptableRendererFeature
 {
     //These are static fields for graphics settings to access
     public static bool Enabled = true;
-    public static int Downsample = 2;
-    public static int BlurPasses = 12;
+    public static int Quality = 2;
 
     [System.Serializable]
-    public class BloomFogSettings
+    public class BloomfogSettings
     {
         public Material prepassMaterial;
 
@@ -24,20 +23,36 @@ public class Bloomfog : ScriptableRendererFeature
         public float fogStartY = 0f;
 
         [Header("Blur Settings")]
-        public int referenceScreenHeight = 720;
         public Material blurMaterial;
 
         [Header("Output Settings")]
-        public float backgroundBrightness = 1f;
-        public Material backgroundMaterial;
         public Material outputMaterial;
         public string outputTextureName;
 
+        [Space]
+        public BloomfogQualityPreset[] qualityPresets;
+
         [System.NonSerialized] public int textureWidth;
         [System.NonSerialized] public int textureHeight;
+        [System.NonSerialized] public int actualDownsamplePasses;
+
+        public BloomfogQualityPreset currentQualityPreset => qualityPresets[Mathf.Clamp(Bloomfog.Quality, 0, qualityPresets.Length - 1)];
+        public int referenceScreenHeight => currentQualityPreset.referenceScreenHeight;
+        public int downsamplePasses => currentQualityPreset.downsamplePasses;
+        public float upsampleBlend => currentQualityPreset.upsampleBlend;
+        public int ignoreUpsampleIndex => currentQualityPreset.ignoreUpsampleIndex;
     }
 
-    [SerializeField] private BloomFogSettings settings = new BloomFogSettings();
+    [System.Serializable]
+    public class BloomfogQualityPreset
+    {
+        public int referenceScreenHeight = 1024;
+        [Min(2)] public int downsamplePasses = 5;
+        [Min(0f)] public float upsampleBlend = 20f;
+        [Min(0)] public int ignoreUpsampleIndex = 1;
+    }
+
+    [SerializeField] private BloomfogSettings settings = new BloomfogSettings();
 
     private CameraConfigPass cameraConfigPass;
     private BloomFogPass bloomFogPass;
@@ -60,7 +75,7 @@ public class Bloomfog : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if(settings.blurMaterial && settings.backgroundMaterial && settings.outputMaterial && settings.prepassMaterial)
+        if(settings.blurMaterial && settings.outputMaterial && settings.prepassMaterial)
         {
             renderer.EnqueuePass(cameraConfigPass);
 
@@ -72,10 +87,10 @@ public class Bloomfog : ScriptableRendererFeature
 
     private class CameraConfigPass : ScriptableRenderPass
     {
-        private BloomFogSettings settings;
+        private BloomfogSettings settings;
 
         
-        public CameraConfigPass(BloomFogSettings fogSettings)
+        public CameraConfigPass(BloomfogSettings fogSettings)
         {
             settings = fogSettings;
         }
@@ -115,79 +130,38 @@ public class Bloomfog : ScriptableRendererFeature
     {
         public RenderTargetIdentifier SourceTexture;
 
-        private BloomFogSettings settings;
+        private BloomfogSettings settings;
 
-        private LayerMask environmentLayerMask;
-        private Material environmentMaskMaterial;
-        private Material prepassMaterial;
-        private float threshold;
-        private float brightnessMult;
-
-        private Material blurMaterial;
-        private int referenceHeight;
-
-        private string outputTextureName;
-        private Material outputMaterial;
-
-        private int tempID1;
-        private int tempID2;
-        
-        private int littleID;
-        private int smallID;
-        private int tinyID;
-
-        private RenderTargetIdentifier tempRT1;
-        private RenderTargetIdentifier tempRT2;
-
-        private RenderTargetIdentifier littleRT;
-        private RenderTargetIdentifier smallRT;
-        private RenderTargetIdentifier tinyRT;
-
-        private RenderTargetIdentifier maskRT;
+        private int[] tempIDs;
+        private RenderTargetIdentifier[] tempRTs;
 
 
-        public BloomFogPass(BloomFogSettings fogSettings)
+        public BloomFogPass(BloomfogSettings fogSettings)
         {
             settings = fogSettings;
-
-            prepassMaterial = fogSettings.prepassMaterial;
-            threshold = fogSettings.threshold;
-            brightnessMult = fogSettings.brightnessMult;
-
-            blurMaterial = fogSettings.blurMaterial;
-            referenceHeight = fogSettings.referenceScreenHeight;
-            outputTextureName = fogSettings.outputTextureName;
-
-            outputMaterial = fogSettings.outputMaterial;
         }
 
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            int width = settings.textureWidth / Bloomfog.Downsample;
-            int height = settings.textureHeight / Bloomfog.Downsample;
+            int width = settings.textureWidth;
+            int height = settings.textureHeight;
+
+            int minDimension = Mathf.Min(width, height);
+            int maxDownsample = Mathf.FloorToInt(Mathf.Log(minDimension, 2));
+            settings.actualDownsamplePasses = Mathf.Clamp(settings.downsamplePasses, 2, maxDownsample);
 
             //Create our temporary render textures for blurring
-            tempID1 = Shader.PropertyToID("tempBlurRT1");
-            tempID2 = Shader.PropertyToID("tempBlurRT2");
+            tempIDs = new int[settings.actualDownsamplePasses];
+            tempRTs = new RenderTargetIdentifier[settings.actualDownsamplePasses];
+            for(int i = 0; i < settings.actualDownsamplePasses; i++)
+            {
+                int downsample = (int)Mathf.Pow(2, i + 1);
 
-            littleID = Shader.PropertyToID("littleRT");
-            smallID = Shader.PropertyToID("smallRT");
-            tinyID = Shader.PropertyToID("tinyRT");
-
-            cmd.GetTemporaryRT(tempID1, width, height, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
-            cmd.GetTemporaryRT(tempID2, width, height, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
-
-            cmd.GetTemporaryRT(littleID, 64, 64, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
-            cmd.GetTemporaryRT(smallID, 32, 32, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
-            cmd.GetTemporaryRT(tinyID, 16, 16, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
-
-            tempRT1 = new RenderTargetIdentifier(tempID1);
-            tempRT2 = new RenderTargetIdentifier(tempID2);
-
-            littleRT = new RenderTargetIdentifier(littleID);
-            smallRT = new RenderTargetIdentifier(smallID);
-            tinyRT = new RenderTargetIdentifier(tinyID);
+                tempIDs[i] = Shader.PropertyToID("tempBlurRT" + i);
+                cmd.GetTemporaryRT(tempIDs[i], width / downsample, height / downsample, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
+                tempRTs[i] = new RenderTargetIdentifier(tempIDs[i]);
+            }
         }
 
 
@@ -195,52 +169,55 @@ public class Bloomfog : ScriptableRendererFeature
         {
             if(!Enabled)
             {
-                if(!string.IsNullOrEmpty(outputTextureName))
+                if(!string.IsNullOrEmpty(settings.outputTextureName))
                 {
                     //Bloomfog shouldn't be used, just output a black texture
-                    Shader.SetGlobalTexture(outputTextureName, Texture2D.blackTexture);
+                    Shader.SetGlobalTexture(settings.outputTextureName, Texture2D.blackTexture);
                 }
                 return;
             }
 
-            CommandBuffer cmd = CommandBufferPool.Get("KawaseBlur");
+            CommandBuffer cmd = CommandBufferPool.Get("BloomfogBlur");
 
             //Copy the source into the first temp texture, applying brightness threshold
-            cmd.SetGlobalFloat("_Threshold", threshold);
-            cmd.SetGlobalFloat("_BrightnessMult", brightnessMult);
+            cmd.SetGlobalFloat("_Threshold", settings.threshold);
+            cmd.SetGlobalFloat("_BrightnessMult", settings.brightnessMult);
+
             cmd.SetGlobalFloat("_Offset", 0.5f);
-            cmd.Blit(SourceTexture, tempRT1, prepassMaterial);
+            cmd.SetGlobalFloat("_BlurAlpha", 1f);
+            cmd.Blit(SourceTexture, tempRTs[0], settings.prepassMaterial);
 
-            for(int i = 1; i < Bloomfog.BlurPasses - 1; i++)
+            //Blit the source image into smaller and smaller textures, applying blur
+            for(int i = 1; i < settings.actualDownsamplePasses; i++)
             {
-                //Copy between temp textures, blurring more each time
-                cmd.SetGlobalFloat("_Offset", 0.5f + i);
-                cmd.Blit(tempRT1, tempRT2, blurMaterial);
-
-                RenderTargetIdentifier tempSwap = tempRT1;
-                tempRT1 = tempRT2;
-                tempRT2 = tempSwap;
+                cmd.SetGlobalFloat("_Offset", i);
+                cmd.Blit(tempRTs[i - 1], tempRTs[i], settings.blurMaterial);
             }
 
-            //Get the average color of the entire texture
-            //by blitting to a tiny texture and add that as a global background
-            //This makes fog not reach full blackness when lights are on
-            cmd.SetGlobalFloat("_BrightnessMult", settings.backgroundBrightness);
-            cmd.Blit(tempRT1, littleRT);
-            cmd.Blit(littleRT, smallRT);
-            cmd.Blit(smallRT, tinyRT);
-            cmd.Blit(tinyRT, tempRT1, settings.backgroundMaterial);
+            //Blit back up the chain, bringing the blurred image to the full res output
+            float upsampleBlend = settings.upsampleBlend;
+            int ignoreUpsampleIndex = settings.ignoreUpsampleIndex;
 
-            //Final pass, outputting final blurred result
-            cmd.SetGlobalFloat("_Offset", 0.5f + Bloomfog.BlurPasses - 1);
-            if(string.IsNullOrEmpty(outputTextureName))
+            for(int i = settings.actualDownsamplePasses - 1; i > 0; i--)
             {
-                cmd.Blit(tempRT1, SourceTexture, outputMaterial);
+                //Blend the low res texture with alpha, to create a custom falloff of brightness
+                //Don't blend high res images to avoid reintroducing unblurred details
+                float alpha = i <= ignoreUpsampleIndex ? 1f : Mathf.Pow(0.5f, i / upsampleBlend);
+                cmd.SetGlobalFloat("_BlurAlpha", alpha);
+
+                cmd.SetGlobalFloat("_Offset", i);
+                cmd.Blit(tempRTs[i], tempRTs[i - 1], settings.blurMaterial);
             }
-            else
+
+            //Clear the source texture so it doesn't have the original unblurred lights
+            cmd.SetRenderTarget(SourceTexture);
+            cmd.ClearRenderTarget(true, true, Color.black);
+
+            //Final blit, outputting final blurred result
+            cmd.Blit(tempRTs[0], SourceTexture, settings.outputMaterial);
+            if(!string.IsNullOrEmpty(settings.outputTextureName))
             {
-                cmd.Blit(tempRT1, tempRT2, blurMaterial);
-                cmd.SetGlobalTexture(outputTextureName, tempRT2);
+                cmd.SetGlobalTexture(settings.outputTextureName, SourceTexture);
             }
 
             context.ExecuteCommandBuffer(cmd);
