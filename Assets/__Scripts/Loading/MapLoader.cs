@@ -588,24 +588,27 @@ public class MapLoader : MonoBehaviour
         string decodedURL = System.Web.HttpUtility.UrlDecode(input);
         if(decodedURL.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase) || input.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase))
         {
-            if(decodedURL.Contains("beatsaver.com/maps"))
+            Uri uri = new Uri(decodedURL);
+            string noQuery = uri.GetLeftPart(UriPartial.Path);
+
+            if(noQuery.Contains("beatsaver.com/maps"))
             {
                 //Direct beatsaver link, should load based on ID instead
-                string ID = decodedURL.Split("/").Last();
+                string ID = noQuery.Split("/").Last();
                 StartCoroutine(LoadMapIDCoroutine(ID));
 
                 UrlArgHandler.LoadedMapID = ID;
                 return;
             }
 
-            if(decodedURL.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
+            if(noQuery.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
             {
                 StartCoroutine(LoadMapZipURLCoroutine(decodedURL));
                 UrlArgHandler.LoadedMapURL = decodedURL;
                 return;
             }
 
-            if(!ReplayManager.IsReplayMode && decodedURL.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase))
+            if(!ReplayManager.IsReplayMode && noQuery.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase))
             {
                 StartCoroutine(LoadReplayURLCoroutine(decodedURL));
                 UrlArgHandler.LoadedReplayURL = decodedURL;
