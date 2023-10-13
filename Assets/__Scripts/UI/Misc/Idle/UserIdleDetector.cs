@@ -7,13 +7,13 @@ public class UserIdleDetector : MonoBehaviour, IPointerEnterHandler, IPointerExi
     public static event Action OnUserIdle;
     public static event Action OnUserActive;
 
+    public static bool userIdle { get; private set; }
     public static bool MouseOnUI { get; private set; }
 
     [SerializeField] private float idleTimeout;
 
     private Vector2 previousPosition;
     private float idleTime;
-    private bool userIdle;
 
 
     private void CheckUserInput()
