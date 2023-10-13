@@ -68,34 +68,33 @@ MonoBehaviour:
   m_Active: 1
   settings:
     prepassMaterial: {fileID: 2100000, guid: 99b73f444864ea74cbbaf5ee4688e435, type: 2}
-    bloomCaptureExtraFov: 40
+    bloomCaptureExtraFov: 30
     threshold: 0
-    brightnessMult: 2.75
-    attenuation: 0.35
+    brightnessMult: 3
+    attenuation: 0.4
     fogOffset: 0
     fogHeight: 25
     fogStartY: -80
     blurMaterial: {fileID: 2100000, guid: bb0d314e7f1b9414ab8ffe0ca05d43aa, type: 2}
-    outputMaterial: {fileID: 2100000, guid: 7b75f1d02ba324240bf8f93cd8d5aa95, type: 2}
     outputTextureName: _BloomfogTex
     qualityPresets:
     - referenceScreenHeight: 256
-      downsamplePasses: 6
-      upsampleBlend: 8
-      ignoreUpsampleIndex: 2
+      downsamplePasses: 5
+      upsampleBlend: 7
+      ignoreUpsampleIndex: 1
     - referenceScreenHeight: 512
-      downsamplePasses: 7
+      downsamplePasses: 6
       upsampleBlend: 10
-      ignoreUpsampleIndex: 3
+      ignoreUpsampleIndex: 2
     - referenceScreenHeight: 1024
-      downsamplePasses: 8
+      downsamplePasses: 7
       upsampleBlend: 12
-      ignoreUpsampleIndex: 4
+      ignoreUpsampleIndex: 3
     - referenceScreenHeight: 2048
-      downsamplePasses: 9
-      upsampleBlend: 15
-      ignoreUpsampleIndex: 5
+      downsamplePasses: 8
+      upsampleBlend: 14
+      ignoreUpsampleIndex: 4
     - referenceScreenHeight: 3072
-      downsamplePasses: 10
-      upsampleBlend: 13
-      ignoreUpsampleIndex: 6
+      downsamplePasses: 9
+      upsampleBlend: 12
+      ignoreUpsampleIndex: 5

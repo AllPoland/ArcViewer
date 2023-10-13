@@ -26,7 +26,6 @@ public class Bloomfog : ScriptableRendererFeature
         public Material blurMaterial;
 
         [Header("Output Settings")]
-        public Material outputMaterial;
         public string outputTextureName;
 
         [Space]
@@ -37,10 +36,6 @@ public class Bloomfog : ScriptableRendererFeature
         [System.NonSerialized] public int actualDownsamplePasses;
 
         public BloomfogQualityPreset currentQualityPreset => qualityPresets[Mathf.Clamp(Bloomfog.Quality, 0, qualityPresets.Length - 1)];
-        public int referenceScreenHeight => currentQualityPreset.referenceScreenHeight;
-        public int downsamplePasses => currentQualityPreset.downsamplePasses;
-        public float upsampleBlend => currentQualityPreset.upsampleBlend;
-        public int ignoreUpsampleIndex => currentQualityPreset.ignoreUpsampleIndex;
     }
 
     [System.Serializable]
@@ -75,7 +70,7 @@ public class Bloomfog : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if(settings.blurMaterial && settings.outputMaterial && settings.prepassMaterial)
+        if(settings.blurMaterial && settings.prepassMaterial)
         {
             renderer.EnqueuePass(cameraConfigPass);
 
@@ -101,6 +96,8 @@ public class Bloomfog : ScriptableRendererFeature
             Camera mainCamera = Camera.main;
             Camera renderCamera = renderingData.cameraData.camera;
 
+            BloomfogQualityPreset qualitySettings = settings.currentQualityPreset;
+
             //Update the camera field of view
             renderCamera.fieldOfView = Mathf.Clamp(mainCamera.fieldOfView + settings.bloomCaptureExtraFov, 30, 160);
 
@@ -109,15 +106,15 @@ public class Bloomfog : ScriptableRendererFeature
 
             //Calculate the new texture ratio based on camera fov
             float originalVertFov = Mathf.Deg2Rad * mainCamera.fieldOfView;
-            float screenPlaneDistance = (settings.referenceScreenHeight / 2) / Mathf.Tan(originalVertFov / 2);
+            float screenPlaneDistance = (qualitySettings.referenceScreenHeight / 2) / Mathf.Tan(originalVertFov / 2);
 
             //Set the new texture size
             settings.textureWidth = Mathf.RoundToInt(Mathf.Tan(horizontalFov / 2) * screenPlaneDistance * 2);
             settings.textureHeight = Mathf.RoundToInt(Mathf.Tan(verticalFov / 2) * screenPlaneDistance * 2);
 
-            float referenceWidth = settings.referenceScreenHeight * mainCamera.aspect;
+            float referenceWidth = qualitySettings.referenceScreenHeight * mainCamera.aspect;
             float widthRatio = referenceWidth / settings.textureWidth;
-            float heightRatio = (float)settings.referenceScreenHeight / settings.textureHeight;
+            float heightRatio = (float)qualitySettings.referenceScreenHeight / settings.textureHeight;
 
             // Debug.Log($"fov: {verticalFov} horizontal: {horizontalFov} width: {settings.textureWidth} height: {settings.textureHeight} ratio: {widthRatio}, {heightRatio}");
 
@@ -144,12 +141,14 @@ public class Bloomfog : ScriptableRendererFeature
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
+            BloomfogQualityPreset qualitySettings = settings.currentQualityPreset;
+
             int width = settings.textureWidth;
             int height = settings.textureHeight;
 
             int minDimension = Mathf.Min(width, height);
             int maxDownsample = Mathf.FloorToInt(Mathf.Log(minDimension, 2));
-            settings.actualDownsamplePasses = Mathf.Clamp(settings.downsamplePasses, 2, maxDownsample);
+            settings.actualDownsamplePasses = Mathf.Clamp(qualitySettings.downsamplePasses, 2, maxDownsample);
 
             //Create our temporary render textures for blurring
             tempIDs = new int[settings.actualDownsamplePasses];
@@ -177,6 +176,7 @@ public class Bloomfog : ScriptableRendererFeature
                 return;
             }
 
+            BloomfogQualityPreset qualitySettings = settings.currentQualityPreset;
             CommandBuffer cmd = CommandBufferPool.Get("BloomfogBlur");
 
             //Copy the source into the first temp texture, applying brightness threshold
@@ -187,23 +187,19 @@ public class Bloomfog : ScriptableRendererFeature
             cmd.SetGlobalFloat("_BlurAlpha", 1f);
             cmd.Blit(SourceTexture, tempRTs[0], settings.prepassMaterial);
 
-            //Blit the source image into smaller and smaller textures, applying blur
+            //Blit the source image into smaller and smaller textures, applying some blur
             for(int i = 1; i < settings.actualDownsamplePasses; i++)
             {
                 cmd.Blit(tempRTs[i - 1], tempRTs[i], settings.blurMaterial);
             }
 
-            //Blit back up the chain, bringing the blurred image to the full res output
+            //Blit back up the chain, bringing the blurred image to the half res RT
             cmd.SetGlobalFloat("_Offset", 1f);
-
-            float upsampleBlend = settings.upsampleBlend;
-            int ignoreUpsampleIndex = settings.ignoreUpsampleIndex;
-
             for(int i = settings.actualDownsamplePasses - 1; i > 0; i--)
             {
                 //Blend the low res texture with alpha, to create a custom falloff of brightness
                 //Don't blend high res images to avoid reintroducing unblurred details
-                float alpha = i <= ignoreUpsampleIndex ? 1f : Mathf.Pow(0.5f, i / upsampleBlend);
+                float alpha = i <= qualitySettings.ignoreUpsampleIndex ? 1f : Mathf.Pow(0.5f, i / qualitySettings.upsampleBlend);
                 cmd.SetGlobalFloat("_BlurAlpha", alpha);
 
                 cmd.Blit(tempRTs[i], tempRTs[i - 1], settings.blurMaterial);
@@ -214,7 +210,7 @@ public class Bloomfog : ScriptableRendererFeature
             cmd.ClearRenderTarget(true, true, Color.black);
 
             //Final blit, outputting final blurred result
-            cmd.Blit(tempRTs[0], SourceTexture, settings.outputMaterial);
+            cmd.Blit(tempRTs[0], SourceTexture, settings.blurMaterial);
             if(!string.IsNullOrEmpty(settings.outputTextureName))
             {
                 cmd.SetGlobalTexture(settings.outputTextureName, SourceTexture);
