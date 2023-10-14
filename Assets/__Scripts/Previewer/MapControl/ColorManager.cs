@@ -35,8 +35,8 @@ public class ColorManager : MonoBehaviour
         "wallcolor"
     };
 
-    private static NullableColorPalette difficultyColorScheme;
-    private static NullableColorPalette difficultySongCoreColors;
+    private static NullableColorPalette difficultyColorScheme => BeatmapManager.CurrentDifficulty.colorScheme;
+    private static NullableColorPalette difficultySongCoreColors => BeatmapManager.CurrentDifficulty.songCoreColors;
 
 
     private void UpdateCurrentColors()
@@ -70,14 +70,9 @@ public class ColorManager : MonoBehaviour
             if(SettingsManager.GetBool("difficultycolors"))
             {
                 //Stack the difficulty-specific color scheme
+                newColors.StackPalette(difficultySongCoreColors);
                 newColors.StackPalette(difficultyColorScheme);
             }
-        }
-
-        if(SettingsManager.GetBool("songcorecolors"))
-        {
-            //SongCore color overrides replace everything
-            newColors.StackPalette(difficultySongCoreColors);
         }
 
         CurrentColors = newColors;
@@ -193,8 +188,6 @@ public class ColorManager : MonoBehaviour
 
     public void UpdateDifficulty(Difficulty newDifficulty)
     {
-        difficultyColorScheme = newDifficulty.colorScheme;
-        difficultySongCoreColors = newDifficulty.songCoreColors;
         UpdateCurrentColors();
     }
 
