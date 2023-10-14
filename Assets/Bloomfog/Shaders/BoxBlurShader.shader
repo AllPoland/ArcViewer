@@ -57,15 +57,35 @@ Shader "Custom/Bloomfog/BoxBlurShader"
                 float2 res = _MainTex_TexelSize.xy;
                 float i = _Offset;
 
-                fixed4 col;
+                fixed4 col = tex2D(_MainTex, input.uv + float2(-2, -2) * res);
+                col.rgb += tex2D(_MainTex, input.uv + float2(-1, -2) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(0, -2) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(1, -2) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(2, -2) * res).rgb;
 
-                for(int x = -2; x <= 2; x++)
-                {
-                    for(int y = -2; y <= 2; y++)
-                    {
-                        col.rgb += tex2D(_MainTex, input.uv + float2(x, y) * res).rgb;
-                    }
-                }
+                col.rgb += tex2D(_MainTex, input.uv + float2(-2, -1) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(-1, -1) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(0, -1) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(1, -1) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(2, -1) * res).rgb;
+
+                col.rgb += tex2D(_MainTex, input.uv + float2(-2, 0) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(-1, 0) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(0, 0) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(1, 0) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(2, 0) * res).rgb;
+
+                col.rgb += tex2D(_MainTex, input.uv + float2(-2, 1) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(-1, 1) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(0, 1) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(1, 1) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(2, 1) * res).rgb;
+
+                col.rgb += tex2D(_MainTex, input.uv + float2(-2, 2) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(-1, 2) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(0, 2) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(1, 2) * res).rgb;
+                col.rgb += tex2D(_MainTex, input.uv + float2(2, 2) * res).rgb;
 
                 col.rgb /= 25;
 

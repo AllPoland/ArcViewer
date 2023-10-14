@@ -21,22 +21,15 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Laser
-  m_Shader: {fileID: -6465566751694194690, guid: 2e6764df4b8962b4083d4edbea4769e9, type: 3}
-  m_ValidKeywords:
-  - _ENVIRONMENTREFLECTIONS_OFF
-  - _RECEIVE_SHADOWS_OFF
-  - _SPECULARHIGHLIGHTS_OFF
-  - _SURFACE_TYPE_TRANSPARENT
+  m_Shader: {fileID: -6465566751694194690, guid: bc2fb336939d0cc469812277633875b7, type: 3}
+  m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
-  stringTagMap:
-    RenderType: Transparent
-  disabledShaderPasses:
-  - DepthOnly
-  - SHADOWCASTER
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -111,13 +104,15 @@ Material:
     - _DstBlend: 1
     - _ENVIRONMENTREFLECTIONS_OFF: 1
     - _EnvironmentReflections: 0
+    - _FogAttenuation: 0.25
     - _FogOffset: 0
-    - _FogScale: 0.0002
+    - _FogScale: 0.001
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossinessSource: 0
     - _GlossyReflections: 0
     - _Metallic: 0
+    - _MinFogDistance: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueControl: 0
