@@ -205,15 +205,9 @@ public class Bloomfog : ScriptableRendererFeature
                 cmd.Blit(tempRTs[i], tempRTs[i - 1], settings.blurMaterial);
             }
 
-            //Clear the source texture so it doesn't have the original unblurred lights
-            cmd.SetRenderTarget(SourceTexture);
-            cmd.ClearRenderTarget(true, true, Color.black);
-
-            //Final blit, outputting final blurred result
-            cmd.Blit(tempRTs[0], SourceTexture, settings.blurMaterial);
             if(!string.IsNullOrEmpty(settings.outputTextureName))
             {
-                cmd.SetGlobalTexture(settings.outputTextureName, SourceTexture);
+                cmd.SetGlobalTexture(settings.outputTextureName, tempRTs[0]);
             }
 
             context.ExecuteCommandBuffer(cmd);
