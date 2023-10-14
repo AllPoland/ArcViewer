@@ -8,12 +8,17 @@ uniform float _CustomFogHeightFogStartY;
 uniform float _CustomFogHeightFogHeight;
 uniform float2 _FogTextureToScreenRatio;
 
-inline float2 GetFogCoord(float4 screenPos) {
-  float2 uv = clamp(screenPos.xy / screenPos.w, 0, 1);
+inline float2 ConvertUV(float2 uv)
+{
   return float2(
     (uv.x + -0.5) * _FogTextureToScreenRatio.x + 0.5,
     (uv.y + -0.5) * _FogTextureToScreenRatio.y + 0.5
   );
+}
+
+inline float2 GetFogCoord(float4 screenPos) {
+  float2 uv = clamp(screenPos.xy / screenPos.w, 0, 1);
+  return ConvertUV(uv);
 }
 
 inline float GetHeightFogIntensity(float3 worldPos, float fogHeightOffset, float fogHeightScale) {
@@ -29,6 +34,14 @@ inline float GetFogIntensity(float3 distance, float fogStartOffset, float fogSca
   fogIntensity = max((fogIntensity * fogScale) + -_CustomFogOffset, 0);
   fogIntensity = 1 / ((fogIntensity * _CustomFogAttenuation) + 1);
   return -fogIntensity;
+}
+
+inline void SampleBloomfog_float(float4 col, float2 uv, float3 worldPos, float fogStartOffset, float fogScale, out float4 outCol)
+{
+  float3 fogDistance = worldPos + -_WorldSpaceCameraPos;
+  float4 fogCol = -float4(col.rgb, 1) + tex2D(_BloomfogTex, ConvertUV(uv));
+  fogCol.a = -col.a;
+  outCol = col + ((GetFogIntensity(fogDistance, fogStartOffset, fogScale) + 1) * fogCol);
 }
 
 #define BLOOM_FOG_COORDS(screenPosIndex, fogCoordIndex, worldPosIndex) \

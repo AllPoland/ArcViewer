@@ -1,4 +1,4 @@
-Shader "Custom/Bloomfog/BlurShader"
+Shader "Custom/Bloomfog/BoxBlurShader"
 {
     Properties
     {
@@ -11,6 +11,8 @@ Shader "Custom/Bloomfog/BlurShader"
 
         pass
         {
+            Blend SrcAlpha OneMinusSrcAlpha
+
             CGPROGRAM
 
             #pragma vertex vert
@@ -34,7 +36,8 @@ Shader "Custom/Bloomfog/BlurShader"
             float4 _MainTex_TexelSize;
             float4 _MainTex_ST;
 
-            float _Offset;
+            uniform float _BlurAlpha;
+            uniform float _Offset;
 
             v2f vert (appdata v)
             {
@@ -55,12 +58,18 @@ Shader "Custom/Bloomfog/BlurShader"
                 float i = _Offset;
 
                 fixed4 col;
-                col.rgb = tex2D(_MainTex, input.uv).rgb;
-                col.rgb += tex2D( _MainTex, input.uv + float2( i, i ) * res ).rgb;
-                col.rgb += tex2D( _MainTex, input.uv + float2( i, -i ) * res ).rgb;
-                col.rgb += tex2D( _MainTex, input.uv + float2( -i, i ) * res ).rgb;
-                col.rgb += tex2D( _MainTex, input.uv + float2( -i, -i ) * res ).rgb;
-                col.rgb /= 5.0f;
+
+                for(int x = -2; x <= 2; x++)
+                {
+                    for(int y = -2; y <= 2; y++)
+                    {
+                        col.rgb += tex2D(_MainTex, input.uv + float2(x, y) * res).rgb;
+                    }
+                }
+
+                col.rgb /= 25;
+
+                col.a = _BlurAlpha;
 
                 return col;
             }
