@@ -66,13 +66,13 @@ public class ColorManager : MonoBehaviour
                 newColors = GetEnvironmentColors(BeatmapManager.EnvironmentName);
             }
             else newColors = DefaultColors;
+        }
 
-            if(SettingsManager.GetBool("difficultycolors"))
-            {
-                //Stack the difficulty-specific color scheme
-                newColors.StackPalette(difficultySongCoreColors);
-                newColors.StackPalette(difficultyColorScheme);
-            }
+        if(SettingsManager.GetBool("difficultycolors"))
+        {
+            //Stack the difficulty-specific color scheme
+            newColors.StackPalette(difficultySongCoreColors);
+            newColors.StackPalette(difficultyColorScheme);
         }
 
         CurrentColors = newColors;
