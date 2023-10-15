@@ -342,7 +342,7 @@ public class Chain : BaseSlider
         TailBeat = b.tb;
         TailPosition = tailPosition;
         SegmentCount = b.sc;
-        Squish = b.s;
+        Squish = b.s < 0.001f ? 1f : b.s;
 
         burstSlider = b;
 
