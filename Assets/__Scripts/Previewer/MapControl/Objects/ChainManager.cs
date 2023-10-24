@@ -192,6 +192,9 @@ public class ChainManager : MapElementManager<ChainLink>
                 cl.ChainLinkHandler.SetDotProperties(isRed ? noteManager.redArrowProperties : noteManager.blueArrowProperties);
             }
 
+            float noteSize = SettingsManager.GetFloat("notesize");
+            cl.Visual.transform.localScale = Vector3.one * noteSize;
+
             cl.Visual.SetActive(true);
             cl.ChainLinkHandler.EnableVisual();
 

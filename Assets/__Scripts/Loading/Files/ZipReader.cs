@@ -200,7 +200,7 @@ public class ZipReader : IMapDataLoader
         string infoJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
         try
         {
-            return JsonConvert.DeserializeObject<BeatmapInfo>(infoJson);
+            return JsonReader.DeserializeObject<BeatmapInfo>(infoJson);
         }
         catch(Exception e)
         {
