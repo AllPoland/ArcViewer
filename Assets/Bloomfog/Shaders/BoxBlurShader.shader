@@ -11,7 +11,7 @@ Shader "Custom/Bloomfog/BoxBlurShader"
 
         pass
         {
-            Blend SrcAlpha OneMinusSrcAlpha
+            Blend One OneMinusSrcAlpha
 
             CGPROGRAM
 
@@ -89,6 +89,7 @@ Shader "Custom/Bloomfog/BoxBlurShader"
 
                 col.rgb /= 25;
 
+                col.rgb *= _BlurAlpha;
                 col.a = _BlurAlpha;
 
                 return col;
