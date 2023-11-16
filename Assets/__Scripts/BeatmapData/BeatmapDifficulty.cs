@@ -95,6 +95,13 @@ public abstract class BeatmapObject
     }
 
 
+    public float MirrorNoodlePosition(float x)
+    {
+        //Noodle coordinates are centered around the middle right column
+        return -(x + 0.5f) - 0.5f;
+    }
+
+
     public int MirrorDirection(int d)
     {
         if(d >= 1000)
@@ -134,7 +141,9 @@ public class BeatmapColorNote : BeatmapObject
         {
             if(customData.coordinates != null && customData.coordinates.Length != 0)
             {
-                customData.coordinates[0] = -customData.coordinates[0];
+                float coord = customData.coordinates[0];
+                customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
+                Debug.Log($"{coord}, {customData.coordinates[0]}");
             }
             if(customData.angle != null)
             {
@@ -157,7 +166,7 @@ public class BeatmapBombNote : BeatmapObject
 
         if(customData?.coordinates != null && customData.coordinates.Length != 0)
         {
-            customData.coordinates[0] = -customData.coordinates[0];
+            customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
         }
     }
 }
@@ -231,11 +240,11 @@ public class BeatmapSlider : BeatmapObject
         {
             if(customData.coordinates != null && customData.coordinates.Length != 0)
             {
-                customData.coordinates[0] = -customData.coordinates[0];
+                customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
             }
             if(customData.tailCoordinates != null && customData.tailCoordinates.Length != 0)
             {
-                customData.tailCoordinates[0] = -customData.tailCoordinates[0];
+                customData.tailCoordinates[0] = MirrorNoodlePosition(customData.tailCoordinates[0]);
             }
         }
     }
@@ -268,11 +277,11 @@ public class BeatmapBurstSlider : BeatmapObject
         {
             if(customData.coordinates != null && customData.coordinates.Length != 0)
             {
-                customData.coordinates[0] = -customData.coordinates[0];
+                customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
             }
             if(customData.tailCoordinates != null && customData.tailCoordinates.Length != 0)
             {
-                customData.tailCoordinates[0] = -customData.tailCoordinates[0];
+                customData.tailCoordinates[0] = MirrorNoodlePosition(customData.tailCoordinates[0]);
             }
         }
     }
