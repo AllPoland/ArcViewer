@@ -141,9 +141,7 @@ public class BeatmapColorNote : BeatmapObject
         {
             if(customData.coordinates != null && customData.coordinates.Length != 0)
             {
-                float coord = customData.coordinates[0];
                 customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
-                Debug.Log($"{coord}, {customData.coordinates[0]}");
             }
             if(customData.angle != null)
             {
