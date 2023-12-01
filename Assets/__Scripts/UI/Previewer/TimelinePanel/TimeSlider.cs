@@ -24,6 +24,37 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
             return;
         }
 
+        Click();
+    }
+
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        if(!clicking || !Input.GetMouseButtonUp(0))
+        {
+            return;
+        }
+
+        UnClick();
+    }
+
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        mouseOver = true;
+        timeTooltip.SetActive(true);
+    }
+
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        mouseOver = false;
+        timeTooltip.SetActive(clicking);
+    }
+
+
+    private void Click()
+    {
         clicking = true;
 
         //Force the song to pause if it's playing
@@ -36,14 +67,9 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
         timeTooltip.SetActive(true);
     }
 
-
-    public void OnPointerUp(PointerEventData eventData)
+    
+    private void UnClick()
     {
-        if(!clicking || Input.GetMouseButton(0))
-        {
-            return;
-        }
-
         TimeManager.Scrubbing = false;
         if(TimeManager.ForcePause && TimeManager.Progress < 1)
         {
@@ -62,25 +88,15 @@ public class TimeSlider : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
     }
 
 
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        mouseOver = true;
-        timeTooltip.SetActive(true);
-    }
-
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        mouseOver = false;
-        timeTooltip.SetActive(clicking);
-    }
-
-
     private void Update()
     {
         if(clicking)
         {
-            TimeManager.Progress = slider.value;
+            if(!Input.GetMouseButton(0))
+            {
+                UnClick();
+            }
+            else TimeManager.Progress = slider.value;
         }
     }
 
