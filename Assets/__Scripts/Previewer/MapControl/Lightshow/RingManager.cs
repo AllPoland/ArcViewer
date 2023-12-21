@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RingManager : MonoBehaviour
+public static class RingManager
 {
     public static MapElementList<RingRotationEvent> SmallRingRotationEvents = new MapElementList<RingRotationEvent>();
     public static MapElementList<RingRotationEvent> BigRingRotationEvents = new MapElementList<RingRotationEvent>();
@@ -12,21 +12,23 @@ public class RingManager : MonoBehaviour
     public static event Action<RingRotationEventArgs> OnRingRotationsChanged;
     public static event Action<float> OnRingZoomPositionChanged;
 
-    public const float DefaultSmallRingRotationAmount = 90f;
-    public const float DefaultSmallRingMaxStep = 5f;
-    public const float SmallRingStartAngle = -45f;
-    public const float SmallRingStartStep = 3f;
+    public static float DefaultSmallRingRotationAmount => EnvironmentParameters.SmallRingRotationAmount;
+    public static float DefaultSmallRingMaxStep => EnvironmentParameters.SmallRingMaxStep;
+    public static float SmallRingStartAngle => EnvironmentParameters.SmallRingStartAngle;
+    public static float SmallRingStartStep => EnvironmentParameters.SmallRingStartStep;
 
-    public const float DefaultBigRingRotationAmount = 45f;
-    public const float DefaultBigRingMaxStep = 5f;
-    public const float BigRingStartAngle = -45f;
-    public const float BigRingStartStep = 0f;
+    public static float DefaultBigRingRotationAmount => EnvironmentParameters.BigRingRotationAmount;
+    public static float DefaultBigRingMaxStep => EnvironmentParameters.BigRingMaxStep;
+    public static float BigRingStartAngle => EnvironmentParameters.BigRingStartAngle;
+    public static float BigRingStartStep => EnvironmentParameters.BigRingStartStep;
 
-    public const float DefaultZoomSpeed = 1.5f;
-    public const float DefaultCloseZoomStep = 2f;
-    public const float DefaultFarZoomStep = 5f;
-    public const bool StartRingZoomParity = true;
-    public const float StartRingZoomStep = StartRingZoomParity ? DefaultFarZoomStep : DefaultCloseZoomStep;
+    public static float DefaultZoomSpeed => EnvironmentParameters.ZoomSpeed;
+    public static float DefaultCloseZoomStep => EnvironmentParameters.CloseZoomStep;
+    public static float DefaultFarZoomStep => EnvironmentParameters.FarZoomStep;
+    public static bool StartRingZoomParity => EnvironmentParameters.StartRingZoomParity;
+    public static float StartRingZoomStep => StartRingZoomParity ? DefaultFarZoomStep : DefaultCloseZoomStep;
+
+    private static EnvironmentLightParameters EnvironmentParameters => EnvironmentManager.CurrentEnvironmentParameters;
 
 
     public static void UpdateRings()

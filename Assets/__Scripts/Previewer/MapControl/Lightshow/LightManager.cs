@@ -8,7 +8,7 @@ public class LightManager : MonoBehaviour
     private static bool _staticLights;
     public static bool StaticLights
     {
-        get => _staticLights || Scrubbing || SettingsManager.GetBool("staticlights");
+        get => _staticLights || Scrubbing || EnvironmentManager.CurrentSceneIndex < 0 || EnvironmentManager.Loading || SettingsManager.GetBool("staticlights");
         set
         {
             _staticLights = value;
@@ -50,48 +50,6 @@ public class LightManager : MonoBehaviour
     {
         "staticlights",
         "lightglowbrightness"
-    };
-
-    private static readonly string[] v2Environments = new string[]
-    {
-        "DefaultEnvironment",
-        "OriginsEnvironment",
-        "TriangleEnvironment",
-        "NiceEnvironment",
-        "BigMirrorEnvironment",
-        "DragonsEnvironment",
-        "KDAEnvironment",
-        "MonstercatEnvironment",
-        "CrabRaveEnvironment",
-        "PanicEnvironment",
-        "RocketEnvironment",
-        "GreenDayEnvironment",
-        "GreenDayGrenadeEnvironment",
-        "TimbalandEnvironment",
-        "FitBeatEnvironment",
-        "LinkinParkEnvironment",
-        "BTSEnvironment",
-        "KaleidoscopeEnvironment",
-        "InterscopeEnvironment",
-        "SkrillexEnvironment",
-        "BillieEnvironment",
-        "HalloweenEnvironment",
-        "GagaEnvironment"
-    };
-
-    private static readonly string[] v3Environments = new string[]
-    {
-        "WeaveEnvironment",
-        "PyroEnvironment",
-        "EDMEnvironment",
-        "TheSecondEnvironment",
-        "LizzoEnvironment",
-        "TheWeekndEnvironment",
-        "RockMixtapeEnvironment",
-        "Dragons2Environment",
-        "Panic2Environment",
-        "QueenEnvironment",
-        "LinkinPark2Environment"
     };
 
     //These environments have red/blue flipped on their back/bottom lasers
@@ -434,10 +392,10 @@ public class LightManager : MonoBehaviour
     }
 
 
-    public void UpdateDifficulty(Difficulty newDifficulty)
+    private void UpdateDifficulty(Difficulty newDifficulty)
     {
         string environmentName = BeatmapManager.EnvironmentName;
-        if(newDifficulty.beatmapDifficulty.basicBeatMapEvents.Length == 0 || v3Environments.Contains(environmentName))
+        if(newDifficulty.beatmapDifficulty.basicBeatMapEvents.Length == 0 || EnvironmentManager.V3Environments.Contains(environmentName))
         {
             StaticLights = true;
             return;
@@ -492,10 +450,23 @@ public class LightManager : MonoBehaviour
 
         RingManager.RingZoomEvents.SortElementsByBeat();
 
+        if(EnvironmentManager.CurrentSceneIndex >= 0 && !EnvironmentManager.Loading)
+        {
+            PopulateLaserRotationEventData();
+            RingManager.PopulateRingEventData();
+        }
+
+        UpdateLights(TimeManager.CurrentBeat);
+    }
+
+
+    private void UpdateEnvironment(int newEnvironmentIndex)
+    {
+        //Recalculate ring and laser movement for the new environment
         PopulateLaserRotationEventData();
         RingManager.PopulateRingEventData();
 
-        UpdateLights(TimeManager.CurrentBeat);
+        UpdateLightParameters();
     }
 
 
@@ -544,7 +515,7 @@ public class LightManager : MonoBehaviour
 
     private void PopulateLaserRotationEventData()
     {
-        const int laserCount = 4;
+        int laserCount = EnvironmentManager.CurrentEnvironmentParameters.RotatingLaserCount;
         for(int i = 0; i < leftLaserSpeedEvents.Count; i++)
         {
             LaserSpeedEvent previous = i > 0 ? leftLaserSpeedEvents[i - 1] : null;
@@ -607,6 +578,8 @@ public class LightManager : MonoBehaviour
         TimeManager.OnDifficultyBpmEventsLoaded += UpdateDifficulty;
         TimeManager.OnBeatChanged += UpdateLights;
         TimeManager.OnPlayingChanged += UpdatePlaying;
+
+        EnvironmentManager.OnEnvironmentUpdated += UpdateEnvironment;
 
         SettingsManager.OnSettingsUpdated += UpdateSettings;
         ColorManager.OnColorsChanged += (_) => UpdateLightParameters();
