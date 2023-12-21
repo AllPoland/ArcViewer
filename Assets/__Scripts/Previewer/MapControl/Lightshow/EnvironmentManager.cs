@@ -168,6 +168,8 @@ public class EnvironmentLightParameters
 
     [Space]
     public int RotatingLaserCount = 4;
+    public bool RandomizeRotatingLasers = true;
+    public float RotatingLaserStep = 0f;
     
     [Space]
     public float SmallRingRotationAmount = 90f;

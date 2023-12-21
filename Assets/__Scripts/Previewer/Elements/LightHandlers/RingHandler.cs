@@ -1,6 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEngine.SceneManagement;
+using UnityEditor.SceneManagement;
+#endif
+
 public class RingHandler : MonoBehaviour
 {
     [SerializeField] private bool bigRing;
@@ -51,12 +57,6 @@ public class RingHandler : MonoBehaviour
     private void OnEnable()
     {
         RingManager.OnRingRotationsChanged += UpdateRingRotations;
-
-        //Automate lightID assignment for ring lights
-        for(int i = 0; i < lightHandlers.Count; i++)
-        {
-            lightHandlers[i].id = i + 1 + (id * lightHandlers.Count);
-        }
     }
 
 
@@ -64,4 +64,32 @@ public class RingHandler : MonoBehaviour
     {
         RingManager.OnRingRotationsChanged -= UpdateRingRotations;
     }
+
+
+#if UNITY_EDITOR
+    [MenuItem("Environment/SetRingLightIDs")]
+    public static void SetRingLightIDs()
+    {
+        Scene scene = EditorSceneManager.GetActiveScene();
+        GameObject[] rootObjects = scene.GetRootGameObjects();
+
+        List<RingHandler> ringHandlers = new List<RingHandler>();
+        foreach(GameObject gameObject in rootObjects)
+        {
+            ringHandlers.AddRange(gameObject.GetComponentsInChildren<RingHandler>());
+        }
+
+        foreach(RingHandler ring in ringHandlers)
+        {
+            for(int i = 0; i < ring.lightHandlers.Count; i++)
+            {
+                SerializedObject serialized = new SerializedObject(ring.lightHandlers[i]);
+                serialized.FindProperty("id").intValue = i + 1 + (ring.id * ring.lightHandlers.Count);
+                serialized.ApplyModifiedProperties();
+            }
+        }
+        
+        EditorSceneManager.MarkSceneDirty(scene);
+    }
+#endif
 }

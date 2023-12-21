@@ -217,22 +217,48 @@ public class LaserSpeedEvent : LightEvent
     public void PopulateRotationData(int laserCount, LaserSpeedEvent previous)
     {
         RotationValues = new List<LaserRotationData>();
+
+        bool randomize = EnvironmentManager.CurrentEnvironmentParameters.RandomizeRotatingLasers;
+        float startAngle = UnityEngine.Random.Range(0f, 360f);
+        bool unifiedDirection = UnityEngine.Random.value >= 0.5f;
+
         for(int i = 0; i < laserCount; i++)
         {
             LaserRotationData newData = new LaserRotationData();
             if((int)Value > 0)
             {
-                newData.startPosition = UnityEngine.Random.Range(0f, 360f);
-
                 if(Direction < 0)
                 {
-                    newData.direction = UnityEngine.Random.value >= 0.5f;
+                    if(randomize)
+                    {
+                        newData.direction = UnityEngine.Random.value >= 0.5f;
+                    }
+                    else
+                    {
+                        newData.direction = unifiedDirection;
+                    }
                 }
                 else newData.direction = Direction == 1;
+
+                if(randomize)
+                {
+                    newData.startPosition = UnityEngine.Random.Range(0f, 360f);
+                }
+                else
+                {
+                    float step = EnvironmentManager.CurrentEnvironmentParameters.RotatingLaserStep;
+                    step *= newData.direction ? 1 : -1;
+                    newData.startPosition = (startAngle + (step * i)) % 360f;
+                }
             }
             else
             {
                 newData.startPosition = 0f;
+            }
+
+            if(newData.startPosition < 0)
+            {
+                newData.startPosition += 360f;
             }
 
             if(LockRotation)
