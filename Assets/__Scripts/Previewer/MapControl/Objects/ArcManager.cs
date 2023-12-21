@@ -15,7 +15,7 @@ public class ArcManager : MapElementManager<Arc>
     [SerializeField] private float arcEndFadeStart;
     [SerializeField] private float arcEndFadeEnd;
     [SerializeField] private float arcFadeTransitionLength;
-    [SerializeField] private float headlessArcFadeBeats;
+    [SerializeField] private float arcFadeAnimationLength = 0.25f;
     [SerializeField] private float arcAnimationSpeed;
 
     private Color redArcColor => NoteManager.RedNoteColor;
@@ -80,8 +80,9 @@ public class ArcManager : MapElementManager<Arc>
         {
             if(!a.HasHeadAttachment)
             {
+                float fadeAnimationBeats = (a.TailBeat - a.Beat) * arcFadeAnimationLength;
                 float beatDifference = TimeManager.CurrentBeat - a.Beat;
-                alpha *= Mathf.Clamp(beatDifference / headlessArcFadeBeats, 0f, 1f);
+                alpha *= Mathf.Clamp(beatDifference / fadeAnimationBeats, 0f, 1f);
             }
             else
             {
