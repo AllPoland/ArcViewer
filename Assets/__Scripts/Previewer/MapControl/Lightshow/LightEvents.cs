@@ -9,7 +9,7 @@ public class LightEvent : MapElement
     public float FloatValue = 1f;
 
     public Color? CustomColor;
-    public Dictionary<int, bool> lightIDs;
+    public int[] LightIDs = new int[0];
     public Easings.EasingDelegate TransitionEasing;
     public bool HsvLerp = false;
 
@@ -44,11 +44,7 @@ public class LightEvent : MapElement
             }
             if(customData.lightID != null)
             {
-                lightIDs = new Dictionary<int, bool>();
-                foreach(int id in customData.lightID)
-                {
-                    lightIDs.TryAdd(id, true);
-                }
+                LightIDs = customData.lightID;
             }
             if(customData.easing != null)
             {
@@ -97,11 +93,11 @@ public class LightEvent : MapElement
 
     public bool AffectsID(int id)
     {
-        if(lightIDs == null)
+        if(LightIDs.Length == 0)
         {
             return true;
         }
-        return lightIDs.TryGetValue(id, out bool value) ? value : false;
+        return LightIDs.Contains(id);
     }
 
 
@@ -136,13 +132,13 @@ public class LightEventList : MapElementList<LightEvent>
         for(int i = 0; i < Elements.Count; i++)
         {
             LightEvent lightEvent = Elements[i];
-            if(lightEvent.lightIDs == null)
+            if(lightEvent.LightIDs.Length == 0)
             {
                 //This event affects all IDs, so we can close all previous events with this one
-                foreach(KeyValuePair<int, LightEvent> value in lastEvents)
+                foreach(KeyValuePair<int, LightEvent> pair in lastEvents)
                 {
-                    int id = value.Key;
-                    LightEvent lastEvent = value.Value;
+                    int id = pair.Key;
+                    LightEvent lastEvent = pair.Value;
 
                     lastEvent.nextEvents[id] = lightEvent;
                 }
@@ -150,12 +146,17 @@ public class LightEventList : MapElementList<LightEvent>
                 continue;
             }
 
-            lightEvent.lastEvents = lastEvents.ToDictionary(x => x.Key, x => x.Value);
-
-            foreach(KeyValuePair<int, bool> value in lightEvent.lightIDs)
+            foreach(KeyValuePair<int, LightEvent> pair in lastEvents)
             {
-                int id = value.Key;
+                int id = pair.Key;
+                if(!lightEvent.AffectsID(id))
+                {
+                    lightEvent.lastEvents[id] = pair.Value;
+                }
+            }
 
+            foreach(int id in lightEvent.LightIDs)
+            {
                 LightEvent lastEvent;
                 if(lastEvents.Count == 0)
                 {
