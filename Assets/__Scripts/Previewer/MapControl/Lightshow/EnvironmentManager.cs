@@ -152,7 +152,16 @@ public class EnvironmentManager : MonoBehaviour
         }
 
         targetSceneIndex = sceneIndex;
-        CurrentEnvironmentParameters = EnvironmentParameters.First(x => x.EnvironmentName == environmentName);
+        try
+            {
+                CurrentEnvironmentParameters = EnvironmentParameters.First(x => x.EnvironmentName == environmentName);
+            }
+            catch(InvalidOperationException)
+            {
+                //Missing parameters for this environment
+                CurrentEnvironmentParameters = EnvironmentParameters.First();
+            }
+
         if(!Loading)
         {
             StartCoroutine(LoadEnvironment());
