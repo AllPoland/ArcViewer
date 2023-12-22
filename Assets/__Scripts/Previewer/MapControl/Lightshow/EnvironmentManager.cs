@@ -75,6 +75,7 @@ public class EnvironmentManager : MonoBehaviour
     {
         "DefaultEnvironment",
         "OriginsEnvironment",
+        "TriangleEnvironment",
         "TimbalandEnvironment"
     };
 
@@ -153,14 +154,14 @@ public class EnvironmentManager : MonoBehaviour
 
         targetSceneIndex = sceneIndex;
         try
-            {
-                CurrentEnvironmentParameters = EnvironmentParameters.First(x => x.EnvironmentName == environmentName);
-            }
-            catch(InvalidOperationException)
-            {
-                //Missing parameters for this environment
-                CurrentEnvironmentParameters = EnvironmentParameters.First();
-            }
+        {
+            CurrentEnvironmentParameters = EnvironmentParameters.First(x => x.EnvironmentName == environmentName);
+        }
+        catch(InvalidOperationException)
+        {
+            //Missing parameters for this environment
+            CurrentEnvironmentParameters = EnvironmentParameters.First();
+        }
 
         if(!Loading)
         {
