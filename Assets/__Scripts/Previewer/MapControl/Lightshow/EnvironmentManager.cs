@@ -71,6 +71,13 @@ public class EnvironmentManager : MonoBehaviour
         "LatticeEnvironment"
     };
 
+    private static readonly string[] supportedEnvironments = new string[]
+    {
+        "DefaultEnvironment",
+        "OriginsEnvironment",
+        "TimbalandEnvironment"
+    };
+
     public static EnvironmentLightParameters CurrentEnvironmentParameters = new EnvironmentLightParameters();
 
     [SerializeField] private EnvironmentLightParameters[] EnvironmentParameters;
@@ -122,6 +129,13 @@ public class EnvironmentManager : MonoBehaviour
 
     private void SetEnvironment(string environmentName)
     {
+        if(SettingsManager.GetBool("environmentoverride"))
+        {
+            int customIndex = SettingsManager.GetInt("customenvironment");
+            customIndex = Mathf.Clamp(customIndex, 0, supportedEnvironments.Length - 1);
+            environmentName = supportedEnvironments[customIndex];
+        }
+
         Debug.Log($"Setting new environment: {environmentName}");
         int sceneIndex = SceneUtility.GetBuildIndexByScenePath(environmentName);
         if(sceneIndex < 0)
@@ -152,9 +166,19 @@ public class EnvironmentManager : MonoBehaviour
     }
 
 
+    private void UpdateSettings(string setting)
+    {
+        if(setting == "all" || setting == "environmentoverride" || setting == "customenvironment")
+        {
+            SetEnvironment(BeatmapManager.EnvironmentName);
+        }
+    }
+
+
     private void Start()
     {
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
         
         UpdateDifficulty(BeatmapManager.CurrentDifficulty);
     }
