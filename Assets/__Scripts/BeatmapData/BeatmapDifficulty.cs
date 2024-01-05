@@ -16,6 +16,8 @@ public class BeatmapDifficulty
     //Waypoints ommitted
     public BeatmapBasicBeatmapEvent[] basicBeatMapEvents;
     public BeatmapColorBoostBeatmapEvent[] colorBoostBeatMapEvents;
+
+    public BeatmapCustomDifficultyData customData;
     public bool useNormalEventsAsCompatibleEvents;
 
     public bool HasObjects => colorNotes.Length + bombNotes?.Length
@@ -357,6 +359,18 @@ public class BeatmapCustomBasicEventData
     //Shared by both rings and lasers
     public float? speed;
     public int? direction;
+}
+
+[Serializable]
+public class BeatmapCustomDifficultyData {
+    public BeatmapCustomDifficultyDataBookmarks?[] bookmarks;
+}
+
+[Serializable]
+public class BeatmapCustomDifficultyDataBookmarks {
+    public float b;
+    public string n;
+    public float[]? c; 
 }
 
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [Serializable]
@@ -12,6 +13,8 @@ public class BeatmapDifficultyV2
     public BeatmapSliderV2[] _sliders;
     public BeatmapObstacleV2[] _obstacles;
     public BeatmapEventV2[] _events;
+
+    public BeatmapCustomDifficultyDataV2 _customData;
     //Waypoints ommitted
 
     public bool HasObjects => _notes.Length + _obstacles.Length
@@ -25,6 +28,7 @@ public class BeatmapDifficultyV2
         _sliders = new BeatmapSliderV2[0];
         _obstacles = new BeatmapObstacleV2[0];
         _events = new BeatmapEventV2[0];
+        _customData = new BeatmapCustomDifficultyDataV2();
     }
 
 
@@ -35,6 +39,7 @@ public class BeatmapDifficultyV2
         _sliders = _sliders ?? new BeatmapSliderV2[0];
         _obstacles = _obstacles ?? new BeatmapObstacleV2[0];
         _events = _events ?? new BeatmapEventV2[0];
+        _customData = _customData ?? new BeatmapCustomDifficultyDataV2();
     }
 
 
@@ -294,10 +299,29 @@ public class BeatmapDifficultyV2
                 }
             }
         }
+
+        // bookmarks
+        converted.customData = new BeatmapCustomDifficultyData();
+        var customDataBookmarks = new List<BeatmapCustomDifficultyDataBookmarks>();
+        foreach (var bookmark in _customData._bookmarks)
+        {
+            var newBookmark = new BeatmapCustomDifficultyDataBookmarks();
+            newBookmark.b = bookmark._time;
+            newBookmark.n = bookmark._name;
+            if(bookmark._color != null)
+            {
+                newBookmark.c = bookmark._color;
+            }
+            customDataBookmarks.Add(
+                newBookmark
+            );
+        }
+
         converted.rotationEvents = rotationEvents.ToArray();
         converted.basicBeatMapEvents = basicBeatmapEvents.ToArray();
         converted.colorBoostBeatMapEvents = colorBoostBeatmapEvents.ToArray();
         converted.bpmEvents = bpmEvents.ToArray();
+        converted.customData.bookmarks = customDataBookmarks.ToArray();
 
         return converted;
     }
@@ -460,6 +484,17 @@ public class BeatmapCustomEventDataV2
     }
 }
 
+[Serializable]
+public class BeatmapCustomDifficultyDataV2 {
+    public BeatmapCustomDifficultyDataBookmarksV2[]? _bookmarks;
+}
+
+[Serializable]
+public class BeatmapCustomDifficultyDataBookmarksV2 {
+    public float _time;
+    public string _name;
+    public float[]? _color;
+}
 
 public class BeatmapChromaGradientV2
 {
