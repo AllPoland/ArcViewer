@@ -12,6 +12,8 @@ public class BeatmapDifficultyV2
     public BeatmapSliderV2[] _sliders;
     public BeatmapObstacleV2[] _obstacles;
     public BeatmapEventV2[] _events;
+
+    public BeatmapCustomDifficultyDataV2 _customData;
     //Waypoints ommitted
 
     public bool HasObjects => _notes.Length + _obstacles.Length
@@ -25,6 +27,7 @@ public class BeatmapDifficultyV2
         _sliders = new BeatmapSliderV2[0];
         _obstacles = new BeatmapObstacleV2[0];
         _events = new BeatmapEventV2[0];
+        _customData = new BeatmapCustomDifficultyDataV2();
     }
 
 
@@ -35,6 +38,7 @@ public class BeatmapDifficultyV2
         _sliders = _sliders ?? new BeatmapSliderV2[0];
         _obstacles = _obstacles ?? new BeatmapObstacleV2[0];
         _events = _events ?? new BeatmapEventV2[0];
+        _customData = _customData ?? new BeatmapCustomDifficultyDataV2();
     }
 
 
@@ -294,10 +298,26 @@ public class BeatmapDifficultyV2
                 }
             }
         }
+
+        // bookmarks
+        converted.customData = new BeatmapCustomDifficultyData();
+        List<BeatmapCustomBookmark> customBookmarks = new List<BeatmapCustomBookmark>();
+        foreach (BeatmapCustomBookmarkV2 bookmark in _customData._bookmarks)
+        {
+            BeatmapCustomBookmark newBookmark = new BeatmapCustomBookmark
+            {
+                b = bookmark._time,
+                n = bookmark._name,
+                c = bookmark._color
+            };
+            customBookmarks.Add(newBookmark);
+        }
+
         converted.rotationEvents = rotationEvents.ToArray();
         converted.basicBeatMapEvents = basicBeatmapEvents.ToArray();
         converted.colorBoostBeatMapEvents = colorBoostBeatmapEvents.ToArray();
         converted.bpmEvents = bpmEvents.ToArray();
+        converted.customData.bookmarks = customBookmarks.ToArray();
 
         return converted;
     }
@@ -458,6 +478,20 @@ public class BeatmapCustomEventDataV2
             direction = _direction
         };
     }
+}
+
+
+[Serializable]
+public class BeatmapCustomDifficultyDataV2 {
+    public BeatmapCustomBookmarkV2[] _bookmarks;
+}
+
+
+[Serializable]
+public class BeatmapCustomBookmarkV2 {
+    public float _time;
+    public string _name;
+    public float[] _color;
 }
 
 

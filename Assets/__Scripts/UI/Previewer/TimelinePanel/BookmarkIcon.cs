@@ -1,26 +1,28 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
-public class MistakeIcon : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+public class BookmarkIcon : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
 {
     public RectTransform rectTransform;
 
+    [SerializeField] private float time;
+
+    [Space]
     [SerializeField] private Image image;
     [SerializeField] private Tooltip tooltip;
 
     [Space]
-    [SerializeField] private float normalSize;
-    [SerializeField] private float hoveredSize;
+    [SerializeField] private Vector2 normalSize;
+    [SerializeField] private Vector2 hoveredSize;
 
-    private float eventTime;
-    private RectTransform parentRectTransform;
     private Canvas parentCanvas;
+    private RectTransform parentRectTransform;
 
 
     private void UpdatePosition()
     {
-        float timeProgress = eventTime / SongManager.GetSongLength();
+        float timeProgress = time / SongManager.GetSongLength();
         float sliderPixelWidth = parentRectTransform.rect.width * parentCanvas.scaleFactor;
 
         float targetPos = timeProgress * sliderPixelWidth;
@@ -30,16 +32,16 @@ public class MistakeIcon : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        rectTransform.sizeDelta = new Vector2(hoveredSize, hoveredSize);
+        rectTransform.sizeDelta = hoveredSize;
 
-        float padding = (hoveredSize - normalSize) / 2;
-        image.raycastPadding = new Vector4(padding, padding, padding, 0);
+        Vector2 padding = (hoveredSize - normalSize) / 2;
+        image.raycastPadding = new Vector4(padding.x, padding.y, padding.x, padding.y);
     }
 
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        rectTransform.sizeDelta = new Vector2(normalSize, normalSize);
+        rectTransform.sizeDelta = normalSize;
         image.raycastPadding = Vector4.zero;
     }
 
@@ -49,21 +51,18 @@ public class MistakeIcon : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         bool wasPlaying = TimeManager.Playing;
         
         TimeManager.SetPlaying(false);
-        TimeManager.CurrentTime = eventTime;
+        TimeManager.CurrentTime = time;
         TimeManager.SetPlaying(wasPlaying);
     }
 
 
-    public void SetVisual(Sprite sprite, Color color)
+    public void SetData(float beat, string name, Color color)
     {
-        image.sprite = sprite;
+        time = TimeManager.TimeFromBeat(beat);
+        tooltip.Text = name;
         image.color = color;
-    }
 
-
-    public void SetTooltip(string tooltipText)
-    {
-        tooltip.Text = tooltipText;
+        UpdatePosition();
     }
 
 
@@ -74,16 +73,9 @@ public class MistakeIcon : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     }
 
 
-    public void SetTime(float time)
-    {
-        eventTime = time;
-        UpdatePosition();        
-    }
-
-
     private void OnEnable()
     {
-        rectTransform.sizeDelta = new Vector2(normalSize, normalSize);
+        rectTransform.sizeDelta = normalSize;
         ScreenSizeHelper.OnScreenSizeChanged += UpdatePosition;
     }
 

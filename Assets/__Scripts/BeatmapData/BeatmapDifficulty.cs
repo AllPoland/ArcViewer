@@ -16,9 +16,11 @@ public class BeatmapDifficulty
     //Waypoints ommitted
     public BeatmapBasicBeatmapEvent[] basicBeatMapEvents;
     public BeatmapColorBoostBeatmapEvent[] colorBoostBeatMapEvents;
+
+    public BeatmapCustomDifficultyData customData;
     public bool useNormalEventsAsCompatibleEvents;
 
-    public bool HasObjects => colorNotes.Length + bombNotes?.Length
+    public bool HasObjects => colorNotes.Length + bombNotes.Length
         + obstacles.Length + sliders.Length
         + burstSliders.Length + basicBeatMapEvents.Length
         + colorBoostBeatMapEvents.Length + bpmEvents.Length
@@ -72,6 +74,7 @@ public class BeatmapRotationEvent
     public int e;
     public float r;
 }
+
 
 public abstract class BeatmapObject
 {
@@ -360,6 +363,20 @@ public class BeatmapCustomBasicEventData
 }
 
 
+[Serializable]
+public class BeatmapCustomDifficultyData {
+    public BeatmapCustomBookmark[] bookmarks;
+}
+
+
+[Serializable]
+public class BeatmapCustomBookmark {
+    public float b;
+    public string n;
+    public float[] c; 
+}
+
+
 //A custom json deserializer that converts a single non-array lightID into a list with one element
 public class LightIDConverter : JsonConverter
 {
@@ -367,6 +384,7 @@ public class LightIDConverter : JsonConverter
     {
         throw new NotImplementedException();
     }
+
 
     public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
@@ -382,6 +400,7 @@ public class LightIDConverter : JsonConverter
         }
         return val;
     }
+
 
     public override bool CanConvert(Type objectType)
     {
