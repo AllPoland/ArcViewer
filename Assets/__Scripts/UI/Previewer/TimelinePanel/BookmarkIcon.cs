@@ -1,27 +1,34 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using Unity.VisualScripting;
 
-// this is similar enough to the MistakeIcon script because
-// both of them go on the timeline. This might be scuffed though.
 public class BookmarkIcon : MonoBehaviour
 {
     public RectTransform rectTransform;
-    [Header ("Bookmark Info")]
-    [SerializeField] private string bookmarkName;
-    [SerializeField] private Color color;
-    [SerializeField] private float time;
-    [UnitHeaderInspectable("Metadata")]
+
+    [SerializeField] private float bookmarkTime;
+
+    [Space]
     [SerializeField] private Image image;
     [SerializeField] private Tooltip tooltip;
 
     private Canvas parentCanvas;
     private RectTransform parentRectTransform;
 
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        bool wasPlaying = TimeManager.Playing;
+        
+        TimeManager.SetPlaying(false);
+        TimeManager.CurrentTime = bookmarkTime;
+        TimeManager.SetPlaying(wasPlaying);
+    }
+
+
     private void UpdatePosition()
     {
-        float timeSeconds = time / TimeManager.BaseBPM * 60;
+        float timeSeconds = bookmarkTime / TimeManager.BaseBPM * 60;
         float timeProgress = timeSeconds / SongManager.GetSongLength();;
         float sliderPixelWidth = parentRectTransform.rect.width * parentCanvas.scaleFactor;
 
@@ -29,41 +36,23 @@ public class BookmarkIcon : MonoBehaviour
         rectTransform.anchoredPosition = new Vector2(targetPos / parentCanvas.scaleFactor, 51f);
     }
 
-    private void UpdateTooltip()
-    {
-        tooltip.Text = bookmarkName;
-    }
 
-    private void UpdateColor()
+    public void SetData(float time, string name, Color color)
     {
+        bookmarkTime = time;
+        tooltip.Text = name;
         image.color = color;
-    }
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        bool wasPlaying = TimeManager.Playing;
-        
-        TimeManager.SetPlaying(false);
-        TimeManager.CurrentTime = time;
-        TimeManager.SetPlaying(wasPlaying);
-    }
-    public void SetData(float time, string name, Color? color)
-    {
-        this.time = time;
-        bookmarkName = name;
-        if(color != null)
-            this.color = (Color)color;
-        else
-            this.color = Random.ColorHSV();
 
         UpdatePosition();
-        UpdateTooltip();
-        UpdateColor();
     }
+
+
     public void SetParentReferences(RectTransform parent, Canvas canvas)
     {
         parentRectTransform = parent;
         parentCanvas = canvas;
     }
+
 
     private void OnEnable()
     {
@@ -76,5 +65,4 @@ public class BookmarkIcon : MonoBehaviour
     {
         ScreenSizeHelper.OnScreenSizeChanged -= UpdatePosition;
     }
-
 }

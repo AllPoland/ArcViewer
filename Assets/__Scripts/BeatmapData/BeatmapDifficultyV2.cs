@@ -301,26 +301,23 @@ public class BeatmapDifficultyV2
 
         // bookmarks
         converted.customData = new BeatmapCustomDifficultyData();
-        var customDataBookmarks = new List<BeatmapCustomDifficultyDataBookmark>();
-        foreach (var bookmark in _customData._bookmarks)
+        List<BeatmapCustomBookmark> customBookmarks = new List<BeatmapCustomBookmark>();
+        foreach (BeatmapCustomBookmarkV2 bookmark in _customData._bookmarks)
         {
-            var newBookmark = new BeatmapCustomDifficultyDataBookmark
+            BeatmapCustomBookmark newBookmark = new BeatmapCustomBookmark
             {
                 b = bookmark._time,
                 n = bookmark._name,
                 c = bookmark._color
             };
-           
-            customDataBookmarks.Add(
-                newBookmark
-            );
+            customBookmarks.Add(newBookmark);
         }
 
         converted.rotationEvents = rotationEvents.ToArray();
         converted.basicBeatMapEvents = basicBeatmapEvents.ToArray();
         converted.colorBoostBeatMapEvents = colorBoostBeatmapEvents.ToArray();
         converted.bpmEvents = bpmEvents.ToArray();
-        converted.customData.bookmarks = customDataBookmarks.ToArray();
+        converted.customData.bookmarks = customBookmarks.ToArray();
 
         return converted;
     }
@@ -483,17 +480,20 @@ public class BeatmapCustomEventDataV2
     }
 }
 
-[Serializable]
-public class BeatmapCustomDifficultyDataV2 {
-    public BeatmapCustomDifficultyDataBookmarksV2[] _bookmarks;
-}
 
 [Serializable]
-public class BeatmapCustomDifficultyDataBookmarksV2 {
+public class BeatmapCustomDifficultyDataV2 {
+    public BeatmapCustomBookmarkV2[] _bookmarks;
+}
+
+
+[Serializable]
+public class BeatmapCustomBookmarkV2 {
     public float _time;
     public string _name;
     public float[] _color;
 }
+
 
 public class BeatmapChromaGradientV2
 {

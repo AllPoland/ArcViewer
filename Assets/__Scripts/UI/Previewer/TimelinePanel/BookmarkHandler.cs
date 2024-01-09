@@ -1,35 +1,38 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BookmarksHandler : MonoBehaviour
+public class BookmarkHandler : MonoBehaviour
 {
-    [SerializeField] BookmarkIcon bookmarkPrefab;
-    [SerializeField] RectTransform bookmarkParent;
+    [SerializeField] private BookmarkIcon bookmarkPrefab;
+    [SerializeField] private RectTransform bookmarkParent;
 
     private List<BookmarkIcon> bookmarks = new List<BookmarkIcon>();
     private Canvas parentCanvas;
+
+
     private void GenerateBookmarks()
     {
         ClearBookmarks();
-        if(BeatmapManager.CurrentDifficulty.beatmapDifficulty == null)
+        if(BeatmapManager.CurrentDifficulty?.beatmapDifficulty?.customData?.bookmarks == null)
+        {
             return;
+        }
 
-        // that's one hell of a mouthful
-        // FIXME this throws a nullReferenceException despite the check above
-        foreach (var bookmark in BeatmapManager.CurrentDifficulty.beatmapDifficulty.customData.bookmarks)
+        BeatmapCustomBookmark[] newBookmarks = BeatmapManager.CurrentDifficulty.beatmapDifficulty.customData.bookmarks;
+        foreach(BeatmapCustomBookmark bookmark in newBookmarks)
         {
             BookmarkIcon newBookmark = Instantiate(bookmarkPrefab, bookmarkParent, false);
             newBookmark.SetParentReferences(bookmarkParent, parentCanvas);
             newBookmark.SetData(
                 bookmark.b,
                 bookmark.n,
-                bookmark.c != null ? new Color(bookmark.c[0], bookmark.c[1], bookmark.c[2]) : null
+                bookmark.c != null ? new Color(bookmark.c[0], bookmark.c[1], bookmark.c[2]) : Color.white
             );
 
             bookmarks.Add(newBookmark);
         }
     }
+
 
     private void ClearBookmarks()
     {
@@ -40,6 +43,8 @@ public class BookmarksHandler : MonoBehaviour
             bookmarks.Remove(bookmarks[i]);
         }
     }
+
+
     private void UpdateDifficulty(Difficulty newDifficulty) => GenerateBookmarks();
 
 
@@ -51,6 +56,7 @@ public class BookmarksHandler : MonoBehaviour
         }
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
     }
+
 
     private void OnDisable()
     {

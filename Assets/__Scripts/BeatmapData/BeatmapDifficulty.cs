@@ -20,7 +20,7 @@ public class BeatmapDifficulty
     public BeatmapCustomDifficultyData customData;
     public bool useNormalEventsAsCompatibleEvents;
 
-    public bool HasObjects => colorNotes.Length + bombNotes?.Length
+    public bool HasObjects => colorNotes.Length + bombNotes.Length
         + obstacles.Length + sliders.Length
         + burstSliders.Length + basicBeatMapEvents.Length
         + colorBoostBeatMapEvents.Length + bpmEvents.Length
@@ -74,6 +74,7 @@ public class BeatmapRotationEvent
     public int e;
     public float r;
 }
+
 
 public abstract class BeatmapObject
 {
@@ -361,13 +362,15 @@ public class BeatmapCustomBasicEventData
     public int? direction;
 }
 
-[Serializable]
-public class BeatmapCustomDifficultyData {
-    public BeatmapCustomDifficultyDataBookmark[] bookmarks;
-}
 
 [Serializable]
-public class BeatmapCustomDifficultyDataBookmark {
+public class BeatmapCustomDifficultyData {
+    public BeatmapCustomBookmark[] bookmarks;
+}
+
+
+[Serializable]
+public class BeatmapCustomBookmark {
     public float b;
     public string n;
     public float[] c; 
@@ -381,6 +384,7 @@ public class LightIDConverter : JsonConverter
     {
         throw new NotImplementedException();
     }
+
 
     public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
@@ -396,6 +400,7 @@ public class LightIDConverter : JsonConverter
         }
         return val;
     }
+
 
     public override bool CanConvert(Type objectType)
     {

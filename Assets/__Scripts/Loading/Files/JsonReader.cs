@@ -142,7 +142,7 @@ public static class JsonReader
         }
 
         difficulty.AddNulls();
-        Debug.Log($"Parsed {filename} with {difficulty.colorNotes.Length} notes, {difficulty.bombNotes.Length} bombs, {difficulty.obstacles.Length} walls, {difficulty.sliders.Length} arcs, {difficulty.burstSliders.Length} chains, and {difficulty.customData.bookmarks.Length} bookmarks.");
+        Debug.Log($"Parsed {filename} with {difficulty.colorNotes.Length} notes, {difficulty.bombNotes.Length} bombs, {difficulty.obstacles.Length} walls, {difficulty.sliders.Length} arcs, {difficulty.burstSliders.Length} chains.");
         return difficulty;
     }
 
