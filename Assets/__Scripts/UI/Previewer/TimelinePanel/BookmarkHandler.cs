@@ -13,6 +13,11 @@ public class BookmarkHandler : MonoBehaviour
     private void GenerateBookmarks()
     {
         ClearBookmarks();
+        if(!SettingsManager.GetBool("showbookmarks"))
+        {
+            return;
+        }
+
         if(BeatmapManager.CurrentDifficulty?.beatmapDifficulty?.customData?.bookmarks == null)
         {
             return;
@@ -48,13 +53,24 @@ public class BookmarkHandler : MonoBehaviour
     private void UpdateDifficulty(Difficulty newDifficulty) => GenerateBookmarks();
 
 
+    private void UpdateSettings(string setting)
+    {
+        if(setting == "all" || setting == "showbookmarks")
+        {
+            GenerateBookmarks();
+        }
+    }
+
+
     private void OnEnable()
     {
         if(!parentCanvas) 
         {
             parentCanvas = GetComponentInParent<Canvas>();
         }
+
         TimeManager.OnDifficultyBpmEventsLoaded += UpdateDifficulty;
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
     }
 
 
