@@ -16,6 +16,7 @@ public class BookmarksHandler : MonoBehaviour
             return;
 
         // that's one hell of a mouthful
+        // FIXME this throws a nullReferenceException despite the check above
         foreach (var bookmark in BeatmapManager.CurrentDifficulty.beatmapDifficulty.customData.bookmarks)
         {
             BookmarkIcon newBookmark = Instantiate(bookmarkPrefab, bookmarkParent, false);
