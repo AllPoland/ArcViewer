@@ -363,14 +363,14 @@ public class BeatmapCustomBasicEventData
 
 [Serializable]
 public class BeatmapCustomDifficultyData {
-    public BeatmapCustomDifficultyDataBookmarks?[] bookmarks;
+    public BeatmapCustomDifficultyDataBookmark[] bookmarks;
 }
 
 [Serializable]
-public class BeatmapCustomDifficultyDataBookmarks {
+public class BeatmapCustomDifficultyDataBookmark {
     public float b;
     public string n;
-    public float[]? c; 
+    public float[] c; 
 }
 
 
