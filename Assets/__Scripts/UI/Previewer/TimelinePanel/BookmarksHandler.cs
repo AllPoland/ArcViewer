@@ -23,7 +23,7 @@ public class BookmarksHandler : MonoBehaviour
             newBookmark.SetData(
                 bookmark.b,
                 bookmark.n,
-                bookmark.c == null ? new Color(bookmark.c[0], bookmark.c[1], bookmark.c[2]) : null
+                bookmark.c != null ? new Color(bookmark.c[0], bookmark.c[1], bookmark.c[2]) : null
             );
 
             bookmarks.Add(newBookmark);
