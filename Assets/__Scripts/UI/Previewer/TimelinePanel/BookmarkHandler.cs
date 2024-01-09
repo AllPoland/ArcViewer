@@ -54,7 +54,7 @@ public class BookmarkHandler : MonoBehaviour
         {
             parentCanvas = GetComponentInParent<Canvas>();
         }
-        BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
+        TimeManager.OnDifficultyBpmEventsLoaded += UpdateDifficulty;
     }
 
 

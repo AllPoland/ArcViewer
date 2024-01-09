@@ -20,7 +20,7 @@ public class MistakeIcon : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
     private void UpdatePosition()
     {
-        float timeProgress = eventTime / SongManager.GetSongLength();;
+        float timeProgress = eventTime / SongManager.GetSongLength();
         float sliderPixelWidth = parentRectTransform.rect.width * parentCanvas.scaleFactor;
 
         float targetPos = timeProgress * sliderPixelWidth;

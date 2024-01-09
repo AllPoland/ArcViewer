@@ -2,18 +2,48 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class BookmarkIcon : MonoBehaviour
+public class BookmarkIcon : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
 {
     public RectTransform rectTransform;
 
-    [SerializeField] private float bookmarkTime;
+    [SerializeField] private float time;
 
     [Space]
     [SerializeField] private Image image;
     [SerializeField] private Tooltip tooltip;
 
+    [Space]
+    [SerializeField] private Vector2 normalSize;
+    [SerializeField] private Vector2 hoveredSize;
+
     private Canvas parentCanvas;
     private RectTransform parentRectTransform;
+
+
+    private void UpdatePosition()
+    {
+        float timeProgress = time / SongManager.GetSongLength();
+        float sliderPixelWidth = parentRectTransform.rect.width * parentCanvas.scaleFactor;
+
+        float targetPos = timeProgress * sliderPixelWidth;
+        rectTransform.anchoredPosition = new Vector2(targetPos / parentCanvas.scaleFactor, 0f);
+    }
+
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        rectTransform.sizeDelta = hoveredSize;
+
+        Vector2 padding = (hoveredSize - normalSize) / 2;
+        image.raycastPadding = new Vector4(padding.x, padding.y, padding.x, padding.y);
+    }
+
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        rectTransform.sizeDelta = normalSize;
+        image.raycastPadding = Vector4.zero;
+    }
 
 
     public void OnPointerDown(PointerEventData eventData)
@@ -21,25 +51,14 @@ public class BookmarkIcon : MonoBehaviour
         bool wasPlaying = TimeManager.Playing;
         
         TimeManager.SetPlaying(false);
-        TimeManager.CurrentTime = bookmarkTime;
+        TimeManager.CurrentTime = time;
         TimeManager.SetPlaying(wasPlaying);
     }
 
 
-    private void UpdatePosition()
+    public void SetData(float beat, string name, Color color)
     {
-        float timeSeconds = bookmarkTime / TimeManager.BaseBPM * 60;
-        float timeProgress = timeSeconds / SongManager.GetSongLength();;
-        float sliderPixelWidth = parentRectTransform.rect.width * parentCanvas.scaleFactor;
-
-        float targetPos = timeProgress * sliderPixelWidth;
-        rectTransform.anchoredPosition = new Vector2(targetPos / parentCanvas.scaleFactor, 51f);
-    }
-
-
-    public void SetData(float time, string name, Color color)
-    {
-        bookmarkTime = time;
+        time = TimeManager.TimeFromBeat(beat);
         tooltip.Text = name;
         image.color = color;
 
@@ -56,7 +75,7 @@ public class BookmarkIcon : MonoBehaviour
 
     private void OnEnable()
     {
-        rectTransform.sizeDelta = new Vector2(30, 30);
+        rectTransform.sizeDelta = normalSize;
         ScreenSizeHelper.OnScreenSizeChanged += UpdatePosition;
     }
 
