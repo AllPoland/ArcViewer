@@ -153,7 +153,7 @@ public static class AudioFileHandler
 
                 if(audioUwr.result != UnityWebRequest.Result.Success)
                 {
-                    Debug.LogWarning($"{audioUwr.error}");
+                    Debug.LogWarning($"Song uwr failed with error: {audioUwr.error}");
                     return song;
                 }
                 else
