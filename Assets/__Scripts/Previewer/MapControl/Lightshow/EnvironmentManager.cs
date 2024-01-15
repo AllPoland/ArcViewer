@@ -144,6 +144,7 @@ public class EnvironmentManager : MonoBehaviour
         {
             Debug.Log($"Found no scene match for {environmentName}, using default.");
             sceneIndex = defaultSceneIndex;
+            environmentName = supportedEnvironments[0];
         }
 
         if(sceneIndex == targetSceneIndex && sceneIndex == CurrentSceneIndex)
