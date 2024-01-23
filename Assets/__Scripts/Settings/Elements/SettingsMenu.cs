@@ -5,7 +5,18 @@ using UnityEngine.UI;
 
 public class SettingsMenu : MonoBehaviour
 {
-    public static bool Open { get; private set; }
+    private static bool _open;
+    public static bool Open
+    {
+        get => _open;
+        private set
+        {
+            _open = value;
+            OnOpenUpdated?.Invoke(_open);
+        }
+    }
+
+    public static event Action<bool> OnOpenUpdated;
 
     private SettingsTab _currentTab = SettingsTab.General;
     public SettingsTab CurrentTab
