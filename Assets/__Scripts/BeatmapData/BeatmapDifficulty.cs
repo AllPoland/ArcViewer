@@ -39,6 +39,7 @@ public class BeatmapDifficulty
         burstSliders = new BeatmapBurstSlider[0];
         basicBeatMapEvents = new BeatmapBasicBeatmapEvent[0];
         colorBoostBeatMapEvents = new BeatmapColorBoostBeatmapEvent[0];
+        customData = null;
         useNormalEventsAsCompatibleEvents = false;
     }
 

@@ -129,7 +129,7 @@ public static class JsonReader
                     {
                         ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to find difficulty version from {filename}!");
                         Debug.LogWarning($"{filename} is in an unsupported or missing version!");
-                        return new BeatmapDifficulty();
+                        return null;
                     }
                 }
             }
@@ -138,7 +138,7 @@ public static class JsonReader
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to parse {filename}!");
             Debug.LogWarning($"Unable to parse {filename} file with error: {err.Message}, {err.StackTrace}.");
-            return new BeatmapDifficulty();
+            return null;
         }
 
         difficulty.AddNulls();
