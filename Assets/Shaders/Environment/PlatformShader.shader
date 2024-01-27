@@ -47,8 +47,11 @@ Shader "Custom/PlatformShader"
                 float4 vertex : SV_POSITION;
             };
 
+            uniform float4 _BloomfogTex_TexelSize;
+
             sampler2D _MainTex;
             float4 _MainTex_ST;
+
             sampler2D _NormalMap;
             float _TextureDistance, _NormalDistance;
 
@@ -80,7 +83,10 @@ Shader "Custom/PlatformShader"
 
                 fixed4 col = _BaseColor;
 
-                float cameraDistance = distance(i.worldPos, _WorldSpaceCameraPos);
+                float3 cameraOffset = _WorldSpaceCameraPos - i.worldPos;
+                float cameraDistance = length(cameraOffset);
+
+                float2 bloomfogRes = _BloomfogTex_TexelSize.xy;
 
                 //Read the normal map and convert to worldspace
                 float3 tangentNormal = UnpackNormal(tex2D(_NormalMap, i.uv));
@@ -90,18 +96,26 @@ Shader "Custom/PlatformShader"
                 float3 worldNormal = mul(tangentNormal, TBN);
 
                 //Use the viewspace normal to create fake environment reflections
-                float2 originalFogCoord = (i.fogCoord * 2) - 1;
                 float3 viewNormal = mul((float3x3)UNITY_MATRIX_V, worldNormal);
+                float3 cameraDir = normalize(cameraOffset);
+
+                //Convert coordinates to a pixel grid (to avoid aspect ratio issues)
+                float2 originalFogCoord = (i.fogCoord * 2) - 1;
+                originalFogCoord.y *= bloomfogRes;
 
                 //Push the fog sample pos in the direction of the normal
-                //Multiply by distance from screen origin to effectively mirror the screen
-                float2 screenReflectPos = originalFogCoord + (viewNormal.xy * length(originalFogCoord));
-                screenReflectPos = (screenReflectPos + 1) / 2;
+                //Distance is based on the angle of reflection
+                float reflectionDistMult = dot(cameraDir, worldNormal) * bloomfogRes.x * 0.5;
+                float2 screenReflectPos = originalFogCoord + (viewNormal.xy * reflectionDistMult);
+
+                //Convert back to UV coordinates
+                screenReflectPos.y /= bloomfogRes;
+                float2 screenReflectUV = (screenReflectPos + 1) / 2;
 
                 //Scale reflections with how much the face points toward the camera
-                //because they'd be reflecting backwards where there's no fog
+                //because they'd be reflecting backwards where there's no fog (that we know of)
                 float reflectionMult = lerp(_ReflectionStrength, _AmbientReflectionStrength, abs(viewNormal.z));
-                col += BLOOM_FOG_SAMPLE(screenReflectPos) * reflectionMult;
+                col += BLOOM_FOG_SAMPLE(screenReflectUV) * reflectionMult;
 
                 //Apply albedo texture
                 col = lerp(col * tex2D(_MainTex, i.uv), col, clamp(cameraDistance / _TextureDistance, 0.001, 1));
