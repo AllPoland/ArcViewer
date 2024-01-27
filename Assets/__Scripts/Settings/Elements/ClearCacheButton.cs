@@ -4,6 +4,8 @@ public class ClearCacheButton : MonoBehaviour
 {
     public void ClearCache()
     {
-        FileCache.ClearCache();
+#if !UNITY_WEBGL || UNITY_EDITOR
+        CacheManager.ClearCache();
+#endif
     }
 }

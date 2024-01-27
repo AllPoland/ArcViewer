@@ -7,25 +7,22 @@ using UnityEngine;
 
 public class FileCache
 {
-    public const string CacheFolder = "Cache/";
-    public const string CacheJson = "CacheInfo.json";
-    public static readonly string CachePath = Path.Combine(Application.persistentDataPath, CacheFolder);
-    public static readonly string CacheDataFile = Path.Combine(CachePath, CacheJson);
+    public string CacheJson = "CacheInfo.json";
 
-    private static int _maxCacheSize = 3;
-    public static int MaxCacheSize
+    private int _maxCacheSize = 5;
+    public int MaxCacheSize
     {
         get => _maxCacheSize;
         set
         {
-            _maxCacheSize = value;
+            _maxCacheSize = Mathf.Max(value, 0);
 
             if(CachedFiles == null)
             {
                 LoadCachedFiles();
             }
 
-            while(CachedFiles.Count > value)
+            while(CachedFiles.Count > _maxCacheSize)
             {
                 RemoveLastFile();
             }
@@ -33,10 +30,19 @@ public class FileCache
         }
     }
 
-    private static List<CachedFile> CachedFiles;
+    private string CachePath => CacheManager.CachePath;
+    private string CacheDataFile => Path.Combine(CachePath, CacheJson);
+
+    private List<CachedFile> CachedFiles;
 
 
-    public static CachedFile GetCachedFile(string url = null, string id = null, string hash = null)
+    public FileCache(string jsonFilename)
+    {
+        CacheJson = jsonFilename ?? CacheJson;
+    }
+
+
+    public CachedFile GetCachedFile(string url = null, string id = null, string hash = null)
     {
         if(CachedFiles == null)
         {
@@ -67,7 +73,7 @@ public class FileCache
     }
 
 
-    public static void SaveFileToCache(Stream fileStream, string url = null, string id = null, string hash = null)
+    public void SaveFileToCache(Stream fileStream, string url = null, string id = null, string hash = null)
     {
         if(CachedFiles == null)
         {
@@ -131,31 +137,13 @@ public class FileCache
     }
 
 
-    public static void ClearCache()
+    public void Clear()
     {
-        if(!Directory.Exists(CachePath))
-        {
-            ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "The cache is already empty!");
-            return;
-        }
-
-        try
-        {
-            Debug.Log($"Deleting cache directory: {CachePath}.");
-            Directory.Delete(CachePath, true);
-
-            CachedFiles = null;
-            ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "Successfully cleared the cache.");
-        }
-        catch(Exception e)
-        {
-            Debug.LogWarning($"Failed to delete path: {CachePath} with error: {e.Message}, {e.StackTrace}");
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to clear the cache!");
-        }
+        CachedFiles = null;
     }
 
 
-    private static void RemoveLastFile()
+    private void RemoveLastFile()
     {
         if(CachedFiles == null)
         {
@@ -185,11 +173,21 @@ public class FileCache
     }
 
 
-    private static void LoadCachedFiles()
+    private void LoadCachedFiles()
     {
         if(!Directory.Exists(CachePath))
         {
-            Directory.CreateDirectory(CachePath);
+            Debug.Log($"Directory {CachePath} doesn't exist, making it.");
+            try
+            {
+                Directory.CreateDirectory(CachePath);
+            }
+            catch(Exception e)
+            {
+                Debug.LogWarning($"Failed to create cache directory with error: {e.Message}, {e.StackTrace}");
+                CachedFiles = new List<CachedFile>();
+                return;
+            }
         }
 
         if(!File.Exists(CacheDataFile))
@@ -217,7 +215,7 @@ public class FileCache
     }
 
 
-    private static void SaveCacheData()
+    private void SaveCacheData()
     {
         if(CachedFiles == null)
         {

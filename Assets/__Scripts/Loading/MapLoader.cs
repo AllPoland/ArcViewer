@@ -148,7 +148,7 @@ public class MapLoader : MonoBehaviour
         Loading = true;
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        CachedFile cachedFile = FileCache.GetCachedFile(url, mapID, mapHash);
+        CachedFile cachedFile = CacheManager.GetCachedMap(url, mapID, mapHash);
         if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
             Debug.Log("Found map in cache.");
@@ -175,7 +175,7 @@ public class MapLoader : MonoBehaviour
 #if !UNITY_WEBGL || UNITY_EDITOR
         else
         {
-            FileCache.SaveFileToCache(zipStream, url, mapID, mapHash);
+            CacheManager.SaveMapToCache(zipStream, url, mapID, mapHash);
         }
 #endif
 
@@ -202,7 +202,7 @@ public class MapLoader : MonoBehaviour
         Loading = true;
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        CachedFile cachedFile = FileCache.GetCachedFile(null, mapID);
+        CachedFile cachedFile = CacheManager.GetCachedMap(null, mapID);
         if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
             Debug.Log("Found map in cache.");
@@ -236,7 +236,7 @@ public class MapLoader : MonoBehaviour
         Debug.Log($"Searching for map matching replay hash: {mapHash}");
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        CachedFile cachedFile = FileCache.GetCachedFile(null, null, mapHash);
+        CachedFile cachedFile = CacheManager.GetCachedMap(null, null, mapHash);
         if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
             //Only use the cache if we know the ID or URL, so the link buttons work
