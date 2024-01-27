@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CacheManager : MonoBehaviour
 {
-    public const string CacheFolder = "Cache/";
+    public const string CacheFolder = "Cache";
 
     public static string CachePath;
 
@@ -81,10 +81,10 @@ public class CacheManager : MonoBehaviour
 
     private void Awake()
     {
-        CachePath = Path.Combine(Application.persistentDataPath, CacheManager.CacheFolder);
+        CachePath = Path.Combine(Application.persistentDataPath, CacheFolder);
 
-        MapCache = new FileCache(MapCacheJson);
-        ReplayCache = new FileCache(ReplayCacheJson);
+        MapCache = new FileCache(MapCacheJson, ".zip");
+        ReplayCache = new FileCache(ReplayCacheJson, ".bsor");
     }
 
 

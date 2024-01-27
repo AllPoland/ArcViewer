@@ -8,6 +8,7 @@ using UnityEngine;
 public class FileCache
 {
     public string CacheJson = "CacheInfo.json";
+    public string FileExtension = ".zip";
 
     private int _maxCacheSize = 5;
     public int MaxCacheSize
@@ -36,9 +37,10 @@ public class FileCache
     private List<CachedFile> CachedFiles;
 
 
-    public FileCache(string jsonFilename)
+    public FileCache(string jsonFilename, string fileExtension)
     {
         CacheJson = jsonFilename ?? CacheJson;
+        FileExtension = fileExtension ?? FileExtension;
     }
 
 
@@ -104,13 +106,13 @@ public class FileCache
         }
 
         string randomString = RandomStuff.RandomString(10);
-        string newFilePath = Path.Combine(CachePath, $"{randomString}.zip");
+        string newFilePath = Path.Combine(CachePath, $"{randomString}{FileExtension}");
         while(File.Exists(newFilePath))
         {
             //Regenerate a new name if a file with this name already exists
             //The chances of this happening are astronomically low, but just to be safe smil
             randomString = RandomStuff.RandomString(10);
-            newFilePath = Path.Combine(CachePath, $"{randomString}.zip");
+            newFilePath = Path.Combine(CachePath, $"{randomString}{FileExtension}");
         }
 
         CachedFile newFile = new CachedFile
@@ -133,7 +135,7 @@ public class FileCache
 
         SaveCacheData();
 
-        Debug.Log($"Successfully saved {randomString}.zip to cache.");
+        Debug.Log($"Successfully saved {randomString}{FileExtension} to cache.");
     }
 
 

@@ -172,11 +172,9 @@ public class MapLoader : MonoBehaviour
             UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
+
 #if !UNITY_WEBGL || UNITY_EDITOR
-        else
-        {
-            CacheManager.SaveMapToCache(zipStream, url, mapID, mapHash);
-        }
+        CacheManager.SaveMapToCache(zipStream, url, mapID, mapHash);
 #endif
 
         ZipReader zipReader = new ZipReader(null, zipStream);
@@ -417,11 +415,21 @@ public class MapLoader : MonoBehaviour
 #endif
 
 
-    public IEnumerator LoadReplayURLCoroutine(string url, string mapURL = null, string mapID = null, bool noProxy = false)
+    public IEnumerator LoadReplayURLCoroutine(string url, string id = null, string mapURL = null, string mapID = null, bool noProxy = false)
     {
         Loading = true;
+        Debug.Log($"Searching for replay from: {url}");
 
-        Debug.Log($"Downloading replay file from from: {url}");
+#if !UNITY_WEBGL || UNITY_EDITOR
+        CachedFile cachedFile = CacheManager.GetCachedReplay(url);
+        if(!string.IsNullOrEmpty(cachedFile?.FilePath))
+        {
+            Debug.Log("Found replay in cache.");
+            StartCoroutine(LoadReplayDirectoryCoroutine(cachedFile.FilePath));
+            yield break;
+        }
+#endif
+
         LoadingMessage = "Downloading replay";
 
         using Task<Stream> downloadTask = WebLoader.LoadFileURL(url, noProxy);
@@ -448,6 +456,10 @@ public class MapLoader : MonoBehaviour
             yield break;
         }
 
+#if !UNITY_WEBGL || UNITY_EDITOR
+        CacheManager.SaveReplayToCache(replayStream, url, id);
+#endif
+
         StartCoroutine(SetReplayCoroutine(replay, mapURL, mapID, noProxy));
     }
 
@@ -455,8 +467,18 @@ public class MapLoader : MonoBehaviour
     public IEnumerator LoadReplayIDCoroutine(string id, string mapURL = null, string mapID = null, bool noProxy = false)
     {
         Loading = true;
+        Debug.Log($"Searching for replay from score ID: {id}");
 
-        Debug.Log($"Getting Beatleader response for score ID: {id}");
+#if !UNITY_WEBGL || UNITY_EDITOR
+        CachedFile cachedFile = CacheManager.GetCachedReplay(null, id);
+        if(!string.IsNullOrEmpty(cachedFile?.FilePath))
+        {
+            Debug.Log("Found replay in cache.");
+            StartCoroutine(LoadReplayDirectoryCoroutine(cachedFile.FilePath));
+            yield break;
+        }
+#endif
+
         LoadingMessage = "Fetching replay from Beatleader";
 
         using Task<string> apiTask = ReplayLoader.ReplayURLFromScoreID(id);
@@ -471,7 +493,7 @@ public class MapLoader : MonoBehaviour
         }
 
         replayURL = System.Web.HttpUtility.UrlDecode(replayURL);
-        StartCoroutine(LoadReplayURLCoroutine(replayURL, mapURL, mapID, noProxy));
+        StartCoroutine(LoadReplayURLCoroutine(replayURL, id, mapURL, mapID, noProxy));
     }
 
 

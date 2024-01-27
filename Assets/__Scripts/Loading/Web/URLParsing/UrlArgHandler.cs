@@ -176,7 +176,7 @@ public class UrlArgHandler : MonoBehaviour
         {
             replayURL = AddUnknownParameters(new Uri(replayURL));
 
-            StartCoroutine(mapLoader.LoadReplayURLCoroutine(replayURL, mapURL, mapID, noProxy));
+            StartCoroutine(mapLoader.LoadReplayURLCoroutine(replayURL, null, mapURL, mapID, noProxy));
             LoadedReplayURL = replayURL;
 
             setTime = true;

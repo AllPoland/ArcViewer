@@ -42,6 +42,10 @@ public class ReplayLoader
 
         Replay decodedReplay = await result.Item2;
         result.Item2.Dispose();
+
+        //Reset the stream back to the start so it can be reused properly
+        replayStream.Seek(0, SeekOrigin.Begin);
+
         return decodedReplay;
     }
 
