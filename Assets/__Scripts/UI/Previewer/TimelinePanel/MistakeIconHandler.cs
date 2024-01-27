@@ -110,6 +110,11 @@ public class MistakeIconHandler : MonoBehaviour
             return;
         }
 
+        if(!SettingsManager.GetBool("mistakeicons"))
+        {
+            return;
+        }
+
         MapElementList<ScoringEvent> scoringEvents = ScoreManager.ScoringEvents;
 
         foreach(ScoringEvent scoringEvent in scoringEvents)
@@ -160,6 +165,15 @@ public class MistakeIconHandler : MonoBehaviour
     }
 
 
+    private void UpdateSettings(string setting)
+    {
+        if(setting == "all" || setting == "mistakeicons")
+        {
+            GenerateIcons();
+        }
+    }
+
+
     private void UpdateDifficulty(Difficulty newDifficulty) => GenerateIcons();
 
 
@@ -171,6 +185,7 @@ public class MistakeIconHandler : MonoBehaviour
         }
 
         ReplayManager.OnReplayModeChanged += UpdateReplayMode;
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
 
         GenerateIcons();
