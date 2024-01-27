@@ -77,6 +77,7 @@ public class EnvironmentManager : MonoBehaviour
         "OriginsEnvironment",
         "TriangleEnvironment",
         "NiceEnvironment",
+        "BigMirrorEnvironment",
         "TimbalandEnvironment"
     };
 
