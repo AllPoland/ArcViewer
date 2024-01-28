@@ -110,7 +110,7 @@ Shader "Custom/PlatformShader"
 
                 //Convert back to UV coordinates
                 screenReflectPos.y /= bloomfogRes;
-                float2 screenReflectUV = (screenReflectPos + 1) / 2;
+                float2 screenReflectUV = (screenReflectPos + 1) * 0.5;
 
                 //Scale reflections with how much the face points toward the camera
                 //because they'd be reflecting backwards where there's no fog (that we know of)

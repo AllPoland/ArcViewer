@@ -68,6 +68,7 @@ public class EnvironmentManager : MonoBehaviour
         "Panic2Environment",
         "QueenEnvironment",
         "LinkinPark2Environment",
+        "TheRollingStonesEnvironment",
         "LatticeEnvironment"
     };
 
