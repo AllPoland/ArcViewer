@@ -71,7 +71,7 @@ MonoBehaviour:
     bloomCaptureExtraFov: 30
     threshold: 0
     brightnessMult: 5
-    attenuation: 0.5
+    attenuation: 0.00075
     fogOffset: 0
     fogHeight: 25
     fogStartY: -80
@@ -80,21 +80,21 @@ MonoBehaviour:
     qualityPresets:
     - referenceScreenHeight: 256
       downsamplePasses: 5
-      upsampleBlend: 7
-      ignoreUpsampleIndex: 1
+      upsampleBlend: 6.2
+      ignoreUpsampleIndex: 2
     - referenceScreenHeight: 512
       downsamplePasses: 6
-      upsampleBlend: 9
-      ignoreUpsampleIndex: 2
+      upsampleBlend: 8
+      ignoreUpsampleIndex: 3
     - referenceScreenHeight: 1024
       downsamplePasses: 7
-      upsampleBlend: 12
-      ignoreUpsampleIndex: 3
+      upsampleBlend: 10
+      ignoreUpsampleIndex: 4
     - referenceScreenHeight: 2048
       downsamplePasses: 8
-      upsampleBlend: 14
-      ignoreUpsampleIndex: 4
+      upsampleBlend: 12
+      ignoreUpsampleIndex: 5
     - referenceScreenHeight: 3072
       downsamplePasses: 9
-      upsampleBlend: 11
-      ignoreUpsampleIndex: 5
+      upsampleBlend: 9
+      ignoreUpsampleIndex: 6
