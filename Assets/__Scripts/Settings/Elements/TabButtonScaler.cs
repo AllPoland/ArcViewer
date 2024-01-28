@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(RectTransform))]
 public class TabButtonScaler : MonoBehaviour
 {
-    [SerializeField] private float marginSize = 200;
+    [SerializeField] private float marginSize = 200f;
 
     private Canvas parentCanvas;
     private RectTransform rectTransform;

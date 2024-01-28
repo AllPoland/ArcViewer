@@ -77,7 +77,7 @@ public static class JsonReader
 
     public static BeatmapDifficulty ParseBeatmapFromJson(string json, string filename = "{UnknownDifficulty}")
     {
-        BeatmapDifficulty difficulty = new BeatmapDifficulty();
+        BeatmapDifficulty difficulty;
 
         try
         {
@@ -129,7 +129,7 @@ public static class JsonReader
                     {
                         ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to find difficulty version from {filename}!");
                         Debug.LogWarning($"{filename} is in an unsupported or missing version!");
-                        return null;
+                        return new BeatmapDifficulty();
                     }
                 }
             }
@@ -138,7 +138,7 @@ public static class JsonReader
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to parse {filename}!");
             Debug.LogWarning($"Unable to parse {filename} file with error: {err.Message}, {err.StackTrace}.");
-            return null;
+            return new BeatmapDifficulty();
         }
 
         difficulty.AddNulls();
