@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class BookmarkIcon : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+public class BookmarkIcon : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public RectTransform rectTransform;
 
@@ -43,16 +43,6 @@ public class BookmarkIcon : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     {
         rectTransform.sizeDelta = normalSize;
         image.raycastPadding = Vector4.zero;
-    }
-
-
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        bool wasPlaying = TimeManager.Playing;
-        
-        TimeManager.SetPlaying(false);
-        TimeManager.CurrentTime = time;
-        TimeManager.SetPlaying(wasPlaying);
     }
 
 
