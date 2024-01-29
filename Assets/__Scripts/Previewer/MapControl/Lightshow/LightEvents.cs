@@ -13,8 +13,10 @@ public class LightEvent : MapElement
     public Easings.EasingDelegate TransitionEasing;
     public bool HsvLerp = false;
 
-    public Dictionary<int, LightEvent> lastEvents = new Dictionary<int, LightEvent>();
-    public Dictionary<int, LightEvent> nextEvents = new Dictionary<int, LightEvent>();
+    public LightEvent LastGlobalEvent;
+
+    private Dictionary<int, LightEvent> lastEvents;
+    private Dictionary<int, LightEvent> nextEvents;
 
     public bool isTransition => Value == LightEventValue.RedTransition || Value == LightEventValue.BlueTransition || Value == LightEventValue.WhiteTransition;
 
@@ -103,15 +105,45 @@ public class LightEvent : MapElement
 
     public LightEvent GetLastEvent(int id)
     {
+        if(lastEvents == null)
+        {
+            return null;
+        }
+
         return lastEvents.TryGetValue(id, out LightEvent lightEvent)
             ? lightEvent
-            : AffectsID(id) ? this : null;
+            : AffectsID(id) ? this : LastGlobalEvent;
     }
 
 
     public LightEvent GetNextEvent(int id)
     {
+        if(nextEvents == null)
+        {
+            return null;
+        }
+
         return nextEvents.TryGetValue(id, out LightEvent lightEvent) ? lightEvent : null;
+    }
+
+
+    public void SetLastEvent(int id, LightEvent lightEvent)
+    {
+        if(lastEvents == null)
+        {
+            lastEvents = new Dictionary<int, LightEvent>();
+        }
+        lastEvents[id] = lightEvent;
+    }
+
+
+    public void SetNextEvent(int id, LightEvent lightEvent)
+    {
+        if(nextEvents == null)
+        {
+            nextEvents = new Dictionary<int, LightEvent>();
+        }
+        nextEvents[id] = lightEvent;
     }
 }
 
@@ -128,21 +160,26 @@ public class LightEventList : MapElementList<LightEvent>
 
         //Precalculate the events that apply to each ID on this event
         //Helps speed up lightID at runtime
+        LightEvent lastGlobalEvent = null;
         Dictionary<int, LightEvent> lastEvents = new Dictionary<int, LightEvent>();
+
         for(int i = 0; i < Elements.Count; i++)
         {
             LightEvent lightEvent = Elements[i];
             if(lightEvent.LightIDs.Length == 0)
             {
                 //This event affects all IDs, so we can close all previous events with this one
-                foreach(KeyValuePair<int, LightEvent> pair in lastEvents)
+                if(lightEvent.isTransition)
                 {
-                    int id = pair.Key;
-                    LightEvent lastEvent = pair.Value;
-
-                    lastEvent.nextEvents[id] = lightEvent;
+                    foreach(KeyValuePair<int, LightEvent> pair in lastEvents)
+                    {
+                        pair.Value.SetNextEvent(pair.Key, lightEvent);
+                    }
                 }
+
                 lastEvents.Clear();
+                lastGlobalEvent = lightEvent;
+
                 continue;
             }
 
@@ -151,24 +188,37 @@ public class LightEventList : MapElementList<LightEvent>
                 int id = pair.Key;
                 if(!lightEvent.AffectsID(id))
                 {
-                    lightEvent.lastEvents[id] = pair.Value;
+                    lightEvent.SetLastEvent(id, pair.Value);
                 }
             }
 
-            foreach(int id in lightEvent.LightIDs)
-            {
-                LightEvent lastEvent;
-                if(lastEvents.Count == 0)
-                {
-                    lastEvent = i > 0 ? Elements[i - 1] : null;
-                }
-                else lastEvent = lastEvents.TryGetValue(id, out LightEvent x) ? x : null;
+            lightEvent.LastGlobalEvent = lastGlobalEvent;
 
-                if(lastEvent != null)
+            if(!lightEvent.isTransition || i == 0)
+            {
+                //In this case, there's no need to add pointers from previous events
+                foreach(int id in lightEvent.LightIDs)
                 {
-                    lastEvent.nextEvents[id] = lightEvent;
+                    //Track the ids this event affects
+                    lastEvents[id] = lightEvent;
                 }
-                lastEvents[id] = lightEvent;
+            }
+            else
+            {
+                //This event is a transition, previous events also need a pointer to it
+                foreach(int id in lightEvent.LightIDs)
+                {
+                    //Find the last event that affected this id, if any
+                    LightEvent lastEvent = lastEvents.TryGetValue(id, out LightEvent x) ? x : lastGlobalEvent;
+
+                    if(lastEvent != null)
+                    {
+                        //Add a reference to this event to the previous event
+                        lastEvent.SetNextEvent(id, lightEvent);
+                    }
+
+                    lastEvents[id] = lightEvent;
+                }
             }
         }
     }
