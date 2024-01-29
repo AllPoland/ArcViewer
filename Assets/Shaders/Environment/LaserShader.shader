@@ -63,7 +63,6 @@ Shader "Custom/LaserShader"
                 fixed4 col = _BaseColor;
                 BLOOM_HEIGHT_FOG_APPLY(i, col, _FogStartOffset, _FogScale, _FogHeightOffset, _FogHeightScale);
 
-                col.rgb = _BaseColor.rgb;
                 return col;
             }
             ENDCG

@@ -70,7 +70,6 @@ public class LightManager : MonoBehaviour
     public MapElementList<LaserSpeedEvent> leftLaserSpeedEvents = new MapElementList<LaserSpeedEvent>();
     public MapElementList<LaserSpeedEvent> rightLaserSpeedEvents = new MapElementList<LaserSpeedEvent>();
 
-    [SerializeField, Range(0f, 1f)] private float lightSaturation;
     [SerializeField] private float lightEmission;
 
 
@@ -144,22 +143,11 @@ public class LightManager : MonoBehaviour
 
     public void SetLightProperties(Color baseColor, ref MaterialPropertyBlock laserProperties, ref MaterialPropertyBlock laserGlowProperties)
     {
-        float emission = baseColor.a * baseColor.GetValue() * lightEmission;
-        laserProperties.SetColor("_BaseColor", GetLightColor(baseColor).SetValue(emission, true));
+        laserProperties.SetColor("_BaseColor", baseColor * lightEmission);
 
-        laserGlowProperties.SetColor("_BaseColor", baseColor);
-        laserGlowProperties.SetFloat("_Alpha", baseColor.a * LightGlowBrightness);
-    }
-
-
-    private Color GetLightColor(Color baseColor)
-    {
-        float s = baseColor.GetSaturation();
-
-        Color newColor = baseColor.SetSaturation(s * lightSaturation);
-        newColor.a = Mathf.Clamp(baseColor.a, 0f, 1f);
-
-        return newColor;
+        Color glowColor = baseColor;
+        glowColor.a *= LightGlowBrightness;
+        laserGlowProperties.SetColor("_BaseColor", glowColor);
     }
 
 
