@@ -19,10 +19,9 @@ public class ColorManager : MonoBehaviour
 
     private static readonly string[] colorSettings =
     {
-        "chromaobjectcolors",
-        "songcorecolors",
         "environmentcolors",
         "difficultycolors",
+        "playercolors",
         "coloroverride",
         "leftnotecolor",
         "rightnotecolor",
@@ -42,7 +41,9 @@ public class ColorManager : MonoBehaviour
     private void UpdateCurrentColors()
     {
         ColorPalette newColors;
-        if(SettingsManager.GetBool("coloroverride"))
+
+        bool colorOverride = SettingsManager.GetBool("coloroverride");
+        if(colorOverride)
         {
             //Use custom user set colors as the base palette, ignore all vanilla colors
             newColors = new ColorPalette
@@ -58,7 +59,7 @@ public class ColorManager : MonoBehaviour
                 WallColor = SettingsManager.GetColor("wallcolor")
             };
         }
-        else 
+        else
         {
             //Use the vanilla color scheme for the difficulty
             if(SettingsManager.GetBool("environmentcolors"))
@@ -73,6 +74,12 @@ public class ColorManager : MonoBehaviour
             //Stack the difficulty-specific color scheme
             newColors.StackPalette(difficultySongCoreColors);
             newColors.StackPalette(difficultyColorScheme);
+        }
+
+        if(ReplayManager.IsReplayMode && !colorOverride && SettingsManager.GetBool("playercolors"))
+        {
+            newColors.LeftNoteColor = ReplayManager.PlayerLeftSaberColor ?? newColors.LeftNoteColor;
+            newColors.RightNoteColor = ReplayManager.PlayerRightSaberColor ?? newColors.RightNoteColor;
         }
 
         CurrentColors = newColors;

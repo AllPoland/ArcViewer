@@ -282,6 +282,17 @@ public class BeatleaderUser
     public int rank;
     public int countryRank;
     public string role;
+
+    public BeatleaderUserProfileSettings profileSettings;
+}
+
+
+[Serializable]
+public class BeatleaderUserProfileSettings
+{
+    public int id;
+    public string leftSaberColor;
+    public string rightSaberColor;
 }
 
 

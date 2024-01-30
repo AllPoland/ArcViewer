@@ -311,6 +311,8 @@ public class MapLoader : MonoBehaviour
             {
                 ReplayManager.SetAvatarImageData(avatarData);
             }
+
+            ReplayManager.SetPlayerCustomColors(response);
         }
 
         Debug.Log("Getting replay leaderboard ID.");
