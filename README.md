@@ -8,13 +8,13 @@ An open source 3D Beat Saber map previewer, designed to give users an accurate r
 
 - **Game-accurate visuals** with properly recreated proportions and spawn animations
 
-- **V3 map support** including arcs, chains, angle offset (diagonal dots), V3 wall shenanigans, and official BPM changes
+- **V3 map support** including arcs, chains, angle offset (diagonal dots), V3 wall placement, and official BPM changes
 
-- **Lighting support** including V1 and V2 lighting events, represented on one environment
+- **Lighting support** including V1 and V2 lighting events, on a number of included environments
 
 - **Highly customizable** with a range of settings to modify hitsounds, graphics, visuals, and camera settings
 
-- **Custom colors** from each map's environment, mapper set colors, or your own customizable colors
+- **Custom colors** from each map's environment, mapper-set colors, or your own customizable colors
 
 - **Adjustable playback** including options to change playback speed and jump settings
 
