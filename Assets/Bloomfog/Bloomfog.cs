@@ -49,15 +49,11 @@ public class Bloomfog : ScriptableRendererFeature
 
     [SerializeField] private BloomfogSettings settings = new BloomfogSettings();
 
-    private CameraConfigPass cameraConfigPass;
     private BloomFogPass bloomFogPass;
 
 
     public override void Create()
     {
-        cameraConfigPass = new CameraConfigPass(settings);
-        cameraConfigPass.renderPassEvent = RenderPassEvent.BeforeRendering;
-
         bloomFogPass = new BloomFogPass(settings);
         bloomFogPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
 
@@ -68,57 +64,43 @@ public class Bloomfog : ScriptableRendererFeature
     }
 
 
+    public override void OnCameraPreCull(ScriptableRenderer renderer, in CameraData cameraData)
+    {
+        Camera mainCamera = Camera.main;
+        Camera renderCamera = cameraData.camera;
+
+        BloomfogQualityPreset qualitySettings = settings.currentQualityPreset;
+
+        //Update the camera field of view
+        renderCamera.fieldOfView = Mathf.Clamp(mainCamera.fieldOfView + settings.bloomCaptureExtraFov, 30, 160);
+
+        float verticalFov = Mathf.Deg2Rad * renderCamera.fieldOfView;
+        float horizontalFov = 2 * Mathf.Atan(Mathf.Tan(verticalFov / 2) * renderCamera.aspect);
+
+        //Calculate the new texture ratio based on camera fov
+        float originalVertFov = Mathf.Deg2Rad * mainCamera.fieldOfView;
+        float screenPlaneDistance = (qualitySettings.referenceScreenHeight / 2) / Mathf.Tan(originalVertFov / 2);
+
+        //Set the new texture size
+        settings.textureWidth = Mathf.RoundToInt(Mathf.Tan(horizontalFov / 2) * screenPlaneDistance * 2);
+        settings.textureHeight = Mathf.RoundToInt(Mathf.Tan(verticalFov / 2) * screenPlaneDistance * 2);
+
+        float referenceWidth = qualitySettings.referenceScreenHeight * mainCamera.aspect;
+        float widthRatio = referenceWidth / settings.textureWidth;
+        float heightRatio = (float)qualitySettings.referenceScreenHeight / settings.textureHeight;
+
+        // Debug.Log($"fov: {verticalFov} horizontal: {horizontalFov} width: {settings.textureWidth} height: {settings.textureHeight} ratio: {widthRatio}, {heightRatio}");
+
+        Shader.SetGlobalVector("_FogTextureToScreenRatio", new Vector2(widthRatio, heightRatio));
+    }
+
+
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if(settings.blurMaterial && settings.prepassMaterial)
         {
-            renderer.EnqueuePass(cameraConfigPass);
-
             bloomFogPass.SourceTexture = renderer.cameraColorTarget;
             renderer.EnqueuePass(bloomFogPass);
-        }
-    }
-
-
-    private class CameraConfigPass : ScriptableRenderPass
-    {
-        private BloomfogSettings settings;
-
-        
-        public CameraConfigPass(BloomfogSettings fogSettings)
-        {
-            settings = fogSettings;
-        }
-
-
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            Camera mainCamera = Camera.main;
-            Camera renderCamera = renderingData.cameraData.camera;
-
-            BloomfogQualityPreset qualitySettings = settings.currentQualityPreset;
-
-            //Update the camera field of view
-            renderCamera.fieldOfView = Mathf.Clamp(mainCamera.fieldOfView + settings.bloomCaptureExtraFov, 30, 160);
-
-            float verticalFov = Mathf.Deg2Rad * renderCamera.fieldOfView;
-            float horizontalFov = 2 * Mathf.Atan(Mathf.Tan(verticalFov / 2) * renderCamera.aspect);
-
-            //Calculate the new texture ratio based on camera fov
-            float originalVertFov = Mathf.Deg2Rad * mainCamera.fieldOfView;
-            float screenPlaneDistance = (qualitySettings.referenceScreenHeight / 2) / Mathf.Tan(originalVertFov / 2);
-
-            //Set the new texture size
-            settings.textureWidth = Mathf.RoundToInt(Mathf.Tan(horizontalFov / 2) * screenPlaneDistance * 2);
-            settings.textureHeight = Mathf.RoundToInt(Mathf.Tan(verticalFov / 2) * screenPlaneDistance * 2);
-
-            float referenceWidth = qualitySettings.referenceScreenHeight * mainCamera.aspect;
-            float widthRatio = referenceWidth / settings.textureWidth;
-            float heightRatio = (float)qualitySettings.referenceScreenHeight / settings.textureHeight;
-
-            // Debug.Log($"fov: {verticalFov} horizontal: {horizontalFov} width: {settings.textureWidth} height: {settings.textureHeight} ratio: {widthRatio}, {heightRatio}");
-
-            Shader.SetGlobalVector("_FogTextureToScreenRatio", new Vector2(widthRatio, heightRatio));
         }
     }
 
