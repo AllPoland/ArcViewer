@@ -133,8 +133,6 @@ public class EnvironmentManager : MonoBehaviour
 
     private void SetEnvironment(string environmentName)
     {
-        Debug.Log($"Map has environment: {environmentName}");
-
         if(SettingsManager.GetBool("environmentoverride"))
         {
             int customIndex = SettingsManager.GetInt("customenvironment");
@@ -178,6 +176,7 @@ public class EnvironmentManager : MonoBehaviour
 
     private void UpdateDifficulty(Difficulty difficulty)
     {
+        Debug.Log($"Map has environment: {BeatmapManager.EnvironmentName}");
         SetEnvironment(BeatmapManager.EnvironmentName);
     }
 
