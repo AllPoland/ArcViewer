@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(SettingsMenu))]
 public class OpenSettingsButton : MonoBehaviour
 {
     [SerializeField] private Button button;
@@ -16,10 +17,10 @@ public class OpenSettingsButton : MonoBehaviour
     private SettingsMenu settingsMenu;
 
 
-    public void UpdateTooltip()
+    public void UpdateTooltip(bool open)
     {
-        image.sprite = SettingsMenu.Open ? openSprite : closedSprite;
-        tooltip.Text = SettingsMenu.Open ? openTooltip : closedTooltip;
+        image.sprite = open ? openSprite : closedSprite;
+        tooltip.Text = open ? openTooltip : closedTooltip;
     }
 
 
@@ -28,7 +29,6 @@ public class OpenSettingsButton : MonoBehaviour
         if(Input.GetButtonDown("Toggle Options") && button.interactable && !DialogueHandler.DialogueActive)
         {
             settingsMenu.ToggleOpen();
-            UpdateTooltip();
         }
     }
 
@@ -36,5 +36,6 @@ public class OpenSettingsButton : MonoBehaviour
     private void OnEnable()
     {
         settingsMenu = GetComponent<SettingsMenu>();
+        SettingsMenu.OnOpenUpdated += UpdateTooltip;
     }
 }

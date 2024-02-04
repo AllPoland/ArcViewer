@@ -9,6 +9,7 @@ public class LightHandler : MonoBehaviour
     [Header("Parameters")]
     [SerializeField] public LightEventType type;
     [SerializeField] public int id;
+    [SerializeField] public float emissionMult = 1f;
 
     private MaterialPropertyBlock laserProperties;
     private MaterialPropertyBlock glowProperties;
@@ -27,7 +28,7 @@ public class LightHandler : MonoBehaviour
         {
             //The current event and next events affect this id, so no need to recalculate anything
             //This will always be the case in vanilla lightshows without lightID
-            UpdateProperties(eventArgs.laserProperties, eventArgs.glowProperties);
+            SetProperties(eventArgs.laserProperties, eventArgs.glowProperties);
         }
         else
         {
@@ -45,15 +46,24 @@ public class LightHandler : MonoBehaviour
             eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
 
             eventArgs.sender.SetLightProperties(eventColor, ref laserProperties, ref glowProperties);
-            UpdateProperties(laserProperties, glowProperties);
+            UpdateProperties();
         }
     }
 
 
-    private void UpdateProperties(MaterialPropertyBlock newLaserProperties, MaterialPropertyBlock newGlowProperties)
+    private void SetProperties(MaterialPropertyBlock newLaserProperties, MaterialPropertyBlock newGlowProperties)
     {
-        meshRenderer.SetPropertyBlock(newLaserProperties);
-        glowRenderer.SetPropertyBlock(newGlowProperties);
+        laserProperties.SetColor("_BaseColor", newLaserProperties.GetColor("_BaseColor"));
+        glowProperties.SetColor("_BaseColor", newGlowProperties.GetColor("_BaseColor"));
+
+        UpdateProperties();
+    }
+
+
+    private void UpdateProperties()
+    {
+        meshRenderer.SetPropertyBlock(laserProperties);
+        glowRenderer.SetPropertyBlock(glowProperties);
     }
 
 
@@ -61,6 +71,8 @@ public class LightHandler : MonoBehaviour
     {
         laserProperties = new MaterialPropertyBlock();
         glowProperties = new MaterialPropertyBlock();
+
+        laserProperties.SetFloat("_ColorMult", emissionMult);
     }
 
 

@@ -47,10 +47,20 @@ public class FreecamButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
     private void Update()
     {
-        if(hovered && !CameraUpdater.Freecam && Input.GetMouseButtonDown(1))
+        if(!CameraUpdater.Freecam)
         {
-            //Allows right click to still enable freecam when this button is hovered over
-            CameraUpdater.Freecam = true;
+            if(hovered && Input.GetMouseButtonDown(1))
+            {
+                //Allows right click to still enable freecam when this button is hovered over
+                CameraUpdater.Freecam = true;
+            }
+        }
+        else
+        {
+            if(Input.GetButtonDown("ResetFreecam") && !EventSystemHelper.SelectedObject)
+            {
+                ToggleFreecam();
+            }
         }
     }
 

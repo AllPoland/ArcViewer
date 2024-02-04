@@ -49,15 +49,11 @@ public class Bloomfog : ScriptableRendererFeature
 
     [SerializeField] private BloomfogSettings settings = new BloomfogSettings();
 
-    private CameraConfigPass cameraConfigPass;
     private BloomFogPass bloomFogPass;
 
 
     public override void Create()
     {
-        cameraConfigPass = new CameraConfigPass(settings);
-        cameraConfigPass.renderPassEvent = RenderPassEvent.BeforeRendering;
-
         bloomFogPass = new BloomFogPass(settings);
         bloomFogPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
 
@@ -68,57 +64,43 @@ public class Bloomfog : ScriptableRendererFeature
     }
 
 
+    public override void OnCameraPreCull(ScriptableRenderer renderer, in CameraData cameraData)
+    {
+        Camera mainCamera = Camera.main;
+        Camera renderCamera = cameraData.camera;
+
+        BloomfogQualityPreset qualitySettings = settings.currentQualityPreset;
+
+        //Update the camera field of view
+        renderCamera.fieldOfView = Mathf.Clamp(mainCamera.fieldOfView + settings.bloomCaptureExtraFov, 30, 160);
+
+        float verticalFov = Mathf.Deg2Rad * renderCamera.fieldOfView;
+        float horizontalFov = 2 * Mathf.Atan(Mathf.Tan(verticalFov / 2) * renderCamera.aspect);
+
+        //Calculate the new texture ratio based on camera fov
+        float originalVertFov = Mathf.Deg2Rad * mainCamera.fieldOfView;
+        float screenPlaneDistance = (qualitySettings.referenceScreenHeight / 2) / Mathf.Tan(originalVertFov / 2);
+
+        //Set the new texture size
+        settings.textureWidth = Mathf.RoundToInt(Mathf.Tan(horizontalFov / 2) * screenPlaneDistance * 2);
+        settings.textureHeight = Mathf.RoundToInt(Mathf.Tan(verticalFov / 2) * screenPlaneDistance * 2);
+
+        float referenceWidth = qualitySettings.referenceScreenHeight * mainCamera.aspect;
+        float widthRatio = referenceWidth / settings.textureWidth;
+        float heightRatio = (float)qualitySettings.referenceScreenHeight / settings.textureHeight;
+
+        // Debug.Log($"fov: {verticalFov} horizontal: {horizontalFov} width: {settings.textureWidth} height: {settings.textureHeight} ratio: {widthRatio}, {heightRatio}");
+
+        Shader.SetGlobalVector("_FogTextureToScreenRatio", new Vector2(widthRatio, heightRatio));
+    }
+
+
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if(settings.blurMaterial && settings.prepassMaterial)
         {
-            renderer.EnqueuePass(cameraConfigPass);
-
             bloomFogPass.SourceTexture = renderer.cameraColorTarget;
             renderer.EnqueuePass(bloomFogPass);
-        }
-    }
-
-
-    private class CameraConfigPass : ScriptableRenderPass
-    {
-        private BloomfogSettings settings;
-
-        
-        public CameraConfigPass(BloomfogSettings fogSettings)
-        {
-            settings = fogSettings;
-        }
-
-
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            Camera mainCamera = Camera.main;
-            Camera renderCamera = renderingData.cameraData.camera;
-
-            BloomfogQualityPreset qualitySettings = settings.currentQualityPreset;
-
-            //Update the camera field of view
-            renderCamera.fieldOfView = Mathf.Clamp(mainCamera.fieldOfView + settings.bloomCaptureExtraFov, 30, 160);
-
-            float verticalFov = Mathf.Deg2Rad * renderCamera.fieldOfView;
-            float horizontalFov = 2 * Mathf.Atan(Mathf.Tan(verticalFov / 2) * renderCamera.aspect);
-
-            //Calculate the new texture ratio based on camera fov
-            float originalVertFov = Mathf.Deg2Rad * mainCamera.fieldOfView;
-            float screenPlaneDistance = (qualitySettings.referenceScreenHeight / 2) / Mathf.Tan(originalVertFov / 2);
-
-            //Set the new texture size
-            settings.textureWidth = Mathf.RoundToInt(Mathf.Tan(horizontalFov / 2) * screenPlaneDistance * 2);
-            settings.textureHeight = Mathf.RoundToInt(Mathf.Tan(verticalFov / 2) * screenPlaneDistance * 2);
-
-            float referenceWidth = qualitySettings.referenceScreenHeight * mainCamera.aspect;
-            float widthRatio = referenceWidth / settings.textureWidth;
-            float heightRatio = (float)qualitySettings.referenceScreenHeight / settings.textureHeight;
-
-            // Debug.Log($"fov: {verticalFov} horizontal: {horizontalFov} width: {settings.textureWidth} height: {settings.textureHeight} ratio: {widthRatio}, {heightRatio}");
-
-            Shader.SetGlobalVector("_FogTextureToScreenRatio", new Vector2(widthRatio, heightRatio));
         }
     }
 
@@ -146,21 +128,10 @@ public class Bloomfog : ScriptableRendererFeature
             int width = settings.textureWidth;
             int height = settings.textureHeight;
 
+            //Clamp the blur passes so we don't downsample below a 2x2 texture
             int minDimension = Mathf.Min(width, height);
             int maxDownsample = Mathf.FloorToInt(Mathf.Log(minDimension, 2));
             settings.actualDownsamplePasses = Mathf.Clamp(qualitySettings.downsamplePasses, 2, maxDownsample);
-
-            //Create our temporary render textures for blurring
-            tempIDs = new int[settings.actualDownsamplePasses];
-            tempRTs = new RenderTargetIdentifier[settings.actualDownsamplePasses];
-            for(int i = 0; i < settings.actualDownsamplePasses; i++)
-            {
-                int downsample = (int)Mathf.Pow(2, i + 1);
-
-                tempIDs[i] = Shader.PropertyToID("tempBlurRT" + i);
-                cmd.GetTemporaryRT(tempIDs[i], width / downsample, height / downsample, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
-                tempRTs[i] = new RenderTargetIdentifier(tempIDs[i]);
-            }
         }
 
 
@@ -179,15 +150,31 @@ public class Bloomfog : ScriptableRendererFeature
             BloomfogQualityPreset qualitySettings = settings.currentQualityPreset;
             CommandBuffer cmd = CommandBufferPool.Get("BloomfogBlur");
 
+            //Create our temporary render textures for blurring
+            //Clear their content in case it's been carried over from the last frame
+            tempIDs = new int[settings.actualDownsamplePasses];
+            tempRTs = new RenderTargetIdentifier[settings.actualDownsamplePasses];
+            for(int i = 0; i < settings.actualDownsamplePasses; i++)
+            {
+                int downsample = (int)Mathf.Pow(2, i + 1);
+
+                tempIDs[i] = Shader.PropertyToID("tempBlurRT" + i);
+                cmd.GetTemporaryRT(tempIDs[i], settings.textureWidth / downsample, settings.textureHeight / downsample, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
+                tempRTs[i] = new RenderTargetIdentifier(tempIDs[i]);
+
+                cmd.SetRenderTarget(tempRTs[i]);
+                cmd.ClearRenderTarget(true, true, Color.black);
+            }
+
             //Copy the source into the first temp texture, applying brightness threshold
             cmd.SetGlobalFloat("_Threshold", settings.threshold);
             cmd.SetGlobalFloat("_BrightnessMult", settings.brightnessMult);
 
-            cmd.SetGlobalFloat("_Offset", 0.5f);
-            cmd.SetGlobalFloat("_BlurAlpha", 1f);
             cmd.Blit(SourceTexture, tempRTs[0], settings.prepassMaterial);
 
             //Blit the source image into smaller and smaller textures, applying some blur
+            cmd.SetGlobalFloat("_Offset", 0.5f);
+            cmd.SetGlobalFloat("_BlurAlpha", 1f);
             for(int i = 1; i < settings.actualDownsamplePasses; i++)
             {
                 cmd.Blit(tempRTs[i - 1], tempRTs[i], settings.blurMaterial);
@@ -208,6 +195,13 @@ public class Bloomfog : ScriptableRendererFeature
             if(!string.IsNullOrEmpty(settings.outputTextureName))
             {
                 cmd.SetGlobalTexture(settings.outputTextureName, tempRTs[0]);
+            }
+
+            //Release our temporary render textures
+            //Don't release texture 0 because it's our output texture
+            for(int i = 1; i < settings.actualDownsamplePasses; i++)
+            {
+                cmd.ReleaseTemporaryRT(tempIDs[i]);
             }
 
             context.ExecuteCommandBuffer(cmd);

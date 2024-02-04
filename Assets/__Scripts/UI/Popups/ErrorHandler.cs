@@ -125,8 +125,9 @@ public class ErrorHandler : MonoBehaviour
     {
         if(queuedPopups.Count > 0)
         {
-            foreach(QueuedPopup popup in queuedPopups)
+            for(int i = 0; i < queuedPopups.Count; i++)
             {
+                QueuedPopup popup = queuedPopups[i];
                 ShowPopup(popup.ErrorType, popup.Message);
             }
 

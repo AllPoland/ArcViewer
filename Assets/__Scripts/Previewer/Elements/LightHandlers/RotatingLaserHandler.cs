@@ -3,9 +3,11 @@ using UnityEngine;
 
 public class RotatingLaserHandler : MonoBehaviour
 {
-    [SerializeField] private List<LightHandler> targets;
+    [SerializeField] private List<Transform> targets;
     [SerializeField] private LightEventType eventType;
     [SerializeField] private RotationAxis rotationAxis;
+
+    private List<Vector3> defaultRotations = new List<Vector3>();
 
 
     public void UpdateLaserRotations(LaserSpeedEvent laserSpeedEvent, LightEventType type)
@@ -24,47 +26,49 @@ public class RotatingLaserHandler : MonoBehaviour
 
         for(int i = 0; i < targets.Count; i++)
         {
-            LightHandler target = targets[i];
             float angle = laserSpeedEvent.GetLaserRotation(TimeManager.CurrentTime, i);
-            SetLaserRotation(target, angle);
+            SetLaserRotation(targets[i], angle, defaultRotations[i]);
         }
     }
 
 
     private void ResetRotations()
     {
-        foreach(LightHandler target in targets)
+        for(int i = 0; i < targets.Count; i++)
         {
-            SetLaserRotation(target, 0f);
+            SetLaserRotation(targets[i], 0f, defaultRotations[i]);
         }
     }
 
 
-    private void SetLaserRotation(LightHandler target, float angle)
+    private void SetLaserRotation(Transform target, float angle, Vector3 defaultRotation)
     {
-        target.transform.localEulerAngles = GetLaserEulerAngles(target.transform, angle);
-    }
-
-
-    private Vector3 GetLaserEulerAngles(Transform target, float rotationAngle)
-    {
-        Vector3 currentRotation = target.localEulerAngles;
+        Vector3 rotation = defaultRotation;
         switch(rotationAxis)
         {
             case RotationAxis.X:
-                return new Vector3(rotationAngle, currentRotation.y, currentRotation.z);
-            default:
+                rotation.x = angle;
+                break;
             case RotationAxis.Y:
-                return new Vector3(currentRotation.x, rotationAngle, currentRotation.z);
+                rotation.y = angle;
+                break;
             case RotationAxis.Z:
-                return new Vector3(currentRotation.x, currentRotation.y, rotationAngle);
+                rotation.z = angle;
+                break;
         }
+        target.localEulerAngles = rotation;
     }
 
 
-    private void OnEnable()
+    private void Start()
     {
         LightManager.OnLaserRotationsChanged += UpdateLaserRotations;
+
+        defaultRotations.Clear();
+        foreach(Transform target in targets)
+        {
+            defaultRotations.Add(target.localEulerAngles);
+        }
     }
 
 

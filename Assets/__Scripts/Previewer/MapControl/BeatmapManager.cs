@@ -26,7 +26,7 @@ public class BeatmapManager : MonoBehaviour
         {
             _info = value;
 
-            if(_info._beatsPerMinute == 0)
+            if(_info._beatsPerMinute <= 0)
             {
                 //Shrimply to avoid crashes
                 _info._beatsPerMinute = 0.0001f;

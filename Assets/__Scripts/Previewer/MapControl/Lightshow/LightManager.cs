@@ -8,7 +8,7 @@ public class LightManager : MonoBehaviour
     private static bool _staticLights;
     public static bool StaticLights
     {
-        get => _staticLights || Scrubbing || SettingsManager.GetBool("staticlights");
+        get => _staticLights || Scrubbing || EnvironmentManager.CurrentSceneIndex < 0 || EnvironmentManager.Loading || SettingsManager.GetBool("staticlights");
         set
         {
             _staticLights = value;
@@ -52,48 +52,6 @@ public class LightManager : MonoBehaviour
         "lightglowbrightness"
     };
 
-    private static readonly string[] v2Environments = new string[]
-    {
-        "DefaultEnvironment",
-        "OriginsEnvironment",
-        "TriangleEnvironment",
-        "NiceEnvironment",
-        "BigMirrorEnvironment",
-        "DragonsEnvironment",
-        "KDAEnvironment",
-        "MonstercatEnvironment",
-        "CrabRaveEnvironment",
-        "PanicEnvironment",
-        "RocketEnvironment",
-        "GreenDayEnvironment",
-        "GreenDayGrenadeEnvironment",
-        "TimbalandEnvironment",
-        "FitBeatEnvironment",
-        "LinkinParkEnvironment",
-        "BTSEnvironment",
-        "KaleidoscopeEnvironment",
-        "InterscopeEnvironment",
-        "SkrillexEnvironment",
-        "BillieEnvironment",
-        "HalloweenEnvironment",
-        "GagaEnvironment"
-    };
-
-    private static readonly string[] v3Environments = new string[]
-    {
-        "WeaveEnvironment",
-        "PyroEnvironment",
-        "EDMEnvironment",
-        "TheSecondEnvironment",
-        "LizzoEnvironment",
-        "TheWeekndEnvironment",
-        "RockMixtapeEnvironment",
-        "Dragons2Environment",
-        "Panic2Environment",
-        "QueenEnvironment",
-        "LinkinPark2Environment"
-    };
-
     //These environments have red/blue flipped on their back/bottom lasers
     private static readonly string[] backLaserFlipEnvironments = new string[]
     {
@@ -112,8 +70,6 @@ public class LightManager : MonoBehaviour
     public MapElementList<LaserSpeedEvent> leftLaserSpeedEvents = new MapElementList<LaserSpeedEvent>();
     public MapElementList<LaserSpeedEvent> rightLaserSpeedEvents = new MapElementList<LaserSpeedEvent>();
 
-    [SerializeField, Range(0f, 1f)] private float lightSaturation;
-    [SerializeField, Range(0f, 1f)] private float lightEmissionSaturation;
     [SerializeField] private float lightEmission;
 
 
@@ -187,32 +143,11 @@ public class LightManager : MonoBehaviour
 
     public void SetLightProperties(Color baseColor, ref MaterialPropertyBlock laserProperties, ref MaterialPropertyBlock laserGlowProperties)
     {
-        laserProperties.SetColor("_BaseColor", GetLightColor(baseColor));
-        laserProperties.SetColor("_EmissionColor", GetLightEmission(baseColor));
+        laserProperties.SetColor("_BaseColor", baseColor * lightEmission);
 
-        laserGlowProperties.SetColor("_BaseColor", baseColor);
-        laserGlowProperties.SetFloat("_Alpha", baseColor.a * LightGlowBrightness);
-    }
-
-
-    private Color GetLightColor(Color baseColor)
-    {
-        float s = baseColor.GetSaturation();
-
-        Color newColor = baseColor.SetSaturation(s * lightSaturation);
-        newColor.a = Mathf.Clamp(baseColor.a, 0f, 1f);
-
-        return newColor;
-    }
-
-
-    private Color GetLightEmission(Color baseColor)
-    {
-        float h, s, v;
-        Color.RGBToHSV(baseColor, out h, out s, out v);
-
-        float emission = baseColor.a * v * lightEmission;
-        return baseColor.SetHSV(h, s * lightEmissionSaturation, emission, true);
+        Color glowColor = baseColor;
+        glowColor.a *= LightGlowBrightness;
+        laserGlowProperties.SetColor("_BaseColor", glowColor);
     }
 
 
@@ -434,10 +369,10 @@ public class LightManager : MonoBehaviour
     }
 
 
-    public void UpdateDifficulty(Difficulty newDifficulty)
+    private void UpdateDifficulty(Difficulty newDifficulty)
     {
         string environmentName = BeatmapManager.EnvironmentName;
-        if(newDifficulty.beatmapDifficulty.basicBeatMapEvents.Length == 0 || v3Environments.Contains(environmentName))
+        if(newDifficulty.beatmapDifficulty.basicBeatMapEvents.Length == 0 || EnvironmentManager.V3Environments.Contains(environmentName))
         {
             StaticLights = true;
             return;
@@ -492,10 +427,23 @@ public class LightManager : MonoBehaviour
 
         RingManager.RingZoomEvents.SortElementsByBeat();
 
+        if(EnvironmentManager.CurrentSceneIndex >= 0 && !EnvironmentManager.Loading)
+        {
+            PopulateLaserRotationEventData();
+            RingManager.PopulateRingEventData();
+        }
+
+        UpdateLights(TimeManager.CurrentBeat);
+    }
+
+
+    private void UpdateEnvironment(int newEnvironmentIndex)
+    {
+        //Recalculate ring and laser movement for the new environment
         PopulateLaserRotationEventData();
         RingManager.PopulateRingEventData();
 
-        UpdateLights(TimeManager.CurrentBeat);
+        UpdateLightParameters();
     }
 
 
@@ -544,7 +492,7 @@ public class LightManager : MonoBehaviour
 
     private void PopulateLaserRotationEventData()
     {
-        const int laserCount = 4;
+        int laserCount = EnvironmentManager.CurrentEnvironmentParameters.RotatingLaserCount;
         for(int i = 0; i < leftLaserSpeedEvents.Count; i++)
         {
             LaserSpeedEvent previous = i > 0 ? leftLaserSpeedEvents[i - 1] : null;
@@ -607,6 +555,8 @@ public class LightManager : MonoBehaviour
         TimeManager.OnDifficultyBpmEventsLoaded += UpdateDifficulty;
         TimeManager.OnBeatChanged += UpdateLights;
         TimeManager.OnPlayingChanged += UpdatePlaying;
+
+        EnvironmentManager.OnEnvironmentUpdated += UpdateEnvironment;
 
         SettingsManager.OnSettingsUpdated += UpdateSettings;
         ColorManager.OnColorsChanged += (_) => UpdateLightParameters();

@@ -9,18 +9,13 @@ public class UISettingsUpdater : MonoBehaviour
     private float defaultReferenceHeight;
 
 
-    public void UpdateUISettings(string setting)
+    private void UpdateUISettings(string setting)
     {
         bool allSettings = setting == "all";
         if(allSettings || setting == "uiscale")
         {
             float newReferenceHeight = defaultReferenceHeight * (1 / SettingsManager.GetFloat("uiscale"));
             canvasScaler.referenceResolution = new Vector2(canvasScaler.referenceResolution.x, newReferenceHeight);
-        }
-
-        if(allSettings || setting == "cachesize")
-        {
-            FileCache.MaxCacheSize = SettingsManager.GetInt("cachesize");
         }
     }
 

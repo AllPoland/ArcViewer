@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Laser
-  m_Shader: {fileID: -6465566751694194690, guid: bc2fb336939d0cc469812277633875b7, type: 3}
+  m_Shader: {fileID: 4800000, guid: cdeba5a9bc58d3848bf9e653cdfeb32a, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 0
@@ -105,8 +105,11 @@ Material:
     - _ENVIRONMENTREFLECTIONS_OFF: 1
     - _EnvironmentReflections: 0
     - _FogAttenuation: 0.0003
+    - _FogHeightOffset: 0
+    - _FogHeightScale: 0.5
     - _FogOffset: 0
-    - _FogScale: 0.001
+    - _FogScale: 0.3
+    - _FogStartOffset: 0
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossinessSource: 0
@@ -115,7 +118,7 @@ Material:
     - _MinFogDistance: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
-    - _QueueControl: 0
+    - _QueueControl: 1
     - _QueueOffset: 0
     - _ReceiveShadows: 0
     - _SPECULARHIGHLIGHTS_OFF: 1

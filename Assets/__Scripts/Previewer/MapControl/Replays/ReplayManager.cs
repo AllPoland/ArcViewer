@@ -14,6 +14,9 @@ public class ReplayManager : MonoBehaviour
     public static AnimatedAvatar Avatar { get; private set; }
     public static RenderTexture AvatarRenderTexture { get; private set; }
 
+    public static Color? PlayerLeftSaberColor { get; private set; }
+    public static Color? PlayerRightSaberColor { get; private set; }
+
     public static BeatleaderUser PlayerInfo;
     public static string LeaderboardID = "";
 
@@ -205,6 +208,46 @@ public class ReplayManager : MonoBehaviour
     }
 
 
+    public static void SetPlayerCustomColors(BeatleaderUser user)
+    {
+        if(user.profileSettings == null)
+        {
+            ClearPlayerCustomColors();
+            return;
+        }
+
+        BeatleaderUserProfileSettings profileSettings = user.profileSettings;
+        if(string.IsNullOrEmpty(profileSettings.leftSaberColor) || string.IsNullOrEmpty(profileSettings.rightSaberColor))
+        {
+            ClearPlayerCustomColors();
+            return;
+        }
+
+        Color leftSaberColor;
+        Color rightSaberColor;
+
+        bool parsedLeftColor = ColorUtility.TryParseHtmlString(profileSettings.leftSaberColor, out leftSaberColor);
+        bool parsedRightColor = ColorUtility.TryParseHtmlString(profileSettings.rightSaberColor, out rightSaberColor);
+
+        if(parsedLeftColor && parsedRightColor)
+        {
+            PlayerLeftSaberColor = leftSaberColor;
+            PlayerRightSaberColor = rightSaberColor;
+        }
+        else
+        {
+            ClearPlayerCustomColors();
+        }
+    }
+
+
+    public static void ClearPlayerCustomColors()
+    {
+        PlayerLeftSaberColor = null;
+        PlayerRightSaberColor = null;
+    }
+
+
     private static void UpdatePlayerHeight(float beat)
     {
         int lastHeightIndex = playerHeightEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
@@ -240,6 +283,8 @@ public class ReplayManager : MonoBehaviour
         OnReplayModeChanged?.Invoke(false);
 
         ClearAvatar();
+        ClearPlayerCustomColors();
+
         PlayerInfo = null;
         LeaderboardID = "";
 

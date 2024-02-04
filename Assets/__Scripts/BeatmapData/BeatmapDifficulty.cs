@@ -16,9 +16,11 @@ public class BeatmapDifficulty
     //Waypoints ommitted
     public BeatmapBasicBeatmapEvent[] basicBeatMapEvents;
     public BeatmapColorBoostBeatmapEvent[] colorBoostBeatMapEvents;
+
+    public BeatmapCustomDifficultyData customData;
     public bool useNormalEventsAsCompatibleEvents;
 
-    public bool HasObjects => colorNotes.Length + bombNotes?.Length
+    public bool HasObjects => colorNotes.Length + bombNotes.Length
         + obstacles.Length + sliders.Length
         + burstSliders.Length + basicBeatMapEvents.Length
         + colorBoostBeatMapEvents.Length + bpmEvents.Length
@@ -37,6 +39,7 @@ public class BeatmapDifficulty
         burstSliders = new BeatmapBurstSlider[0];
         basicBeatMapEvents = new BeatmapBasicBeatmapEvent[0];
         colorBoostBeatMapEvents = new BeatmapColorBoostBeatmapEvent[0];
+        customData = null;
         useNormalEventsAsCompatibleEvents = false;
     }
 
@@ -73,6 +76,7 @@ public class BeatmapRotationEvent
     public float r;
 }
 
+
 public abstract class BeatmapObject
 {
     public float b;
@@ -92,6 +96,13 @@ public abstract class BeatmapObject
             return Mathf.RoundToInt((position * 1000) + Mathf.Sign(position) * 1000);
         }
         else return -(x - 2) + 1;
+    }
+
+
+    public float MirrorNoodlePosition(float x)
+    {
+        //Noodle coordinates are centered around the middle right column
+        return -(x + 0.5f) - 0.5f;
     }
 
 
@@ -134,7 +145,7 @@ public class BeatmapColorNote : BeatmapObject
         {
             if(customData.coordinates != null && customData.coordinates.Length != 0)
             {
-                customData.coordinates[0] = -customData.coordinates[0];
+                customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
             }
             if(customData.angle != null)
             {
@@ -157,7 +168,7 @@ public class BeatmapBombNote : BeatmapObject
 
         if(customData?.coordinates != null && customData.coordinates.Length != 0)
         {
-            customData.coordinates[0] = -customData.coordinates[0];
+            customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
         }
     }
 }
@@ -231,11 +242,11 @@ public class BeatmapSlider : BeatmapObject
         {
             if(customData.coordinates != null && customData.coordinates.Length != 0)
             {
-                customData.coordinates[0] = -customData.coordinates[0];
+                customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
             }
             if(customData.tailCoordinates != null && customData.tailCoordinates.Length != 0)
             {
-                customData.tailCoordinates[0] = -customData.tailCoordinates[0];
+                customData.tailCoordinates[0] = MirrorNoodlePosition(customData.tailCoordinates[0]);
             }
         }
     }
@@ -268,11 +279,11 @@ public class BeatmapBurstSlider : BeatmapObject
         {
             if(customData.coordinates != null && customData.coordinates.Length != 0)
             {
-                customData.coordinates[0] = -customData.coordinates[0];
+                customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
             }
             if(customData.tailCoordinates != null && customData.tailCoordinates.Length != 0)
             {
-                customData.tailCoordinates[0] = -customData.tailCoordinates[0];
+                customData.tailCoordinates[0] = MirrorNoodlePosition(customData.tailCoordinates[0]);
             }
         }
     }
@@ -353,6 +364,20 @@ public class BeatmapCustomBasicEventData
 }
 
 
+[Serializable]
+public class BeatmapCustomDifficultyData {
+    public BeatmapCustomBookmark[] bookmarks;
+}
+
+
+[Serializable]
+public class BeatmapCustomBookmark {
+    public float b;
+    public string n;
+    public float[] c; 
+}
+
+
 //A custom json deserializer that converts a single non-array lightID into a list with one element
 public class LightIDConverter : JsonConverter
 {
@@ -360,6 +385,7 @@ public class LightIDConverter : JsonConverter
     {
         throw new NotImplementedException();
     }
+
 
     public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
@@ -375,6 +401,7 @@ public class LightIDConverter : JsonConverter
         }
         return val;
     }
+
 
     public override bool CanConvert(Type objectType)
     {

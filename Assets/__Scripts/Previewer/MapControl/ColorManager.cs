@@ -19,10 +19,9 @@ public class ColorManager : MonoBehaviour
 
     private static readonly string[] colorSettings =
     {
-        "chromaobjectcolors",
-        "songcorecolors",
         "environmentcolors",
         "difficultycolors",
+        "playercolors",
         "coloroverride",
         "leftnotecolor",
         "rightnotecolor",
@@ -42,7 +41,9 @@ public class ColorManager : MonoBehaviour
     private void UpdateCurrentColors()
     {
         ColorPalette newColors;
-        if(SettingsManager.GetBool("coloroverride"))
+
+        bool colorOverride = SettingsManager.GetBool("coloroverride");
+        if(colorOverride)
         {
             //Use custom user set colors as the base palette, ignore all vanilla colors
             newColors = new ColorPalette
@@ -58,7 +59,7 @@ public class ColorManager : MonoBehaviour
                 WallColor = SettingsManager.GetColor("wallcolor")
             };
         }
-        else 
+        else
         {
             //Use the vanilla color scheme for the difficulty
             if(SettingsManager.GetBool("environmentcolors"))
@@ -73,6 +74,12 @@ public class ColorManager : MonoBehaviour
             //Stack the difficulty-specific color scheme
             newColors.StackPalette(difficultySongCoreColors);
             newColors.StackPalette(difficultyColorScheme);
+        }
+
+        if(ReplayManager.IsReplayMode && !colorOverride && SettingsManager.GetBool("playercolors"))
+        {
+            newColors.LeftNoteColor = ReplayManager.PlayerLeftSaberColor ?? newColors.LeftNoteColor;
+            newColors.RightNoteColor = ReplayManager.PlayerRightSaberColor ?? newColors.RightNoteColor;
         }
 
         CurrentColors = newColors;
@@ -152,6 +159,10 @@ public class ColorManager : MonoBehaviour
                 return QueenColors;
             case "LinkinPark2Environment":
                 return Linkin2Colors;
+            case "TheRollingStonesEnvironment":
+                return RollingStonesColors;
+            case "LatticeEnvironment":
+                return LatticeColors;
         }
     }
 
@@ -539,6 +550,34 @@ public class ColorManager : MonoBehaviour
         BoostLightColor2 = new Color(0.282353f, 0.4586275f, 0.6235294f),
         BoostWhiteLightColor = Color.white,
         WallColor = new Color(0.6627451f, 0.1647059f, 0.172549f)
+    };
+
+
+    public static ColorPalette RollingStonesColors => new ColorPalette
+    {
+        LeftNoteColor = new Color(0.8980392f, 0f, 0.1150319f),
+        RightNoteColor = new Color(0.5254902f, 0.1333333f, 0.6784314f),
+        LightColor1 = new Color(0.9529412f, 0.01176471f, 0.4039216f),
+        LightColor2 = new Color(0.4784314f, 0.4039216f, 1f),
+        WhiteLightColor = Color.white,
+        BoostLightColor1 = new Color(0.5647059f, 0.4622677f, 0f),
+        BoostLightColor2 = new Color(0.003921554f, 0.6383545f, 0.6705883f),
+        BoostWhiteLightColor = Color.white,
+        WallColor = new Color(0.9529412f, 0.01176471f, 0.4039216f)
+    };
+
+
+    public static ColorPalette LatticeColors => new ColorPalette
+    {
+        LeftNoteColor = new Color(0.8392156958580017f, 0.1725490242242813f, 0.5456773042678833f),
+        RightNoteColor = new Color(0.0f, 0.6705882549285889f, 0.9803921580314636f),
+        LightColor1 = new Color(0.8941177129745483f, 0.16078431904315948f, 0.7490196228027344f),
+        LightColor2 = new Color(0.19607844948768616f, 0.5843137502670288f, 0.7960785031318665f),
+        WhiteLightColor = Color.white,
+        BoostLightColor1 = new Color(0.545098066329956f, 0.13333334028720856f, 0.8156863451004028f),
+        BoostLightColor2 = new Color(0.40392160415649414f, 0.917647123336792f, 0.917647123336792f),
+        BoostWhiteLightColor = Color.white,
+        WallColor = new Color(0.46855342388153076f, 0.7095922231674194f, 1.0f)
     };
 }
 

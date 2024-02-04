@@ -215,7 +215,8 @@ public class ScoreManager : MonoBehaviour
 
         if(inferCount > 0)
         {
-            Debug.LogWarning($"Unable to match {inferCount} scoring events to their notes! Scores may not line up.");
+            Debug.LogWarning($"Unable to match {inferCount} scoring events to their notes!");
+            ErrorHandler.Instance.ShowPopup(ErrorType.Warning, $"Couldn't match {inferCount} replay notes to the map!");
         }
 
         if(currentScore != ReplayManager.CurrentReplay.info.score)
