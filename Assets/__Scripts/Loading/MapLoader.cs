@@ -174,7 +174,8 @@ public class MapLoader : MonoBehaviour
         }
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        CacheManager.SaveMapToCache(zipStream, url, mapID, mapHash);
+        string extraData = mapID == null ? null : "latest";
+        CacheManager.SaveMapToCache(zipStream, url, mapID, mapHash, extraData);
 #endif
 
         ZipReader zipReader = new ZipReader(null, zipStream);
@@ -195,12 +196,89 @@ public class MapLoader : MonoBehaviour
     }
 
 
+    public IEnumerator LoadMapZipURLsCoroutine(string[] urls, string mapID = null, string mapHash = null, bool noProxy = false)
+    {
+        Loading = true;
+
+        for(int i = 0; i < urls.Length; i++)
+        {
+            string url = urls[i];
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+            //Ignore map ID here because we're looking for a specific version
+            CachedFile cachedFile = CacheManager.GetCachedMap(url, mapID, mapHash);
+            if(!string.IsNullOrEmpty(cachedFile?.FilePath))
+            {
+                Debug.Log("Found map in cache.");
+                LoadMapZip(cachedFile.FilePath);
+                yield break;
+            }
+#endif
+
+            Debug.Log($"Downloading map data from: {url}");
+            if(urls.Length > 1)
+            {
+                LoadingMessage = $"Downloading map (url {i + 1})";
+            }
+            else LoadingMessage = "Downloading map";
+
+            using Task<Stream> downloadTask = WebLoader.LoadFileURL(url, noProxy, false);
+            yield return new WaitUntil(() => downloadTask.IsCompleted);
+
+            Stream zipStream = downloadTask.Result;
+
+            if(zipStream == null)
+            {
+                Debug.LogWarning("Downloaded data is null!");
+                continue;
+            }
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+            CacheManager.SaveMapToCache(zipStream, url, mapID, mapHash);
+#endif
+
+            ZipReader zipReader = new ZipReader(null, zipStream);
+            try
+            {
+                zipReader.Archive = new ZipArchive(zipReader.ArchiveStream, ZipArchiveMode.Read);
+
+                UrlArgHandler.ignoreMapForSharing = true;
+                if(!string.IsNullOrEmpty(mapID))
+                {
+                    UrlArgHandler.LoadedMapID = mapID;
+                }
+                else UrlArgHandler.LoadedMapURL = url;
+
+                StartCoroutine(LoadMapFileCoroutine(zipReader));
+                yield break;
+            }
+            catch(Exception err)
+            {
+                zipReader.Dispose();
+
+                ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to read map zip!");
+                Debug.LogWarning($"Unhandled exception loading zip URL: {err.Message}, {err.StackTrace}");
+
+                UpdateMapInfo(LoadedMap.Empty);
+                yield break;
+            }
+        }
+
+        //We've tried every URL available and all of them failed
+        Debug.Log("No urls succeeded! Showing manual map selection.");
+        Loading = false;
+        LoadingMessage = "";
+
+        OnReplayMapPrompt?.Invoke();
+    }
+
+
     public IEnumerator LoadMapIDCoroutine(string mapID, string mapHash = null)
     {
         Loading = true;
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        CachedFile cachedFile = CacheManager.GetCachedMap(null, mapID);
+        CachedFile cachedFile = CacheManager.GetCachedMap(null, mapID, mapHash);
         if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
             Debug.Log("Found map in cache.");
@@ -260,12 +338,12 @@ public class MapLoader : MonoBehaviour
         Debug.Log($"Getting BeatSaver response for hash: {mapHash}");
         LoadingMessage = "Fetching map from BeatSaver";
 
-        using Task<(string, string)> apiTask = BeatSaverHandler.GetBeatSaverMapHash(mapHash);
+        using Task<(string[], string)> apiTask = BeatSaverHandler.GetBeatSaverMapHash(mapHash);
         yield return new WaitUntil(() => apiTask.IsCompleted);
 
-        string mapURL = apiTask.Result.Item1;
+        string[] mapURLs = apiTask.Result.Item1;
         string mapID = apiTask.Result.Item2;
-        if(string.IsNullOrEmpty(mapURL))
+        if(mapURLs == null || mapURLs.Length == 0)
         {
             Debug.Log("Empty or nonexistant URL! Showing manual map selection.");
 
@@ -276,16 +354,12 @@ public class MapLoader : MonoBehaviour
             yield break;
         }
 
-        mapURL = System.Web.HttpUtility.UrlDecode(mapURL);
-
-        UrlArgHandler.ignoreMapForSharing = true;
-        if(!string.IsNullOrEmpty(mapID))
+        for(int i = 0; i < mapURLs.Length; i++)
         {
-            UrlArgHandler.LoadedMapID = mapID;
+            mapURLs[i] = System.Web.HttpUtility.UrlDecode(mapURLs[i]);
         }
-        else UrlArgHandler.LoadedMapURL = mapURL;
 
-        StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, mapHash, noProxy));
+        StartCoroutine(LoadMapZipURLsCoroutine(mapURLs, mapID, mapHash, noProxy));
     }
 
 
@@ -427,7 +501,7 @@ public class MapLoader : MonoBehaviour
         if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
             Debug.Log("Found replay in cache.");
-            StartCoroutine(LoadReplayDirectoryCoroutine(cachedFile.FilePath, cachedFile.ExtraData?.MapURL));
+            StartCoroutine(LoadReplayDirectoryCoroutine(cachedFile.FilePath, cachedFile.ExtraData));
             yield break;
         }
 #endif
@@ -459,8 +533,7 @@ public class MapLoader : MonoBehaviour
         }
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        CachedReplayExtraData extraCacheData = string.IsNullOrEmpty(mapURL) ? null : new CachedReplayExtraData(mapURL);
-        CacheManager.SaveReplayToCache(replayStream, url, id, null, extraCacheData);
+        CacheManager.SaveReplayToCache(replayStream, url, id, mapURL);
 #endif
 
         StartCoroutine(SetReplayCoroutine(replay, mapURL, mapID, noProxy));
@@ -477,7 +550,7 @@ public class MapLoader : MonoBehaviour
         if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
             Debug.Log("Found replay in cache.");
-            StartCoroutine(LoadReplayDirectoryCoroutine(cachedFile.FilePath, cachedFile.ExtraData?.MapURL));
+            StartCoroutine(LoadReplayDirectoryCoroutine(cachedFile.FilePath, cachedFile.ExtraData));
             yield break;
         }
 #endif
@@ -497,10 +570,14 @@ public class MapLoader : MonoBehaviour
 
         //If the user specified an ID that doesn't match the api data, follow the request
         bool useMapID = !string.IsNullOrEmpty(mapID) && mapID != apiResponse.song?.id;
-        if(!useMapID && string.IsNullOrEmpty(mapURL) && !string.IsNullOrEmpty(apiResponse.song?.downloadUrl))
+        bool useResponseURL = !useMapID && string.IsNullOrEmpty(mapURL) && !string.IsNullOrEmpty(apiResponse.song?.downloadUrl);
+
+        //Avoid following BeatSaver links so that we get the map ID for later
+        if(useResponseURL && !BeatSaverHandler.BeatSaverCdnURLs.Any(x => apiResponse.song.downloadUrl.Contains(x)))
         {
             //The map url is included with the BL score response
             mapURL = System.Web.HttpUtility.UrlDecode(apiResponse.song.downloadUrl);
+            UrlArgHandler.ignoreMapForSharing = true;
 
             if(mapID == apiResponse.song.id)
             {

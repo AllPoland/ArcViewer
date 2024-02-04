@@ -35,15 +35,14 @@ public class WebLoader
     }
 
 
-    public static async Task<Stream> LoadFileURL(string url, bool noProxy)
+    public static async Task<Stream> LoadFileURL(string url, bool noProxy, bool sendError = true)
     {
         await Task.Yield();
-
-        return await StreamFromURL(url, noProxy);
+        return await StreamFromURL(url, noProxy, sendError);
     }
 
 
-    public static async Task<MemoryStream> StreamFromURL(string url, bool noProxy)
+    public static async Task<MemoryStream> StreamFromURL(string url, bool noProxy, bool sendError = true)
     {
         MapLoader.Progress = 0;
         DownloadSize = 0;
@@ -89,12 +88,18 @@ public class WebLoader
                 if(uwr.error == "Request aborted")
                 {
                     Debug.Log("Download cancelled.");
-                    ErrorHandler.Instance.QueuePopup(ErrorType.Notification, "Download cancelled!");
+                    if(sendError)
+                    {
+                        ErrorHandler.Instance.QueuePopup(ErrorType.Notification, "Download cancelled!");
+                    }
                 }
                 else
                 {
                     Debug.LogWarning($"{uwr.error}");
-                    ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Download failed! {uwr.error}");
+                    if(sendError)
+                    {
+                        ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Download failed! {uwr.error}");
+                    }
                 }
 
                 return null;

@@ -6,32 +6,47 @@ using UnityEngine.Networking;
 
 public static class BeatSaverHandler
 {
+    public static readonly string[] BeatSaverCdnURLs = new string[]
+    {
+        "r2cdn.beatsaver.com",
+        "cdn.beatsaver.com"
+    };
+
     private const string beatSaverApiURL = "https://api.beatsaver.com/";
     private const string idDirect = "maps/id/";
     private const string hashDirect = "maps/hash/";
 
 
-    public static async Task<(string, string)> GetBeatSaverMapHash(string hash)
+    public static async Task<(string[], string)> GetBeatSaverMapHash(string hash)
     {
         string json = await GetApiResponse(hashDirect, hash, false);
 
-        if(string.IsNullOrEmpty(json)) return ("", "");
+        if(string.IsNullOrEmpty(json)) return (null, "");
 
         BeatSaverResponse response = JsonUtility.FromJson<BeatSaverResponse>(json);
 
         if(response.versions == null || response.versions.Length == 0)
         {
-            return ("", "");
+            return (null, "");
         }
 
         string url = response.versions.FirstOrDefault(x => x.hash.Equals(hash, StringComparison.InvariantCultureIgnoreCase))?.downloadURL;
-        if(url == null)
+        if(string.IsNullOrEmpty(url))
         {
-            Debug.LogWarning("BeatSaver response doesn't contain this outdated version!");
-            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "This replay is for an outdated map version!");
-            url = response.versions.First().downloadURL;
+            Debug.Log("BeatSaver response doesn't contain this outdated version!");
+
+            //Return an array of potential urls for this map
+            string[] urls = new string[BeatSaverCdnURLs.Length + 1];
+            for(int i = 0; i < BeatSaverCdnURLs.Length; i++)
+            {
+                urls[i] = $"https://{BeatSaverCdnURLs[i]}/{hash.ToLower()}.zip";
+            }
+            //End with the url for the latest map version as a fallback
+            urls[BeatSaverCdnURLs.Length] = url;
+
+            return (urls, response.id);
         }
-        return (url, response.id);
+        else return (new string[] {url}, response.id);
     }
 
 

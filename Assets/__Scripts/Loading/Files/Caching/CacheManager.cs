@@ -18,13 +18,24 @@ public class CacheManager : MonoBehaviour
 #if !UNITY_WEBGL || UNITY_EDITOR
     public static CachedFile GetCachedMap(string url = null, string id = null, string hash = null)
     {
-        return MapCache.GetCachedFile(url, id, hash);
+        if(id != null)
+        {
+            //First search, only allowing the latest map to pass
+            CachedFile foundFile = MapCache.GetCachedFile(url, id, hash, "latest");
+            if(foundFile == null)
+            {
+                //Search with other parameters only
+                return MapCache.GetCachedFile(url, null, hash);
+            }
+            else return foundFile;
+        }
+        else return MapCache.GetCachedFile(url, id, hash);
     }
 
 
-    public static void SaveMapToCache(Stream fileStream, string url = null, string id = null, string hash = null)
+    public static void SaveMapToCache(Stream fileStream, string url = null, string id = null, string hash = null, string extraData = null)
     {
-        MapCache.SaveFileToCache(fileStream, url, id, hash);
+        MapCache.SaveFileToCache(fileStream, url, id, hash, extraData);
     }
 
 
@@ -34,9 +45,9 @@ public class CacheManager : MonoBehaviour
     }
 
 
-    public static void SaveReplayToCache(Stream fileStream, string url = null, string id = null, string hash = null, CachedReplayExtraData extraData = null)
+    public static void SaveReplayToCache(Stream fileStream, string url = null, string id = null, string extraData = null)
     {
-        ReplayCache.SaveFileToCache(fileStream, url, id, hash, extraData);
+        ReplayCache.SaveFileToCache(fileStream, url, id, null, extraData);
     }
 
 

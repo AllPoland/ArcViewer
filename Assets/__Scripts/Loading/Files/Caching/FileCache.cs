@@ -44,7 +44,7 @@ public class FileCache
     }
 
 
-    public CachedFile GetCachedFile(string url = null, string id = null, string hash = null)
+    public CachedFile GetCachedFile(string url = null, string id = null, string hash = null, string extraString = null)
     {
         if(CachedFiles == null)
         {
@@ -56,7 +56,22 @@ public class FileCache
             return null;
         }
 
-        CachedFile match = CachedFiles.FirstOrDefault(x => x.MatchInput(url, id, hash));
+        CachedFile match = null;
+        if(string.IsNullOrEmpty(extraString))
+        {
+            match = CachedFiles.FirstOrDefault(x => x.MatchInput(url, id, hash));
+        }
+        else
+        {
+            //Use only a matching file that matches a string in the extra data
+            //Used for when old map versions are downloaded and we're searching by ID
+            List<CachedFile> matches = CachedFiles.FindAll(x => x.MatchInput(url, id, hash));
+            if(matches.Count > 0)
+            {
+                match = matches.FirstOrDefault(x => x.ExtraData == extraString);
+            }
+        }
+
         if(match != null)
         {
             //Move this file to the end of the list
@@ -75,7 +90,7 @@ public class FileCache
     }
 
 
-    public void SaveFileToCache(Stream fileStream, string url = null, string id = null, string hash = null, CachedReplayExtraData extraData = null)
+    public void SaveFileToCache(Stream fileStream, string url = null, string id = null, string hash = null, string extraData = null)
     {
         if(CachedFiles == null)
         {
@@ -89,11 +104,10 @@ public class FileCache
             if(!string.IsNullOrEmpty(url)) match.URL = url;
             if(!string.IsNullOrEmpty(id)) match.ID = id;
             if(!string.IsNullOrEmpty(hash)) match.Hash = hash;
-
-            if(extraData != null) match.ExtraData = extraData;
+            if(!string.IsNullOrEmpty(extraData)) match.ExtraData = extraData;
 
             SaveCacheData();
-            Debug.Log("Tried to save an already cached file.");
+            Debug.LogWarning("Tried to save an already cached file!");
             return;
         }
 
@@ -246,12 +260,17 @@ public class CachedFile
     public string URL;
     public string ID;
     public string Hash;
+    public string ExtraData;
     public string FilePath;
-
-    public CachedReplayExtraData ExtraData;
 
     public bool MatchInput(string url, string id, string hash)
     {
+        if(hash != null)
+        {
+            //Ignore id if hash is present to avoid getting the wrong map version
+            id = null;
+        }
+
         if(!string.IsNullOrEmpty(url) && url == URL)
         {
             return true;
@@ -265,17 +284,5 @@ public class CachedFile
             return true;
         }
         else return false;
-    }
-}
-
-
-[Serializable]
-public class CachedReplayExtraData
-{
-    public string MapURL;
-
-    public CachedReplayExtraData(string mapURL)
-    {
-        MapURL = mapURL;
     }
 }
