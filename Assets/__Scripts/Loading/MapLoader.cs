@@ -228,7 +228,7 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    private IEnumerator LoadMapReplayCoroutine(Replay loadedReplay, bool noProxy = false)
+    private IEnumerator LoadMapFromReplayCoroutine(Replay loadedReplay, bool noProxy = false)
     {
         string mapHash = loadedReplay.info.hash;
         Debug.Log($"Searching for map matching replay hash: {mapHash}");
@@ -333,12 +333,12 @@ public class MapLoader : MonoBehaviour
             UrlArgHandler.LoadedMapURL = mapURL;
             StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, replay.info.hash, noProxy));
         }
-        else StartCoroutine(LoadMapReplayCoroutine(replay, noProxy));
+        else StartCoroutine(LoadMapFromReplayCoroutine(replay, noProxy));
     }
 
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-    private IEnumerator LoadReplayDirectoryCoroutine(string directory)
+    private IEnumerator LoadReplayDirectoryCoroutine(string directory, string mapURL = null)
     {
         Loading = true;
 
@@ -355,7 +355,7 @@ public class MapLoader : MonoBehaviour
             yield break;
         }
 
-        StartCoroutine(SetReplayCoroutine(replay));
+        StartCoroutine(SetReplayCoroutine(replay, mapURL));
     }
 #else
 
@@ -427,7 +427,7 @@ public class MapLoader : MonoBehaviour
         if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
             Debug.Log("Found replay in cache.");
-            StartCoroutine(LoadReplayDirectoryCoroutine(cachedFile.FilePath));
+            StartCoroutine(LoadReplayDirectoryCoroutine(cachedFile.FilePath, cachedFile.ExtraData?.MapURL));
             yield break;
         }
 #endif
@@ -459,7 +459,8 @@ public class MapLoader : MonoBehaviour
         }
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        CacheManager.SaveReplayToCache(replayStream, url, id);
+        CachedReplayExtraData extraCacheData = string.IsNullOrEmpty(mapURL) ? null : new CachedReplayExtraData(mapURL);
+        CacheManager.SaveReplayToCache(replayStream, url, id, null, extraCacheData);
 #endif
 
         StartCoroutine(SetReplayCoroutine(replay, mapURL, mapID, noProxy));
@@ -476,25 +477,40 @@ public class MapLoader : MonoBehaviour
         if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
             Debug.Log("Found replay in cache.");
-            StartCoroutine(LoadReplayDirectoryCoroutine(cachedFile.FilePath));
+            StartCoroutine(LoadReplayDirectoryCoroutine(cachedFile.FilePath, cachedFile.ExtraData?.MapURL));
             yield break;
         }
 #endif
 
         LoadingMessage = "Fetching replay from Beatleader";
 
-        using Task<string> apiTask = ReplayLoader.ReplayURLFromScoreID(id);
+        using Task<BeatleaderScore> apiTask = ReplayLoader.BeatleaderScoreFromID(id);
         yield return new WaitUntil(() => apiTask.IsCompleted);
 
-        string replayURL = apiTask.Result;
-        if(string.IsNullOrEmpty(replayURL))
+        BeatleaderScore apiResponse = apiTask.Result;
+        if(string.IsNullOrEmpty(apiResponse?.replay))
         {
             Debug.Log("Empty or nonexistant URL!");
             UpdateMapInfo(LoadedMap.Empty);
             yield break;
         }
 
-        replayURL = System.Web.HttpUtility.UrlDecode(replayURL);
+        //If the user specified an ID that doesn't match the api data, follow the request
+        bool useMapID = !string.IsNullOrEmpty(mapID) && mapID != apiResponse.song?.id;
+        if(!useMapID && string.IsNullOrEmpty(mapURL) && !string.IsNullOrEmpty(apiResponse.song?.downloadUrl))
+        {
+            //The map url is included with the BL score response
+            mapURL = System.Web.HttpUtility.UrlDecode(apiResponse.song.downloadUrl);
+
+            if(mapID == apiResponse.song.id)
+            {
+                //Remove the specified ID to avoid querying BeatSaver and ensure we
+                //get the right map version. (ID would take precedence over mapURL)
+                mapID = null;
+            }
+        }
+
+        string replayURL = System.Web.HttpUtility.UrlDecode(apiResponse.replay);
         StartCoroutine(LoadReplayURLCoroutine(replayURL, id, mapURL, mapID, noProxy));
     }
 

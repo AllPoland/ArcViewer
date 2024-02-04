@@ -164,11 +164,21 @@ public class UrlArgHandler : MonoBehaviour
         bool setTime = false;
         bool setDiff = false;
 
+        if(!string.IsNullOrEmpty(mapURL) && !string.IsNullOrEmpty(mapID))
+        {
+            mapURL = null;
+        }
+
+        if(!string.IsNullOrEmpty(replayURL) && !string.IsNullOrEmpty(replayID))
+        {
+            replayURL = null;
+        }
+
         if(!string.IsNullOrEmpty(replayID))
         {
             StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, mapURL, mapID, noProxy));
             LoadedReplayID = replayID;
-            
+
             //Don't set the diff cause that depends on the replay
             setTime = true;
         }

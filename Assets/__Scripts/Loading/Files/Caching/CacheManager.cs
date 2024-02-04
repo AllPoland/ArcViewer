@@ -34,9 +34,9 @@ public class CacheManager : MonoBehaviour
     }
 
 
-    public static void SaveReplayToCache(Stream fileStream, string url = null, string id = null, string hash = null)
+    public static void SaveReplayToCache(Stream fileStream, string url = null, string id = null, string hash = null, CachedReplayExtraData extraData = null)
     {
-        ReplayCache.SaveFileToCache(fileStream, url, id, hash);
+        ReplayCache.SaveFileToCache(fileStream, url, id, hash, extraData);
     }
 
 

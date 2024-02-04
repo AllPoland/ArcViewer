@@ -75,7 +75,7 @@ public class FileCache
     }
 
 
-    public void SaveFileToCache(Stream fileStream, string url = null, string id = null, string hash = null)
+    public void SaveFileToCache(Stream fileStream, string url = null, string id = null, string hash = null, CachedReplayExtraData extraData = null)
     {
         if(CachedFiles == null)
         {
@@ -89,6 +89,8 @@ public class FileCache
             if(!string.IsNullOrEmpty(url)) match.URL = url;
             if(!string.IsNullOrEmpty(id)) match.ID = id;
             if(!string.IsNullOrEmpty(hash)) match.Hash = hash;
+
+            if(extraData != null) match.ExtraData = extraData;
 
             SaveCacheData();
             Debug.Log("Tried to save an already cached file.");
@@ -120,7 +122,8 @@ public class FileCache
             URL = url,
             ID = id,
             Hash = hash,
-            FilePath = newFilePath
+            FilePath = newFilePath,
+            ExtraData = extraData
         };
 
         try
@@ -245,6 +248,8 @@ public class CachedFile
     public string Hash;
     public string FilePath;
 
+    public CachedReplayExtraData ExtraData;
+
     public bool MatchInput(string url, string id, string hash)
     {
         if(!string.IsNullOrEmpty(url) && url == URL)
@@ -260,5 +265,17 @@ public class CachedFile
             return true;
         }
         else return false;
+    }
+}
+
+
+[Serializable]
+public class CachedReplayExtraData
+{
+    public string MapURL;
+
+    public CachedReplayExtraData(string mapURL)
+    {
+        MapURL = mapURL;
     }
 }

@@ -50,28 +50,28 @@ public class ReplayLoader
     }
 
 
-    private static string DownloadURLFromResponse(string json)
+    private static BeatleaderScore ParseBeatleaderScore(string json)
     {
         if(string.IsNullOrEmpty(json))
         {
-            return "";
+            return null;
         }
 
         try
         {
-            BeatleaderScoreResponse score = JsonConvert.DeserializeObject<BeatleaderScoreResponse>(json);
-            return score?.replay ?? "";
+            BeatleaderScore score = JsonConvert.DeserializeObject<BeatleaderScore>(json);
+            return score;
         }
         catch(Exception err)
         {
             Debug.LogWarning($"Failed to parse BeatLeader response with error: {err.Message}, {err.StackTrace}");
             ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Failed to parse API response!");
-            return "";
+            return null;
         }
     }
 
 
-    public static async Task<string> ReplayURLFromScoreID(string scoreID)
+    public static async Task<BeatleaderScore> BeatleaderScoreFromID(string scoreID)
     {
         string url = String.Concat(beatleaderApiURL, scoreDirect, scoreID);
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -87,20 +87,20 @@ public class ReplayLoader
 
             if(uwr.result == UnityWebRequest.Result.Success)
             {
-                return DownloadURLFromResponse(uwr.downloadHandler.text);
+                return ParseBeatleaderScore(uwr.downloadHandler.text);
             }
             else
             {
                 Debug.LogWarning($"Failed to get BeatLeader API response with error: {uwr.error}");
                 ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find BeatLeader score {scoreID}! {uwr.error}");
-                return "";
+                return null;
             }
         }
         catch(Exception err)
         {
             Debug.LogWarning($"Failed to get BeatLeader API response with error: {err.Message}, {err.StackTrace}");
             ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Couldn't find BeatLeader score {scoreID}! {err.Message}");
-            return "";
+            return null;
         }
     }
 
@@ -245,7 +245,7 @@ public class ReplayLoader
 
 
 [Serializable]
-public class BeatleaderScoreResponse
+public class BeatleaderScore
 {
     public int id;
     public int baseScore;
@@ -265,7 +265,22 @@ public class BeatleaderScoreResponse
     public float weight;
     public string replay;
     public string modifiers;
-    //Ok I can't be assed to add all of this
+
+    public BeatleaderScoreSongData song;
+}
+
+
+[Serializable]
+public class BeatleaderScoreSongData
+{
+    public string id;
+    public string hash;
+    public string cover;
+    public string name;
+    public string subName;
+    public string author;
+    public string mapper;
+    public string downloadUrl;
 }
 
 
