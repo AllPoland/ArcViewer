@@ -600,7 +600,7 @@ public class MapLoader : MonoBehaviour
         
         if(newMap.Info == null || newMap.Difficulties.Count == 0 || newMap.Song == null)
         {
-            Debug.LogWarning("Failed to load map file");
+            Debug.LogWarning("Failed to load map file.");
 
             if(newMap.Song != null)
             {

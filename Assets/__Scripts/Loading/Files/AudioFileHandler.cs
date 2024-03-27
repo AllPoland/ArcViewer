@@ -1,6 +1,9 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
+using System.Web;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
 using Winista.Mime;
@@ -137,7 +140,13 @@ public static class AudioFileHandler
             return null;
         }
 
-        Uri uri = new Uri("file://" + path);
+        //Encode uri reserved characters
+        StringBuilder encodedPath = new StringBuilder(HttpUtility.UrlEncode(path));
+        //Unencode characters that don't have a reserved purpose in this case (kinda scuffed)
+        encodedPath.Replace("%5c", "/");
+        encodedPath.Replace("%3a", ":");
+
+        Uri uri = new Uri("file://" + encodedPath.ToString());
 
         AudioClip song = null;
         try
