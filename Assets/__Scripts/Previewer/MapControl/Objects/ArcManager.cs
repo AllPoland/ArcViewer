@@ -387,8 +387,8 @@ public class Arc : BaseSlider
     {
         const float defaultControlOffset = 2.5f;
 
-        Vector2 headPosition = ObjectManager.CalculateObjectPosition(a.x, a.y, a.customData?.coordinates);
-        Vector2 tailPosition = ObjectManager.CalculateObjectPosition(a.tx, a.ty, a.customData?.tailCoordinates);
+        Vector2 headPosition = ObjectManager.CalculateObjectPosition(a.x, a.y, a.customData?.coordinates, false);
+        Vector2 tailPosition = ObjectManager.CalculateObjectPosition(a.tx, a.ty, a.customData?.tailCoordinates, false);
 
         float headAngle = ObjectManager.CalculateObjectAngle(a.d);
         float tailAngle = ObjectManager.CalculateObjectAngle(a.tc);
