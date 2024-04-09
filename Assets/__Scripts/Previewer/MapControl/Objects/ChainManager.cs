@@ -334,7 +334,7 @@ public class Chain : BaseSlider
 
     public Chain(BeatmapBurstSlider b)
     {
-        Vector2 headPosition = ObjectManager.CalculateObjectPosition(b.x, b.y, b.customData?.coordinates);
+        Vector2 headPosition = ObjectManager.CalculateObjectPosition(b.x, b.y, b.customData?.coordinates, false);
         Vector2 tailPosition = ObjectManager.CalculateObjectPosition(b.tx, b.ty, b.customData?.tailCoordinates, false);
         float angle = ObjectManager.CalculateObjectAngle(b.d);
 
