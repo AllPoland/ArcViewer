@@ -308,7 +308,8 @@ public class MapLoader : MonoBehaviour
 
     private IEnumerator LoadMapFromReplayCoroutine(Replay loadedReplay, bool noProxy = false)
     {
-        string mapHash = loadedReplay.info.hash;
+        //For some reason replay hash fields might have extra text past the hash
+        string mapHash = loadedReplay.info.hash[..40];
         Debug.Log($"Searching for map matching replay hash: {mapHash}");
 
 #if !UNITY_WEBGL || UNITY_EDITOR
@@ -389,8 +390,11 @@ public class MapLoader : MonoBehaviour
             ReplayManager.SetPlayerCustomColors(response);
         }
 
+        //For some reason replay hash fields might have extra text past the hash
+        string mapHash = replay.info.hash[..40];
+
         Debug.Log("Getting replay leaderboard ID.");
-        using Task<string> leaderboardTask = ReplayLoader.LeaderboardIDFromHash(replay.info.hash, replay.info.mode, replay.info.difficulty);
+        using Task<string> leaderboardTask = ReplayLoader.LeaderboardIDFromHash(mapHash, replay.info.mode, replay.info.difficulty);
         yield return new WaitUntil(() => leaderboardTask.IsCompleted);
 
         ReplayManager.LeaderboardID = leaderboardTask.Result;
@@ -399,13 +403,13 @@ public class MapLoader : MonoBehaviour
         {
             Debug.Log($"Loading map from preset ID: {mapID}");
             UrlArgHandler.LoadedMapID = mapID;
-            StartCoroutine(LoadMapIDCoroutine(mapID, replay.info.hash));
+            StartCoroutine(LoadMapIDCoroutine(mapID, mapHash));
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
             Debug.Log($"Loading map from preset URL: {mapURL}");
             UrlArgHandler.LoadedMapURL = mapURL;
-            StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, replay.info.hash, noProxy));
+            StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, mapHash, noProxy));
         }
         else StartCoroutine(LoadMapFromReplayCoroutine(replay, noProxy));
     }
