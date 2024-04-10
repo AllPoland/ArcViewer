@@ -28,7 +28,7 @@ public class SongManager : MonoBehaviour
 #if !UNITY_WEBGL || UNITY_EDITOR
                 ApplySongTimeOffset(ref _musicClip);
 #else
-                _musicClip.SetOffset(BeatmapManager.Info.songTimeOffset);
+                _musicClip.SetOffset((float)BeatmapManager.Info.songTimeOffset);
 #endif
                 ErrorHandler.Instance.ShowPopup(ErrorType.Warning, "Song Time Offset is depreciated!");
             }

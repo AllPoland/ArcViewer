@@ -375,10 +375,11 @@ public class UrlArgHandler : MonoBehaviour
     public void UpdateMapTitle(BeatmapInfo info)
     {
         string mapTitle = "";
-        if(info != BeatmapInfo.Empty)
+
+        if(UIStateManager.CurrentState == UIState.Previewer)
         {
-            string authorName = info._songAuthorName;
-            string songName = info._songName;
+            string authorName = info.song.author;
+            string songName = info.song.title;
             if(!string.IsNullOrEmpty(authorName))
             {
                 mapTitle += authorName;
