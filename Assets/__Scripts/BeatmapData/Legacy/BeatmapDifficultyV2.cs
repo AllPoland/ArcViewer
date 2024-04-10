@@ -58,9 +58,9 @@ public class BeatmapDifficultyV2
     {
         AddNulls();
 
-        BeatmapDifficulty converted = new BeatmapDifficulty
+        BeatmapDifficultyV3 converted = new BeatmapDifficultyV3
         {
-            version = "3.0.0"
+            version = "3.3.0"
         };
 
         List<BeatmapColorNote> colorNotes = new List<BeatmapColorNote>();

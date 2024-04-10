@@ -83,6 +83,7 @@ public static class JsonReader
         {
             string[] v3Versions = {"3.0.0", "3.1.0", "3.2.0", "3.3.0"};
             string[] v2Versions = {"2.0.0", "2.2.0", "2.5.0", "2.6.0"};
+            string[] v4Versions = {"4.0.0"};
 
             Match match = VersionRx.Match(json);
 
@@ -94,7 +95,7 @@ public static class JsonReader
             if(v3Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V3 format.");
-                difficulty = DeserializeObject<BeatmapDifficulty>(json);
+                difficulty = DeserializeObject<BeatmapDifficultyV3>(json);
             }
             else if(v2Versions.Contains(versionNumber))
             {
@@ -106,44 +107,45 @@ public static class JsonReader
             else
             {
                 Debug.LogWarning($"Unable to match map version for {filename}. The map has either a missing or unsupported version.");
-
-                Debug.Log($"Trying to fallback load {filename} in V3 format.");
-                BeatmapDifficulty v3Diff = DeserializeObject<BeatmapDifficulty>(json);
-
-                if(v3Diff?.HasObjects ?? false)
-                {
-                    Debug.Log($"Fallback for {filename} succeeded in V3.");
-                    difficulty = v3Diff;
-                }
-                else
-                {
-                    Debug.Log($"Fallback for {filename} failed in V3, trying V2.");
-                    BeatmapDifficultyV2 v2Diff = DeserializeObject<BeatmapDifficultyV2>(json);
-
-                    if(v2Diff?.HasObjects ?? false)
-                    {
-                        Debug.Log($"Fallback for {filename} succeeded in V2.");
-                        difficulty = v2Diff.ConvertToV3();
-                    }
-                    else
-                    {
-                        ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to find difficulty version from {filename}!");
-                        Debug.LogWarning($"{filename} is in an unsupported or missing version!");
-                        return new BeatmapDifficulty();
-                    }
-                }
+                difficulty = ParseBeatmapFallback(json, filename);
             }
         }
         catch(Exception err)
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to parse {filename}!");
             Debug.LogWarning($"Unable to parse {filename} file with error: {err.Message}, {err.StackTrace}.");
-            return new BeatmapDifficulty();
+            return new BeatmapDifficultyV3();
         }
 
         difficulty.AddNulls();
-        Debug.Log($"Parsed {filename} with {difficulty.colorNotes.Length} notes, {difficulty.bombNotes.Length} bombs, {difficulty.obstacles.Length} walls, {difficulty.sliders.Length} arcs, {difficulty.burstSliders.Length} chains.");
+        Debug.Log($"Parsed {filename} with {difficulty.Notes.Length} notes, {difficulty.Bombs.Length} bombs, {difficulty.Walls.Length} walls, {difficulty.Arcs.Length} arcs, {difficulty.Chains.Length} chains.");
         return difficulty;
+    }
+
+
+    private static BeatmapDifficulty ParseBeatmapFallback(string json, string filename = "{UnknownDifficulty}")
+    {
+        Debug.Log($"Trying to fallback load {filename} in V3 format.");
+        BeatmapDifficultyV3 v3Diff = DeserializeObject<BeatmapDifficultyV3>(json);
+
+        if(v3Diff?.HasObjects ?? false)
+        {
+            Debug.Log($"Fallback for {filename} succeeded in V3.");
+            return v3Diff;
+        }
+
+        Debug.Log($"Fallback for {filename} failed in V3, trying V2.");
+        BeatmapDifficultyV2 v2Diff = DeserializeObject<BeatmapDifficultyV2>(json);
+
+        if(v2Diff?.HasObjects ?? false)
+        {
+            Debug.Log($"Fallback for {filename} succeeded in V2.");
+            return v2Diff.ConvertToV3();
+        }
+
+        ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to find difficulty version from {filename}!");
+        Debug.LogWarning($"{filename} is in an unsupported or missing version!");
+        return new BeatmapDifficultyV3();
     }
 
 

@@ -144,6 +144,7 @@ public static class AudioFileHandler
         //Unencode characters that don't have a reserved purpose in this case (kinda scuffed)
         encodedPath.Replace("%5c", "/");
         encodedPath.Replace("%3a", ":");
+        encodedPath.Replace("+", " ");
 
         Uri uri = new Uri("file://" + encodedPath.ToString());
 

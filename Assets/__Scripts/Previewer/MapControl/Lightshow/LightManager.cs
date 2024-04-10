@@ -372,7 +372,7 @@ public class LightManager : MonoBehaviour
     private void UpdateDifficulty(Difficulty newDifficulty)
     {
         string environmentName = BeatmapManager.EnvironmentName;
-        if(newDifficulty.beatmapDifficulty.basicBeatMapEvents.Length == 0 || EnvironmentManager.V3Environments.Contains(environmentName))
+        if(newDifficulty.beatmapDifficulty.BasicEvents.Length == 0 || EnvironmentManager.V3Environments.Contains(environmentName))
         {
             StaticLights = true;
             return;
@@ -382,7 +382,7 @@ public class LightManager : MonoBehaviour
         FlipBackLasers = backLaserFlipEnvironments.Contains(environmentName);
 
         boostEvents.Clear();
-        foreach(BeatmapColorBoostBeatmapEvent beatmapBoostEvent in newDifficulty.beatmapDifficulty.colorBoostBeatMapEvents)
+        foreach(BeatmapColorBoostBeatmapEvent beatmapBoostEvent in newDifficulty.beatmapDifficulty.BoostEvents)
         {
             boostEvents.Add(new BoostEvent(beatmapBoostEvent));
         }
@@ -402,7 +402,7 @@ public class LightManager : MonoBehaviour
 
         RingManager.RingZoomEvents.Clear();
 
-        foreach(BeatmapBasicBeatmapEvent beatmapEvent in newDifficulty.beatmapDifficulty.basicBeatMapEvents)
+        foreach(BeatmapBasicBeatmapEvent beatmapEvent in newDifficulty.beatmapDifficulty.BasicEvents)
         {
             AddLightEvent(beatmapEvent);
         }

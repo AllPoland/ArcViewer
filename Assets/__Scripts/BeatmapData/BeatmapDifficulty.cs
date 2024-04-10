@@ -2,61 +2,24 @@ using System;
 using Newtonsoft.Json;
 using UnityEngine;
 
-[Serializable]
-public class BeatmapDifficulty
+public abstract class BeatmapDifficulty
 {
-    public string version;
-    public BeatmapBpmEvent[] bpmEvents;
-    public BeatmapRotationEvent[] rotationEvents;
-    public BeatmapColorNote[] colorNotes;
-    public BeatmapBombNote[] bombNotes;
-    public BeatmapObstacle[] obstacles;
-    public BeatmapSlider[] sliders;
-    public BeatmapBurstSlider[] burstSliders;
-    //Waypoints ommitted
-    public BeatmapBasicBeatmapEvent[] basicBeatMapEvents;
-    public BeatmapColorBoostBeatmapEvent[] colorBoostBeatMapEvents;
+    public abstract string Version { get; }
+    public abstract BeatmapBpmEvent[] BpmEvents { get; }
+    public abstract BeatmapRotationEvent[] RotationEvents { get; }
+    public abstract BeatmapColorNote[] Notes { get; }
+    public abstract BeatmapBombNote[] Bombs { get; }
+    public abstract BeatmapObstacle[] Walls { get; }
+    public abstract BeatmapSlider[] Arcs { get; }
+    public abstract BeatmapBurstSlider[] Chains { get; }
 
-    public BeatmapCustomDifficultyData customData;
-    public bool useNormalEventsAsCompatibleEvents;
+    public abstract BeatmapBasicBeatmapEvent[] BasicEvents { get; }
+    public abstract BeatmapColorBoostBeatmapEvent[] BoostEvents { get; }
 
-    public bool HasObjects => colorNotes.Length + bombNotes.Length
-        + obstacles.Length + sliders.Length
-        + burstSliders.Length + basicBeatMapEvents.Length
-        + colorBoostBeatMapEvents.Length + bpmEvents.Length
-        + rotationEvents.Length > 0;
+    public abstract BeatmapCustomDifficultyData CustomData { get; }
 
 
-    public BeatmapDifficulty()
-    {
-        version = "";
-        bpmEvents = new BeatmapBpmEvent[0];
-        rotationEvents = new BeatmapRotationEvent[0];
-        colorNotes = new BeatmapColorNote[0];
-        bombNotes = new BeatmapBombNote[0];
-        obstacles = new BeatmapObstacle[0];
-        sliders = new BeatmapSlider[0];
-        burstSliders = new BeatmapBurstSlider[0];
-        basicBeatMapEvents = new BeatmapBasicBeatmapEvent[0];
-        colorBoostBeatMapEvents = new BeatmapColorBoostBeatmapEvent[0];
-        customData = null;
-        useNormalEventsAsCompatibleEvents = false;
-    }
-
-
-    public void AddNulls()
-    {
-        version = version ?? "3.2.0";
-        bpmEvents = bpmEvents ?? new BeatmapBpmEvent[0];
-        rotationEvents = rotationEvents ?? new BeatmapRotationEvent[0];
-        colorNotes = colorNotes ?? new BeatmapColorNote [0];
-        bombNotes = bombNotes ?? new BeatmapBombNote[0];
-        obstacles = obstacles ?? new BeatmapObstacle[0];
-        sliders = sliders ?? new BeatmapSlider[0];
-        burstSliders = burstSliders ?? new BeatmapBurstSlider[0];
-        basicBeatMapEvents = basicBeatMapEvents ?? new BeatmapBasicBeatmapEvent[0];
-        colorBoostBeatMapEvents = colorBoostBeatMapEvents ?? new BeatmapColorBoostBeatmapEvent[0];
-    }
+    public abstract void AddNulls();
 }
 
 
