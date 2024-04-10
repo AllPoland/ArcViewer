@@ -34,7 +34,31 @@ public static class JsonReader
 
         try
         {
-            info = DeserializeObject<BeatmapInfo>(json);
+            Match match = VersionRx.Match(json);
+
+            //Get only the version number
+            string versionNumber = match.Value.Split('"').Last();
+            Debug.Log($"Info.dat is version: {versionNumber}");
+
+            string[] v2Versions = {"2.0.0", "2.1.0"};
+            string[] v4Versions = {"4.0.0"};
+            
+            if(v4Versions.Contains(versionNumber))
+            {
+                Debug.Log("Parsing Info.dat in V4 format.");
+                info = DeserializeObject<BeatmapInfo>(json);
+            }
+            else if(v2Versions.Contains(versionNumber))
+            {
+                Debug.Log("Parsing Info.dat in V2 format.");
+                BeatmapInfoV2 v2Info = DeserializeObject<BeatmapInfoV2>(json);
+                info = v2Info.ConvertToV4();
+            }
+            else
+            {
+                Debug.LogWarning("Info.dat has missing or unsupported version.");
+                info = ParseInfoFallback(json);
+            }
         }
         catch(Exception err)
         {
@@ -42,8 +66,32 @@ public static class JsonReader
             return null;
         }
 
-        info?.AddNulls();
         return info;
+    }
+
+
+    private static BeatmapInfo ParseInfoFallback(string json)
+    {
+        Debug.Log("Trying to fallback load Info.dat in V4 format.");
+        BeatmapInfo infoV4 = DeserializeObject<BeatmapInfo>(json);
+
+        if(infoV4?.HasFields ?? false)
+        {
+            Debug.Log("Fallback for Info.dat succeeded in V4.");
+            return infoV4;
+        }
+
+        Debug.Log("Fallback for Info.dat failed in V4, trying V2.");
+        BeatmapInfoV2 infoV2 = DeserializeObject<BeatmapInfoV2>(json);
+
+        if(infoV2?.HasFields ?? false)
+        {
+            Debug.Log("Fallback for Info.dat succeeded in V2.");
+            return infoV2.ConvertToV4();
+        }
+
+        Debug.LogWarning("Info.dat is in an unsupported or missing version!");
+        return null;
     }
 
 
@@ -51,12 +99,12 @@ public static class JsonReader
     {
         Difficulty output = new Difficulty
         {
-            difficultyRank = MapLoader.DiffValueFromString[beatmap._difficulty],
-            noteJumpSpeed = beatmap._noteJumpMovementSpeed,
-            spawnOffset = beatmap._noteJumpStartBeatOffset
+            difficultyRank = MapLoader.DiffValueFromString[beatmap.difficulty],
+            noteJumpSpeed = beatmap.noteJumpMovementSpeed,
+            spawnOffset = beatmap.noteJumpStartBeatOffset
         };
 
-        string filename = beatmap._beatmapFilename;
+        string filename = beatmap.beatmapDataFilename;
         Debug.Log($"Loading json from {filename}");
 
         string location = Path.Combine(directory, filename);
@@ -143,7 +191,7 @@ public static class JsonReader
             return v2Diff.ConvertToV3();
         }
 
-        ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to find difficulty version from {filename}!");
+        ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to find difficulty version for {filename}!");
         Debug.LogWarning($"{filename} is in an unsupported or missing version!");
         return new BeatmapDifficultyV3();
     }

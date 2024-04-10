@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [Serializable]
-public class BeatmapInfo
+public class BeatmapInfoV2
 {
-    //Version doesn't need to be internally stored.
+    public string _version;
     public string _songName;
     public string _songSubName;
     public string _songAuthorName;
@@ -17,107 +19,154 @@ public class BeatmapInfo
     public string _environmentName;
     public string _allDirectionsEnvironmentName;
     public float _songTimeOffset;
-    public DifficultyBeatmapSet[] _difficultyBeatmapSets;
+    public DifficultyBeatmapSetV2[] _difficultyBeatmapSets;
 
     public string[] _environmentNames;
-    public ColorSchemeContainer[] _colorSchemes;
+    public ColorSchemeContainerV2[] _colorSchemes;
+
+    public bool HasFields => !string.IsNullOrEmpty(_version) || !string.IsNullOrEmpty(_songName)
+        || !string.IsNullOrEmpty(_songSubName) || !string.IsNullOrEmpty(_songAuthorName)
+        || !string.IsNullOrEmpty(_levelAuthorName) || !string.IsNullOrEmpty(_songFilename)
+        || !string.IsNullOrEmpty(_coverImageFilename) || !string.IsNullOrEmpty(_environmentName)
+        || !string.IsNullOrEmpty(_allDirectionsEnvironmentName) || _difficultyBeatmapSets != null
+        || _environmentNames != null || _colorSchemes != null;
 
 
-    public void AddNulls()
+    public BeatmapInfoV2()
     {
-        _songName = _songName ?? "Unknown";
-        _songSubName = _songSubName ?? "";
-        _songAuthorName = _songAuthorName ?? "Unknown";
-        _levelAuthorName = _levelAuthorName ?? "Unknown";
-        _songFilename = _songFilename ?? "";
-        _coverImageFilename = _coverImageFilename ?? "";
-        _environmentName = _environmentName ?? "DefaultEnvironment";
-        _allDirectionsEnvironmentName = _allDirectionsEnvironmentName ?? "GlassDesertEnvironment";
-        _difficultyBeatmapSets = _difficultyBeatmapSets ?? new DifficultyBeatmapSet[0];
+        _version = "2.1.0";
+        _songName = "";
+        _songSubName = "";
+        _songAuthorName = "";
+        _levelAuthorName = "";
+        _beatsPerMinute = 120;
+        _songFilename = "";
+        _coverImageFilename = "";
+        _environmentName = "DefaultEnvironment";
+        _allDirectionsEnvironmentName = "GlassDesertEnvironment";
+        _songTimeOffset = 0;
+        _difficultyBeatmapSets = new DifficultyBeatmapSetV2[0];
+        _environmentNames = new string[0];
+        _colorSchemes = new ColorSchemeContainerV2[0];
     }
 
 
-    public static string TrimCharacteristicString(string characteristicName)
+    public BeatmapInfo ConvertToV4()
     {
-        //Trims extra text added by BeatLeader in modded modes
-        characteristicName = characteristicName.TrimEnd("OldDots");
-        characteristicName = characteristicName.TrimEnd("-PinkPlay_Controllable");
+        BeatmapInfo info = new BeatmapInfo();
 
-        characteristicName = characteristicName.TrimStart("Inverse");
-        characteristicName = characteristicName.TrimStart("Inverted");
-        characteristicName = characteristicName.TrimStart("Vertical");
-        characteristicName = characteristicName.TrimStart("Horizontal");
+        info.song = new BeatmapInfoSong
+        {
+            title = _songName,
+            subTitle = _songSubName,
+            author = _songAuthorName
+        };
 
-        return characteristicName;
+        info.audio = new BeatmapInfoAudio
+        {
+            songFilename = _songFilename,
+            bpm = _beatsPerMinute
+        };
+
+        info.coverImageFilename = _coverImageFilename;
+
+        List<string> environmentNames = _environmentNames != null ? _environmentNames.ToList() : new List<string>();
+
+        //Make sure the new environment names includes the default environments
+        if(!environmentNames.Contains(_environmentName))
+        {
+            environmentNames.Add(_environmentName);
+        }
+        if(!environmentNames.Contains(_allDirectionsEnvironmentName))
+        {
+            environmentNames.Add(_allDirectionsEnvironmentName);
+        }
+
+        info.environmentNames = environmentNames.ToArray();
+
+        //Convert color schemes
+        List<BeatmapInfoColorScheme> colorSchemes = new List<BeatmapInfoColorScheme>();
+        foreach(ColorSchemeContainerV2 container in _colorSchemes)
+        {
+            if(!container.useOverride)
+            {
+                //This override shouldn't be used
+                //Why the fuck was this a thing?
+                continue;
+            }
+
+            BeatmapInfoColorSchemeV2 scheme = container.colorScheme;
+            colorSchemes.Add(new BeatmapInfoColorScheme(scheme.colorSchemeId, scheme.GetPalette()));
+        }
+        info.colorSchemes = colorSchemes.ToArray();
+
+        //Convert difficulties
+        List<DifficultyBeatmap> difficultyBeatmaps = new List<DifficultyBeatmap>();
+
+        //Every difficulty will have the same authors
+        string[] authors = {_levelAuthorName};
+        BeatmapAuthors beatmapAuthors = new BeatmapAuthors
+        {
+            mappers = authors,
+            lighters = new string[0]
+        };
+
+        foreach(DifficultyBeatmapSetV2 set in _difficultyBeatmapSets)
+        {
+            string characteristicName = set._beatmapCharacteristicName;
+            foreach(DifficultyBeatmapV2 beatmapV2 in set._difficultyBeatmaps)
+            {
+                DifficultyBeatmap beatmap = beatmapV2.ConvertToV4(characteristicName);
+                beatmap.beatmapAuthors = beatmapAuthors;
+
+                //Environment indexes need to be adjusted since the arrays don't
+                //always persist through the conversion
+                string environmentName;
+                if(beatmapV2._environmentNameIdx > 0 && beatmapV2._environmentNameIdx < _environmentNames.Length)
+                {
+                    //The environment name is listed in this v2 info
+                    environmentName = _environmentNames[beatmapV2._environmentNameIdx];
+                }
+                else
+                {
+                    //The environment name isn't listed, use the info's default
+                    DifficultyCharacteristic characteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
+                    bool isAllDirections = characteristic == DifficultyCharacteristic.ThreeSixty || characteristic == DifficultyCharacteristic.Ninety;
+
+                    environmentName = isAllDirections ? _allDirectionsEnvironmentName : _environmentName;
+                }
+
+                //We can be certain that the new environment names list includes this name
+                beatmap.environmentNameIdx = environmentNames.IndexOf(environmentName);
+
+                beatmap.customData = beatmapV2._customData?.ConvertToV4();
+
+                difficultyBeatmaps.Add(beatmap);
+            }
+        }
+        info.difficultyBeatmaps = difficultyBeatmaps.ToArray();
+
+        //Include song time offset if needed
+        if(!_songTimeOffset.Approximately(0f))
+        {
+            info.songTimeOffset = _songTimeOffset;
+        }
+
+        return info;
     }
-
-
-    public static DifficultyCharacteristic CharacteristicFromString(string characteristicName)
-    {
-        characteristicName = TrimCharacteristicString(characteristicName);
-
-        if(characteristicName.Equals("360Degree", StringComparison.InvariantCultureIgnoreCase))
-        {
-            return DifficultyCharacteristic.ThreeSixty;
-        }
-        if(characteristicName.Equals("90Degree", StringComparison.InvariantCultureIgnoreCase))
-        {
-            return DifficultyCharacteristic.Ninety;
-        }
-
-        DifficultyCharacteristic characteristic;
-        bool success = Enum.TryParse(characteristicName, true, out characteristic);
-        if(!success)
-        {
-            Debug.LogWarning($"Could not match characteristic name: {characteristicName}");
-            return DifficultyCharacteristic.Unknown;
-        }
-        else return characteristic;
-    }
-
-
-    public static DifficultyRank DifficultyRankFromString(string difficultyName)
-    {
-        DifficultyRank difficulty;
-        bool success = Enum.TryParse(difficultyName, true, out difficulty);
-        if(!success)
-        {
-            Debug.LogWarning("Could not match difficulty name!");
-            return DifficultyRank.ExpertPlus;
-        }
-        else return difficulty;
-    }
-
-
-    public static readonly BeatmapInfo Empty = new BeatmapInfo
-    {
-        _songName = "",
-        _songSubName = "",
-        _songAuthorName = "",
-        _levelAuthorName = "",
-        _beatsPerMinute = 120,
-        _songFilename = "",
-        _coverImageFilename = "",
-        _environmentName = "DefaultEnvironment",
-        _allDirectionsEnvironmentName = "GlassDesertEnvironment",
-        _songTimeOffset = 0,
-        _difficultyBeatmapSets = new DifficultyBeatmapSet[0],
-        _environmentNames = new string[0],
-        _colorSchemes = new ColorSchemeContainer[0]
-    };
 }
 
 
 [Serializable]
-public struct DifficultyBeatmapSet
+public struct DifficultyBeatmapSetV2
 {
     public string _beatmapCharacteristicName;
-    public DifficultyBeatmap[] _difficultyBeatmaps;
+    public DifficultyBeatmapV2[] _difficultyBeatmaps;
 }
 
 
 [Serializable]
-public struct DifficultyBeatmap
+public struct DifficultyBeatmapV2
 {
     public string _difficulty;
     public int _difficultyRank;
@@ -128,29 +177,44 @@ public struct DifficultyBeatmap
     public int _beatmapColorSchemeIdx;
     public int _environmentNameIdx;
 
-    public CustomDifficultyData _customData;
+    public DifficultyBeatmapCustomDataV2 _customData;
+
+
+    public DifficultyBeatmap ConvertToV4(string characteristic)
+    {
+        return new DifficultyBeatmap
+        {
+            characteristic = characteristic,
+            difficulty = _difficulty,
+            beatmapColorSchemeIdx = _beatmapColorSchemeIdx,
+            noteJumpMovementSpeed = _noteJumpMovementSpeed,
+            noteJumpStartBeatOffset = _noteJumpStartBeatOffset,
+            beatmapDataFilename = _beatmapFilename,
+            lightshowDataFilename = ""
+        };
+    }
 }
 
 
 [Serializable]
-public class ColorSchemeContainer
+public class ColorSchemeContainerV2
 {
     public bool useOverride;
-    public ColorScheme colorScheme;
+    public BeatmapInfoColorSchemeV2 colorScheme;
 }
 
 
 [Serializable]
-public class ColorScheme
+public class BeatmapInfoColorSchemeV2
 {
     public string colorSchemeId;
-    public SerializableColor saberAColor;
-    public SerializableColor saberBColor;
-    public SerializableColor environmentColor0;
-    public SerializableColor environmentColor1;
-    public SerializableColor obstaclesColor;
-    public SerializableColor environmentColor0Boost;
-    public SerializableColor environmentColor1Boost;
+    public BeatmapInfoColorV2 saberAColor;
+    public BeatmapInfoColorV2 saberBColor;
+    public BeatmapInfoColorV2 environmentColor0;
+    public BeatmapInfoColorV2 environmentColor1;
+    public BeatmapInfoColorV2 obstaclesColor;
+    public BeatmapInfoColorV2 environmentColor0Boost;
+    public BeatmapInfoColorV2 environmentColor1Boost;
 
 
     public NullableColorPalette GetPalette()
@@ -172,26 +236,44 @@ public class ColorScheme
 
 
 [Serializable]
-public class CustomDifficultyData
+public class DifficultyBeatmapCustomDataV2
 {
     public string _difficultyLabel;
     public string[] _requirements;
 
     //SongCore color overrides
-    public SerializableColor _colorLeft;
-    public SerializableColor _colorRight;
-    public SerializableColor _envColorLeft;
-    public SerializableColor _envColorRight;
-    public SerializableColor _envColorWhite;
-    public SerializableColor _envColorLeftBoost;
-    public SerializableColor _envColorRightBoost;
-    public SerializableColor _envColorWhiteBoost;
-    public SerializableColor _obstacleColor;
+    public BeatmapInfoColorV2 _colorLeft;
+    public BeatmapInfoColorV2 _colorRight;
+    public BeatmapInfoColorV2 _envColorLeft;
+    public BeatmapInfoColorV2 _envColorRight;
+    public BeatmapInfoColorV2 _envColorWhite;
+    public BeatmapInfoColorV2 _envColorLeftBoost;
+    public BeatmapInfoColorV2 _envColorRightBoost;
+    public BeatmapInfoColorV2 _envColorWhiteBoost;
+    public BeatmapInfoColorV2 _obstacleColor;
+
+
+    public DifficultyBeatmapCustomData ConvertToV4()
+    {
+        return new DifficultyBeatmapCustomData
+        {
+            difficultyLabel = _difficultyLabel,
+            requirements = _requirements,
+            colorLeft = _colorLeft,
+            colorRight = _colorRight,
+            envColorLeft = _envColorLeft,
+            envColorRight = _envColorRight,
+            envColorWhite = _envColorWhite,
+            envColorLeftBoost = _envColorLeftBoost,
+            envColorRightBoost = _envColorRightBoost,
+            envColorWhiteBoost = _envColorWhiteBoost
+        };
+    }
 }
 
 
 [Serializable]
-public class SerializableColor
+public class BeatmapInfoColorV2
 {
     public float r;
     public float g;
@@ -203,28 +285,4 @@ public class SerializableColor
     {
         return new Color(r, g, b, a ?? 1f);
     }
-}
-
-
-public enum DifficultyRank
-{
-    Easy,
-    Normal,
-    Hard,
-    Expert,
-    ExpertPlus
-}
-
-
-public enum DifficultyCharacteristic
-{
-    Standard,
-    OneSaber,
-    NoArrows,
-    ThreeSixty,
-    Ninety,
-    Legacy,
-    Lightshow,
-    Lawless,
-    Unknown
 }

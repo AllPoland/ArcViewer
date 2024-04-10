@@ -1,5 +1,7 @@
 using UnityEngine;
 using TMPro;
+using System.Collections.Generic;
+using System.Linq;
 
 public class InfoPanel : MonoBehaviour
 {
@@ -10,13 +12,21 @@ public class InfoPanel : MonoBehaviour
     private BeatmapInfo info;
 
 
-    public void UpdateText(BeatmapInfo newInfo)
+    public void UpdateText(Difficulty newDifficulty)
     {
-        info = newInfo;
+        info = BeatmapManager.Info;
 
-        authorText.text = info._songAuthorName;
-        songText.text = $"{info._songName} <i><size=70%>{info._songSubName}";
-        mapperText.text = $"[{info._levelAuthorName}]";
+        authorText.text = info.song.author;
+        songText.text = $"{info.song.title} <i><size=70%>{info.song.subTitle}";
+
+        List<string> mappers = newDifficulty.mappers.ToList();
+        mappers.AddRange(newDifficulty.lighters);
+
+        if(mappers.Count > 0)
+        {
+            mapperText.text = $"[{string.Join(", ", mappers)}]";
+        }
+        else mapperText.text = "";
     }
 
 
@@ -42,15 +52,14 @@ public class InfoPanel : MonoBehaviour
 
     private void OnEnable()
     {
+        BeatmapManager.OnBeatmapDifficultyChanged += UpdateText;
 
-        BeatmapManager.OnBeatmapInfoChanged += UpdateText;
-
-        UpdateText(BeatmapManager.Info ?? new BeatmapInfo());
+        UpdateText(BeatmapManager.CurrentDifficulty ?? Difficulty.Empty);
     }
 
 
     private void OnDisable()
     {
-        BeatmapManager.OnBeatmapInfoChanged -= UpdateText;
+        BeatmapManager.OnBeatmapDifficultyChanged -= UpdateText;
     }
 }

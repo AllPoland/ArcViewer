@@ -50,7 +50,7 @@ public class ZipReader : IMapDataLoader
         MapLoader.LoadingMessage = "Loading song";
         await Task.Yield();
 
-        string songFilename = info._songFilename ?? "";
+        string songFilename = info.audio?.songFilename ?? "";
         using Stream songStream = Archive.GetEntryCaseInsensitive(songFilename)?.Open();
         if(songStream == null)
         {
@@ -84,7 +84,7 @@ public class ZipReader : IMapDataLoader
         await Task.Yield();
 
         byte[] coverImageData = new byte[0];
-        string coverFilename = info._coverImageFilename ?? "";
+        string coverFilename = info.coverImageFilename ?? "";
         using Stream coverImageStream = Archive.GetEntryCaseInsensitive(coverFilename)?.Open();
         if(coverImageStream == null)
         {
@@ -119,11 +119,11 @@ public class ZipReader : IMapDataLoader
             return LoadedMapData.Empty;
         }
 
-        Debug.Log($"Loaded info for {info._songAuthorName} - {info._songName}, mapped by {info._levelAuthorName}");
+        Debug.Log($"Loaded info for {info.song.author} - {info.song.title}");
 
-        if(info._difficultyBeatmapSets == null || info._difficultyBeatmapSets.Length < 1)
+        if(info.difficultyBeatmaps == null || info.difficultyBeatmaps.Length < 1)
         {
-            Debug.LogWarning("Info lists no difficulty sets!");
+            Debug.LogWarning("Info lists no difficulties!");
             return LoadedMapData.Empty;
         }
         List<Difficulty> difficulties = await DifficultyLoader.GetDifficultiesAsync(info, Archive);
@@ -198,43 +198,14 @@ public class ZipReader : IMapDataLoader
         }
 
         string infoJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
-        try
-        {
-            return JsonReader.DeserializeObject<BeatmapInfo>(infoJson);
-        }
-        catch(Exception e)
+        BeatmapInfo info = JsonReader.ParseInfoFromJson(infoJson);
+
+        if(info == null)
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to parse Info.dat!");
-            Debug.LogWarning($"Failed to parse Info.dat with error: {e.Message}, {e.StackTrace}");
-
-            return null;
-        }
-    }
-
-
-    public static Difficulty GetDifficulty(ZipArchive archive, DifficultyBeatmap beatmap)
-    {
-        string filename = beatmap._beatmapFilename;
-        Debug.Log($"Getting archive entry for {filename}");
-
-        ZipArchiveEntry entry = archive.GetEntryCaseInsensitive(filename);
-        if(entry == null)
-        {
-            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to load {filename}!");
-            Debug.LogWarning("Difficulty file not found!");
-            return null;
         }
 
-        return GetDifficulty(entry, beatmap);
-    }
-
-
-    public static Difficulty GetDifficulty(ZipArchiveEntry entry, DifficultyBeatmap beatmap)
-    {
-        Debug.Log($"Reading data from {beatmap._beatmapFilename}");
-        byte[] diffData = FileUtil.StreamToBytes(entry.Open());
-
-        return GetDifficulty(diffData, beatmap);
+        return info;
     }
 
 
@@ -242,13 +213,13 @@ public class ZipReader : IMapDataLoader
     {
         Difficulty output = new Difficulty
         {
-            difficultyRank = MapLoader.DiffValueFromString[beatmap._difficulty],
-            noteJumpSpeed = beatmap._noteJumpMovementSpeed,
-            spawnOffset = beatmap._noteJumpStartBeatOffset
+            difficultyRank = MapLoader.DiffValueFromString[beatmap.difficulty],
+            noteJumpSpeed = beatmap.noteJumpMovementSpeed,
+            spawnOffset = beatmap.noteJumpStartBeatOffset
         };
 
         string diffJson = System.Text.Encoding.UTF8.GetString(diffData);
-        output.beatmapDifficulty = JsonReader.ParseBeatmapFromJson(diffJson, beatmap._beatmapFilename);
+        output.beatmapDifficulty = JsonReader.ParseBeatmapFromJson(diffJson, beatmap.beatmapDataFilename);
 
         return output;
     }

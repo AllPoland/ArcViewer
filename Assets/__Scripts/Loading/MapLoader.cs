@@ -390,8 +390,13 @@ public class MapLoader : MonoBehaviour
             ReplayManager.SetPlayerCustomColors(response);
         }
 
+        string mapHash = replay.info.hash;
+
         //For some reason replay hash fields might have extra text past the hash
-        string mapHash = replay.info.hash[..40];
+        if(mapHash.Length > 40)
+        {
+            mapHash = mapHash[..40];
+        }
 
         Debug.Log("Getting replay leaderboard ID.");
         using Task<string> leaderboardTask = ReplayLoader.LeaderboardIDFromHash(mapHash, replay.info.mode, replay.info.difficulty);

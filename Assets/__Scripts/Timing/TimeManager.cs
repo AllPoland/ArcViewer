@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class TimeManager : MonoBehaviour
 {
-    public static float BaseBPM => BeatmapManager.Info._beatsPerMinute;
+    public static float BaseBPM => BeatmapManager.Info.audio.bpm;
     public static float TimeScale = 1f;
 
     public static List<BpmChange> BpmChanges = new List<BpmChange>();
