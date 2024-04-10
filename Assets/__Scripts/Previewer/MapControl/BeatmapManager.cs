@@ -256,7 +256,7 @@ public class Difficulty
     {
         characteristic = DifficultyCharacteristic.Unknown,
         difficultyRank = DifficultyRank.ExpertPlus,
-        beatmapDifficulty = new BeatmapV3Wrapper(),
+        beatmapDifficulty = BeatmapDifficulty.GetDefault(),
         noteJumpSpeed = 0,
         spawnOffset = 0,
         environmentName = "",

@@ -144,21 +144,20 @@ public static class JsonReader
             {
                 Debug.Log($"Parsing {filename} in V3 format.");
                 BeatmapDifficultyV4 beatmap = DeserializeObject<BeatmapDifficultyV4>(json);
-                difficulty = new BeatmapV4Wrapper(beatmap);
+                difficulty = new BeatmapWrapperV4(beatmap);
             }
             else if(v3Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V3 format.");
                 BeatmapDifficultyV3 beatmap = DeserializeObject<BeatmapDifficultyV3>(json);
-                difficulty = new BeatmapV3Wrapper(beatmap);
+                difficulty = new BeatmapWrapperV3(beatmap);
             }
             else if(v2Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V2 format.");
 
-                BeatmapDifficultyV2 v2Diff = DeserializeObject<BeatmapDifficultyV2>(json);
-                BeatmapDifficultyV3 beatmap = v2Diff.ConvertToV3();
-                difficulty = new BeatmapV3Wrapper(beatmap);
+                BeatmapDifficultyV2 beatmap = DeserializeObject<BeatmapDifficultyV2>(json);
+                difficulty = new BeatmapWrapperV3(beatmap.ConvertToV3());
             }
             else
             {
@@ -170,7 +169,7 @@ public static class JsonReader
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to parse {filename}!");
             Debug.LogWarning($"Unable to parse {filename} file with error: {err.Message}, {err.StackTrace}.");
-            return new BeatmapV3Wrapper();
+            return BeatmapDifficulty.GetDefault();
         }
 
         Debug.Log($"Parsed {filename} with {difficulty.Notes.Length} notes, {difficulty.Bombs.Length} bombs, {difficulty.Walls.Length} walls, {difficulty.Arcs.Length} arcs, {difficulty.Chains.Length} chains.");
@@ -186,7 +185,7 @@ public static class JsonReader
         if(v4Diff?.HasObjects ?? false)
         {
             Debug.Log($"Fallback for {filename} succeeded in V4.");
-            return new BeatmapV4Wrapper(v4Diff);
+            return new BeatmapWrapperV4(v4Diff);
         }
 
         Debug.Log($"Fallback for {filename} failed in V4, trying V3.");
@@ -195,7 +194,7 @@ public static class JsonReader
         if(v3Diff?.HasObjects ?? false)
         {
             Debug.Log($"Fallback for {filename} succeeded in V3.");
-            return new BeatmapV3Wrapper(v3Diff);
+            return new BeatmapWrapperV3(v3Diff);
         }
 
         Debug.Log($"Fallback for {filename} failed in V3, trying V2.");
@@ -204,12 +203,12 @@ public static class JsonReader
         if(v2Diff?.HasObjects ?? false)
         {
             Debug.Log($"Fallback for {filename} succeeded in V2.");
-            return new BeatmapV3Wrapper(v2Diff.ConvertToV3());
+            return new BeatmapWrapperV3(v2Diff.ConvertToV3());
         }
 
         ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to find difficulty version for {filename}!");
         Debug.LogWarning($"{filename} is in an unsupported or missing version!");
-        return new BeatmapV3Wrapper();
+        return BeatmapDifficulty.GetDefault();
     }
 
 

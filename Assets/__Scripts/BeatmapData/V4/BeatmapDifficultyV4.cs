@@ -121,7 +121,7 @@ public struct BeatmapObstacleDataV4
 
 
 [Serializable]
-public class BeatmapArcV4 : BeatmapElementV4
+public class BeatmapArcV4
 {
     public float hb;
     public float tb;
@@ -138,17 +138,18 @@ public struct BeatmapArcDataV4
 {
     public float m;
     public float tm;
-    public float a;
+    public int a;
 }
 
 
 [Serializable]
-public class BeatmapChainV4 : BeatmapElementV4
+public class BeatmapChainV4
 {
     public float hb;
     public float tb;
     public int hr;
     public int tr;
+    public int i;
     public int ci;
 }
 

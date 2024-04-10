@@ -19,6 +19,13 @@ public abstract class BeatmapDifficulty
     public abstract BeatmapElementList<BeatmapColorBoostBeatmapEvent> BoostEvents { get; }
 
     public abstract BeatmapCustomDifficultyData CustomData { get; }
+
+
+    public static BeatmapDifficulty GetDefault()
+    {
+        //This is abstracted from the constructor to easily change the default later
+        return new BeatmapWrapperV3();
+    }
 }
 
 

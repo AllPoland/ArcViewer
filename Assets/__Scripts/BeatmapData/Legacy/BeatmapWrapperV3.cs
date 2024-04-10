@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-public class BeatmapV3Wrapper : BeatmapDifficulty
+public class BeatmapWrapperV3 : BeatmapDifficulty
 {
     public BeatmapDifficultyV3 Beatmap;
 
@@ -31,14 +31,14 @@ public class BeatmapV3Wrapper : BeatmapDifficulty
     private BeatmapElementArray<BeatmapColorBoostBeatmapEvent> colorBoostBeatMapEvents;
 
 
-    public BeatmapV3Wrapper()
+    public BeatmapWrapperV3()
     {
         Beatmap = new BeatmapDifficultyV3();
         Init();
     }
 
 
-    public BeatmapV3Wrapper(BeatmapDifficultyV3 beatmap)
+    public BeatmapWrapperV3(BeatmapDifficultyV3 beatmap)
     {
         Beatmap = beatmap;
         Init();
@@ -65,6 +65,7 @@ public class BeatmapV3Wrapper : BeatmapDifficulty
 
 public class BeatmapElementArray<T> : BeatmapElementList<T>
 {
+    //An array container to fit the abstract BeatmapDifficulty implementation
     private readonly T[] innerArray;
 
     public override int Length => innerArray.Length;
