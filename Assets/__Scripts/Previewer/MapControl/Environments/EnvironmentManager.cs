@@ -69,7 +69,9 @@ public class EnvironmentManager : MonoBehaviour
         "QueenEnvironment",
         "LinkinPark2Environment",
         "TheRollingStonesEnvironment",
-        "LatticeEnvironment"
+        "LatticeEnvironment",
+        "DaftPunkEnvironment",
+        "HipHopEnvironment"
     };
 
     private static readonly string[] supportedEnvironments = new string[]
