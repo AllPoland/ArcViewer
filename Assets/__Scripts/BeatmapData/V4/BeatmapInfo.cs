@@ -33,7 +33,7 @@ public class BeatmapInfo
 
         songPreviewFilename = "";
         coverImageFilename = "";
-        environmentNames = new string[0];
+        environmentNames = new string[1] {"DefaultEnvironment"};
 
         colorSchemes = new BeatmapInfoColorScheme[0];
         difficultyBeatmaps = new DifficultyBeatmap[0];
@@ -101,6 +101,14 @@ public class BeatmapInfoSong
     public string title;
     public string subTitle;
     public string author;
+
+
+    public BeatmapInfoSong()
+    {
+        title = "";
+        subTitle = "";
+        author = "";
+    }
 }
 
 
@@ -116,6 +124,18 @@ public class BeatmapInfoAudio
 
     public float previewStartTime;
     public float previewDuration;
+
+
+    public BeatmapInfoAudio()
+    {
+        songFilename = "";
+        songDuration = 0f;
+        audioDataFilename = "";
+        bpm = 120f;
+        lufs = 0f;
+        previewStartTime = 0f;
+        previewDuration = 0f;
+    }
 }
 
 
@@ -202,6 +222,21 @@ public class DifficultyBeatmap
     public string beatmapDataFilename;
 
     public DifficultyBeatmapCustomData customData;
+
+
+    public DifficultyBeatmap()
+    {
+        characteristic = "";
+        difficulty = "";
+        beatmapAuthors = new BeatmapAuthors();
+        environmentNameIdx = 0;
+        beatmapColorSchemeIdx = 0;
+        noteJumpMovementSpeed = 10f;
+        noteJumpStartBeatOffset = 0f;
+        lightshowDataFilename = "";
+        beatmapDataFilename = "";
+        customData = null;
+    }
 }
 
 
@@ -210,6 +245,13 @@ public class BeatmapAuthors
 {
     public string[] mappers;
     public string[] lighters;
+
+
+    public BeatmapAuthors()
+    {
+        mappers = new string[0];
+        lighters = new string[0];
+    }
 }
 
 

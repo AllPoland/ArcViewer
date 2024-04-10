@@ -40,8 +40,8 @@ public static class JsonReader
             string versionNumber = match.Value.Split('"').Last();
             Debug.Log($"Info.dat is version: {versionNumber}");
 
-            string[] v2Versions = {"2.0.0", "2.1.0"};
             string[] v4Versions = {"4.0.0"};
+            string[] v2Versions = {"2.0.0", "2.1.0"};
             
             if(v4Versions.Contains(versionNumber))
             {
@@ -129,9 +129,9 @@ public static class JsonReader
 
         try
         {
+            string[] v4Versions = {"4.0.0"};
             string[] v3Versions = {"3.0.0", "3.1.0", "3.2.0", "3.3.0"};
             string[] v2Versions = {"2.0.0", "2.2.0", "2.5.0", "2.6.0"};
-            string[] v4Versions = {"4.0.0"};
 
             Match match = VersionRx.Match(json);
 
@@ -140,17 +140,25 @@ public static class JsonReader
             Debug.Log($"{filename} is version: {versionNumber}");
 
             //Search for a matching version and parse the correct map format
-            if(v3Versions.Contains(versionNumber))
+            if(v4Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V3 format.");
-                difficulty = DeserializeObject<BeatmapDifficultyV3>(json);
+                BeatmapDifficultyV4 beatmap = DeserializeObject<BeatmapDifficultyV4>(json);
+                difficulty = new BeatmapV4Wrapper(beatmap);
+            }
+            else if(v3Versions.Contains(versionNumber))
+            {
+                Debug.Log($"Parsing {filename} in V3 format.");
+                BeatmapDifficultyV3 beatmap = DeserializeObject<BeatmapDifficultyV3>(json);
+                difficulty = new BeatmapV3Wrapper(beatmap);
             }
             else if(v2Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V2 format.");
 
                 BeatmapDifficultyV2 v2Diff = DeserializeObject<BeatmapDifficultyV2>(json);
-                difficulty = v2Diff.ConvertToV3();
+                BeatmapDifficultyV3 beatmap = v2Diff.ConvertToV3();
+                difficulty = new BeatmapV3Wrapper(beatmap);
             }
             else
             {
@@ -162,10 +170,9 @@ public static class JsonReader
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to parse {filename}!");
             Debug.LogWarning($"Unable to parse {filename} file with error: {err.Message}, {err.StackTrace}.");
-            return new BeatmapDifficultyV3();
+            return new BeatmapV3Wrapper();
         }
 
-        difficulty.AddNulls();
         Debug.Log($"Parsed {filename} with {difficulty.Notes.Length} notes, {difficulty.Bombs.Length} bombs, {difficulty.Walls.Length} walls, {difficulty.Arcs.Length} arcs, {difficulty.Chains.Length} chains.");
         return difficulty;
     }
@@ -173,13 +180,22 @@ public static class JsonReader
 
     private static BeatmapDifficulty ParseBeatmapFallback(string json, string filename = "{UnknownDifficulty}")
     {
-        Debug.Log($"Trying to fallback load {filename} in V3 format.");
+        Debug.Log($"Trying to fallback load {filename} in V4 format.");
+        BeatmapDifficultyV4 v4Diff = DeserializeObject<BeatmapDifficultyV4>(json);
+
+        if(v4Diff?.HasObjects ?? false)
+        {
+            Debug.Log($"Fallback for {filename} succeeded in V4.");
+            return new BeatmapV4Wrapper(v4Diff);
+        }
+
+        Debug.Log($"Fallback for {filename} failed in V4, trying V3.");
         BeatmapDifficultyV3 v3Diff = DeserializeObject<BeatmapDifficultyV3>(json);
 
         if(v3Diff?.HasObjects ?? false)
         {
             Debug.Log($"Fallback for {filename} succeeded in V3.");
-            return v3Diff;
+            return new BeatmapV3Wrapper(v3Diff);
         }
 
         Debug.Log($"Fallback for {filename} failed in V3, trying V2.");
@@ -188,12 +204,12 @@ public static class JsonReader
         if(v2Diff?.HasObjects ?? false)
         {
             Debug.Log($"Fallback for {filename} succeeded in V2.");
-            return v2Diff.ConvertToV3();
+            return new BeatmapV3Wrapper(v2Diff.ConvertToV3());
         }
 
         ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to find difficulty version for {filename}!");
         Debug.LogWarning($"{filename} is in an unsupported or missing version!");
-        return new BeatmapDifficultyV3();
+        return new BeatmapV3Wrapper();
     }
 
 

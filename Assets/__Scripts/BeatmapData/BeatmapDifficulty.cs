@@ -1,29 +1,37 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
 
 public abstract class BeatmapDifficulty
 {
     public abstract string Version { get; }
-    public abstract BeatmapBpmEvent[] BpmEvents { get; }
-    public abstract BeatmapRotationEvent[] RotationEvents { get; }
-    public abstract BeatmapColorNote[] Notes { get; }
-    public abstract BeatmapBombNote[] Bombs { get; }
-    public abstract BeatmapObstacle[] Walls { get; }
-    public abstract BeatmapSlider[] Arcs { get; }
-    public abstract BeatmapBurstSlider[] Chains { get; }
+    public abstract BeatmapElementList<BeatmapBpmEvent> BpmEvents { get; }
+    public abstract BeatmapElementList<BeatmapRotationEvent> RotationEvents { get; }
+    public abstract BeatmapElementList<BeatmapColorNote> Notes { get; }
+    public abstract BeatmapElementList<BeatmapBombNote> Bombs { get; }
+    public abstract BeatmapElementList<BeatmapObstacle> Walls { get; }
+    public abstract BeatmapElementList<BeatmapSlider> Arcs { get; }
+    public abstract BeatmapElementList<BeatmapBurstSlider> Chains { get; }
 
-    public abstract BeatmapBasicBeatmapEvent[] BasicEvents { get; }
-    public abstract BeatmapColorBoostBeatmapEvent[] BoostEvents { get; }
+    public abstract BeatmapElementList<BeatmapBasicBeatmapEvent> BasicEvents { get; }
+    public abstract BeatmapElementList<BeatmapColorBoostBeatmapEvent> BoostEvents { get; }
 
     public abstract BeatmapCustomDifficultyData CustomData { get; }
-
-
-    public abstract void AddNulls();
 }
 
 
-[Serializable]
+public abstract class BeatmapElementList<T> : IEnumerable<T>
+{
+    public abstract int Length { get; }
+    public abstract T this[int i] { get; }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public abstract IEnumerator<T> GetEnumerator();
+}
+
+
 public class BeatmapBpmEvent
 {
     public float b;
@@ -31,11 +39,10 @@ public class BeatmapBpmEvent
 }
 
 
-[Serializable]
 public class BeatmapRotationEvent
 {
     public float b;
-    public int e;
+    public float e;
     public float r;
 }
 
@@ -45,7 +52,6 @@ public abstract class BeatmapObject
     public float b;
     public int x;
     public int y;
-
 
     public abstract void Mirror();
 
@@ -84,6 +90,22 @@ public abstract class BeatmapObject
         }
         else return ObjectManager.MirroredCutDirection[Mathf.Clamp(d, 0, 8)];
     }
+}
+
+
+[Serializable]
+public class BeatmapCustomDifficultyData
+{
+    public BeatmapCustomBookmark[] bookmarks;
+}
+
+
+[Serializable]
+public class BeatmapCustomBookmark
+{
+    public float b;
+    public string n;
+    public float[] c; 
 }
 
 
@@ -324,20 +346,6 @@ public class BeatmapCustomBasicEventData
     //Shared by both rings and lasers
     public float? speed;
     public int? direction;
-}
-
-
-[Serializable]
-public class BeatmapCustomDifficultyData {
-    public BeatmapCustomBookmark[] bookmarks;
-}
-
-
-[Serializable]
-public class BeatmapCustomBookmark {
-    public float b;
-    public string n;
-    public float[] c; 
 }
 
 
