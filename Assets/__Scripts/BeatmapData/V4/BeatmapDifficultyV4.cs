@@ -62,7 +62,8 @@ public class BeatmapDifficultyV4
 }
 
 
-public abstract class BeatmapElementV4
+[Serializable]
+public class BeatmapElementV4
 {
     public float b;
     public int i;

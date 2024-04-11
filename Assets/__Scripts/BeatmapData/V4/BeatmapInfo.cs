@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
@@ -17,14 +18,15 @@ public class BeatmapInfo
     public DifficultyBeatmap[] difficultyBeatmaps;
 
     //This is depreciated, but still needed for converted V2 maps
-    public float? songTimeOffset;
+    [NonSerialized] public float? songTimeOffset;
+
+    [NonSerialized] public BeatmapBpmEvent[] BpmEvents;
+    [NonSerialized] public Dictionary<string, BeatmapLightshowV4> Lightshows;
 
     public bool HasFields => !string.IsNullOrEmpty(version) || song != null
         || audio != null || !string.IsNullOrEmpty(songPreviewFilename)
         || !string.IsNullOrEmpty(coverImageFilename) || environmentNames != null
         || colorSchemes != null || difficultyBeatmaps != null;
-
-    public BeatmapBpmEvent[] BpmEvents;
 
 
     public BeatmapInfo()
@@ -42,6 +44,22 @@ public class BeatmapInfo
 
         songTimeOffset = null;
         BpmEvents = null;
+        Lightshows = null;
+    }
+
+
+    public BeatmapLightshowV4 GetLightshow(string lightshowFilename)
+    {
+        if(Lightshows == null)
+        {
+            return new BeatmapLightshowV4();
+        }
+
+        if(Lightshows.TryGetValue(lightshowFilename, out BeatmapLightshowV4 lightshow))
+        {
+            return lightshow;
+        }
+        else return new BeatmapLightshowV4();
     }
 
 
@@ -162,15 +180,15 @@ public class BeatmapInfoColorScheme
     {
         colorSchemeName = name;
 
-        saberAColor = HexFromColor(palette.LeftNoteColor);
-        saberBColor = HexFromColor(palette.RightNoteColor);
+        saberAColor = HexFromColor(palette?.LeftNoteColor);
+        saberBColor = HexFromColor(palette?.RightNoteColor);
 
-        obstaclesColor = HexFromColor(palette.WallColor);
+        obstaclesColor = HexFromColor(palette?.WallColor);
 
-        environmentColor0 = HexFromColor(palette.LightColor1);
-        environmentColor1 = HexFromColor(palette.LightColor2);
-        environmentColor0Boost = HexFromColor(palette.BoostLightColor1);
-        environmentColor1Boost = HexFromColor(palette.BoostLightColor2);
+        environmentColor0 = HexFromColor(palette?.LightColor1);
+        environmentColor1 = HexFromColor(palette?.LightColor2);
+        environmentColor0Boost = HexFromColor(palette?.BoostLightColor1);
+        environmentColor1Boost = HexFromColor(palette?.BoostLightColor2);
     }
 
 
@@ -199,11 +217,39 @@ public class BeatmapInfoColorScheme
 
     public static Color? ColorFromHex(string hex)
     {
-        if(ColorUtility.TryParseHtmlString(hex, out Color color))
+        hex = hex.TrimStart('#');
+
+        if(hex.Length < 6)
         {
-            return color;
+            //Not enough characters to represent a hex value
+            return null;
         }
-        else return null;
+
+        try
+        {
+            Debug.Log(hex.Substring(0, 2));
+            Debug.Log(Convert.ToByte(hex.Substring(0, 2), 16));
+            float r = Convert.ToByte(hex.Substring(0, 2), 16) / 255f;
+            float g = Convert.ToByte(hex.Substring(2, 2), 16) / 255f;
+            float b = Convert.ToByte(hex.Substring(4, 2), 16) / 255f;
+
+            Debug.Log(r);
+
+            if(hex.Length < 8)
+            {
+                return new Color(r, g, b);
+            }
+            else
+            {
+                float a = Convert.ToByte(hex.Substring(6, 2), 16) / 255f;
+                return new Color(r, g, b, a);
+            }
+        }
+        catch
+        {
+            //Failed to convert a substring into a base 16 value
+            return null;
+        }
     }
 }
 

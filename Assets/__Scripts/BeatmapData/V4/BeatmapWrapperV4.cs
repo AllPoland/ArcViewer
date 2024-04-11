@@ -4,8 +4,11 @@ using System.Collections.Generic;
 public class BeatmapWrapperV4 : BeatmapDifficulty
 {
     public BeatmapDifficultyV4 Beatmap;
+    public BeatmapLightshowV4 Lightshow;
 
     public override string Version => Beatmap.version;
+
+    private BeatmapSpawnRotationArrayV4 spawnRotations;
 
     private BeatmapColorNoteArrayV4 colorNotes;
     private BeatmapBombNoteArrayV4 bombNotes;
@@ -13,8 +16,12 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
     private BeatmapArcArrayV4 arcs;
     private BeatmapChainArrayV4 chains;
 
+    private BeatmapBasicEventArrayV4 basicEvents;
+    private BeatmapColorBoostEventArrayV4 colorBoostEvents;
+
+    //Pointing bpmEvents to null uses the universal bpmEvents in info
     protected override BeatmapElementList<BeatmapBpmEvent> BpmEvents => null;
-    public override BeatmapElementList<BeatmapRotationEvent> RotationEvents => new BeatmapElementArray<BeatmapRotationEvent>();
+    public override BeatmapElementList<BeatmapRotationEvent> RotationEvents => spawnRotations;
 
     public override BeatmapElementList<BeatmapColorNote> Notes => colorNotes;
     public override BeatmapElementList<BeatmapBombNote> Bombs => bombNotes;
@@ -22,8 +29,8 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
     public override BeatmapElementList<BeatmapSlider> Arcs => arcs;
     public override BeatmapElementList<BeatmapBurstSlider> Chains => chains;
 
-    public override BeatmapElementList<BeatmapBasicBeatmapEvent> BasicEvents => new BeatmapElementArray<BeatmapBasicBeatmapEvent>();
-    public override BeatmapElementList<BeatmapColorBoostBeatmapEvent> BoostEvents => new BeatmapElementArray<BeatmapColorBoostBeatmapEvent>();
+    public override BeatmapElementList<BeatmapBasicBeatmapEvent> BasicEvents => basicEvents;
+    public override BeatmapElementList<BeatmapColorBoostBeatmapEvent> BoostEvents => colorBoostEvents;
 
     public override BeatmapCustomDifficultyData CustomData => null;
 
@@ -31,13 +38,15 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
     public BeatmapWrapperV4()
     {
         Beatmap = new BeatmapDifficultyV4();
+        Lightshow = new BeatmapLightshowV4();
         Init();
     }
 
 
-    public BeatmapWrapperV4(BeatmapDifficultyV4 beatmap)
+    public BeatmapWrapperV4(BeatmapDifficultyV4 beatmap, BeatmapLightshowV4 lightshow)
     {
         Beatmap = beatmap;
+        Lightshow = lightshow;
         Init();
     }
 
@@ -46,11 +55,16 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
     {
         Beatmap.AddNulls();
         
+        spawnRotations = new BeatmapSpawnRotationArrayV4(Beatmap);
+
         colorNotes = new BeatmapColorNoteArrayV4(Beatmap);
         bombNotes = new BeatmapBombNoteArrayV4(Beatmap);
         obstacles = new BeatmapObstacleArrayV4(Beatmap);
         arcs = new BeatmapArcArrayV4(Beatmap);
         chains = new BeatmapChainArrayV4(Beatmap);
+
+        basicEvents = new BeatmapBasicEventArrayV4(Lightshow);
+        colorBoostEvents = new BeatmapColorBoostEventArrayV4(Lightshow);
     }
 }
 
@@ -134,7 +148,7 @@ public abstract class BeatmapElementArrayV4<Output, Element, Data> : BeatmapElem
 
 public class BeatmapColorNoteArrayV4 : BeatmapElementArrayV4<BeatmapColorNote, BeatmapColorNoteV4, BeatmapColorNoteDataV4>
 {
-    public BeatmapColorNoteArrayV4(BeatmapDifficultyV4 Beatmap) : base(Beatmap.colorNotes, Beatmap.colorNotesData){}
+    public BeatmapColorNoteArrayV4(BeatmapDifficultyV4 beatmap) : base(beatmap.colorNotes, beatmap.colorNotesData){}
 
     public override BeatmapColorNote CreateOutput(BeatmapColorNoteV4 element)
     {
@@ -154,7 +168,7 @@ public class BeatmapColorNoteArrayV4 : BeatmapElementArrayV4<BeatmapColorNote, B
 
 public class BeatmapBombNoteArrayV4 : BeatmapElementArrayV4<BeatmapBombNote, BeatmapBombNoteV4, BeatmapBombNoteDataV4>
 {
-    public BeatmapBombNoteArrayV4(BeatmapDifficultyV4 Beatmap) : base(Beatmap.bombNotes, Beatmap.bombNotesData){}
+    public BeatmapBombNoteArrayV4(BeatmapDifficultyV4 beatmap) : base(beatmap.bombNotes, beatmap.bombNotesData){}
 
     public override BeatmapBombNote CreateOutput(BeatmapBombNoteV4 element)
     {
@@ -171,7 +185,7 @@ public class BeatmapBombNoteArrayV4 : BeatmapElementArrayV4<BeatmapBombNote, Bea
 
 public class BeatmapObstacleArrayV4 : BeatmapElementArrayV4<BeatmapObstacle, BeatmapObstacleV4, BeatmapObstacleDataV4>
 {
-    public BeatmapObstacleArrayV4(BeatmapDifficultyV4 Beatmap) : base(Beatmap.obstacles, Beatmap.obstaclesData){}
+    public BeatmapObstacleArrayV4(BeatmapDifficultyV4 beatmap) : base(beatmap.obstacles, beatmap.obstaclesData){}
 
     public override BeatmapObstacle CreateOutput(BeatmapObstacleV4 element)
     {
@@ -193,9 +207,9 @@ public class BeatmapArcArrayV4 : BeatmapElementArrayV4<BeatmapSlider, BeatmapArc
 {
     private readonly BeatmapColorNoteDataV4[] notesData;
 
-    public BeatmapArcArrayV4(BeatmapDifficultyV4 Beatmap) : base(Beatmap.arcs, Beatmap.arcsData)
+    public BeatmapArcArrayV4(BeatmapDifficultyV4 beatmap) : base(beatmap.arcs, beatmap.arcsData)
     {
-        notesData = Beatmap.colorNotesData;
+        notesData = beatmap.colorNotesData;
     }
 
     public override BeatmapSlider CreateOutput(BeatmapArcV4 element)
@@ -226,9 +240,9 @@ public class BeatmapChainArrayV4 : BeatmapElementArrayV4<BeatmapBurstSlider, Bea
 {
     private readonly BeatmapColorNoteDataV4[] notesData;
 
-    public BeatmapChainArrayV4(BeatmapDifficultyV4 Beatmap) : base(Beatmap.chains, Beatmap.chainsData)
+    public BeatmapChainArrayV4(BeatmapDifficultyV4 beatmap) : base(beatmap.chains, beatmap.chainsData)
     {
-        notesData = Beatmap.colorNotesData;
+        notesData = beatmap.colorNotesData;
     }
 
     public override BeatmapBurstSlider CreateOutput(BeatmapChainV4 element)
@@ -247,6 +261,57 @@ public class BeatmapChainArrayV4 : BeatmapElementArrayV4<BeatmapBurstSlider, Bea
             ty = data.ty, //Tail y pos
             sc = data.c, //Link count
             s = data.s //Squish factor
+        };
+    }
+}
+
+
+public class BeatmapSpawnRotationArrayV4 : BeatmapElementArrayV4<BeatmapRotationEvent, BeatmapElementV4, BeatmapSpawnRotationDataV4>
+{
+    public BeatmapSpawnRotationArrayV4(BeatmapDifficultyV4 beatmap) : base(beatmap.spawnRotations, beatmap.spawnRotationsData){}
+
+    public override BeatmapRotationEvent CreateOutput(BeatmapElementV4 element)
+    {
+        BeatmapSpawnRotationDataV4 data = GetDataAtIndex(element.i);
+        return new BeatmapRotationEvent
+        {
+            b = element.b, //Beat
+            e = data.t, //Execution time (early/late)
+            r = data.r //Rotation amount
+        };
+    }
+}
+
+
+public class BeatmapBasicEventArrayV4 : BeatmapElementArrayV4<BeatmapBasicBeatmapEvent, BeatmapElementV4, BeatmapBasicEventDataV4>
+{
+    public BeatmapBasicEventArrayV4(BeatmapLightshowV4 lightshow) : base(lightshow.basicEvents, lightshow.basicEventsData){}
+
+    public override BeatmapBasicBeatmapEvent CreateOutput(BeatmapElementV4 element)
+    {
+        BeatmapBasicEventDataV4 data = GetDataAtIndex(element.i);
+        return new BeatmapBasicBeatmapEvent
+        {
+            b = element.b, //Beat
+            et = data.t, //Event type
+            i = data.i, //Int value
+            f = data.f //Float value
+        };
+    }
+}
+
+
+public class BeatmapColorBoostEventArrayV4 : BeatmapElementArrayV4<BeatmapColorBoostBeatmapEvent, BeatmapElementV4, BeatmapColorBoostEventDataV4>
+{
+    public BeatmapColorBoostEventArrayV4(BeatmapLightshowV4 lightshow) : base(lightshow.colorBoostEvents, lightshow.colorBoostEventsData){}
+
+    public override BeatmapColorBoostBeatmapEvent CreateOutput(BeatmapElementV4 element)
+    {
+        BeatmapColorBoostEventDataV4 data = GetDataAtIndex(element.i);
+        return new BeatmapColorBoostBeatmapEvent
+        {
+            b = element.b, //Beat
+            o = data.b > 0 //Boost enabled
         };
     }
 }

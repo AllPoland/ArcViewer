@@ -233,7 +233,14 @@ public class ZipReader : IMapDataLoader
     }
 
 
-    public static Difficulty GetDifficulty(byte[] diffData, DifficultyBeatmap beatmap)
+    public static BeatmapLightshowV4 GetLightshow(byte[] lightshowData)
+    {
+        string lightshowJson = Encoding.UTF8.GetString(lightshowData);
+        return JsonReader.DeserializeObject<BeatmapLightshowV4>(lightshowJson);
+    }
+
+
+    public static Difficulty GetDifficulty(byte[] diffData, DifficultyBeatmap beatmap, BeatmapInfo info)
     {
         Difficulty output = new Difficulty
         {
@@ -243,7 +250,7 @@ public class ZipReader : IMapDataLoader
         };
 
         string diffJson = Encoding.UTF8.GetString(diffData);
-        output.beatmapDifficulty = JsonReader.GetBeatmapDifficulty(diffJson, beatmap);
+        output.beatmapDifficulty = JsonReader.GetBeatmapDifficulty(diffJson, beatmap, info);
 
         return output;
     }

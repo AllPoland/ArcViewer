@@ -6,6 +6,11 @@ public class FileUtil
 {
     public static byte[] StreamToBytes(Stream sourceStream)
     {
+        if(sourceStream == null)
+        {
+            return null;
+        }
+
         using MemoryStream memoryStream = new MemoryStream();
         sourceStream.CopyTo(memoryStream);
         return memoryStream.ToArray();

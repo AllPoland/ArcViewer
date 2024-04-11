@@ -4,16 +4,20 @@ using System;
 public class BeatmapDifficultyV3
 {
     public string version;
+
     public BeatmapBpmEvent[] bpmEvents;
     public BeatmapRotationEvent[] rotationEvents;
+
     public BeatmapColorNote[] colorNotes;
     public BeatmapBombNote[] bombNotes;
     public BeatmapObstacle[] obstacles;
     public BeatmapSlider[] sliders;
     public BeatmapBurstSlider[] burstSliders;
-    //Waypoints ommitted
+
     public BeatmapBasicBeatmapEvent[] basicBeatMapEvents;
     public BeatmapColorBoostBeatmapEvent[] colorBoostBeatMapEvents;
+
+    //Waypoints and event boxes left out
 
     public BeatmapCustomDifficultyData customData;
     public bool useNormalEventsAsCompatibleEvents;
