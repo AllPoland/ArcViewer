@@ -13,8 +13,9 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
     private BeatmapArcArrayV4 arcs;
     private BeatmapChainArrayV4 chains;
 
-    public override BeatmapElementList<BeatmapBpmEvent> BpmEvents => new BeatmapElementArray<BeatmapBpmEvent>();
+    protected override BeatmapElementList<BeatmapBpmEvent> BpmEvents => null;
     public override BeatmapElementList<BeatmapRotationEvent> RotationEvents => new BeatmapElementArray<BeatmapRotationEvent>();
+
     public override BeatmapElementList<BeatmapColorNote> Notes => colorNotes;
     public override BeatmapElementList<BeatmapBombNote> Bombs => bombNotes;
     public override BeatmapElementList<BeatmapObstacle> Walls => obstacles;

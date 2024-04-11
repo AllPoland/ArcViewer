@@ -11,10 +11,12 @@ public static class JsonReader
     public static Regex VersionRx = new Regex(@"version""\s*:\s*""(\d\.?)*", RegexOptions.Compiled);
 
 
-    public static async Task<BeatmapInfo> LoadInfoAsync(string location)
+    public static async Task<BeatmapInfo> LoadInfoAsync(string directory)
     {
         Debug.Log("Loading text from Info.dat");
-        string json = await ReadFileAsync(location);
+
+        string infoPath = Path.Combine(directory, "Info.dat");
+        string json = await ReadFileAsync(infoPath);
 
         if(json == "")
         {
@@ -23,6 +25,24 @@ public static class JsonReader
 
         Debug.Log("Parsing Info.dat.");
         BeatmapInfo info = ParseInfoFromJson(json);
+
+        if(!string.IsNullOrEmpty(info?.audio?.audioDataFilename))
+        {
+            string audioDataFilename = info.audio.audioDataFilename;
+            try
+            {
+                Debug.Log($"Loading {audioDataFilename}");
+
+                string audioPath = Path.Combine(directory, audioDataFilename);
+                string audioJson = await ReadFileAsync(audioPath);
+
+                info.BpmEvents = ParseBpmEventsFromAudioJson(audioJson);
+            }
+            catch(Exception err)
+            {
+                Debug.LogWarning($"Audio data loading failed with errer: {err.Message}, {err.StackTrace}");
+            }
+        }
 
         return info;
     }
@@ -95,11 +115,25 @@ public static class JsonReader
     }
 
 
+    public static BeatmapBpmEvent[] ParseBpmEventsFromAudioJson(string json)
+    {
+        AudioDataV4 audioData = DeserializeObject<AudioDataV4>(json);
+
+        if(audioData?.bpmData == null)
+        {
+            Debug.LogWarning("Empty bpm data in audio file!");
+            return null;
+        }
+
+        return audioData.GetBpmChanges();
+    }
+
+
     public static async Task<Difficulty> LoadDifficultyAsync(string directory, DifficultyBeatmap beatmap)
     {
         Difficulty output = new Difficulty
         {
-            difficultyRank = MapLoader.DiffValueFromString[beatmap.difficulty],
+            difficultyRank = BeatmapInfo.DifficultyRankFromString(beatmap.difficulty),
             noteJumpSpeed = beatmap.noteJumpMovementSpeed,
             spawnOffset = beatmap.noteJumpStartBeatOffset
         };
@@ -117,14 +151,16 @@ public static class JsonReader
         }
 
         Debug.Log($"Parsing {filename}");
-        output.beatmapDifficulty = ParseBeatmapFromJson(json, filename);
+        output.beatmapDifficulty = GetBeatmapDifficulty(json, beatmap);
 
         return output;
     }
 
 
-    public static BeatmapDifficulty ParseBeatmapFromJson(string json, string filename = "{UnknownDifficulty}")
+    public static BeatmapDifficulty GetBeatmapDifficulty(string json, DifficultyBeatmap beatmap)
     {
+        string filename = beatmap.beatmapDataFilename;
+
         BeatmapDifficulty difficulty;
 
         try
@@ -142,22 +178,22 @@ public static class JsonReader
             //Search for a matching version and parse the correct map format
             if(v4Versions.Contains(versionNumber))
             {
-                Debug.Log($"Parsing {filename} in V3 format.");
-                BeatmapDifficultyV4 beatmap = DeserializeObject<BeatmapDifficultyV4>(json);
-                difficulty = new BeatmapWrapperV4(beatmap);
+                Debug.Log($"Parsing {filename} in V4 format.");
+                BeatmapDifficultyV4 beatmapData = DeserializeObject<BeatmapDifficultyV4>(json);
+                difficulty = new BeatmapWrapperV4(beatmapData);
             }
             else if(v3Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V3 format.");
-                BeatmapDifficultyV3 beatmap = DeserializeObject<BeatmapDifficultyV3>(json);
-                difficulty = new BeatmapWrapperV3(beatmap);
+                BeatmapDifficultyV3 beatmapData = DeserializeObject<BeatmapDifficultyV3>(json);
+                difficulty = new BeatmapWrapperV3(beatmapData);
             }
             else if(v2Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V2 format.");
 
-                BeatmapDifficultyV2 beatmap = DeserializeObject<BeatmapDifficultyV2>(json);
-                difficulty = new BeatmapWrapperV3(beatmap.ConvertToV3());
+                BeatmapDifficultyV2 beatmapData = DeserializeObject<BeatmapDifficultyV2>(json);
+                difficulty = new BeatmapWrapperV3(beatmapData.ConvertToV3());
             }
             else
             {

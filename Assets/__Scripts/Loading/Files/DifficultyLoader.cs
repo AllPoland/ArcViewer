@@ -99,7 +99,7 @@ public static class DifficultyLoader
         {
             string characteristicName = beatmap.characteristic;
 
-            DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
+            DifficultyCharacteristic characteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
 
             MapLoader.LoadingMessage = $"Loading {beatmap.characteristic}, {beatmap.difficulty}";
             Debug.Log($"Loading {beatmap.characteristic}, {beatmap.difficulty}");
@@ -107,7 +107,7 @@ public static class DifficultyLoader
             //Yielding is a dumb and inconsistent way of allowing the loading text to update
             //Task.Delay() doesn't work on WebGL for reasons
             await Task.Yield();
-            Difficulty newDifficulty = await LoadDifficultyFile(info, beatmap, setCharacteristic, directory, archive);
+            Difficulty newDifficulty = await LoadDifficultyFile(info, beatmap, characteristic, directory, archive);
             if(newDifficulty == null) continue;
 
             difficulties.Add(newDifficulty);
@@ -137,7 +137,7 @@ public static class DifficultyLoader
         {
             string characteristicName = beatmap.characteristic;
 
-            DifficultyCharacteristic setCharacteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
+            DifficultyCharacteristic characteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
 
             //Add each difficulty to a task list to run at once
             Debug.Log($"Adding {beatmap.characteristic}, {beatmap.difficulty} to task list.");
@@ -145,7 +145,7 @@ public static class DifficultyLoader
             if(!string.IsNullOrEmpty(directory))
             {
                 //Loading map from directory
-                Task<Difficulty> newDiffTask = Task.Run(() => LoadDifficulty(info, beatmap, setCharacteristic, directory));
+                Task<Difficulty> newDiffTask = Task.Run(() => LoadDifficulty(info, beatmap, characteristic, directory));
                 difficultyTasks.Add(newDiffTask);
                 continue;
             }
@@ -156,7 +156,7 @@ public static class DifficultyLoader
             {
                 //Read the byte array now because reading from the same ziparchive on multiple threads breaks shit
                 byte[] diffData = FileUtil.StreamToBytes(diffStream);
-                Task<Difficulty> newDiffTask = Task.Run(() => LoadDifficulty(info, beatmap, setCharacteristic, null, diffData));
+                Task<Difficulty> newDiffTask = Task.Run(() => LoadDifficulty(info, beatmap, characteristic, null, diffData));
                 difficultyTasks.Add(newDiffTask);
             }
             else

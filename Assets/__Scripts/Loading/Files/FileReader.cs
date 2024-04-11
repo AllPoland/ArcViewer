@@ -66,7 +66,7 @@ public class FileReader : IMapDataLoader
 #else
         Debug.Log("Loading info.");
         MapLoader.LoadingMessage = "Loading Info.dat";
-        BeatmapInfo info = await Task.Run(() => LoadInfoAsync(Directory));
+        BeatmapInfo info = await Task.Run(() => JsonReader.LoadInfoAsync(Directory));
 
         if(info == null)
         {
@@ -85,22 +85,6 @@ public class FileReader : IMapDataLoader
     public void Dispose()
     {
         //Nothing to dispose here
-    }
-
-
-    private static async Task<BeatmapInfo> LoadInfoAsync(string directory)
-    {
-#if UNITY_WEBGL && !UNITY_EDITOR
-        throw new System.InvalidOperationException("Loading from directory doesn't work in WebGL!");
-#else
-        string infoPath = Path.Combine(directory, "Info.dat");
-
-        BeatmapInfo info = await JsonReader.LoadInfoAsync(infoPath);
-        if(info == null) return null;
-
-        Debug.Log($"Loaded info for {info.song.author} - {info.song.title}");
-        return info;
-#endif
     }
 
 

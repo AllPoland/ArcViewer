@@ -24,6 +24,8 @@ public class BeatmapInfo
         || !string.IsNullOrEmpty(coverImageFilename) || environmentNames != null
         || colorSchemes != null || difficultyBeatmaps != null;
 
+    public BeatmapBpmEvent[] BpmEvents;
+
 
     public BeatmapInfo()
     {
@@ -39,6 +41,7 @@ public class BeatmapInfo
         difficultyBeatmaps = new DifficultyBeatmap[0];
 
         songTimeOffset = null;
+        BpmEvents = null;
     }
 
 
