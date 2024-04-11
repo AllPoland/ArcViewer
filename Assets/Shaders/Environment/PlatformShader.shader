@@ -13,7 +13,6 @@ Shader "Custom/PlatformShader"
         _FogHeightScale ("Fog Height Scale", float) = 1
         _AmbientStrength ("Ambient Light", float) = 1
         _ReflectionStrength ("Reflection Strength", float) = 1
-        _AmbientReflectionStrength ("Ambient Reflection", float) = 0.01
     }
     SubShader
     {
@@ -59,7 +58,7 @@ Shader "Custom/PlatformShader"
             float _FogStartOffset, _FogScale;
             float _FogHeightOffset, _FogHeightScale;
             float _AmbientStrength;
-            float _ReflectionStrength, _AmbientReflectionStrength, _NormalWeight;
+            float _ReflectionStrength, _NormalWeight;
 
             v2f vert(appdata v)
             {
@@ -105,7 +104,8 @@ Shader "Custom/PlatformShader"
 
                 //Push the fog sample pos in the direction of the normal
                 //Distance is based on the angle of reflection
-                float reflectionDistMult = dot(cameraDir, worldNormal) * bloomfogRes.x * 0.5;
+                float fresnel = dot(cameraDir, worldNormal);
+                float reflectionDistMult = fresnel * bloomfogRes.x * 0.5;
                 float2 screenReflectPos = originalFogCoord + (viewNormal.xy * reflectionDistMult);
 
                 //Convert back to UV coordinates
@@ -114,7 +114,7 @@ Shader "Custom/PlatformShader"
 
                 //Scale reflections with how much the face points toward the camera
                 //because they'd be reflecting backwards where there's no fog (that we know of)
-                float reflectionMult = lerp(_ReflectionStrength, _AmbientReflectionStrength, abs(viewNormal.z));
+                float reflectionMult = _ReflectionStrength * (1.0 - fresnel);
                 col += BLOOM_FOG_SAMPLE(screenReflectUV) * reflectionMult;
 
                 //Apply albedo texture

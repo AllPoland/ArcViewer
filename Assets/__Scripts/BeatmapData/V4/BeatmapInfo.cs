@@ -227,13 +227,9 @@ public class BeatmapInfoColorScheme
 
         try
         {
-            Debug.Log(hex.Substring(0, 2));
-            Debug.Log(Convert.ToByte(hex.Substring(0, 2), 16));
             float r = Convert.ToByte(hex.Substring(0, 2), 16) / 255f;
             float g = Convert.ToByte(hex.Substring(2, 2), 16) / 255f;
             float b = Convert.ToByte(hex.Substring(4, 2), 16) / 255f;
-
-            Debug.Log(r);
 
             if(hex.Length < 8)
             {
