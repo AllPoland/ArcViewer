@@ -1,13 +1,18 @@
-using UnityEngine;
-using TMPro;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using TMPro;
 
 public class InfoPanel : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI authorText;
     [SerializeField] private TextMeshProUGUI songText;
     [SerializeField] private TextMeshProUGUI mapperText;
+    [SerializeField] private TextMeshProUGUI lighterText;
+
+    [SerializeField] private GameObject mapperContainer;
+    [SerializeField] private GameObject lighterContainer;
 
     private BeatmapInfo info;
 
@@ -20,13 +25,23 @@ public class InfoPanel : MonoBehaviour
         songText.text = $"{info.song.title} <i><size=70%>{info.song.subTitle}";
 
         List<string> mappers = newDifficulty.mappers.ToList();
-        mappers.AddRange(newDifficulty.lighters);
+        List<string> lighters = newDifficulty.lighters.ToList();
 
-        if(mappers.Count > 0)
+        if(mappers.Count == 1 && lighters.Count == 1 && mappers[0].Equals(lighters[0], StringComparison.InvariantCultureIgnoreCase))
         {
-            mapperText.text = $"[{string.Join(", ", mappers)}]";
+            //The same name is listed as mapper and lighter, just show the name once
+            mapperContainer.SetActive(true);
+            lighterContainer.SetActive(false);
+            mapperText.text = mappers[0];
         }
-        else mapperText.text = "";
+        else
+        {
+            mapperContainer.SetActive(mappers.Count > 0);
+            lighterContainer.SetActive(lighters.Count > 0);
+
+            mapperText.text = string.Join(", ", mappers);
+            lighterText.text = string.Join(", ", lighters);
+        }
     }
 
 
