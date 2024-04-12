@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
@@ -19,9 +18,6 @@ public class BeatmapInfo
 
     //This is depreciated, but still needed for converted V2 maps
     [NonSerialized] public float? songTimeOffset;
-
-    [NonSerialized] public BeatmapBpmEvent[] BpmEvents;
-    [NonSerialized] public Dictionary<string, BeatmapLightshowV4> Lightshows;
 
     public bool HasFields => !string.IsNullOrEmpty(version) || song != null
         || audio != null || !string.IsNullOrEmpty(songPreviewFilename)
@@ -43,23 +39,6 @@ public class BeatmapInfo
         difficultyBeatmaps = new DifficultyBeatmap[0];
 
         songTimeOffset = null;
-        BpmEvents = null;
-        Lightshows = null;
-    }
-
-
-    public BeatmapLightshowV4 GetLightshow(string lightshowFilename)
-    {
-        if(Lightshows == null)
-        {
-            return new BeatmapLightshowV4();
-        }
-
-        if(Lightshows.TryGetValue(lightshowFilename, out BeatmapLightshowV4 lightshow))
-        {
-            return lightshow;
-        }
-        else return new BeatmapLightshowV4();
     }
 
 

@@ -6,7 +6,7 @@ public class BeatmapWrapperV3 : BeatmapDifficulty
 
     public override string Version => Beatmap.version;
 
-    protected override BeatmapElementList<BeatmapBpmEvent> BpmEvents => bpmEvents;
+    public override BeatmapElementList<BeatmapBpmEvent> BpmEvents => bpmEvents;
     public override BeatmapElementList<BeatmapRotationEvent> RotationEvents => rotationEvents;
 
     public override BeatmapElementList<BeatmapColorNote> Notes => colorNotes;

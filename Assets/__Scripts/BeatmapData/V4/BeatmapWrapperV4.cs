@@ -8,6 +8,7 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
 
     public override string Version => Beatmap.version;
 
+    private BeatmapElementArray<BeatmapBpmEvent> bpmEvents;
     private BeatmapSpawnRotationArrayV4 spawnRotations;
 
     private BeatmapColorNoteArrayV4 colorNotes;
@@ -20,7 +21,7 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
     private BeatmapColorBoostEventArrayV4 colorBoostEvents;
 
     //Pointing bpmEvents to null uses the universal bpmEvents in info
-    protected override BeatmapElementList<BeatmapBpmEvent> BpmEvents => null;
+    public override BeatmapElementList<BeatmapBpmEvent> BpmEvents => bpmEvents;
     public override BeatmapElementList<BeatmapRotationEvent> RotationEvents => spawnRotations;
 
     public override BeatmapElementList<BeatmapColorNote> Notes => colorNotes;
@@ -43,10 +44,11 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
     }
 
 
-    public BeatmapWrapperV4(BeatmapDifficultyV4 beatmap, BeatmapLightshowV4 lightshow)
+    public BeatmapWrapperV4(BeatmapDifficultyV4 beatmap, BeatmapLightshowV4 lightshow, BeatmapBpmEvent[] bpmChanges)
     {
         Beatmap = beatmap;
         Lightshow = lightshow;
+        bpmEvents = bpmChanges;
         Init();
     }
 
@@ -54,7 +56,9 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
     private void Init()
     {
         Beatmap.AddNulls();
+        Lightshow.AddNulls();
         
+        bpmEvents ??= new BeatmapBpmEvent[0];
         spawnRotations = new BeatmapSpawnRotationArrayV4(Beatmap);
 
         colorNotes = new BeatmapColorNoteArrayV4(Beatmap);

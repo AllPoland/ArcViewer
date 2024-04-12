@@ -27,24 +27,6 @@ public static class JsonReader
         Debug.Log("Parsing Info.dat.");
         BeatmapInfo info = ParseInfoFromJson(json);
 
-        if(!string.IsNullOrEmpty(info?.audio?.audioDataFilename))
-        {
-            string audioDataFilename = info.audio.audioDataFilename;
-            try
-            {
-                Debug.Log($"Loading {audioDataFilename}");
-
-                string audioPath = Path.Combine(directory, audioDataFilename);
-                string audioJson = await ReadFileAsync(audioPath);
-
-                info.BpmEvents = ParseBpmEventsFromAudioJson(audioJson);
-            }
-            catch(Exception err)
-            {
-                Debug.LogWarning($"Audio data loading failed with errer: {err.Message}, {err.StackTrace}");
-            }
-        }
-
         return info;
     }
 
@@ -116,6 +98,33 @@ public static class JsonReader
     }
 
 
+    public static async Task<BeatmapBpmEvent[]> GetBpmEventsAsync(BeatmapInfo info, string directory)
+    {
+        if(string.IsNullOrEmpty(info?.audio?.audioDataFilename))
+        {
+            //No audio data is listed by the info
+            return null;
+        }
+
+        string audioDataFilename = info.audio.audioDataFilename;
+        try
+        {
+            Debug.Log($"Loading {audioDataFilename}");
+
+            string audioPath = Path.Combine(directory, audioDataFilename);
+            string audioJson = await ReadFileAsync(audioPath);
+
+            return ParseBpmEventsFromAudioJson(audioJson);
+        }
+        catch(Exception err)
+        {
+            Debug.LogWarning($"Audio data loading failed with error: {err.Message}, {err.StackTrace}");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Failed to load audio metadata! BPM might not line up.");
+            return null;
+        }
+    }
+
+
     public static BeatmapBpmEvent[] ParseBpmEventsFromAudioJson(string json)
     {
         AudioDataV4 audioData = DeserializeObject<AudioDataV4>(json);
@@ -153,7 +162,7 @@ public static class JsonReader
     }
 
 
-    public static async Task<Difficulty> LoadDifficultyAsync(string directory, DifficultyBeatmap beatmap, BeatmapInfo info)
+    public static async Task<Difficulty> LoadDifficultyAsync(string directory, DifficultyBeatmap beatmap, LoadedMapData mapData)
     {
         Difficulty output = new Difficulty
         {
@@ -175,13 +184,13 @@ public static class JsonReader
         }
 
         Debug.Log($"Parsing {filename}");
-        output.beatmapDifficulty = GetBeatmapDifficulty(json, beatmap, info);
+        output.beatmapDifficulty = GetBeatmapDifficulty(json, beatmap, mapData);
 
         return output;
     }
 
 
-    public static BeatmapDifficulty GetBeatmapDifficulty(string json, DifficultyBeatmap beatmap, BeatmapInfo info)
+    public static BeatmapDifficulty GetBeatmapDifficulty(string json, DifficultyBeatmap beatmap, LoadedMapData mapData)
     {
         string filename = beatmap.beatmapDataFilename;
 
@@ -204,7 +213,7 @@ public static class JsonReader
             {
                 Debug.Log($"Parsing {filename} in V4 format.");
                 BeatmapDifficultyV4 beatmapData = DeserializeObject<BeatmapDifficultyV4>(json);
-                difficulty = new BeatmapWrapperV4(beatmapData, info.GetLightshow(beatmap.lightshowDataFilename));
+                difficulty = new BeatmapWrapperV4(beatmapData, mapData.GetLightshow(beatmap.lightshowDataFilename), mapData.BpmEvents);
             }
             else if(v3Versions.Contains(versionNumber))
             {
@@ -222,7 +231,7 @@ public static class JsonReader
             else
             {
                 Debug.LogWarning($"Unable to match map version for {filename}. The map has either a missing or unsupported version.");
-                difficulty = ParseBeatmapFallback(json, beatmap, info);
+                difficulty = ParseBeatmapFallback(json, beatmap, mapData);
             }
         }
         catch(Exception err)
@@ -237,7 +246,7 @@ public static class JsonReader
     }
 
 
-    private static BeatmapDifficulty ParseBeatmapFallback(string json, DifficultyBeatmap beatmap, BeatmapInfo info)
+    private static BeatmapDifficulty ParseBeatmapFallback(string json, DifficultyBeatmap beatmap, LoadedMapData mapData)
     {
         string filename = beatmap.beatmapDataFilename;
 
@@ -247,7 +256,7 @@ public static class JsonReader
         if(v4Diff?.HasObjects ?? false)
         {
             Debug.Log($"Fallback for {filename} succeeded in V4.");
-            return new BeatmapWrapperV4(v4Diff, info.GetLightshow(beatmap.lightshowDataFilename));
+            return new BeatmapWrapperV4(v4Diff, mapData.GetLightshow(beatmap.lightshowDataFilename), mapData.BpmEvents);
         }
 
         Debug.Log($"Fallback for {filename} failed in V4, trying V3.");

@@ -159,7 +159,7 @@ public class TimeManager : MonoBehaviour
         BpmChanges.Clear();
 
         List<BeatmapBpmEvent> bpmEvents = new List<BeatmapBpmEvent>();
-        bpmEvents.AddRange(difficulty.beatmapDifficulty.GetBpmEvents());
+        bpmEvents.AddRange(difficulty.beatmapDifficulty.BpmEvents);
         //Events must be ordered by beat for this to work (they almost always are but just gotta be safe)
         bpmEvents = bpmEvents.OrderBy(x => x.b).ToList();
 

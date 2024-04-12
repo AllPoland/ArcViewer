@@ -6,52 +6,33 @@ using UnityEngine;
 
 public static class DifficultyLoader
 {
-    public static async Task<List<Difficulty>> GetDifficultiesAsync(BeatmapInfo info, string directory)
+    public static async Task<List<Difficulty>> GetDifficultiesAsync(LoadedMapData mapData, string directory = null, ZipArchive archive = null)
     {
         if(ReplayManager.IsReplayMode)
         {
-            return await LoadDifficultyReplay(info, directory);
+            return await LoadDifficultyReplay(mapData, directory, archive);
         }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-        return await LoadDifficultiesAsync(info, directory);
+        return await LoadDifficultiesAsync(mapData, directory, archive);
 #else
         if(SettingsManager.GetBool("concurrentloading"))
         {
-            return await LoadDifficultiesConcurrent(info, directory);
+            return await LoadDifficultiesConcurrent(mapData, directory, archive);
         }
-        else return await LoadDifficultiesAsync(info, directory);
+        else return await LoadDifficultiesAsync(mapData, directory, archive);
 #endif
     }
 
 
-    public static async Task<List<Difficulty>> GetDifficultiesAsync(BeatmapInfo info, ZipArchive archive)
-    {
-        if(ReplayManager.IsReplayMode)
-        {
-            return await LoadDifficultyReplay(info, null, archive);
-        }
-
-#if UNITY_WEBGL && !UNITY_EDITOR
-        return await LoadDifficultiesAsync(info, null, archive);
-#else
-        if(SettingsManager.GetBool("concurrentloading"))
-        {
-            return await LoadDifficultiesConcurrent(info, null, archive);
-        }
-        else return await LoadDifficultiesAsync(info, null, archive);
-#endif
-    }
-
-
-    private static async Task<List<Difficulty>> LoadDifficultyReplay(BeatmapInfo info, string directory = null, ZipArchive archive = null)
+    private static async Task<List<Difficulty>> LoadDifficultyReplay(LoadedMapData mapData, string directory = null, ZipArchive archive = null)
     {
         Debug.Log("Loading single difficulty for replay.");
 
         DifficultyCharacteristic replayCharacteristic = BeatmapInfo.CharacteristicFromString(ReplayManager.CurrentReplay.info.mode);
         DifficultyRank replayDiffRank = BeatmapInfo.DifficultyRankFromString(ReplayManager.CurrentReplay.info.difficulty);
 
-        foreach(DifficultyBeatmap beatmap in info.difficultyBeatmaps)
+        foreach(DifficultyBeatmap beatmap in mapData.Info.difficultyBeatmaps)
         {
             string characteristicName = beatmap.characteristic;
             DifficultyCharacteristic characteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
@@ -69,13 +50,10 @@ public static class DifficultyLoader
                 continue;
             }
 
-            MapLoader.LoadingMessage = $"Loading {beatmap.characteristic}, {beatmap.difficulty}";
-
-            Debug.Log($"Loading lightshow for {beatmap.characteristic}, {beatmap.difficulty}");
-            await LoadLightshow(info, beatmap, directory, archive);
+            MapLoader.LoadingMessage = $"Loading {beatmap.beatmapDataFilename}";
 
             Debug.Log($"Loading {beatmap.characteristic}, {beatmap.difficulty}");
-            Difficulty newDifficulty = await LoadDifficultyFile(info, beatmap, characteristic, directory, archive);
+            Difficulty newDifficulty = await LoadDifficultyFile(mapData, beatmap, characteristic, directory, archive);
             if(newDifficulty == null) break;
 
             //Return just this singular difficulty
@@ -90,32 +68,26 @@ public static class DifficultyLoader
     }
 
 
-    private static async Task<List<Difficulty>> LoadDifficultiesAsync(BeatmapInfo info, string directory = null, ZipArchive archive = null)
+    private static async Task<List<Difficulty>> LoadDifficultiesAsync(LoadedMapData mapData, string directory = null, ZipArchive archive = null)
     {
         System.Diagnostics.Stopwatch stopwatch = new();
         stopwatch.Start();
 
-        Debug.Log("Loading lightshows asynchronously.");
-        foreach(DifficultyBeatmap beatmap in info.difficultyBeatmaps)
-        {
-            await LoadLightshow(info, beatmap, directory, archive);
-        }
-
         Debug.Log("Loading difficulties asynchronously.");
         List<Difficulty> difficulties = new List<Difficulty>();
-        foreach(DifficultyBeatmap beatmap in info.difficultyBeatmaps)
+        foreach(DifficultyBeatmap beatmap in mapData.Info.difficultyBeatmaps)
         {
             string characteristicName = beatmap.characteristic;
 
             DifficultyCharacteristic characteristic = BeatmapInfo.CharacteristicFromString(characteristicName);
 
-            MapLoader.LoadingMessage = $"Loading {beatmap.characteristic}, {beatmap.difficulty}";
+            MapLoader.LoadingMessage = $"Loading {beatmap.beatmapDataFilename}";
             Debug.Log($"Loading {beatmap.characteristic}, {beatmap.difficulty}");
 
             //Yielding is a dumb and inconsistent way of allowing the loading text to update
             //Task.Delay() doesn't work on WebGL for reasons
             await Task.Yield();
-            Difficulty newDifficulty = await LoadDifficultyFile(info, beatmap, characteristic, directory, archive);
+            Difficulty newDifficulty = await LoadDifficultyFile(mapData, beatmap, characteristic, directory, archive);
             if(newDifficulty == null) continue;
 
             difficulties.Add(newDifficulty);
@@ -129,7 +101,7 @@ public static class DifficultyLoader
 
 //Suppress warnings about a lack of await when building for WebGL
 #pragma warning disable 1998
-    private static async Task<List<Difficulty>> LoadDifficultiesConcurrent(BeatmapInfo info, string directory = null, ZipArchive archive = null)
+    private static async Task<List<Difficulty>> LoadDifficultiesConcurrent(LoadedMapData mapData, string directory = null, ZipArchive archive = null)
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
         throw new System.InvalidOperationException("Concurrent difficulty loading doesn't work in WebGL!");
@@ -137,74 +109,11 @@ public static class DifficultyLoader
         System.Diagnostics.Stopwatch stopwatch = new();
         stopwatch.Start();
 
-        Debug.Log("Loading lightshows concurrently.");
-        MapLoader.LoadingMessage = "Loading lightshows.";
-
-        List<Task<BeatmapLightshowV4>> lightshowTasks = new List<Task<BeatmapLightshowV4>>();
-        List<string> lightshowFilenames = new List<string>();
-        foreach(DifficultyBeatmap beatmap in info.difficultyBeatmaps)
-        {
-            string lightshowFilename = beatmap.lightshowDataFilename;
-
-            //Add each lightshow to a task list to run at once
-            Debug.Log($"Adding {lightshowFilename} to task list.");
-
-            if(string.IsNullOrEmpty(lightshowFilename))
-            {
-                Debug.Log($"{beatmap.characteristic}, {beatmap.difficulty} has no lightshow attached.");
-                continue;
-            }
-
-            if(!string.IsNullOrEmpty(directory))
-            {
-                //Loading from directory
-                Task<BeatmapLightshowV4> newLightshowTask = Task.Run(() => GetLightshow(info, beatmap, directory));
-                lightshowTasks.Add(newLightshowTask);
-                lightshowFilenames.Add(lightshowFilename);
-                continue;
-            }
-
-            //Loading from zip file
-            using Stream lightshowStream = archive?.GetEntryCaseInsensitive(lightshowFilename)?.Open();
-            if(lightshowStream != null)
-            {
-                //Read the byte array now because reading from the same ziparchive on multiple threads breaks shit
-                byte[] lightshowData = FileUtil.StreamToBytes(lightshowStream);
-                Task<BeatmapLightshowV4> newLightshowTask = Task.Run(() => GetLightshow(info, beatmap, null, lightshowData));
-                lightshowTasks.Add(newLightshowTask);
-                lightshowFilenames.Add(lightshowFilename);
-            }
-            else
-            {
-                Debug.LogWarning($"Unable to get lightshow data from {lightshowFilename}!");
-            }
-        }
-
-        //Wait until all the lightshows are finished
-        await Task.WhenAll(lightshowTasks.ToArray());
-
-        for(int i = 0; i < lightshowTasks.Count; i++)
-        {
-            Task<BeatmapLightshowV4> task = lightshowTasks[i];
-            if(task.Result == null)
-            {
-                Debug.LogWarning($"Failed to load lightshow from task {i}!");
-            }
-            else
-            {
-                //Set the lightshow in the info
-                info.Lightshows ??= new Dictionary<string, BeatmapLightshowV4>();
-                info.Lightshows[lightshowFilenames[i]] = task.Result;
-            }
-
-            task.Dispose();
-        }
-
         Debug.Log("Loading difficulties concurrently.");
         MapLoader.LoadingMessage = "Loading difficulties";
 
         List<Task<Difficulty>> difficultyTasks = new List<Task<Difficulty>>();
-        foreach(DifficultyBeatmap beatmap in info.difficultyBeatmaps)
+        foreach(DifficultyBeatmap beatmap in mapData.Info.difficultyBeatmaps)
         {
             string characteristicName = beatmap.characteristic;
 
@@ -216,7 +125,7 @@ public static class DifficultyLoader
             if(!string.IsNullOrEmpty(directory))
             {
                 //Loading map from directory
-                Task<Difficulty> newDiffTask = Task.Run(() => LoadDifficulty(info, beatmap, characteristic, directory));
+                Task<Difficulty> newDiffTask = Task.Run(() => LoadDifficulty(mapData, beatmap, characteristic, directory));
                 difficultyTasks.Add(newDiffTask);
                 continue;
             }
@@ -227,7 +136,7 @@ public static class DifficultyLoader
             {
                 //Read the byte array now because reading from the same ziparchive on multiple threads breaks shit
                 byte[] diffData = FileUtil.StreamToBytes(diffStream);
-                Task<Difficulty> newDiffTask = Task.Run(() => LoadDifficulty(info, beatmap, characteristic, null, diffData));
+                Task<Difficulty> newDiffTask = Task.Run(() => LoadDifficulty(mapData, beatmap, characteristic, null, diffData));
                 difficultyTasks.Add(newDiffTask);
             }
             else
@@ -260,76 +169,17 @@ public static class DifficultyLoader
 #pragma warning restore 1998
 
 
-    private static async Task LoadLightshow(BeatmapInfo info, DifficultyBeatmap beatmap, string directory = null, ZipArchive archive = null)
-    {
-        string lightshowFilename = beatmap.lightshowDataFilename;
-
-        if(string.IsNullOrEmpty(lightshowFilename))
-        {
-            Debug.Log($"{beatmap.characteristic}, {beatmap.difficulty} has no lightshow attached.");
-            return;
-        }
-
-        BeatmapLightshowV4 lightshow;
-        if(archive != null)
-        {
-            using Stream lightshowStream = archive.GetEntryCaseInsensitive(lightshowFilename)?.Open();
-            byte[] lightshowData = FileUtil.StreamToBytes(lightshowStream);
-            lightshow = await GetLightshow(info, beatmap, null, lightshowData);
-        }
-        else lightshow = await GetLightshow(info, beatmap, directory);
-
-        if(lightshow == null)
-        {
-            return;
-        }
-
-        info.Lightshows ??= new Dictionary<string, BeatmapLightshowV4>();
-        info.Lightshows[lightshowFilename] = lightshow;
-    }
-
-
-    private static async Task<BeatmapLightshowV4> GetLightshow(BeatmapInfo info, DifficultyBeatmap beatmap, string directory = null, byte[] lightshowData = null)
-    {
-        string lightshowFilename = beatmap.lightshowDataFilename;
-
-        if(string.IsNullOrEmpty(lightshowFilename))
-        {
-            Debug.Log($"{beatmap.characteristic}, {beatmap.difficulty} has no lightshow attached.");
-            return null;
-        }
-
-        Debug.Log($"Loading {lightshowFilename}");
-        MapLoader.LoadingMessage = $"Loading {lightshowFilename}";
-
-        if(!string.IsNullOrEmpty(directory))
-        {
-            return await JsonReader.LoadLightshowAsync(directory, lightshowFilename);
-        }
-        else if(lightshowData != null)
-        {
-            return ZipReader.GetLightshow(lightshowData);
-        }
-        else
-        {
-            Debug.LogWarning($"Unable to load {lightshowFilename}!");
-            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to load {lightshowFilename}!");
-            return null;
-        }
-    }
-
-
-    private static async Task<Difficulty> LoadDifficultyFile(BeatmapInfo info, DifficultyBeatmap beatmap, DifficultyCharacteristic characteristic, string directory = null, ZipArchive archive = null)
+    private static async Task<Difficulty> LoadDifficultyFile(LoadedMapData mapData, DifficultyBeatmap beatmap, DifficultyCharacteristic characteristic, string directory = null, ZipArchive archive = null)
     {
         if(!string.IsNullOrEmpty(directory))
         {
-            return await LoadDifficulty(info, beatmap, characteristic, directory);
+            return await LoadDifficulty(mapData, beatmap, characteristic, directory);
         }
         else if(archive != null)
         {
             using Stream diffStream = archive.GetEntryCaseInsensitive(beatmap.beatmapDataFilename)?.Open();
             byte[] diffData = FileUtil.StreamToBytes(diffStream);
-            return await LoadDifficulty(info, beatmap, characteristic, null, diffData);
+            return await LoadDifficulty(mapData, beatmap, characteristic, null, diffData);
         }
         else
         {
@@ -339,16 +189,16 @@ public static class DifficultyLoader
     }
 
 
-    private static async Task<Difficulty> LoadDifficulty(BeatmapInfo info, DifficultyBeatmap beatmap, DifficultyCharacteristic characteristic, string directory = null, byte[] diffData = null)
+    private static async Task<Difficulty> LoadDifficulty(LoadedMapData mapData, DifficultyBeatmap beatmap, DifficultyCharacteristic characteristic, string directory = null, byte[] diffData = null)
     {
         Difficulty difficulty;
         if(!string.IsNullOrEmpty(directory))
         {
-            difficulty = await JsonReader.LoadDifficultyAsync(directory, beatmap, info);
+            difficulty = await JsonReader.LoadDifficultyAsync(directory, beatmap, mapData);
         }
         else if(diffData != null && diffData.Length > 0)
         {
-            difficulty = ZipReader.GetDifficulty(diffData, beatmap, info);
+            difficulty = ZipReader.GetDifficulty(diffData, beatmap, mapData);
         }
         else difficulty = null;
 
@@ -359,8 +209,8 @@ public static class DifficultyLoader
         }
 
         difficulty.characteristic = characteristic;
-        difficulty.environmentName = GetDifficultyEnvironmentName(info, beatmap);
-        difficulty.colorScheme = GetDifficultyColorScheme(info, beatmap);
+        difficulty.environmentName = GetDifficultyEnvironmentName(mapData.Info, beatmap);
+        difficulty.colorScheme = GetDifficultyColorScheme(mapData.Info, beatmap);
 
         difficulty.mappers = beatmap.beatmapAuthors.mappers ?? new string[0];
         difficulty.lighters = beatmap.beatmapAuthors.lighters ?? new string[0];

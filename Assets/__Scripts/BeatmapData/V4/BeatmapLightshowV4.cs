@@ -22,6 +22,16 @@ public class BeatmapLightshowV4
         basicEventsData = new BeatmapBasicEventDataV4[0];
         colorBoostEventsData = new BeatmapColorBoostEventDataV4[0];
     }
+
+
+    public void AddNulls()
+    {
+        version ??= "4.0.0";
+        basicEvents ??= new BeatmapElementV4[0];
+        colorBoostEvents ??= new BeatmapElementV4[0];
+        basicEventsData ??= new BeatmapBasicEventDataV4[0];
+        colorBoostEventsData ??= new BeatmapColorBoostEventDataV4[0];
+    }
 }
 
 

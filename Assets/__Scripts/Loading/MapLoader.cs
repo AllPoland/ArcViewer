@@ -806,22 +806,43 @@ public class LoadedMap
     public WebAudioClip Song { get; private set; }
 #endif
 
-    public static readonly LoadedMap Empty = new LoadedMap(LoadedMapData.Empty, null, null);
+    public static LoadedMap Empty => new LoadedMap(LoadedMapData.Empty, null, null);
 }
 
 
 public class LoadedMapData
 {
-    public LoadedMapData(BeatmapInfo info, List<Difficulty> difficulties)
+    public LoadedMapData(BeatmapInfo info)
     {
         Info = info;
-        Difficulties = difficulties;
+        Difficulties = new List<Difficulty>();
+
+        BpmEvents = null;
+        Lightshows = null;
     }
 
-    public BeatmapInfo Info { get; private set; }
-    public List<Difficulty> Difficulties { get; private set; }
+    public BeatmapInfo Info;
+    public List<Difficulty> Difficulties;
 
-    public static readonly LoadedMapData Empty = new LoadedMapData(null, new List<Difficulty>());
+    public BeatmapBpmEvent[] BpmEvents;
+    public Dictionary<string, BeatmapLightshowV4> Lightshows;
+
+    public static LoadedMapData Empty => new LoadedMapData(null);
+
+
+    public BeatmapLightshowV4 GetLightshow(string lightshowFilename)
+    {
+        if(Lightshows == null)
+        {
+            return new BeatmapLightshowV4();
+        }
+
+        if(Lightshows.TryGetValue(lightshowFilename, out BeatmapLightshowV4 lightshow))
+        {
+            return lightshow;
+        }
+        else return new BeatmapLightshowV4();
+    }
 }
 
 

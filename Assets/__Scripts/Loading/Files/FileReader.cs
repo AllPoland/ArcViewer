@@ -74,10 +74,14 @@ public class FileReader : IMapDataLoader
             return LoadedMapData.Empty;
         }
 
-        Debug.Log("Loading difficulties.");
-        List<Difficulty> difficulties = await Task.Run(() => DifficultyLoader.GetDifficultiesAsync(info, Directory));
+        LoadedMapData mapData = new LoadedMapData(info)
+        {
+            BpmEvents = await JsonReader.GetBpmEventsAsync(info, Directory),
+            Lightshows = await LightshowLoader.GetLightshowsAsync(info, Directory)
+        };
+        mapData.Difficulties = await Task.Run(() => DifficultyLoader.GetDifficultiesAsync(mapData, Directory));
 
-        return new LoadedMapData(info, difficulties);
+        return mapData;
 #endif
     }
 

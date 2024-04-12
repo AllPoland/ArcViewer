@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -9,7 +8,7 @@ public abstract class BeatmapDifficulty
 {
     public abstract string Version { get; }
 
-    protected abstract BeatmapElementList<BeatmapBpmEvent> BpmEvents { get; }
+    public abstract BeatmapElementList<BeatmapBpmEvent> BpmEvents { get; }
     public abstract BeatmapElementList<BeatmapRotationEvent> RotationEvents { get; }
 
     public abstract BeatmapElementList<BeatmapColorNote> Notes { get; }
@@ -22,17 +21,6 @@ public abstract class BeatmapDifficulty
     public abstract BeatmapElementList<BeatmapColorBoostBeatmapEvent> BoostEvents { get; }
 
     public abstract BeatmapCustomDifficultyData CustomData { get; }
-
-
-    public BeatmapBpmEvent[] GetBpmEvents()
-    {
-        if(BpmEvents == null)
-        {
-            //V4 maps won't store bpm events, use the info.dat instead
-            return BeatmapManager.Info.BpmEvents ?? new BeatmapBpmEvent[0];
-        }
-        else return BpmEvents.ToArray();
-    }
 
 
     public static BeatmapDifficulty GetDefault()

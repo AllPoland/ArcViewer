@@ -126,9 +126,50 @@ public class ZipReader : IMapDataLoader
             Debug.LogWarning("Info lists no difficulties!");
             return LoadedMapData.Empty;
         }
-        List<Difficulty> difficulties = await DifficultyLoader.GetDifficultiesAsync(info, Archive);
 
-        return new LoadedMapData(info, difficulties);
+        LoadedMapData mapData = new LoadedMapData(info)
+        {
+            BpmEvents = GetBpmEvents(info),
+            Lightshows = await LightshowLoader.GetLightshowsAsync(info, null, Archive)
+        };
+        mapData.Difficulties = await DifficultyLoader.GetDifficultiesAsync(mapData, null, Archive);
+
+        return mapData;
+    }
+
+
+    private BeatmapBpmEvent[] GetBpmEvents(BeatmapInfo info)
+    {
+        if(string.IsNullOrEmpty(info?.audio?.audioDataFilename))
+        {
+            //No audio data is listed by the info
+            return null;
+        }
+
+        string audioDataFilename = info.audio.audioDataFilename;
+        try
+        {
+            Debug.Log($"Loading {audioDataFilename}");
+            
+            using Stream audioDataStream = Archive.GetEntryCaseInsensitive(audioDataFilename)?.Open();
+            if(audioDataStream == null)
+            {
+                Debug.LogWarning($"Unable to find {audioDataFilename}!");
+                ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Failed to load audio metadata! BPM might not line up.");
+                return null;
+            }
+            else
+            {
+                string audioDataJson = Encoding.UTF8.GetString(FileUtil.StreamToBytes(audioDataStream));
+                return JsonReader.ParseBpmEventsFromAudioJson(audioDataJson);
+            }
+        }
+        catch(Exception err)
+        {
+            Debug.LogWarning($"Audio data loading failed with error: {err.Message}, {err.StackTrace}");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Failed to load audio metadata! BPM might not line up.");
+            return null;
+        }
     }
 
 
@@ -205,30 +246,6 @@ public class ZipReader : IMapDataLoader
             ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to parse Info.dat!");
         }
 
-        if(!string.IsNullOrEmpty(info?.audio?.audioDataFilename))
-        {
-            string audioDataFilename = info.audio.audioDataFilename;
-            try
-            {
-                Debug.Log($"Loading {audioDataFilename}");
-                
-                using Stream audioDataStream = archive.GetEntryCaseInsensitive(audioDataFilename)?.Open();
-                if(audioDataStream == null)
-                {
-                    Debug.LogWarning($"Unable to find {audioDataFilename}!");
-                }
-                else
-                {
-                    string audioDataJson = Encoding.UTF8.GetString(FileUtil.StreamToBytes(audioDataStream));
-                    info.BpmEvents = JsonReader.ParseBpmEventsFromAudioJson(audioDataJson);
-                }
-            }
-            catch(Exception err)
-            {
-                Debug.LogWarning($"Audio data loading failed with errer: {err.Message}, {err.StackTrace}");
-            }
-        }
-
         return info;
     }
 
@@ -240,7 +257,7 @@ public class ZipReader : IMapDataLoader
     }
 
 
-    public static Difficulty GetDifficulty(byte[] diffData, DifficultyBeatmap beatmap, BeatmapInfo info)
+    public static Difficulty GetDifficulty(byte[] diffData, DifficultyBeatmap beatmap, LoadedMapData mapData)
     {
         Difficulty output = new Difficulty
         {
@@ -250,7 +267,7 @@ public class ZipReader : IMapDataLoader
         };
 
         string diffJson = Encoding.UTF8.GetString(diffData);
-        output.beatmapDifficulty = JsonReader.GetBeatmapDifficulty(diffJson, beatmap, info);
+        output.beatmapDifficulty = JsonReader.GetBeatmapDifficulty(diffJson, beatmap, mapData);
 
         return output;
     }
