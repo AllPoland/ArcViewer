@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using TMPro;
 
@@ -24,10 +22,10 @@ public class InfoPanel : MonoBehaviour
         authorText.text = info.song.author;
         songText.text = $"{info.song.title} <i><size=70%>{info.song.subTitle}";
 
-        List<string> mappers = newDifficulty.mappers.ToList();
-        List<string> lighters = newDifficulty.lighters.ToList();
+        string[] mappers = newDifficulty.mappers;
+        string[] lighters = newDifficulty.lighters;
 
-        if(mappers.Count == 1 && lighters.Count == 1 && mappers[0].Equals(lighters[0], StringComparison.InvariantCultureIgnoreCase))
+        if(mappers.Length == 1 && lighters.Length == 1 && mappers[0].Equals(lighters[0], StringComparison.InvariantCultureIgnoreCase))
         {
             //The same name is listed as mapper and lighter, just show the name once
             mapperContainer.SetActive(true);
@@ -36,8 +34,8 @@ public class InfoPanel : MonoBehaviour
         }
         else
         {
-            mapperContainer.SetActive(mappers.Count > 0);
-            lighterContainer.SetActive(lighters.Count > 0);
+            mapperContainer.SetActive(mappers.Length > 0);
+            lighterContainer.SetActive(lighters.Length > 0);
 
             mapperText.text = string.Join(", ", mappers);
             lighterText.text = string.Join(", ", lighters);

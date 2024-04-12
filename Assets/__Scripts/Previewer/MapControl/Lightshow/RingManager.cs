@@ -12,6 +12,9 @@ public static class RingManager
     public static event Action<RingRotationEventArgs> OnRingRotationsChanged;
     public static event Action<float> OnRingZoomPositionChanged;
 
+    public static float DefaultRotationSpeed => EnvironmentParameters.RingRotationSpeed;
+    public static float DefaultRotationProp => EnvironmentParameters.RingRotationProp;
+
     public static float DefaultSmallRingRotationAmount => EnvironmentParameters.SmallRingRotationAmount;
     public static float DefaultSmallRingMaxStep => EnvironmentParameters.SmallRingMaxStep;
     public static float SmallRingStartAngle => EnvironmentParameters.SmallRingStartAngle;
@@ -169,8 +172,6 @@ public static class RingManager
 public class RingRotationEvent : LightEvent
 {
     public const float FixedDeltaTime = 1f / 60f;
-    public const float DefaultSpeed = 2f;
-    public const float DefaultProp = 1f;
 
     public float Rotation;
     public float Speed;
@@ -196,8 +197,8 @@ public class RingRotationEvent : LightEvent
         Type = (LightEventType)beatmapEvent.et;
         Value = (LightEventValue)beatmapEvent.i;
         FloatValue = beatmapEvent.f;
-        Speed = DefaultSpeed;
-        Prop = DefaultProp;
+        Speed = RingManager.DefaultRotationSpeed;
+        Prop = RingManager.DefaultRotationProp;
 
         if(beatmapEvent.customData != null)
         {

@@ -213,6 +213,10 @@ public class EnvironmentLightParameters
     public float RotatingLaserStep = 0f;
     
     [Space]
+    public float RingRotationSpeed = 2f;
+    public float RingRotationProp = 1f;
+
+    [Space]
     public float SmallRingRotationAmount = 90f;
     public float SmallRingMaxStep = 5f;
     public float SmallRingStartAngle = -45f;
@@ -225,7 +229,7 @@ public class EnvironmentLightParameters
     public float BigRingStartStep = 0f;
 
     [Space]
-    public float ZoomSpeed = 1.5f;
+    public float ZoomSpeed = 2f;
     public float CloseZoomStep = 2f;
     public float FarZoomStep = 5f;
     public bool StartRingZoomParity = true;
