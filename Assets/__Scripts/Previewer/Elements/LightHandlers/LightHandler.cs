@@ -28,14 +28,12 @@ public class LightHandler : MonoBehaviour
         {
             //The current event and next events affect this id, so no need to recalculate anything
             //This will always be the case in vanilla lightshows without lightID
-            SetProperties(eventArgs.laserProperties, eventArgs.glowProperties);
+            SetProperties(eventArgs.laserColor, eventArgs.glowColor);
         }
         else
         {
             //Either the current event or the next don't affect this ID
             //Find the last event that does - if any, and apply color based on that
-            Color eventColor = Color.clear;
-
             LightEvent lightEvent = eventArgs.lightEvent;
             if(!useThisEvent)
             {
@@ -43,18 +41,16 @@ public class LightHandler : MonoBehaviour
             }
             LightEvent nextEvent = useNextEvent ? eventArgs.nextEvent : lightEvent?.GetNextEvent(id);
 
-            eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
-
-            eventArgs.sender.SetLightProperties(eventColor, ref laserProperties, ref glowProperties);
-            UpdateProperties();
+            Color eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
+            SetProperties(eventArgs.sender.GetLaserColor(eventColor), eventArgs.sender.GetLaserGlowColor(eventColor));
         }
     }
 
 
-    private void SetProperties(MaterialPropertyBlock newLaserProperties, MaterialPropertyBlock newGlowProperties)
+    private void SetProperties(Color laserColor, Color glowColor)
     {
-        laserProperties.SetColor("_BaseColor", newLaserProperties.GetColor("_BaseColor"));
-        glowProperties.SetColor("_BaseColor", newGlowProperties.GetColor("_BaseColor"));
+        laserProperties.SetColor("_LaserColor", laserColor);
+        glowProperties.SetColor("_BaseColor", glowColor);
 
         UpdateProperties();
     }

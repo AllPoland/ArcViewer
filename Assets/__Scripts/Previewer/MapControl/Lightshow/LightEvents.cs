@@ -9,7 +9,7 @@ public class LightEvent : MapElement
     public float FloatValue = 1f;
 
     public Color? CustomColor;
-    public int[] LightIDs = new int[0];
+    public int[] LightIDs;
     public Easings.EasingDelegate TransitionEasing;
     public bool HsvLerp = false;
 
@@ -18,7 +18,7 @@ public class LightEvent : MapElement
     private Dictionary<int, LightEvent> lastEvents;
     private Dictionary<int, LightEvent> nextEvents;
 
-    public bool isTransition => Value == LightEventValue.RedTransition || Value == LightEventValue.BlueTransition || Value == LightEventValue.WhiteTransition;
+    public bool IsTransition => Value == LightEventValue.RedTransition || Value == LightEventValue.BlueTransition || Value == LightEventValue.WhiteTransition;
 
 
     public LightEvent() {}
@@ -44,10 +44,6 @@ public class LightEvent : MapElement
             {
                 CustomColor = ColorManager.ColorFromCustomDataColor(customData.color);
             }
-            if(customData.lightID != null)
-            {
-                LightIDs = customData.lightID;
-            }
             if(customData.easing != null)
             {
                 TransitionEasing = Easings.EasingFromString(customData.easing);
@@ -56,6 +52,8 @@ public class LightEvent : MapElement
             {
                 HsvLerp = customData.lerpType == "HSV";
             }
+
+            LightIDs = customData.lightID;
         }
     }
 
@@ -95,7 +93,7 @@ public class LightEvent : MapElement
 
     public bool AffectsID(int id)
     {
-        if(LightIDs.Length == 0)
+        if((LightIDs?.Length ?? 0) == 0)
         {
             return true;
         }
@@ -105,14 +103,16 @@ public class LightEvent : MapElement
 
     public LightEvent GetLastEvent(int id)
     {
-        if(lastEvents == null)
+        if(AffectsID(id))
         {
-            return null;
+            return this;
         }
 
-        return lastEvents.TryGetValue(id, out LightEvent lightEvent)
-            ? lightEvent
-            : AffectsID(id) ? this : LastGlobalEvent;
+        if(lastEvents != null && lastEvents.TryGetValue(id, out LightEvent lightEvent))
+        {
+            return lightEvent;
+        }
+        else return LastGlobalEvent;
     }
 
 
@@ -129,20 +129,14 @@ public class LightEvent : MapElement
 
     public void SetLastEvent(int id, LightEvent lightEvent)
     {
-        if(lastEvents == null)
-        {
-            lastEvents = new Dictionary<int, LightEvent>();
-        }
+        lastEvents ??= new Dictionary<int, LightEvent>();
         lastEvents[id] = lightEvent;
     }
 
 
     public void SetNextEvent(int id, LightEvent lightEvent)
     {
-        if(nextEvents == null)
-        {
-            nextEvents = new Dictionary<int, LightEvent>();
-        }
+        nextEvents ??= new Dictionary<int, LightEvent>();
         nextEvents[id] = lightEvent;
     }
 }
@@ -166,11 +160,12 @@ public class LightEventList : MapElementList<LightEvent>
         for(int i = 0; i < Elements.Count; i++)
         {
             LightEvent lightEvent = Elements[i];
-            if(lightEvent.LightIDs.Length == 0)
+            if((lightEvent.LightIDs?.Length ?? 0) == 0)
             {
                 //This event affects all IDs, so we can close all previous events with this one
-                if(lightEvent.isTransition)
+                if(lightEvent.IsTransition)
                 {
+                    //Only store next events if it's needed (if this is a transition event)
                     foreach(KeyValuePair<int, LightEvent> pair in lastEvents)
                     {
                         pair.Value.SetNextEvent(pair.Key, lightEvent);
@@ -194,7 +189,7 @@ public class LightEventList : MapElementList<LightEvent>
 
             lightEvent.LastGlobalEvent = lastGlobalEvent;
 
-            if(!lightEvent.isTransition || i == 0)
+            if(!lightEvent.IsTransition)
             {
                 //In this case, there's no need to add pointers from previous events
                 foreach(int id in lightEvent.LightIDs)
@@ -367,8 +362,8 @@ public class LightingPropertyEventArgs
     public LightEventType type;
     public int eventIndex;
 
-    public MaterialPropertyBlock laserProperties;
-    public MaterialPropertyBlock glowProperties;
+    public Color laserColor;
+    public Color glowColor;
 }
 
 

@@ -2,7 +2,7 @@ Shader "Custom/LaserShader"
 {
     Properties
     {
-        [HDR]_BaseColor ("Color", Color) = (1,1,1,1)
+        [HDR]_LaserColor ("Color", Color) = (1,1,1,1)
         _ColorMult ("Color Multiplier", float) = 1
         _FogStartOffset ("Fog Start Offset", float) = 0
         _FogScale ("Fog Scale", float) = 1
@@ -44,7 +44,7 @@ Shader "Custom/LaserShader"
                 float4 vertex : SV_POSITION;
             };
 
-            fixed4 _BaseColor;
+            fixed4 _LaserColor;
             float _ColorMult;
             float _FogStartOffset, _FogScale;
             float _FogHeightOffset, _FogHeightScale;
@@ -62,7 +62,7 @@ Shader "Custom/LaserShader"
             {
                 BLOOM_FOG_INITIALIZE_FRAG(i);
 
-                fixed4 col = _BaseColor * _ColorMult;
+                fixed4 col = _LaserColor * _ColorMult;
                 BLOOM_HEIGHT_FOG_APPLY(i, col, _FogStartOffset, _FogScale, _FogHeightOffset, _FogHeightScale);
 
                 return col;

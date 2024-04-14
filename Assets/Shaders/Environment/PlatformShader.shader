@@ -2,7 +2,8 @@ Shader "Custom/PlatformShader"
 {
     Properties
     {
-        _BaseColor ("Color", Color) = (1,1,1,1)
+        [HDR]_LaserColor ("Laser Color", Color) = (0,0,0,0)
+        _ColorMult ("Laser Color Multiplier", float) = 1
         _MainTex ("Main Texture", 2D) = "white" {}
         _TextureDistance ("Max Texture Distance", float) = 100.0
         _NormalMap ("Normal Map", 2D) = "bump" {}
@@ -54,7 +55,8 @@ Shader "Custom/PlatformShader"
             sampler2D _NormalMap;
             float _TextureDistance, _NormalDistance;
 
-            fixed4 _BaseColor;
+            fixed4 _LaserColor;
+            float _ColorMult;
             float _FogStartOffset, _FogScale;
             float _FogHeightOffset, _FogHeightScale;
             float _AmbientStrength;
@@ -79,8 +81,6 @@ Shader "Custom/PlatformShader"
             fixed4 frag(v2f i) : SV_Target
             {
                 BLOOM_FOG_INITIALIZE_FRAG(i);
-
-                fixed4 col = _BaseColor;
 
                 float3 cameraOffset = _WorldSpaceCameraPos - i.worldPos;
                 float cameraDistance = length(cameraOffset);
@@ -108,14 +108,15 @@ Shader "Custom/PlatformShader"
                 float reflectionDistMult = fresnel * bloomfogRes.x * 0.5;
                 float2 screenReflectPos = originalFogCoord + (viewNormal.xy * reflectionDistMult);
 
-                //Convert back to UV coordinates
+                //Convert back to UV coordinates to sample the bloomfog
                 screenReflectPos.y /= bloomfogRes;
                 float2 screenReflectUV = (screenReflectPos + 1) * 0.5;
 
-                //Scale reflections with how much the face points toward the camera
-                //because they'd be reflecting backwards where there's no fog (that we know of)
+                //Scale reflections with a fresnel effect for more convincing specularity
                 float reflectionMult = _ReflectionStrength * (1.0 - fresnel);
-                col += BLOOM_FOG_SAMPLE(screenReflectUV) * reflectionMult;
+
+                //Base color is defined strictly by reflections
+                fixed4 col = BLOOM_FOG_SAMPLE(screenReflectUV) * reflectionMult;
 
                 //Apply albedo texture
                 col = lerp(col * tex2D(_MainTex, i.uv), col, clamp(cameraDistance / _TextureDistance, 0.001, 1));
@@ -126,6 +127,10 @@ Shader "Custom/PlatformShader"
                 fixed4 groundCol = unity_AmbientGround * abs(clamp(worldNormal.y, -1, 0));
                 col += (skyCol + equatorCol + groundCol) * _AmbientStrength;
 
+                //Add the laser glow
+                col += fixed4(_LaserColor.rgb, 0) * _LaserColor.a * _ColorMult;
+
+                //Apply bloomfog
                 BLOOM_HEIGHT_FOG_APPLY(i, col, _FogStartOffset, _FogScale, _FogHeightOffset, _FogHeightScale);
                 return col;
             }
