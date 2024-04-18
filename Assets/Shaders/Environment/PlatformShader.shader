@@ -60,7 +60,7 @@ Shader "Custom/PlatformShader"
             float _FogStartOffset, _FogScale;
             float _FogHeightOffset, _FogHeightScale;
             float _AmbientStrength;
-            float _ReflectionStrength, _NormalWeight;
+            float _ReflectionStrength;
 
             v2f vert(appdata v)
             {
@@ -105,8 +105,8 @@ Shader "Custom/PlatformShader"
                 //Push the fog sample pos in the direction of the normal
                 //Distance is based on the angle of reflection
                 float fresnel = dot(cameraDir, worldNormal);
-                float reflectionDistMult = fresnel * bloomfogRes.x * 0.5;
-                float2 screenReflectPos = originalFogCoord + (viewNormal.xy * reflectionDistMult);
+                float reflectionDist = fresnel * bloomfogRes.x * 0.5;
+                float2 screenReflectPos = originalFogCoord + (viewNormal.xy * reflectionDist);
 
                 //Convert back to UV coordinates to sample the bloomfog
                 screenReflectPos.y /= bloomfogRes;
