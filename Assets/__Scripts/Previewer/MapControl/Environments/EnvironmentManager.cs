@@ -81,6 +81,7 @@ public class EnvironmentManager : MonoBehaviour
         "TriangleEnvironment",
         "NiceEnvironment",
         "BigMirrorEnvironment",
+        "DragonsEnvironment",
         "TimbalandEnvironment"
     };
 
@@ -166,7 +167,8 @@ public class EnvironmentManager : MonoBehaviour
         catch(InvalidOperationException)
         {
             //Missing parameters for this environment
-            CurrentEnvironmentParameters = EnvironmentParameters.First();
+            Debug.LogWarning($"Missing environment parameters for {environmentName}!");
+            CurrentEnvironmentParameters = new EnvironmentLightParameters();
         }
 
         if(!Loading)
