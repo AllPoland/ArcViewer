@@ -155,7 +155,6 @@ public class EnvironmentManager : MonoBehaviour
         if(sceneIndex == targetSceneIndex && sceneIndex == CurrentSceneIndex)
         {
             Debug.Log($"Correct scene is already loaded.");
-            OnEnvironmentUpdated?.Invoke(CurrentSceneIndex);
             return;
         }
 
