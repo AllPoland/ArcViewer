@@ -40,6 +40,12 @@ public class ReplayLoader
         AsyncReplayDecoder decoder = new AsyncReplayDecoder();
         (ReplayInfo, Task<Replay>) result = await decoder.StartDecodingStream(replayStream);
 
+        if(result.Item2 == null)
+        {
+            //Replay info decoding failed, the stream is likely not a replay file
+            return null;
+        }
+
         Replay decodedReplay = await result.Item2;
         result.Item2.Dispose();
 
