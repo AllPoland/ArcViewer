@@ -212,19 +212,19 @@ public class EnvironmentLightParameters
     public int RotatingLaserCount = 4;
     public bool RandomizeRotatingLasers = true;
     public float RotatingLaserStep = 0f;
-    
-    [Space]
-    public float RingRotationSpeed = 2f;
-    public float RingRotationProp = 1f;
 
     [Space]
+    public float SmallRingRotationSpeed = 2f;
     public float SmallRingRotationAmount = 90f;
+    public float SmallRingRotationProp = 1f;
     public float SmallRingMaxStep = 5f;
     public float SmallRingStartAngle = -45f;
     public float SmallRingStartStep = 3f;
 
     [Space]
+    public float BigRingRotationSpeed = 2f;
     public float BigRingRotationAmount = 45f;
+    public float BigRingRotationProp = 1f;
     public float BigRingMaxStep = 5f;
     public float BigRingStartAngle = -45f;
     public float BigRingStartStep = 0f;

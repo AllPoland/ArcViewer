@@ -477,11 +477,11 @@ public class LightManager : MonoBehaviour
                 //Account for name filters for rotation events that only effect big/small rings
                 if(string.IsNullOrEmpty(beatmapEvent.customData?.nameFilter) || beatmapEvent.customData.nameFilter == "SmallTrackLaneRings")
                 {
-                    RingManager.SmallRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
+                    RingManager.SmallRingRotationEvents.Add(new RingRotationEvent(beatmapEvent, false));
                 }
                 if(string.IsNullOrEmpty(beatmapEvent.customData?.nameFilter) || beatmapEvent.customData.nameFilter == "BigTrackLaneRings")
                 {
-                    RingManager.BigRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
+                    RingManager.BigRingRotationEvents.Add(new RingRotationEvent(beatmapEvent, true));
                 }
                 break;
             case LightEventType.RingZoom:
