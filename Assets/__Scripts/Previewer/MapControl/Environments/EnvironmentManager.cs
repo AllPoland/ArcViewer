@@ -82,7 +82,8 @@ public class EnvironmentManager : MonoBehaviour
         "NiceEnvironment",
         "BigMirrorEnvironment",
         "DragonsEnvironment",
-        "TimbalandEnvironment"
+        "TimbalandEnvironment",
+        "FitBeatEnvironment"
     };
 
     public static EnvironmentLightParameters CurrentEnvironmentParameters = new EnvironmentLightParameters();
