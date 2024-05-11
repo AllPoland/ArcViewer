@@ -2,7 +2,8 @@ Shader "Custom/PlatformShader"
 {
     Properties
     {
-        _BaseColor ("Color", Color) = (1,1,1,1)
+        [HDR]_LaserColor ("Laser Color", Color) = (0,0,0,0)
+        _ColorMult ("Laser Color Multiplier", float) = 1
         _MainTex ("Main Texture", 2D) = "white" {}
         _TextureDistance ("Max Texture Distance", float) = 100.0
         _NormalMap ("Normal Map", 2D) = "bump" {}
@@ -13,7 +14,6 @@ Shader "Custom/PlatformShader"
         _FogHeightScale ("Fog Height Scale", float) = 1
         _AmbientStrength ("Ambient Light", float) = 1
         _ReflectionStrength ("Reflection Strength", float) = 1
-        _AmbientReflectionStrength ("Ambient Reflection", float) = 0.01
     }
     SubShader
     {
@@ -55,11 +55,12 @@ Shader "Custom/PlatformShader"
             sampler2D _NormalMap;
             float _TextureDistance, _NormalDistance;
 
-            fixed4 _BaseColor;
+            fixed4 _LaserColor;
+            float _ColorMult;
             float _FogStartOffset, _FogScale;
             float _FogHeightOffset, _FogHeightScale;
             float _AmbientStrength;
-            float _ReflectionStrength, _AmbientReflectionStrength, _NormalWeight;
+            float _ReflectionStrength;
 
             v2f vert(appdata v)
             {
@@ -80,8 +81,6 @@ Shader "Custom/PlatformShader"
             fixed4 frag(v2f i) : SV_Target
             {
                 BLOOM_FOG_INITIALIZE_FRAG(i);
-
-                fixed4 col = _BaseColor;
 
                 float3 cameraOffset = _WorldSpaceCameraPos - i.worldPos;
                 float cameraDistance = length(cameraOffset);
@@ -105,17 +104,19 @@ Shader "Custom/PlatformShader"
 
                 //Push the fog sample pos in the direction of the normal
                 //Distance is based on the angle of reflection
-                float reflectionDistMult = dot(cameraDir, worldNormal) * bloomfogRes.x * 0.5;
-                float2 screenReflectPos = originalFogCoord + (viewNormal.xy * reflectionDistMult);
+                float fresnel = dot(cameraDir, worldNormal);
+                float reflectionDist = fresnel * bloomfogRes.x * 0.5;
+                float2 screenReflectPos = originalFogCoord + (viewNormal.xy * reflectionDist);
 
-                //Convert back to UV coordinates
+                //Convert back to UV coordinates to sample the bloomfog
                 screenReflectPos.y /= bloomfogRes;
                 float2 screenReflectUV = (screenReflectPos + 1) * 0.5;
 
-                //Scale reflections with how much the face points toward the camera
-                //because they'd be reflecting backwards where there's no fog (that we know of)
-                float reflectionMult = lerp(_ReflectionStrength, _AmbientReflectionStrength, abs(viewNormal.z));
-                col += BLOOM_FOG_SAMPLE(screenReflectUV) * reflectionMult;
+                //Scale reflections with a fresnel effect for more convincing specularity
+                float reflectionMult = _ReflectionStrength * (1.0 - fresnel);
+
+                //Base color is defined strictly by reflections
+                fixed4 col = BLOOM_FOG_SAMPLE(screenReflectUV) * reflectionMult;
 
                 //Apply albedo texture
                 col = lerp(col * tex2D(_MainTex, i.uv), col, clamp(cameraDistance / _TextureDistance, 0.001, 1));
@@ -126,6 +127,10 @@ Shader "Custom/PlatformShader"
                 fixed4 groundCol = unity_AmbientGround * abs(clamp(worldNormal.y, -1, 0));
                 col += (skyCol + equatorCol + groundCol) * _AmbientStrength;
 
+                //Add the laser glow
+                col += fixed4(_LaserColor.rgb, 0) * _LaserColor.a * _ColorMult;
+
+                //Apply bloomfog
                 BLOOM_HEIGHT_FOG_APPLY(i, col, _FogStartOffset, _FogScale, _FogHeightOffset, _FogHeightScale);
                 return col;
             }

@@ -491,9 +491,9 @@ public class ObjectManager : MonoBehaviour
         // split arcs into heads and tails for easier processing
         List<BeatmapSliderEnd> beatmapSliderHeads = new List<BeatmapSliderEnd>();
         List<BeatmapSliderEnd> beatmapSliderTails = new List<BeatmapSliderEnd>();
-        for(int i = 0; i < beatmapDifficulty.sliders.Length; i++)
+        for(int i = 0; i < beatmapDifficulty.Arcs.Length; i++)
         {
-            BeatmapSlider a = beatmapDifficulty.sliders[i];
+            BeatmapSlider a = beatmapDifficulty.Arcs[i];
 
             BeatmapSliderEnd head = new BeatmapSliderEnd
             {
@@ -530,11 +530,11 @@ public class ObjectManager : MonoBehaviour
         }
 
         List<BeatmapObject> allObjects = new List<BeatmapObject>();
-        allObjects.AddRange(beatmapDifficulty.colorNotes);
-        allObjects.AddRange(beatmapDifficulty.bombNotes);
-        allObjects.AddRange(beatmapDifficulty.sliders);
-        allObjects.AddRange(beatmapDifficulty.burstSliders);
-        allObjects.AddRange(beatmapDifficulty.obstacles);
+        allObjects.AddRange(beatmapDifficulty.Notes);
+        allObjects.AddRange(beatmapDifficulty.Bombs);
+        allObjects.AddRange(beatmapDifficulty.Arcs);
+        allObjects.AddRange(beatmapDifficulty.Chains);
+        allObjects.AddRange(beatmapDifficulty.Walls);
         allObjects.AddRange(beatmapSliderHeads);
         allObjects.AddRange(beatmapSliderTails);
         allObjects = allObjects.OrderBy(x => x.b).ToList();
@@ -829,7 +829,7 @@ public class ObjectManager : MonoBehaviour
             BeatmapSliderEnd head = beatmapSliderHeads[i];
             BeatmapSliderEnd tail = beatmapSliderTails[i];
 
-            Arc newArc = new Arc(beatmapDifficulty.sliders[i]);
+            Arc newArc = new Arc(beatmapDifficulty.Arcs[i]);
 
             if(head.HasAttachment)
             {

@@ -22,7 +22,7 @@ public static class MapStats
     public static int WallCount => wallManager.Objects.Count;
     public static int ArcCount => arcManager.Objects.Count;
     public static int ChainCount => chainManager.Objects.Count;
-    public static int EventCount => currentBeatmapDifficulty.basicBeatMapEvents.Length + currentBeatmapDifficulty.colorBoostBeatMapEvents.Length;
+    public static int EventCount => currentBeatmapDifficulty.BasicEvents.Length + currentBeatmapDifficulty.BoostEvents.Length;
     public static int BpmEventCount => TimeManager.BpmChanges.Count;
 
     public static float NotesPerSecond => ((float)NoteCount / effectiveMapLength).Round(roundDigits);

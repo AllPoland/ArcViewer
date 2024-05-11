@@ -17,7 +17,7 @@ public class BeatmapManager : MonoBehaviour
     public static List<Difficulty> LawlessDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lawless);
     public static List<Difficulty> UnknownDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Unknown);
 
-    private static BeatmapInfo _info = BeatmapInfo.Empty;
+    private static BeatmapInfo _info = new BeatmapInfo();
     public static BeatmapInfo Info
     {
         get => _info;
@@ -26,10 +26,10 @@ public class BeatmapManager : MonoBehaviour
         {
             _info = value;
 
-            if(_info._beatsPerMinute <= 0)
+            if(_info.audio.bpm <= 0)
             {
                 //Shrimply to avoid crashes
-                _info._beatsPerMinute = 0.0001f;
+                _info.audio.bpm = 0.0001f;
             }
 
             OnBeatmapInfoChanged?.Invoke(value);
@@ -68,7 +68,7 @@ public class BeatmapManager : MonoBehaviour
             {
                 defaultJumpDistance = ReplayManager.CurrentReplay.info.jumpDistance;
             }
-            else defaultJumpDistance = GetJumpDistance(HJD, Info._beatsPerMinute, NJS);
+            else defaultJumpDistance = GetJumpDistance(HJD, Info.audio.bpm, NJS);
             JumpDistance = defaultJumpDistance;
 
             MappingExtensions = _currentDifficulty.requirements.Contains("Mapping Extensions");
@@ -88,12 +88,7 @@ public class BeatmapManager : MonoBehaviour
         }
     }
 
-    public static string EnvironmentName => 
-    (
-        string.IsNullOrEmpty(CurrentDifficulty.environmentName)
-            ? Info._environmentName
-            : CurrentDifficulty.environmentName
-    );
+    public static string EnvironmentName => CurrentDifficulty.environmentName;
 
     public static bool MappingExtensions { get; private set; }
     public static bool NoodleExtensions { get; private set; }
@@ -135,11 +130,11 @@ public class BeatmapManager : MonoBehaviour
         {
             float value = 4;
 
-            float JD = GetJumpDistance(value, Info._beatsPerMinute, NJS);
+            float JD = GetJumpDistance(value, Info.audio.bpm, NJS);
             while(JD > 35.998f)
             {
                 value /= 2;
-                JD = GetJumpDistance(value, Info._beatsPerMinute, NJS);
+                JD = GetJumpDistance(value, Info.audio.bpm, NJS);
             }
             
             return value;
@@ -219,7 +214,7 @@ public class BeatmapManager : MonoBehaviour
         if(newState != UIState.Previewer)
         {
             Difficulties.Clear();
-            Info = BeatmapInfo.Empty;
+            Info = new BeatmapInfo();
             CurrentDifficulty = Difficulty.Empty;
         }
     }
@@ -249,6 +244,9 @@ public class Difficulty
     public string environmentName;
     public NullableColorPalette colorScheme;
 
+    public string[] mappers;
+    public string[] lighters;
+
     public string label;
     public string[] requirements;
     public NullableColorPalette songCoreColors;
@@ -258,11 +256,13 @@ public class Difficulty
     {
         characteristic = DifficultyCharacteristic.Unknown,
         difficultyRank = DifficultyRank.ExpertPlus,
-        beatmapDifficulty = new BeatmapDifficulty(),
+        beatmapDifficulty = BeatmapDifficulty.GetDefault(),
         noteJumpSpeed = 0,
         spawnOffset = 0,
         environmentName = "",
         colorScheme = null,
+        mappers = new string[0],
+        lighters = new string[0],
         label = "Expert+",
         requirements = new string[0],
         songCoreColors = null

@@ -33,11 +33,11 @@ public class BeatmapDifficultyV2
 
     public void AddNulls()
     {
-        _version = _version ?? "2.6.0";
-        _notes = _notes ?? new BeatmapNoteV2[0];
-        _sliders = _sliders ?? new BeatmapSliderV2[0];
-        _obstacles = _obstacles ?? new BeatmapObstacleV2[0];
-        _events = _events ?? new BeatmapEventV2[0];
+        _version ??= "2.6.0";
+        _notes ??= new BeatmapNoteV2[0];
+        _sliders ??= new BeatmapSliderV2[0];
+        _obstacles ??= new BeatmapObstacleV2[0];
+        _events ??= new BeatmapEventV2[0];
     }
 
 
@@ -54,13 +54,13 @@ public class BeatmapDifficultyV2
     };
 
 
-    public BeatmapDifficulty ConvertToV3()
+    public BeatmapDifficultyV3 ConvertToV3()
     {
         AddNulls();
 
-        BeatmapDifficulty converted = new BeatmapDifficulty
+        BeatmapDifficultyV3 converted = new BeatmapDifficultyV3
         {
-            version = "3.0.0"
+            version = "3.3.0"
         };
 
         List<BeatmapColorNote> colorNotes = new List<BeatmapColorNote>();
@@ -488,13 +488,15 @@ public class BeatmapCustomEventDataV2
 
 
 [Serializable]
-public class BeatmapCustomDifficultyDataV2 {
+public class BeatmapCustomDifficultyDataV2
+{
     public BeatmapCustomBookmarkV2[] _bookmarks;
 }
 
 
 [Serializable]
-public class BeatmapCustomBookmarkV2 {
+public class BeatmapCustomBookmarkV2
+{
     public float _time;
     public string _name;
     public float[] _color;

@@ -31,16 +31,6 @@ public class MapLoader : MonoBehaviour
     public static event Action OnReplayMapPrompt;
 
 
-    public static Dictionary<string, DifficultyRank> DiffValueFromString = new Dictionary<string, DifficultyRank>
-    {
-        {"Easy", DifficultyRank.Easy},
-        {"Normal", DifficultyRank.Normal},
-        {"Hard", DifficultyRank.Hard},
-        {"Expert", DifficultyRank.Expert},
-        {"ExpertPlus", DifficultyRank.ExpertPlus}
-    };
-
-
     private IEnumerator LoadMapFileCoroutine(IMapDataLoader loader)
     {
         Loading = true;
@@ -53,7 +43,7 @@ public class MapLoader : MonoBehaviour
         LoadingMessage = "Done";
 
         loader.Dispose();
-        UpdateMapInfo(mapData);
+        SetMap(mapData);
     }
 
 
@@ -77,7 +67,7 @@ public class MapLoader : MonoBehaviour
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to load zip file!");
             Debug.LogWarning($"Unhandled exception loading zip: {err.Message}, {err.StackTrace}.");
 
-            UpdateMapInfo(LoadedMap.Empty);
+            SetMap(LoadedMap.Empty);
         }
     }
 
@@ -108,7 +98,7 @@ public class MapLoader : MonoBehaviour
                 ErrorHandler.Instance.ShowPopup(ErrorType.Error, $"Failed to read map data!");
 
                 zipReader.Dispose();
-                UpdateMapInfo(LoadedMap.Empty);
+                SetMap(LoadedMap.Empty);
                 yield break;
             }
         }
@@ -117,7 +107,7 @@ public class MapLoader : MonoBehaviour
             Debug.LogWarning(uwr.error);
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, $"Failed to load map! {uwr.error}");
 
-            UpdateMapInfo(LoadedMap.Empty);
+            SetMap(LoadedMap.Empty);
             yield break;
         }
     }
@@ -169,7 +159,7 @@ public class MapLoader : MonoBehaviour
         {
             Debug.LogWarning("Downloaded data is null!");
 
-            UpdateMapInfo(LoadedMap.Empty);
+            SetMap(LoadedMap.Empty);
             yield break;
         }
 
@@ -191,7 +181,7 @@ public class MapLoader : MonoBehaviour
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to read map zip!");
             Debug.LogWarning($"Unhandled exception loading zip URL: {err.Message}, {err.StackTrace}");
 
-            UpdateMapInfo(LoadedMap.Empty);
+            SetMap(LoadedMap.Empty);
         }
     }
 
@@ -259,7 +249,7 @@ public class MapLoader : MonoBehaviour
                 ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to read map zip!");
                 Debug.LogWarning($"Unhandled exception loading zip URL: {err.Message}, {err.StackTrace}");
 
-                UpdateMapInfo(LoadedMap.Empty);
+                SetMap(LoadedMap.Empty);
                 yield break;
             }
         }
@@ -297,7 +287,7 @@ public class MapLoader : MonoBehaviour
         if(string.IsNullOrEmpty(mapURL))
         {
             Debug.Log("Empty or nonexistant URL!");
-            UpdateMapInfo(LoadedMap.Empty);
+            SetMap(LoadedMap.Empty);
             yield break;
         }
 
@@ -308,7 +298,8 @@ public class MapLoader : MonoBehaviour
 
     private IEnumerator LoadMapFromReplayCoroutine(Replay loadedReplay, bool noProxy = false)
     {
-        string mapHash = loadedReplay.info.hash;
+        //For some reason replay hash fields might have extra text past the hash
+        string mapHash = loadedReplay.info.hash[..40];
         Debug.Log($"Searching for map matching replay hash: {mapHash}");
 
 #if !UNITY_WEBGL || UNITY_EDITOR
@@ -389,8 +380,16 @@ public class MapLoader : MonoBehaviour
             ReplayManager.SetPlayerCustomColors(response);
         }
 
+        string mapHash = replay.info.hash;
+
+        //For some reason replay hash fields might have extra text past the hash
+        if(mapHash.Length > 40)
+        {
+            mapHash = mapHash[..40];
+        }
+
         Debug.Log("Getting replay leaderboard ID.");
-        using Task<string> leaderboardTask = ReplayLoader.LeaderboardIDFromHash(replay.info.hash, replay.info.mode, replay.info.difficulty);
+        using Task<string> leaderboardTask = ReplayLoader.LeaderboardIDFromHash(mapHash, replay.info.mode, replay.info.difficulty);
         yield return new WaitUntil(() => leaderboardTask.IsCompleted);
 
         ReplayManager.LeaderboardID = leaderboardTask.Result;
@@ -399,13 +398,13 @@ public class MapLoader : MonoBehaviour
         {
             Debug.Log($"Loading map from preset ID: {mapID}");
             UrlArgHandler.LoadedMapID = mapID;
-            StartCoroutine(LoadMapIDCoroutine(mapID, replay.info.hash));
+            StartCoroutine(LoadMapIDCoroutine(mapID, mapHash));
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
             Debug.Log($"Loading map from preset URL: {mapURL}");
             UrlArgHandler.LoadedMapURL = mapURL;
-            StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, replay.info.hash, noProxy));
+            StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, mapHash, noProxy));
         }
         else StartCoroutine(LoadMapFromReplayCoroutine(replay, noProxy));
     }
@@ -425,7 +424,7 @@ public class MapLoader : MonoBehaviour
         Replay replay = replayTask.Result;
         if(replay == null)
         {
-            UpdateMapInfo(LoadedMap.Empty);
+            SetMap(LoadedMap.Empty);
             yield break;
         }
 
@@ -454,7 +453,7 @@ public class MapLoader : MonoBehaviour
                 Debug.LogWarning($"Failed to read replay data!");
                 ErrorHandler.Instance.ShowPopup(ErrorType.Error, $"Failed to read replay data!");
 
-                UpdateMapInfo(LoadedMap.Empty);
+                SetMap(LoadedMap.Empty);
                 yield break;
             }
 
@@ -465,7 +464,7 @@ public class MapLoader : MonoBehaviour
             Debug.LogWarning(uwr.error);
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, $"Failed to load replay! {uwr.error}");
 
-            UpdateMapInfo(LoadedMap.Empty);
+            SetMap(LoadedMap.Empty);
             yield break;
         }
     }
@@ -516,7 +515,7 @@ public class MapLoader : MonoBehaviour
         {
             Debug.LogWarning("Downloaded replay is null!");
 
-            UpdateMapInfo(LoadedMap.Empty);
+            SetMap(LoadedMap.Empty);
             yield break;
         }
 
@@ -528,7 +527,7 @@ public class MapLoader : MonoBehaviour
         {
             Debug.LogWarning("Failed to decode replay!");
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Failed to decode the replay!");
-            UpdateMapInfo(LoadedMap.Empty);
+            SetMap(LoadedMap.Empty);
             yield break;
         }
 
@@ -564,7 +563,7 @@ public class MapLoader : MonoBehaviour
         if(string.IsNullOrEmpty(apiResponse?.replay))
         {
             Debug.Log("Empty or nonexistant URL!");
-            UpdateMapInfo(LoadedMap.Empty);
+            SetMap(LoadedMap.Empty);
             yield break;
         }
 
@@ -592,7 +591,7 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    private void UpdateMapInfo(LoadedMap newMap)
+    private void SetMap(LoadedMap newMap)
     {
         StopAllCoroutines();
         LoadingMessage = "";
@@ -600,7 +599,7 @@ public class MapLoader : MonoBehaviour
         
         if(newMap.Info == null || newMap.Difficulties.Count == 0 || newMap.Song == null)
         {
-            Debug.LogWarning("Failed to load map file");
+            Debug.LogWarning("Failed to load map file.");
 
             if(newMap.Song != null)
             {
@@ -770,7 +769,7 @@ public class MapLoader : MonoBehaviour
 
     public void CancelMapLoading()
     {
-        UpdateMapInfo(LoadedMap.Empty);
+        SetMap(LoadedMap.Empty);
     }
 
 
@@ -807,22 +806,43 @@ public class LoadedMap
     public WebAudioClip Song { get; private set; }
 #endif
 
-    public static readonly LoadedMap Empty = new LoadedMap(LoadedMapData.Empty, null, null);
+    public static LoadedMap Empty => new LoadedMap(LoadedMapData.Empty, null, null);
 }
 
 
 public class LoadedMapData
 {
-    public LoadedMapData(BeatmapInfo info, List<Difficulty> difficulties)
+    public LoadedMapData(BeatmapInfo info)
     {
         Info = info;
-        Difficulties = difficulties;
+        Difficulties = new List<Difficulty>();
+
+        BpmEvents = null;
+        Lightshows = null;
     }
 
-    public BeatmapInfo Info { get; private set; }
-    public List<Difficulty> Difficulties { get; private set; }
+    public BeatmapInfo Info;
+    public List<Difficulty> Difficulties;
 
-    public static readonly LoadedMapData Empty = new LoadedMapData(null, new List<Difficulty>());
+    public BeatmapBpmEvent[] BpmEvents;
+    public Dictionary<string, BeatmapLightshowV4> Lightshows;
+
+    public static LoadedMapData Empty => new LoadedMapData(null);
+
+
+    public BeatmapLightshowV4 GetLightshow(string lightshowFilename)
+    {
+        if(Lightshows == null)
+        {
+            return new BeatmapLightshowV4();
+        }
+
+        if(Lightshows.TryGetValue(lightshowFilename, out BeatmapLightshowV4 lightshow))
+        {
+            return lightshow;
+        }
+        else return new BeatmapLightshowV4();
+    }
 }
 
 

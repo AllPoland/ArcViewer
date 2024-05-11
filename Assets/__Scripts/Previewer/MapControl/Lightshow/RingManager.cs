@@ -12,13 +12,17 @@ public static class RingManager
     public static event Action<RingRotationEventArgs> OnRingRotationsChanged;
     public static event Action<float> OnRingZoomPositionChanged;
 
+    public static float DefaultSmallRingRotationSpeed => EnvironmentParameters.SmallRingRotationSpeed;
     public static float DefaultSmallRingRotationAmount => EnvironmentParameters.SmallRingRotationAmount;
     public static float DefaultSmallRingMaxStep => EnvironmentParameters.SmallRingMaxStep;
+    public static float DefaultSmallRingProp => EnvironmentParameters.SmallRingRotationProp;
     public static float SmallRingStartAngle => EnvironmentParameters.SmallRingStartAngle;
     public static float SmallRingStartStep => EnvironmentParameters.SmallRingStartStep;
 
+    public static float DefaultBigRingRotationSpeed => EnvironmentParameters.BigRingRotationSpeed;
     public static float DefaultBigRingRotationAmount => EnvironmentParameters.BigRingRotationAmount;
     public static float DefaultBigRingMaxStep => EnvironmentParameters.BigRingMaxStep;
+    public static float DefaultBigRingProp => EnvironmentParameters.BigRingRotationProp;
     public static float BigRingStartAngle => EnvironmentParameters.BigRingStartAngle;
     public static float BigRingStartStep => EnvironmentParameters.BigRingStartStep;
 
@@ -169,8 +173,6 @@ public static class RingManager
 public class RingRotationEvent : LightEvent
 {
     public const float FixedDeltaTime = 1f / 60f;
-    public const float DefaultSpeed = 2f;
-    public const float DefaultProp = 1f;
 
     public float Rotation;
     public float Speed;
@@ -190,14 +192,14 @@ public class RingRotationEvent : LightEvent
 
     public RingRotationEvent() {}
 
-    public RingRotationEvent(BeatmapBasicBeatmapEvent beatmapEvent)
+    public RingRotationEvent(BeatmapBasicBeatmapEvent beatmapEvent, bool bigRing)
     {
         Beat = beatmapEvent.b;
         Type = (LightEventType)beatmapEvent.et;
         Value = (LightEventValue)beatmapEvent.i;
         FloatValue = beatmapEvent.f;
-        Speed = DefaultSpeed;
-        Prop = DefaultProp;
+        Speed = bigRing ? RingManager.DefaultBigRingRotationSpeed : RingManager.DefaultSmallRingRotationSpeed;
+        Prop = bigRing ? RingManager.DefaultBigRingProp : RingManager.DefaultSmallRingProp;
 
         if(beatmapEvent.customData != null)
         {
@@ -250,6 +252,7 @@ public class RingRotationEvent : LightEvent
         {
             Step = UnityEngine.Random.Range(-defaultMaxStep, defaultMaxStep);
         }
+
         TargetAngle = startRotation + Rotation;
     }
 

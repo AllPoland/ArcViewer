@@ -36,15 +36,12 @@ public class LightManager : MonoBehaviour
 
     public const float FlashIntensity = 1.2f;
 
-    private static float LightGlowBrightness = 1f;
+    private static float lightGlowBrightness = 1f;
 
     private static ColorPalette colors => ColorManager.CurrentColors;
     private static Color lightColor1 => BoostActive ? colors.BoostLightColor1 : colors.LightColor1;
     private static Color lightColor2 => BoostActive ? colors.BoostLightColor2 : colors.LightColor2;
     private static Color whiteLightColor => BoostActive ? colors.BoostWhiteLightColor : colors.WhiteLightColor;
-
-    private static MaterialPropertyBlock lightProperties;
-    private static MaterialPropertyBlock glowProperties;
 
     private static readonly string[] lightSettings = new string[]
     {
@@ -114,8 +111,6 @@ public class LightManager : MonoBehaviour
     {
         Color eventColor = GetEventColor(lightEvent, nextEvent);
 
-        SetLightProperties(eventColor, ref lightProperties, ref glowProperties);
-
         LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
         {
             sender = this,
@@ -124,8 +119,8 @@ public class LightManager : MonoBehaviour
             nextEvent = nextEvent,
             type = type,
             eventIndex = eventIndex,
-            laserProperties = lightProperties,
-            glowProperties = glowProperties
+            laserColor = GetLaserColor(eventColor),
+            glowColor = GetLaserGlowColor(eventColor)
         };
         OnLightPropertiesChanged?.Invoke(eventArgs);
     }
@@ -141,13 +136,18 @@ public class LightManager : MonoBehaviour
     }
 
 
-    public void SetLightProperties(Color baseColor, ref MaterialPropertyBlock laserProperties, ref MaterialPropertyBlock laserGlowProperties)
+    public Color GetLaserColor(Color baseColor)
     {
-        laserProperties.SetColor("_BaseColor", baseColor * lightEmission);
+        baseColor.a *= lightEmission;
+        return baseColor;
+    }
 
+
+    public Color GetLaserGlowColor(Color baseColor)
+    {
         Color glowColor = baseColor;
-        glowColor.a *= LightGlowBrightness;
-        laserGlowProperties.SetColor("_BaseColor", glowColor);
+        baseColor.a *= lightGlowBrightness;
+        return baseColor;
     }
 
 
@@ -229,7 +229,7 @@ public class LightManager : MonoBehaviour
     {
         Color baseColor = GetEventBaseColor(lightEvent);
 
-        if(nextEvent?.isTransition ?? false)
+        if(nextEvent?.IsTransition ?? false)
         {
             Color transitionColor = GetEventBaseColor(nextEvent);
             if(lightEvent.Value == LightEventValue.Off)
@@ -249,6 +249,7 @@ public class LightManager : MonoBehaviour
             }
             else baseColor = Color.LerpUnclamped(baseColor, transitionColor, t);
         }
+
         return baseColor;
     }
 
@@ -336,7 +337,7 @@ public class LightManager : MonoBehaviour
 
     public void UpdateLightParameters()
     {
-        LightGlowBrightness = SettingsManager.GetFloat("lightglowbrightness");
+        lightGlowBrightness = SettingsManager.GetFloat("lightglowbrightness");
         if(StaticLights)
         {
             SetStaticLayout();
@@ -372,7 +373,7 @@ public class LightManager : MonoBehaviour
     private void UpdateDifficulty(Difficulty newDifficulty)
     {
         string environmentName = BeatmapManager.EnvironmentName;
-        if(newDifficulty.beatmapDifficulty.basicBeatMapEvents.Length == 0 || EnvironmentManager.V3Environments.Contains(environmentName))
+        if(newDifficulty.beatmapDifficulty.BasicEvents.Length == 0 || EnvironmentManager.V3Environments.Contains(environmentName))
         {
             StaticLights = true;
             return;
@@ -382,7 +383,7 @@ public class LightManager : MonoBehaviour
         FlipBackLasers = backLaserFlipEnvironments.Contains(environmentName);
 
         boostEvents.Clear();
-        foreach(BeatmapColorBoostBeatmapEvent beatmapBoostEvent in newDifficulty.beatmapDifficulty.colorBoostBeatMapEvents)
+        foreach(BeatmapColorBoostBeatmapEvent beatmapBoostEvent in newDifficulty.beatmapDifficulty.BoostEvents)
         {
             boostEvents.Add(new BoostEvent(beatmapBoostEvent));
         }
@@ -402,7 +403,7 @@ public class LightManager : MonoBehaviour
 
         RingManager.RingZoomEvents.Clear();
 
-        foreach(BeatmapBasicBeatmapEvent beatmapEvent in newDifficulty.beatmapDifficulty.basicBeatMapEvents)
+        foreach(BeatmapBasicBeatmapEvent beatmapEvent in newDifficulty.beatmapDifficulty.BasicEvents)
         {
             AddLightEvent(beatmapEvent);
         }
@@ -476,11 +477,11 @@ public class LightManager : MonoBehaviour
                 //Account for name filters for rotation events that only effect big/small rings
                 if(string.IsNullOrEmpty(beatmapEvent.customData?.nameFilter) || beatmapEvent.customData.nameFilter == "SmallTrackLaneRings")
                 {
-                    RingManager.SmallRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
+                    RingManager.SmallRingRotationEvents.Add(new RingRotationEvent(beatmapEvent, false));
                 }
                 if(string.IsNullOrEmpty(beatmapEvent.customData?.nameFilter) || beatmapEvent.customData.nameFilter == "BigTrackLaneRings")
                 {
-                    RingManager.BigRingRotationEvents.Add(new RingRotationEvent(beatmapEvent));
+                    RingManager.BigRingRotationEvents.Add(new RingRotationEvent(beatmapEvent, true));
                 }
                 break;
             case LightEventType.RingZoom:
@@ -563,12 +564,5 @@ public class LightManager : MonoBehaviour
 
         OnStaticLightsChanged += UpdateLightParameters;
         StaticLights = true;
-    }
-
-
-    private void Awake()
-    {
-        lightProperties = new MaterialPropertyBlock();
-        glowProperties = new MaterialPropertyBlock();
     }
 }

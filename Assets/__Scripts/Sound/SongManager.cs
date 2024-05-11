@@ -23,13 +23,12 @@ public class SongManager : MonoBehaviour
             //Make sure the clip has the correct speed
             UpdateSpeed(TimeSyncHandler.TimeScale);
 
-            float songTimeOffset = BeatmapManager.Info._songTimeOffset;
-            if(songTimeOffset != 0)
+            if(BeatmapManager.Info.songTimeOffset != null)
             {
 #if !UNITY_WEBGL || UNITY_EDITOR
                 ApplySongTimeOffset(ref _musicClip);
 #else
-                _musicClip.SetOffset(songTimeOffset);
+                _musicClip.SetOffset((float)BeatmapManager.Info.songTimeOffset);
 #endif
                 ErrorHandler.Instance.ShowPopup(ErrorType.Warning, "Song Time Offset is depreciated!");
             }
@@ -165,7 +164,7 @@ public class SongManager : MonoBehaviour
         //Take songTimeOffset into account by adjusting newClip data forward/backward
         //I *definitely* didn't steal this from ChroMapper (Caeden don't kill me)
 
-        float songTimeOffset = BeatmapManager.Info._songTimeOffset;
+        float songTimeOffset = BeatmapManager.Info.songTimeOffset ?? 0f;
 
         //Guaranteed to always be an integer multiple of the number of channels
         int songTimeOffsetSamples = Mathf.CeilToInt(songTimeOffset * clip.frequency) * clip.channels;

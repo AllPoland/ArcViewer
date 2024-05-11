@@ -39,7 +39,7 @@ public class FileReader : IMapDataLoader
         Debug.Log("Loading audio file.");
         MapLoader.LoadingMessage = "Loading song";
 
-        string audioDirectory = Path.Combine(Directory, info._songFilename);
+        string audioDirectory = Path.Combine(Directory, info.audio.songFilename);
         AudioClip song = await AudioFileHandler.LoadAudioDirectory(audioDirectory);
         if(song == null)
         {
@@ -51,7 +51,7 @@ public class FileReader : IMapDataLoader
         Debug.Log("Loading cover image.");
         MapLoader.LoadingMessage = "Loading cover image";
 
-        string coverImageDirectory = Path.Combine(Directory, info._coverImageFilename);
+        string coverImageDirectory = Path.Combine(Directory, info.coverImageFilename);
         byte[] coverImageData = await Task.Run(() => LoadCoverImageData(coverImageDirectory));
 
         return new LoadedMap(mapData, coverImageData, song);
@@ -66,7 +66,7 @@ public class FileReader : IMapDataLoader
 #else
         Debug.Log("Loading info.");
         MapLoader.LoadingMessage = "Loading Info.dat";
-        BeatmapInfo info = await Task.Run(() => LoadInfoAsync(Directory));
+        BeatmapInfo info = await Task.Run(() => JsonReader.LoadInfoAsync(Directory));
 
         if(info == null)
         {
@@ -74,10 +74,14 @@ public class FileReader : IMapDataLoader
             return LoadedMapData.Empty;
         }
 
-        Debug.Log("Loading difficulties.");
-        List<Difficulty> difficulties = await Task.Run(() => DifficultyLoader.GetDifficultiesAsync(info, Directory));
+        LoadedMapData mapData = new LoadedMapData(info)
+        {
+            BpmEvents = await JsonReader.GetBpmEventsAsync(info, Directory),
+            Lightshows = await LightshowLoader.GetLightshowsAsync(info, Directory)
+        };
+        mapData.Difficulties = await Task.Run(() => DifficultyLoader.GetDifficultiesAsync(mapData, Directory));
 
-        return new LoadedMapData(info, difficulties);
+        return mapData;
 #endif
     }
 
@@ -85,22 +89,6 @@ public class FileReader : IMapDataLoader
     public void Dispose()
     {
         //Nothing to dispose here
-    }
-
-
-    private static async Task<BeatmapInfo> LoadInfoAsync(string directory)
-    {
-#if UNITY_WEBGL && !UNITY_EDITOR
-        throw new System.InvalidOperationException("Loading from directory doesn't work in WebGL!");
-#else
-        string infoPath = Path.Combine(directory, "Info.dat");
-
-        BeatmapInfo info = await JsonReader.LoadInfoAsync(infoPath);
-        if(info == null) return null;
-
-        Debug.Log($"Loaded info for {info._songAuthorName} - {info._songName}, mapped by {info._levelAuthorName}");
-        return info;
-#endif
     }
 
 

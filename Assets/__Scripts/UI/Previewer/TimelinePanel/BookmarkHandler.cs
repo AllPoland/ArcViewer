@@ -18,12 +18,12 @@ public class BookmarkHandler : MonoBehaviour
             return;
         }
 
-        if(BeatmapManager.CurrentDifficulty?.beatmapDifficulty?.customData?.bookmarks == null)
+        if(BeatmapManager.CurrentDifficulty?.beatmapDifficulty?.CustomData?.bookmarks == null)
         {
             return;
         }
 
-        BeatmapCustomBookmark[] newBookmarks = BeatmapManager.CurrentDifficulty.beatmapDifficulty.customData.bookmarks;
+        BeatmapCustomBookmark[] newBookmarks = BeatmapManager.CurrentDifficulty.beatmapDifficulty.CustomData.bookmarks;
         foreach(BeatmapCustomBookmark bookmark in newBookmarks)
         {
             BookmarkIcon newBookmark = Instantiate(bookmarkPrefab, bookmarkParent, false);

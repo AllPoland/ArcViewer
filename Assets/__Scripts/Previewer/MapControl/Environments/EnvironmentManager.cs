@@ -69,7 +69,9 @@ public class EnvironmentManager : MonoBehaviour
         "QueenEnvironment",
         "LinkinPark2Environment",
         "TheRollingStonesEnvironment",
-        "LatticeEnvironment"
+        "LatticeEnvironment",
+        "DaftPunkEnvironment",
+        "HipHopEnvironment"
     };
 
     private static readonly string[] supportedEnvironments = new string[]
@@ -79,7 +81,9 @@ public class EnvironmentManager : MonoBehaviour
         "TriangleEnvironment",
         "NiceEnvironment",
         "BigMirrorEnvironment",
-        "TimbalandEnvironment"
+        "DragonsEnvironment",
+        "TimbalandEnvironment",
+        "FitBeatEnvironment"
     };
 
     public static EnvironmentLightParameters CurrentEnvironmentParameters = new EnvironmentLightParameters();
@@ -152,7 +156,6 @@ public class EnvironmentManager : MonoBehaviour
         if(sceneIndex == targetSceneIndex && sceneIndex == CurrentSceneIndex)
         {
             Debug.Log($"Correct scene is already loaded.");
-            OnEnvironmentUpdated?.Invoke(CurrentSceneIndex);
             return;
         }
 
@@ -164,7 +167,8 @@ public class EnvironmentManager : MonoBehaviour
         catch(InvalidOperationException)
         {
             //Missing parameters for this environment
-            CurrentEnvironmentParameters = EnvironmentParameters.First();
+            Debug.LogWarning($"Missing environment parameters for {environmentName}!");
+            CurrentEnvironmentParameters = new EnvironmentLightParameters();
         }
 
         if(!Loading)
@@ -209,21 +213,25 @@ public class EnvironmentLightParameters
     public int RotatingLaserCount = 4;
     public bool RandomizeRotatingLasers = true;
     public float RotatingLaserStep = 0f;
-    
+
     [Space]
+    public float SmallRingRotationSpeed = 2f;
     public float SmallRingRotationAmount = 90f;
+    public float SmallRingRotationProp = 1f;
     public float SmallRingMaxStep = 5f;
     public float SmallRingStartAngle = -45f;
     public float SmallRingStartStep = 3f;
 
     [Space]
+    public float BigRingRotationSpeed = 2f;
     public float BigRingRotationAmount = 45f;
+    public float BigRingRotationProp = 1f;
     public float BigRingMaxStep = 5f;
     public float BigRingStartAngle = -45f;
     public float BigRingStartStep = 0f;
 
     [Space]
-    public float ZoomSpeed = 1.5f;
+    public float ZoomSpeed = 2f;
     public float CloseZoomStep = 2f;
     public float FarZoomStep = 5f;
     public bool StartRingZoomParity = true;

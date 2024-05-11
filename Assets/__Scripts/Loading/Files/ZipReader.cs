@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using UnityEngine;
 
 public class ZipReader : IMapDataLoader
@@ -50,7 +50,7 @@ public class ZipReader : IMapDataLoader
         MapLoader.LoadingMessage = "Loading song";
         await Task.Yield();
 
-        string songFilename = info._songFilename ?? "";
+        string songFilename = info.audio?.songFilename ?? "";
         using Stream songStream = Archive.GetEntryCaseInsensitive(songFilename)?.Open();
         if(songStream == null)
         {
@@ -84,7 +84,7 @@ public class ZipReader : IMapDataLoader
         await Task.Yield();
 
         byte[] coverImageData = new byte[0];
-        string coverFilename = info._coverImageFilename ?? "";
+        string coverFilename = info.coverImageFilename ?? "";
         using Stream coverImageStream = Archive.GetEntryCaseInsensitive(coverFilename)?.Open();
         if(coverImageStream == null)
         {
@@ -119,16 +119,57 @@ public class ZipReader : IMapDataLoader
             return LoadedMapData.Empty;
         }
 
-        Debug.Log($"Loaded info for {info._songAuthorName} - {info._songName}, mapped by {info._levelAuthorName}");
+        Debug.Log($"Loaded info for {info.song.author} - {info.song.title}");
 
-        if(info._difficultyBeatmapSets == null || info._difficultyBeatmapSets.Length < 1)
+        if(info.difficultyBeatmaps == null || info.difficultyBeatmaps.Length < 1)
         {
-            Debug.LogWarning("Info lists no difficulty sets!");
+            Debug.LogWarning("Info lists no difficulties!");
             return LoadedMapData.Empty;
         }
-        List<Difficulty> difficulties = await DifficultyLoader.GetDifficultiesAsync(info, Archive);
 
-        return new LoadedMapData(info, difficulties);
+        LoadedMapData mapData = new LoadedMapData(info)
+        {
+            BpmEvents = GetBpmEvents(info),
+            Lightshows = await LightshowLoader.GetLightshowsAsync(info, null, Archive)
+        };
+        mapData.Difficulties = await DifficultyLoader.GetDifficultiesAsync(mapData, null, Archive);
+
+        return mapData;
+    }
+
+
+    private BeatmapBpmEvent[] GetBpmEvents(BeatmapInfo info)
+    {
+        if(string.IsNullOrEmpty(info?.audio?.audioDataFilename))
+        {
+            //No audio data is listed by the info
+            return null;
+        }
+
+        string audioDataFilename = info.audio.audioDataFilename;
+        try
+        {
+            Debug.Log($"Loading {audioDataFilename}");
+            
+            using Stream audioDataStream = Archive.GetEntryCaseInsensitive(audioDataFilename)?.Open();
+            if(audioDataStream == null)
+            {
+                Debug.LogWarning($"Unable to find {audioDataFilename}!");
+                ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Failed to load audio metadata! BPM might not line up.");
+                return null;
+            }
+            else
+            {
+                string audioDataJson = Encoding.UTF8.GetString(FileUtil.StreamToBytes(audioDataStream));
+                return JsonReader.ParseBpmEventsFromAudioJson(audioDataJson);
+            }
+        }
+        catch(Exception err)
+        {
+            Debug.LogWarning($"Audio data loading failed with error: {err.Message}, {err.StackTrace}");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Failed to load audio metadata! BPM might not line up.");
+            return null;
+        }
     }
 
 
@@ -197,58 +238,36 @@ public class ZipReader : IMapDataLoader
             return null;
         }
 
-        string infoJson = System.Text.Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
-        try
-        {
-            return JsonReader.DeserializeObject<BeatmapInfo>(infoJson);
-        }
-        catch(Exception e)
+        string infoJson = Encoding.UTF8.GetString(FileUtil.StreamToBytes(infoData));
+        BeatmapInfo info = JsonReader.ParseInfoFromJson(infoJson);
+
+        if(info == null)
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Error, "Unable to parse Info.dat!");
-            Debug.LogWarning($"Failed to parse Info.dat with error: {e.Message}, {e.StackTrace}");
-
-            return null;
-        }
-    }
-
-
-    public static Difficulty GetDifficulty(ZipArchive archive, DifficultyBeatmap beatmap)
-    {
-        string filename = beatmap._beatmapFilename;
-        Debug.Log($"Getting archive entry for {filename}");
-
-        ZipArchiveEntry entry = archive.GetEntryCaseInsensitive(filename);
-        if(entry == null)
-        {
-            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to load {filename}!");
-            Debug.LogWarning("Difficulty file not found!");
-            return null;
         }
 
-        return GetDifficulty(entry, beatmap);
+        return info;
     }
 
 
-    public static Difficulty GetDifficulty(ZipArchiveEntry entry, DifficultyBeatmap beatmap)
+    public static BeatmapLightshowV4 GetLightshow(byte[] lightshowData)
     {
-        Debug.Log($"Reading data from {beatmap._beatmapFilename}");
-        byte[] diffData = FileUtil.StreamToBytes(entry.Open());
-
-        return GetDifficulty(diffData, beatmap);
+        string lightshowJson = Encoding.UTF8.GetString(lightshowData);
+        return JsonReader.DeserializeObject<BeatmapLightshowV4>(lightshowJson);
     }
 
 
-    public static Difficulty GetDifficulty(byte[] diffData, DifficultyBeatmap beatmap)
+    public static Difficulty GetDifficulty(byte[] diffData, DifficultyBeatmap beatmap, LoadedMapData mapData)
     {
         Difficulty output = new Difficulty
         {
-            difficultyRank = MapLoader.DiffValueFromString[beatmap._difficulty],
-            noteJumpSpeed = beatmap._noteJumpMovementSpeed,
-            spawnOffset = beatmap._noteJumpStartBeatOffset
+            difficultyRank = BeatmapInfo.DifficultyRankFromString(beatmap.difficulty),
+            noteJumpSpeed = beatmap.noteJumpMovementSpeed,
+            spawnOffset = beatmap.noteJumpStartBeatOffset
         };
 
-        string diffJson = System.Text.Encoding.UTF8.GetString(diffData);
-        output.beatmapDifficulty = JsonReader.ParseBeatmapFromJson(diffJson, beatmap._beatmapFilename);
+        string diffJson = Encoding.UTF8.GetString(diffData);
+        output.beatmapDifficulty = JsonReader.GetBeatmapDifficulty(diffJson, beatmap, mapData);
 
         return output;
     }

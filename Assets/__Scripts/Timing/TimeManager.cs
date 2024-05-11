@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class TimeManager : MonoBehaviour
 {
-    public static float BaseBPM => BeatmapManager.Info._beatsPerMinute;
+    public static float BaseBPM => BeatmapManager.Info.audio.bpm;
     public static float TimeScale = 1f;
 
     public static List<BpmChange> BpmChanges = new List<BpmChange>();
@@ -159,7 +159,7 @@ public class TimeManager : MonoBehaviour
         BpmChanges.Clear();
 
         List<BeatmapBpmEvent> bpmEvents = new List<BeatmapBpmEvent>();
-        bpmEvents.AddRange(difficulty.beatmapDifficulty.bpmEvents);
+        bpmEvents.AddRange(difficulty.beatmapDifficulty.BpmEvents);
         //Events must be ordered by beat for this to work (they almost always are but just gotta be safe)
         bpmEvents = bpmEvents.OrderBy(x => x.b).ToList();
 

@@ -21,6 +21,8 @@ public class SpeedSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
     private const float sliderStepScale = 0.05f;
     private const float bindingStepScale = 0.1f;
+    private const float minSpeed = 0.01f;
+    private const float maxSpeed = 2f;
 
 
     public void ShowSlider()
@@ -103,14 +105,15 @@ public class SpeedSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     private void SetTimeScale(float timeScale)
     {
         timeScale = (float)Math.Round(timeScale, 2);
-        TimeSyncHandler.TimeScale = Mathf.Clamp(timeScale, 0, 2);
+        TimeSyncHandler.TimeScale = Mathf.Clamp(timeScale, minSpeed, maxSpeed);
     }
 
 
     private void UpdateValueDisplay()
     {
-        slider.SetValueWithoutNotify(TimeSyncHandler.TimeScale / sliderStepScale);
-        inputField.SetTextWithoutNotify(TimeSyncHandler.TimeScale.ToString() + textSuffix);
+        float timeScale = TimeSyncHandler.TimeScale;
+        slider.SetValueWithoutNotify(timeScale <= minSpeed ? 0f : timeScale / sliderStepScale);
+        inputField.SetTextWithoutNotify(timeScale.ToString() + textSuffix);
     }
 
 

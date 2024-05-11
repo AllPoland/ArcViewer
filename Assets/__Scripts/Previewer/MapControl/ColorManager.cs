@@ -163,6 +163,10 @@ public class ColorManager : MonoBehaviour
                 return RollingStonesColors;
             case "LatticeEnvironment":
                 return LatticeColors;
+            case "DaftPunkEnvironment":
+                return DaftPunkColors;
+            case "HipHopEnvironment":
+                return HipHopColors;
         }
     }
 
@@ -578,6 +582,34 @@ public class ColorManager : MonoBehaviour
         BoostLightColor2 = new Color(0.40392160415649414f, 0.917647123336792f, 0.917647123336792f),
         BoostWhiteLightColor = Color.white,
         WallColor = new Color(0.46855342388153076f, 0.7095922231674194f, 1.0f)
+    };
+
+
+    public static ColorPalette DaftPunkColors => new ColorPalette
+    {
+        LeftNoteColor = new Color(0.7215686f, 0.2254902f, 0.1803922f),
+        RightNoteColor = new Color(0.1215686f, 0.6980392f, 0.6901961f),
+        LightColor1 = new Color(1f, 0.7017543f, 0.2515723f),
+        LightColor2 = new Color(0.5215687f, 0.3294118f, 0.8196079f),
+        WhiteLightColor = new Color(0.4784314f, 0.8117647f, 1f),
+        BoostLightColor1 = new Color(0.8588235f, 0f, 0.4784314f),
+        BoostLightColor2 = new Color(0f, 0.8196079f, 0.8039216f),
+        BoostWhiteLightColor = new Color(1f, 0.834256f, 0.4874213f),
+        WallColor = new Color(0.6068091f, 0f, 1f)
+    };
+
+
+    public static ColorPalette HipHopColors => new ColorPalette
+    {
+        LeftNoteColor = new Color(1f, 0.58431372549f, 0.313725490196f),
+        RightNoteColor = new Color(0.0156862745098f, 0.611764705882f, 0.588235294118f),
+        LightColor1 = new Color(0.913725490196f, 0.494117647059f, 0f),
+        LightColor2 = new Color(0.0588235294118f, 0.803921568627f, 0.18431372549f),
+        WhiteLightColor = Color.white,
+        BoostLightColor1 = new Color(0.141176470588f, 1f, 0.96862745098f),
+        BoostLightColor2 = new Color(0.227450980392f, 0.274509803922f, 1f),
+        BoostWhiteLightColor = Color.white,
+        WallColor = new Color(1f, 0.313725490196f, 0.552941176471f)
     };
 }
 

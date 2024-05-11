@@ -11,13 +11,16 @@ public static class JsonReader
     public static Regex VersionRx = new Regex(@"version""\s*:\s*""(\d\.?)*", RegexOptions.Compiled);
 
 
-    public static async Task<BeatmapInfo> LoadInfoAsync(string location)
+    public static async Task<BeatmapInfo> LoadInfoAsync(string directory)
     {
         Debug.Log("Loading text from Info.dat");
-        string json = await ReadFileAsync(location);
+
+        string infoPath = Path.Combine(directory, "Info.dat");
+        string json = await ReadFileAsync(infoPath);
 
         if(json == "")
         {
+            Debug.LogWarning("Empty data in Info.dat!");
             return null;
         }
 
@@ -34,7 +37,31 @@ public static class JsonReader
 
         try
         {
-            info = DeserializeObject<BeatmapInfo>(json);
+            Match match = VersionRx.Match(json);
+
+            //Get only the version number
+            string versionNumber = match.Value.Split('"').Last();
+            Debug.Log($"Info.dat is version: {versionNumber}");
+
+            string[] v4Versions = {"4.0.0"};
+            string[] v2Versions = {"2.0.0", "2.1.0"};
+            
+            if(v4Versions.Contains(versionNumber))
+            {
+                Debug.Log("Parsing Info.dat in V4 format.");
+                info = DeserializeObject<BeatmapInfo>(json);
+            }
+            else if(v2Versions.Contains(versionNumber))
+            {
+                Debug.Log("Parsing Info.dat in V2 format.");
+                BeatmapInfoV2 v2Info = DeserializeObject<BeatmapInfoV2>(json);
+                info = v2Info.ConvertToV4();
+            }
+            else
+            {
+                Debug.LogWarning("Info.dat has missing or unsupported version.");
+                info = ParseInfoFallback(json);
+            }
         }
         catch(Exception err)
         {
@@ -42,21 +69,109 @@ public static class JsonReader
             return null;
         }
 
-        info?.AddNulls();
         return info;
     }
 
 
-    public static async Task<Difficulty> LoadDifficultyAsync(string directory, DifficultyBeatmap beatmap)
+    private static BeatmapInfo ParseInfoFallback(string json)
+    {
+        Debug.Log("Trying to fallback load Info.dat in V4 format.");
+        BeatmapInfo infoV4 = DeserializeObject<BeatmapInfo>(json);
+
+        if(infoV4?.HasFields ?? false)
+        {
+            Debug.Log("Fallback for Info.dat succeeded in V4.");
+            return infoV4;
+        }
+
+        Debug.Log("Fallback for Info.dat failed in V4, trying V2.");
+        BeatmapInfoV2 infoV2 = DeserializeObject<BeatmapInfoV2>(json);
+
+        if(infoV2?.HasFields ?? false)
+        {
+            Debug.Log("Fallback for Info.dat succeeded in V2.");
+            return infoV2.ConvertToV4();
+        }
+
+        Debug.LogWarning("Info.dat is in an unsupported or missing version!");
+        return null;
+    }
+
+
+    public static async Task<BeatmapBpmEvent[]> GetBpmEventsAsync(BeatmapInfo info, string directory)
+    {
+        if(string.IsNullOrEmpty(info?.audio?.audioDataFilename))
+        {
+            //No audio data is listed by the info
+            return null;
+        }
+
+        string audioDataFilename = info.audio.audioDataFilename;
+        try
+        {
+            Debug.Log($"Loading {audioDataFilename}");
+
+            string audioPath = Path.Combine(directory, audioDataFilename);
+            string audioJson = await ReadFileAsync(audioPath);
+
+            return ParseBpmEventsFromAudioJson(audioJson);
+        }
+        catch(Exception err)
+        {
+            Debug.LogWarning($"Audio data loading failed with error: {err.Message}, {err.StackTrace}");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Failed to load audio metadata! BPM might not line up.");
+            return null;
+        }
+    }
+
+
+    public static BeatmapBpmEvent[] ParseBpmEventsFromAudioJson(string json)
+    {
+        AudioDataV4 audioData = DeserializeObject<AudioDataV4>(json);
+
+        if(audioData?.bpmData == null)
+        {
+            Debug.LogWarning("Empty bpm data in audio file!");
+            return null;
+        }
+
+        return audioData.GetBpmChanges();
+    }
+
+
+    public static async Task<BeatmapLightshowV4> LoadLightshowAsync(string directory, string lightshowFilename)
+    {
+        try
+        {
+            string lightshowPath = Path.Combine(directory, lightshowFilename);
+            string json = await ReadFileAsync(lightshowPath);
+
+            if(json == null)
+            {
+                Debug.LogWarning($"Empty data in {lightshowFilename}!");
+                return null;
+            }
+
+            return DeserializeObject<BeatmapLightshowV4>(json);
+        }
+        catch(Exception err)
+        {
+            Debug.LogWarning($"Failed to load {lightshowFilename} with error: {err.Message}, {err.StackTrace}");
+            return null;
+        }
+    }
+
+
+    public static async Task<Difficulty> LoadDifficultyAsync(string directory, DifficultyBeatmap beatmap, LoadedMapData mapData)
     {
         Difficulty output = new Difficulty
         {
-            difficultyRank = MapLoader.DiffValueFromString[beatmap._difficulty],
-            noteJumpSpeed = beatmap._noteJumpMovementSpeed,
-            spawnOffset = beatmap._noteJumpStartBeatOffset
+            difficultyRank = BeatmapInfo.DifficultyRankFromString(beatmap.difficulty),
+            noteJumpSpeed = beatmap.noteJumpMovementSpeed,
+            spawnOffset = beatmap.noteJumpStartBeatOffset
         };
 
-        string filename = beatmap._beatmapFilename;
+        string filename = beatmap.beatmapDataFilename;
         Debug.Log($"Loading json from {filename}");
 
         string location = Path.Combine(directory, filename);
@@ -69,18 +184,21 @@ public static class JsonReader
         }
 
         Debug.Log($"Parsing {filename}");
-        output.beatmapDifficulty = ParseBeatmapFromJson(json, filename);
+        output.beatmapDifficulty = GetBeatmapDifficulty(json, beatmap, mapData);
 
         return output;
     }
 
 
-    public static BeatmapDifficulty ParseBeatmapFromJson(string json, string filename = "{UnknownDifficulty}")
+    public static BeatmapDifficulty GetBeatmapDifficulty(string json, DifficultyBeatmap beatmap, LoadedMapData mapData)
     {
+        string filename = beatmap.beatmapDataFilename;
+
         BeatmapDifficulty difficulty;
 
         try
         {
+            string[] v4Versions = {"4.0.0"};
             string[] v3Versions = {"3.0.0", "3.1.0", "3.2.0", "3.3.0"};
             string[] v2Versions = {"2.0.0", "2.2.0", "2.5.0", "2.6.0"};
 
@@ -91,59 +209,77 @@ public static class JsonReader
             Debug.Log($"{filename} is version: {versionNumber}");
 
             //Search for a matching version and parse the correct map format
-            if(v3Versions.Contains(versionNumber))
+            if(v4Versions.Contains(versionNumber))
+            {
+                Debug.Log($"Parsing {filename} in V4 format.");
+                BeatmapDifficultyV4 beatmapData = DeserializeObject<BeatmapDifficultyV4>(json);
+                difficulty = new BeatmapWrapperV4(beatmapData, mapData.GetLightshow(beatmap.lightshowDataFilename), mapData.BpmEvents);
+            }
+            else if(v3Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V3 format.");
-                difficulty = DeserializeObject<BeatmapDifficulty>(json);
+                BeatmapDifficultyV3 beatmapData = DeserializeObject<BeatmapDifficultyV3>(json);
+                difficulty = new BeatmapWrapperV3(beatmapData);
             }
             else if(v2Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V2 format.");
 
-                BeatmapDifficultyV2 v2Diff = DeserializeObject<BeatmapDifficultyV2>(json);
-                difficulty = v2Diff.ConvertToV3();
+                BeatmapDifficultyV2 beatmapData = DeserializeObject<BeatmapDifficultyV2>(json);
+                difficulty = new BeatmapWrapperV3(beatmapData.ConvertToV3());
             }
             else
             {
                 Debug.LogWarning($"Unable to match map version for {filename}. The map has either a missing or unsupported version.");
-
-                Debug.Log($"Trying to fallback load {filename} in V3 format.");
-                BeatmapDifficulty v3Diff = DeserializeObject<BeatmapDifficulty>(json);
-
-                if(v3Diff?.HasObjects ?? false)
-                {
-                    Debug.Log($"Fallback for {filename} succeeded in V3.");
-                    difficulty = v3Diff;
-                }
-                else
-                {
-                    Debug.Log($"Fallback for {filename} failed in V3, trying V2.");
-                    BeatmapDifficultyV2 v2Diff = DeserializeObject<BeatmapDifficultyV2>(json);
-
-                    if(v2Diff?.HasObjects ?? false)
-                    {
-                        Debug.Log($"Fallback for {filename} succeeded in V2.");
-                        difficulty = v2Diff.ConvertToV3();
-                    }
-                    else
-                    {
-                        ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to find difficulty version from {filename}!");
-                        Debug.LogWarning($"{filename} is in an unsupported or missing version!");
-                        return new BeatmapDifficulty();
-                    }
-                }
+                difficulty = ParseBeatmapFallback(json, beatmap, mapData);
             }
         }
         catch(Exception err)
         {
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to parse {filename}!");
             Debug.LogWarning($"Unable to parse {filename} file with error: {err.Message}, {err.StackTrace}.");
-            return new BeatmapDifficulty();
+            return BeatmapDifficulty.GetDefault();
         }
 
-        difficulty.AddNulls();
-        Debug.Log($"Parsed {filename} with {difficulty.colorNotes.Length} notes, {difficulty.bombNotes.Length} bombs, {difficulty.obstacles.Length} walls, {difficulty.sliders.Length} arcs, {difficulty.burstSliders.Length} chains.");
+        Debug.Log($"Parsed {filename} with {difficulty.Notes.Length} notes, {difficulty.Bombs.Length} bombs, {difficulty.Walls.Length} walls, {difficulty.Arcs.Length} arcs, {difficulty.Chains.Length} chains.");
         return difficulty;
+    }
+
+
+    private static BeatmapDifficulty ParseBeatmapFallback(string json, DifficultyBeatmap beatmap, LoadedMapData mapData)
+    {
+        string filename = beatmap.beatmapDataFilename;
+
+        Debug.Log($"Trying to fallback load {filename} in V4 format.");
+        BeatmapDifficultyV4 v4Diff = DeserializeObject<BeatmapDifficultyV4>(json);
+
+        if(v4Diff?.HasObjects ?? false)
+        {
+            Debug.Log($"Fallback for {filename} succeeded in V4.");
+            return new BeatmapWrapperV4(v4Diff, mapData.GetLightshow(beatmap.lightshowDataFilename), mapData.BpmEvents);
+        }
+
+        Debug.Log($"Fallback for {filename} failed in V4, trying V3.");
+        BeatmapDifficultyV3 v3Diff = DeserializeObject<BeatmapDifficultyV3>(json);
+
+        if(v3Diff?.HasObjects ?? false)
+        {
+            Debug.Log($"Fallback for {filename} succeeded in V3.");
+            return new BeatmapWrapperV3(v3Diff);
+        }
+
+        Debug.Log($"Fallback for {filename} failed in V3, trying V2.");
+        BeatmapDifficultyV2 v2Diff = DeserializeObject<BeatmapDifficultyV2>(json);
+
+        if(v2Diff?.HasObjects ?? false)
+        {
+            Debug.Log($"Fallback for {filename} succeeded in V2.");
+            return new BeatmapWrapperV3(v2Diff.ConvertToV3());
+        }
+
+        ErrorHandler.Instance.QueuePopup(ErrorType.Warning, $"Unable to find difficulty version for {filename}!");
+        Debug.LogWarning($"{filename} is in an unsupported or missing version!");
+        return BeatmapDifficulty.GetDefault();
     }
 
 
@@ -176,7 +312,7 @@ public static class JsonReader
 
     public static void HandleDeserializationError(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args)
     {
-        Debug.LogWarning($"Error parsing json: {args.ErrorContext.Error.Message}");
+        Debug.LogWarning($"Error parsing json: {args.ErrorContext.Error.Message}, {args.ErrorContext.Error.StackTrace}");
         args.ErrorContext.Handled = true;
     }
 }
