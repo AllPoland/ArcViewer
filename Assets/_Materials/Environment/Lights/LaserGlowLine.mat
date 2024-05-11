@@ -8,13 +8,13 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: LaserGlowLine
-  m_Shader: {fileID: -6465566751694194690, guid: 31eafdcfd0586c94e943b01476285f6e, type: 3}
+  m_Shader: {fileID: 4800000, guid: c79d637956ae0104d99b3d13d0478953, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -97,6 +97,7 @@ Material:
     - _CastShadows: 0
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
+    - _ColorMult: 1
     - _Cull: 2
     - _Cutoff: 0.5
     - _DepthFalloff: 0.25
@@ -141,6 +142,7 @@ Material:
     - _BaseColor: {r: 0.1882353, g: 0.6745098, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _LaserColor: {r: 0.1882353, g: 0.6745098, b: 1, a: 1}
     - _LightMinMax: {r: 0.55, g: 1, b: 0, a: 0}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
     - _TexMinMax: {r: -0.5, g: 0.5, b: 0, a: 0}

@@ -10,6 +10,7 @@ public class LightHandler : MonoBehaviour
     [SerializeField] public LightEventType type;
     [SerializeField] public int id;
     [SerializeField] public float emissionMult = 1f;
+    [SerializeField] public float glowMult = 1f;
 
     private MaterialPropertyBlock laserProperties;
     private MaterialPropertyBlock glowProperties;
@@ -50,7 +51,7 @@ public class LightHandler : MonoBehaviour
     private void SetProperties(Color laserColor, Color glowColor)
     {
         laserProperties.SetColor("_LaserColor", laserColor);
-        glowProperties.SetColor("_BaseColor", glowColor);
+        glowProperties.SetColor("_LaserColor", glowColor);
 
         UpdateProperties();
     }
@@ -69,6 +70,7 @@ public class LightHandler : MonoBehaviour
         glowProperties = new MaterialPropertyBlock();
 
         laserProperties.SetFloat("_ColorMult", emissionMult);
+        glowProperties.SetFloat("_ColorMult", glowMult);
     }
 
 
