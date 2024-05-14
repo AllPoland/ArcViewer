@@ -266,7 +266,8 @@ public class DifficultyBeatmapCustomDataV2
             envColorWhite = _envColorWhite,
             envColorLeftBoost = _envColorLeftBoost,
             envColorRightBoost = _envColorRightBoost,
-            envColorWhiteBoost = _envColorWhiteBoost
+            envColorWhiteBoost = _envColorWhiteBoost,
+            obstacleColor = _obstacleColor
         };
     }
 }
