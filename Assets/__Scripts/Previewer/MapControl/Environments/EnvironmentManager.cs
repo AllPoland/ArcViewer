@@ -82,6 +82,7 @@ public class EnvironmentManager : MonoBehaviour
         "NiceEnvironment",
         "BigMirrorEnvironment",
         "DragonsEnvironment",
+        "KDAEnvironment",
         "TimbalandEnvironment",
         "FitBeatEnvironment"
     };
