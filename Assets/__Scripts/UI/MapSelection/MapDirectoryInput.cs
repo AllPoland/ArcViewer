@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Web;
 using UnityEngine;
 using UnityEngine.UI;
@@ -38,12 +36,13 @@ public class MapDirectoryInput : MonoBehaviour
     }
 
 
-    private List<string> ConvertBeatLeaderViewerParameters(NameValueCollection parameters)
+    private List<string> ConvertBeatLeaderViewerParameters(List<KeyValuePair<string, string>> parameters)
     {
         List<string> convertedArgs = new List<string>();
-        foreach(string name in parameters.AllKeys)
+        foreach(KeyValuePair<string, string> pair in parameters)
         {
-            string value = parameters.Get(name);
+            string name = pair.Key;
+            string value = pair.Value;
 
             string newName;
             switch(name)
@@ -99,9 +98,8 @@ public class MapDirectoryInput : MonoBehaviour
         {
             //Convert BeatLeader viewer links to ArcViewer parameters
             string url = HttpUtility.UrlDecode(MapDirectory);
-            Uri uri = new Uri(url);
 
-            NameValueCollection parameters = HttpUtility.ParseQueryString(uri.Query);
+            List<KeyValuePair<string, string>> parameters = UrlUtility.ParseUrlParams(url);
             List<string> convertedArgs = ConvertBeatLeaderViewerParameters(parameters);
 
             if(convertedArgs.Count > 0)
