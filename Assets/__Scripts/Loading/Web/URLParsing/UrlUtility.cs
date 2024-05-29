@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using UnityEngine;
 
 public static class UrlUtility
 {
@@ -37,7 +36,6 @@ public static class UrlUtility
                 }
             }
 
-            Debug.Log($"{key}={value}");
             combined.Add(new KeyValuePair<string, string>(key, value));
         }
 

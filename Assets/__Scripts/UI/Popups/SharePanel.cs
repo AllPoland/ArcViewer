@@ -1,3 +1,4 @@
+using System.Web;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -29,7 +30,7 @@ public class SharePanel : MonoBehaviour
             }
             else if(!string.IsNullOrEmpty(UrlArgHandler.LoadedReplayURL))
             {
-                newText += $"?replayURL={UrlArgHandler.LoadedReplayURL}";
+                newText += $"?replayURL={HttpUtility.UrlEncode(UrlArgHandler.LoadedReplayURL)}";
             }
             else
             {
@@ -41,7 +42,7 @@ public class SharePanel : MonoBehaviour
             if(!UrlArgHandler.ignoreMapForSharing && !string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL))
             {
                 //Include custom set map for replays
-                newText += $"&url={UrlArgHandler.LoadedMapURL}";
+                newText += $"&url={HttpUtility.UrlEncode(UrlArgHandler.LoadedMapURL)}";
             }
         }
         else
@@ -52,7 +53,7 @@ public class SharePanel : MonoBehaviour
             }
             else if(!string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL))
             {
-                newText += $"?url={UrlArgHandler.LoadedMapURL}";
+                newText += $"?url={HttpUtility.UrlEncode(UrlArgHandler.LoadedMapURL)}";
             }
             else
             {
