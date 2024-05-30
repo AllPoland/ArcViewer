@@ -678,6 +678,10 @@ public class MapLoader : MonoBehaviour
 #endif
     }
 
+    public void LoadMapInput(string input)
+    {
+        LoadMapInput(input, false);
+    }
 
     public void LoadMapInput(string input, bool forceReplay = false)
     {
