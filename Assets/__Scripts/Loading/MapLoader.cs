@@ -678,10 +678,6 @@ public class MapLoader : MonoBehaviour
 #endif
     }
 
-    public void LoadMapInput(string input)
-    {
-        LoadMapInput(input, false);
-    }
 
     public void LoadMapInput(string input, bool forceReplay = false)
     {
@@ -768,6 +764,18 @@ public class MapLoader : MonoBehaviour
         UrlArgHandler.LoadedMapURL = null;
         LoadMapDirectory(input);
 #endif
+    }
+
+
+    /// <summary>
+    /// Single-argument overload for <see cref="LoadMapInput(string, bool)"/>.
+    /// <br></br>
+    /// This is intended for using with <c>SendMessage(...)</c> because that method only allows one parameter to be passed.
+    /// </summary>
+    /// <param name="input">Map URL or BeatSaver ID</param>
+    public void LoadMapInput(string input)
+    {
+        LoadMapInput(input, false);
     }
 
 
