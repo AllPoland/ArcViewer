@@ -679,7 +679,7 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    public void LoadMapInput(string input, bool forceReplay = false)
+    public void LoadMapInput(string input)
     {
         if(DialogueHandler.DialogueActive)
         {
@@ -692,6 +692,11 @@ public class MapLoader : MonoBehaviour
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "You're already loading something!");
             Debug.LogWarning("Trying to load a map while already loading!");
             return;
+        }
+
+        if(UIStateManager.CurrentState != UIState.MapSelection)
+        {
+            UIStateManager.CurrentState = UIState.MapSelection;
         }
 
         if(!ReplayManager.IsReplayMode)
@@ -736,7 +741,7 @@ public class MapLoader : MonoBehaviour
             return;
         }
 
-        if(!ReplayManager.IsReplayMode && (forceReplay || SettingsManager.GetBool("replaymode")))
+        if(!ReplayManager.IsReplayMode && SettingsManager.GetBool("replaymode"))
         {
             if(!input.Any(x => !char.IsDigit(x)))
             {
@@ -749,7 +754,7 @@ public class MapLoader : MonoBehaviour
         {
             const string IDchars = "0123456789abcdef";
             //If the directory doesn't contain any characters that aren't hexadecimal, that means it's probably an ID
-            if(!input.Any(x => !IDchars.Contains(x)))
+            if(!input.ToLower().Any(x => !IDchars.Contains(x)))
             {
                 StartCoroutine(LoadMapIDCoroutine(input));
                 UrlArgHandler.LoadedMapID = input;
