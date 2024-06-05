@@ -18,7 +18,7 @@ public class SettingsMenu : MonoBehaviour
 
     public static event Action<bool> OnOpenUpdated;
 
-    private SettingsTab _currentTab = SettingsTab.General;
+    private SettingsTab _currentTab;
     public SettingsTab CurrentTab
     {
         get => _currentTab;

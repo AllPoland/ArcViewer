@@ -48,6 +48,26 @@ public class CameraUpdater : MonoBehaviour
     private Quaternion fpCameraRotationDeriv = new Quaternion(0f, 0f, 0f, 0f);
 
 
+    private void UpdateFov()
+    {
+        int fov;
+        if(Freecam)
+        {
+            fov = SettingsManager.GetInt("freecamfov");
+        }
+        else if(ReplayManager.IsReplayMode)
+        {
+            fov = SettingsManager.GetBool("firstpersonreplay") ? SettingsManager.GetInt("fpcamerafov") : SettingsManager.GetInt("replaycamerafov");
+        }
+        else fov = SettingsManager.GetInt("camerafov");
+
+        foreach(Camera camera in affectedCameras)
+        {
+            camera.fieldOfView = fov;
+        }
+    }
+
+
     private void SetPreviewCamera()
     {
         firstPerson = false;
@@ -131,9 +151,6 @@ public class CameraUpdater : MonoBehaviour
     }
 
 
-    private void UpdateBeat(float _) => UpdateFirstPersonCamera(true);
-
-
     private void UpdateFreecam()
     {
         freecamController.enabled = Freecam;
@@ -148,24 +165,20 @@ public class CameraUpdater : MonoBehaviour
         }
         else if(firstPerson)
         {
-            //Hack to avoid force updating the camera
+            //Enabling freecam disables first person
+            firstPerson = false;
+
+            //Hack to avoid resetting the camera while still notifying other subscribers
             SettingsManager.OnSettingsUpdated -= UpdateCameraSettings;
 
             SettingsManager.SetRule("firstpersonreplay", false);
 #if !UNITY_WEBGL || UNITY_EDITOR
             SettingsManager.SaveSettingsStatic();
 #endif
-            firstPerson = false;
-
-            foreach(Camera camera in affectedCameras)
-            {
-                //Reset fov to normal replay fov
-                //We know we're in a replay couse there's no other way to be in first person
-                camera.fieldOfView = SettingsManager.GetInt("replaycamerafov");
-            }
-
             SettingsManager.OnSettingsUpdated += UpdateCameraSettings;
         }
+
+        UpdateFov();
     }
 
 
@@ -192,19 +205,9 @@ public class CameraUpdater : MonoBehaviour
             SetPreviewCamera();
         }
 
-        if(allSettings || setting == "firstpersonreplay" || setting == "camerafov" || setting == "replaycamerafov" || setting == "fpcamerafov")
+        if(allSettings || setting == "firstpersonreplay" || setting == "camerafov" || setting == "replaycamerafov" || setting == "fpcamerafov" || setting == "freecamfov")
         {
-            int fov;
-            if(ReplayManager.IsReplayMode)
-            {
-                fov = SettingsManager.GetBool("firstpersonreplay") ? SettingsManager.GetInt("fpcamerafov") : SettingsManager.GetInt("replaycamerafov");
-            }
-            else fov = SettingsManager.GetInt("camerafov");
-
-            foreach(Camera camera in affectedCameras)
-            {
-                camera.fieldOfView = fov;
-            }
+            UpdateFov();
         }
     }
 

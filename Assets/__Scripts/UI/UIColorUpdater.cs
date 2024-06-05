@@ -22,6 +22,11 @@ public class UIColorUpdater : MonoBehaviour
             return;
         }
 
+        if(palette == null)
+        {
+            return;
+        }
+
         switch(colorType)
         {
             default:
@@ -44,10 +49,7 @@ public class UIColorUpdater : MonoBehaviour
     private void OnEnable()
     {
         UIColorManager.OnColorPaletteChanged += UpdateColors;
-        if(UIColorManager.ColorPalette != null)
-        {
-            UpdateColors(UIColorManager.ColorPalette);
-        }
+        UpdateColors(UIColorManager.ColorPalette);
     }
 
 
