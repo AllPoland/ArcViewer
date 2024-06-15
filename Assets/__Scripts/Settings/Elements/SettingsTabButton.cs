@@ -1,6 +1,5 @@
 using UnityEngine;
 
-[RequireComponent(typeof(RectTransform))]
 public class SettingsTabButton : MonoBehaviour
 {
     [Header("Components")]
@@ -11,10 +10,6 @@ public class SettingsTabButton : MonoBehaviour
     [SerializeField] public SettingsTab targetTab;
     [SerializeField] private UIColorType inactiveColorType;
     [SerializeField] private UIColorType activeColorType;
-    [SerializeField] private float inactiveWidth = 50f;
-    [SerializeField] private float activeWidth = 70f;
-
-    private RectTransform rectTransform;
 
 
     public void SetTargetTab()
@@ -32,17 +27,12 @@ public class SettingsTabButton : MonoBehaviour
 
         UIColorType newColorType = active ? activeColorType : inactiveColorType;
         colorUpdater.SetColorType(newColorType);
-
-        float newWidth = active ? activeWidth : inactiveWidth;
-        rectTransform.sizeDelta = new Vector2(newWidth, rectTransform.sizeDelta.y);
     }
 
 
     private void OnEnable()
     {
-        rectTransform = (RectTransform)transform;
         settingsMenu.OnTabUpdated += UpdateTab;
-
         UpdateTab(settingsMenu.CurrentTab);
     }
 
