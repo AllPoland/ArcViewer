@@ -75,14 +75,11 @@ public class HitSoundManager : MonoBehaviour
         }
         else source.pitch = 1;
 
-#if !UNITY_WEBGL || UNITY_EDITOR
         if(Spatial)
         {
-            //A bit less than full spacial blend because I think having the sounds way in one ear is weird
-            source.spatialBlend = 0.8f;
+            source.spatialBlend = 1f;
         }
         else source.spatialBlend = 0;
-#endif
 
         if(Spatial)
         {
