@@ -268,7 +268,7 @@ public class NoteManager : MapElementManager<Note>
     {
         foreach(Note n in RenderedObjects)
         {
-            if(n.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0)
+            if(n.source != null)
             {
                 HitSoundManager.ScheduleHitsound(n);
             }
