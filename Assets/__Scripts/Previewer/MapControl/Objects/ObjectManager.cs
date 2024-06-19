@@ -435,47 +435,39 @@ public class ObjectManager : MonoBehaviour
 
         public bool AttachToObject(BeatmapColorNote other)
         {
-            if(x == other.x && y == other.y)
-            {
-                return true;
-            }
-
-            if(other.customData?.coordinates != null && other.customData.coordinates.Length >= 2)
-            {
-                if(coordinates != null && coordinates.Length >= 2)
-                {
-                    if(coordinates[0].Approximately(other.customData.coordinates[0]) && coordinates[1].Approximately(other.customData.coordinates[1]))
-                    {
-                        return true;
-                    }
-                }
-                else if(Mathf.RoundToInt(other.customData.coordinates[0] + 2) == x && Mathf.RoundToInt(other.customData.coordinates[1] + 2) == y)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return AttachToObject(other.x, other.y, other.customData?.coordinates);
         }
 
 
         public bool AttachToObject(BeatmapBombNote other)
         {
-            if(x == other.x && y == other.y)
+            return AttachToObject(other.x, other.y, other.customData?.coordinates);
+        }
+
+
+        public bool AttachToObject(BeatmapBurstSlider other)
+        {
+            return AttachToObject(other.tx, other.ty, other.customData?.tailCoordinates);
+        }
+
+
+        public bool AttachToObject(int otherX, int otherY, float[] otherCoordinates)
+        {
+            if(x == otherX && y == otherY)
             {
                 return true;
             }
 
-            if(other.customData?.coordinates != null && other.customData.coordinates.Length >= 2)
+            if(otherCoordinates != null && otherCoordinates.Length >= 2)
             {
                 if(coordinates != null && coordinates.Length >= 2)
                 {
-                    if(coordinates[0].Approximately(other.customData.coordinates[0]) && coordinates[1].Approximately(other.customData.coordinates[1]))
+                    if(coordinates[0].Approximately(otherCoordinates[0]) && coordinates[1].Approximately(otherCoordinates[1]))
                     {
                         return true;
                     }
                 }
-                else if(Mathf.RoundToInt(other.customData.coordinates[0] + 2) == x && Mathf.RoundToInt(other.customData.coordinates[1] + 2) == y)
+                else if(Mathf.RoundToInt(otherCoordinates[0] + 2) == x && Mathf.RoundToInt(otherCoordinates[1] + 2) == y)
                 {
                     return true;
                 }
@@ -760,7 +752,7 @@ public class ObjectManager : MonoBehaviour
             foreach(BeatmapBombNote b in bombsOnBeat)
             {
                 Bomb newBomb = new Bomb(b);
-                newBomb.StartY = ((float)NoteManager.GetStartY(b, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
+                newBomb.StartY = (NoteManager.GetStartY(b, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
 
                 // check attachment to arcs
                 foreach(BeatmapSliderEnd a in sliderEndsOnBeat)
@@ -807,6 +799,17 @@ public class ObjectManager : MonoBehaviour
             foreach(BeatmapBurstSlider b in burstSlidersOnBeat)
             {
                 Chain newChain = new Chain(b);
+
+                //Arcs can attach to chain tails
+                foreach(BeatmapSliderEnd a in sliderEndsOnBeat)
+                {
+                    if(!a.HasAttachment && a.AttachToObject(b))
+                    {
+                        a.StartY = Instance.objectFloorOffset;
+                        a.HasAttachment = true;
+                    }
+                }
+
                 chains.Add(newChain);
             }
 
