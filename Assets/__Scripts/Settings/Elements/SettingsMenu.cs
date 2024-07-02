@@ -35,15 +35,14 @@ public class SettingsMenu : MonoBehaviour
     [SerializeField] private GameObject settingsPanel;
     [SerializeField] private RectTransform tabButtons;
     [SerializeField] private Button openButton;
+    [SerializeField] private IdleHide openButtonHider;
     [SerializeField] private float panelWidth;
     [SerializeField] private float buttonWidth;
     [SerializeField] private float transitionTime;
 
-    private SettingsManager settingsManager;
     private Vector2 closedPosition;
     private Vector2 tabButtonPositions;
     private bool moving;
-    private IdleHide openButtonHider;
 
 
     private IEnumerator MovePanelCoroutine(Vector2 startPosition, Vector2 newPosition)
@@ -132,10 +131,6 @@ public class SettingsMenu : MonoBehaviour
 
     private void SetClosed()
     {
-#if !UNITY_WEBGL || UNITY_EDITOR
-        settingsManager.SaveSettings();
-#endif
-
         Vector2 openPosition = new Vector2(closedPosition.x - panelWidth, closedPosition.y);
         StartCoroutine(MovePanelCoroutine(openPosition, closedPosition));
     }
@@ -143,9 +138,6 @@ public class SettingsMenu : MonoBehaviour
 
     private void Start()
     {
-        settingsManager = GetComponent<SettingsManager>();
-        openButtonHider = GetComponent<IdleHide>();
-
         closedPosition = settingsContainer.anchoredPosition;
         tabButtonPositions = tabButtons.anchoredPosition;
 

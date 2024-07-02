@@ -18,9 +18,6 @@ public class OrthoCameraDisplay : MonoBehaviour
     public void SetCameraFaceDirection(int direction)
     {
         SettingsManager.SetRule("orthocameraside", direction);
-#if !UNITY_WEBGL || UNITY_EDITOR
-        SettingsManager.SaveSettingsStatic();
-#endif
     }
 
 

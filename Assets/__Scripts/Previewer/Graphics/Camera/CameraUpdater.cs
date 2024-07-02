@@ -170,11 +170,7 @@ public class CameraUpdater : MonoBehaviour
 
             //Hack to avoid resetting the camera while still notifying other subscribers
             SettingsManager.OnSettingsUpdated -= UpdateCameraSettings;
-
             SettingsManager.SetRule("firstpersonreplay", false);
-#if !UNITY_WEBGL || UNITY_EDITOR
-            SettingsManager.SaveSettingsStatic();
-#endif
             SettingsManager.OnSettingsUpdated += UpdateCameraSettings;
         }
 

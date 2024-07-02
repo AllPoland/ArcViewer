@@ -30,9 +30,6 @@ public class StaticLightsWarning : MonoBehaviour
         DialogueHandler.ShowDialogueBox(DialogueBoxType.Ok, $"Static lights has been {staticString}.\nYou can change this at any time with the button in the bottom right corner.");
 
         SettingsManager.SetRule("staticlightswarningacknowledged", true, false);
-#if !UNITY_WEBGL || UNITY_EDITOR
-        SettingsManager.SaveSettingsStatic();
-#endif
 
         gameObject.SetActive(false);
     }

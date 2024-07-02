@@ -26,13 +26,12 @@ public class SettingsManager : MonoBehaviour
     public static event Action<string> OnSettingsUpdated;
     public static event Action OnSettingsReset;
 
-    //This is a yucky, hacky pass-through for outside scripts to force settings to save
-    //without needing a reference, and without making the whole thing a singleton
-    public static Action SaveSettingsStatic;
-
     public static bool Loaded { get; private set; }
 
     private const string settingsFile = "UserSettings.json";
+
+    private const float autoSaveLength = 0.25f;
+    private static float dirtyTime = 0f;
 
     [SerializeField] private List<SerializedOption<bool>> defaultBools;
     [SerializeField] private List<SerializedOption<int>> defaultInts;
@@ -79,6 +78,7 @@ public class SettingsManager : MonoBehaviour
             return;
         }
 
+        Debug.Log("Saving settings.");
         StartCoroutine(SaveSettingsCoroutine());
     }
 
@@ -114,6 +114,12 @@ public class SettingsManager : MonoBehaviour
         }
 
         OnSettingsUpdated?.Invoke("all");
+    }
+
+
+    private static void SetDirty()
+    {
+        dirtyTime = autoSaveLength;
     }
 #endif
 
@@ -273,6 +279,8 @@ public class SettingsManager : MonoBehaviour
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.SetInt(name, value ? 1 : 0);
+#else
+        SetDirty();
 #endif
 
         if(notify)
@@ -296,6 +304,8 @@ public class SettingsManager : MonoBehaviour
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.SetInt(name, value);
+#else
+        SetDirty();
 #endif
 
         if(notify)
@@ -324,6 +334,8 @@ public class SettingsManager : MonoBehaviour
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.SetFloat(name, value);
+#else
+        SetDirty();
 #endif
 
         if(notify)
@@ -357,6 +369,7 @@ public class SettingsManager : MonoBehaviour
         CurrentSettings = new Settings();
 #else
         CurrentSettings = Settings.GetDefaultSettings();
+        SetDirty();
 #endif
         
         //Some settings should still persist or else they'll be annoying
@@ -379,13 +392,29 @@ public class SettingsManager : MonoBehaviour
 #if !UNITY_WEBGL || UNITY_EDITOR
         //Load settings from json if not running in WebGL
         //Otherwise settings are handled through playerprefs instead
-        SaveSettingsStatic = SaveSettings;
         LoadSettings();
 #else
         CurrentSettings = new Settings();
         OnSettingsUpdated?.Invoke("all");
 #endif
     }
+
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+    private void Update()
+    {
+        if(dirtyTime > 0f)
+        {
+            //A setting has been changed, count down the timer to save settings
+            dirtyTime -= Time.deltaTime;
+
+            if(dirtyTime <= 0f)
+            {
+                SaveSettings();
+            }
+        }
+    }
+#endif
 }
 
 
