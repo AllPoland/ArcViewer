@@ -190,19 +190,13 @@ public class ReplayLoader
     }
 
 
-    public static async Task<string> LeaderboardIDFromHash(string hash, string modeName, string difficultyName)
+    public static string LeaderboardIDFromResponse(BeatleaderLeaderboardResponse response, string modeName, string difficultyName)
     {
-        BeatleaderLeaderboardResponse response = await LeaderboardFromHash(hash);
-        if(response == null)
-        {
-            return "";
-        }
-
         modeName = BeatmapInfo.TrimCharacteristicString(modeName);
         BeatleaderLeaderboard leaderboard = response.leaderboards.FirstOrDefault(x => x.difficulty.modeName == modeName && x.difficulty.difficultyName == difficultyName);
         if(leaderboard == null)
         {
-            Debug.LogWarning($"Found no difficulty matching {modeName}, {difficultyName} in BeatLeader leaderboards for map: {hash}!");
+            Debug.LogWarning($"Found no difficulty matching {modeName}, {difficultyName} in BeatLeader leaderboards!");
             return "";
         }
         return leaderboard.id;
