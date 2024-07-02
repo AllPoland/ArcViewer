@@ -78,7 +78,6 @@ public class SettingsManager : MonoBehaviour
             return;
         }
 
-        Debug.Log("Saving settings.");
         StartCoroutine(SaveSettingsCoroutine());
     }
 

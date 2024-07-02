@@ -972,7 +972,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles saber colors set by<br>BeatLeader patrons in their replays
+  Text: Enables saber colors set by<br>BeatLeader patrons in their replays
 --- !u!1 &44118551
 GameObject:
   m_ObjectHideFlags: 0
@@ -1895,7 +1895,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles notes looking<br>towards the player's head
+  Text: Enables notes looking<br>towards the player's head<br>[Only affects replays]
 --- !u!1 &75594368
 GameObject:
   m_ObjectHideFlags: 0
@@ -3070,7 +3070,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9087878822117837788, guid: a7f0a55a68792b5458628d0091c80d18, type: 3}
       propertyPath: m_RootOrder
-      value: 11
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 9087878822117837788, guid: a7f0a55a68792b5458628d0091c80d18, type: 3}
       propertyPath: m_AnchorMax.x
@@ -3130,7 +3130,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9087878822117837788, guid: a7f0a55a68792b5458628d0091c80d18, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -1004
+      value: -919
       objectReference: {fileID: 0}
     - target: {fileID: 9087878822117837788, guid: a7f0a55a68792b5458628d0091c80d18, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -3167,7 +3167,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Enables your custom imported<br>Hit Score Visualizer config
+  Text: Enables your custom imported<br>Hit Score Visualizer config<br>[Only affects
+    replays]
 --- !u!1 &101968017
 GameObject:
   m_ObjectHideFlags: 0
@@ -5050,7 +5051,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles per-difficulty colors set by the mapper
+  Text: Enables per-difficulty colors set by the mapper
 --- !u!1 &165372486
 GameObject:
   m_ObjectHideFlags: 0
@@ -6210,7 +6211,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts hit sound volume
+  Text: Adjusts the volume of hit sounds
 --- !u!1 &230035108
 GameObject:
   m_ObjectHideFlags: 0
@@ -7102,7 +7103,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Dynamically adjust priority of sound sources<br>to avoid hit sounds cutting
+  Text: Dynamically adjusts priority of sound sources<br>to avoid hit sounds cutting
     out
 --- !u!1 &270180242
 GameObject:
@@ -8639,7 +8640,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles a HUD element that shows<br>the score % as if the player never missed
+  Text: Enables a HUD element that shows<br>the score % as if the player never missed<br>[Only
+    affects replays]
 --- !u!1 &295319729
 GameObject:
   m_ObjectHideFlags: 0
@@ -10795,7 +10797,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Picks which sound effect to use for badcut sounds
+  Text: Picks which sound effect to use for badcut sounds<br>[Only affects replays]
 --- !u!1 &386035444
 GameObject:
   m_ObjectHideFlags: 0
@@ -11263,7 +11265,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8916813011638624805, guid: b2a7710739665e04ea4657aae1a23f17, type: 3}
       propertyPath: m_RootOrder
-      value: 12
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 8916813011638624805, guid: b2a7710739665e04ea4657aae1a23f17, type: 3}
       propertyPath: m_AnchorMax.x
@@ -11323,7 +11325,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8916813011638624805, guid: b2a7710739665e04ea4657aae1a23f17, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -1074
+      value: -989
       objectReference: {fileID: 0}
     - target: {fileID: 8916813011638624805, guid: b2a7710739665e04ea4657aae1a23f17, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -14116,7 +14118,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles showing bookmarks added by<br>the mapper on the timeline
+  Text: Enables showing bookmarks added by<br>the mapper on the timeline
 --- !u!1 &518216791 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4465115620828890657, guid: 3b7121a60be5d6f4fa3635c74fd4f47c, type: 3}
@@ -14752,7 +14754,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2014895716, guid: 0b8e475dbbe2bc54993fad86c1556db3, type: 3}
       propertyPath: Text
-      value: Changes the first color of lights<br>(default red)
+      value: Changes the first color of lights
       objectReference: {fileID: 0}
     - target: {fileID: 2014895717, guid: 0b8e475dbbe2bc54993fad86c1556db3, type: 3}
       propertyPath: rule
@@ -16809,7 +16811,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 623593663}
-  m_Mesh: {fileID: 2018659565}
+  m_Mesh: {fileID: 1131351194}
 --- !u!1 &626604732
 GameObject:
   m_ObjectHideFlags: 0
@@ -18348,7 +18350,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles the "float up" animation on notes
+  Text: Enables the "float up" animation on notes
 --- !u!1001 &696735530
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19385,7 +19387,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts volume of chain links<br>relative to normal hit sound volume
+  Text: Adjusts the volume of chain links<br>relative to normal hit sound volume
 --- !u!1001 &739700786
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19774,7 +19776,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adds random slight pitch difference to each hit sound
+  Text: Adds a slight random pitch difference to each hit sound
 --- !u!1001 &743291474
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21301,7 +21303,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5241766548580045628, guid: 1917af5300baa7a4a8080f2e09dfc773, type: 3}
       propertyPath: m_RootOrder
-      value: 10
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 5241766548580045628, guid: 1917af5300baa7a4a8080f2e09dfc773, type: 3}
       propertyPath: m_AnchorMax.x
@@ -21361,7 +21363,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5241766548580045628, guid: 1917af5300baa7a4a8080f2e09dfc773, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -949
+      value: -1059
       objectReference: {fileID: 0}
     - target: {fileID: 5241766548580045628, guid: 1917af5300baa7a4a8080f2e09dfc773, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -21414,9 +21416,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Pick between hit score color presets<br>None - all score indicators are white<br>Simple
-    - a few colors spanning wide score ranges<br>Acc - a few colors compressed the
-    100-115 range<br>BeatLeader - acc focused colors inspired by BL's replay viewer
+  Text: Picks between hit score color presets<br>None - all score indicators are
+    white<br>Simple - a few colors spanning wide score ranges<br>Acc - a few colors
+    compressed the 100-115 range<br>BeatLeader - acc focused colors inspired by BL's
+    replay viewer<br>[Only affects replays]
 --- !u!114 &778217436
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23161,7 +23164,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts the strength of bloom on objects and lights
+  Text: Adjusts the strength of bloom
 --- !u!114 &867951168
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23174,7 +23177,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Sets the target framerate<br>(has no effect if VSync is enabled)
+  Text: Sets the target framerate<br>(Has no effect if VSync is enabled)
 --- !u!1 &868110370
 GameObject:
   m_ObjectHideFlags: 0
@@ -27051,7 +27054,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles the rotation animation on notes
+  Text: Enables the rotation animation on notes
 --- !u!1001 &996081881
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27890,7 +27893,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles a simpler, more readable material for bombs
+  Text: Enables a simpler, more readable material for bombs
 --- !u!1 &1009894172
 GameObject:
   m_ObjectHideFlags: 0
@@ -29587,7 +29590,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2014895716, guid: 0b8e475dbbe2bc54993fad86c1556db3, type: 3}
       propertyPath: Text
-      value: Changes the color of white lights
+      value: Changes the third color of lights
       objectReference: {fileID: 0}
     - target: {fileID: 2014895717, guid: 0b8e475dbbe2bc54993fad86c1556db3, type: 3}
       propertyPath: rule
@@ -30642,6 +30645,170 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Text: Open file explorer
+--- !u!43 &1131351194
+Mesh:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 10
+  m_SubMeshes:
+  - serializedVersion: 2
+    firstByte: 0
+    indexCount: 6
+    topology: 0
+    baseVertex: 0
+    firstVertex: 0
+    vertexCount: 4
+    localAABB:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 1, y: 1, z: 0}
+  m_Shapes:
+    vertices: []
+    shapes: []
+    channels: []
+    fullWeights: []
+  m_BindPose: []
+  m_BoneNameHashes: 
+  m_RootBoneNameHash: 0
+  m_BonesAABB: []
+  m_VariableBoneCountWeights:
+    m_Data: 
+  m_MeshCompression: 0
+  m_IsReadable: 1
+  m_KeepVertices: 1
+  m_KeepIndices: 1
+  m_IndexFormat: 0
+  m_IndexBuffer: 000001000200020003000000
+  m_VertexData:
+    serializedVersion: 3
+    m_VertexCount: 4
+    m_Channels:
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 3
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    m_DataSize: 48
+    _typelessdata: 000080bf000080bf000000000000803f000080bf000000000000803f0000803f00000000000080bf0000803f00000000
+  m_CompressedMesh:
+    m_Vertices:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UV:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Normals:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Tangents:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Weights:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_NormalSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_TangentSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_FloatColors:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_BoneIndices:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Triangles:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UVInfo: 0
+  m_LocalAABB:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 50000000, y: 50000000, z: 50000000}
+  m_MeshUsageFlags: 0
+  m_BakedConvexCollisionMesh: 
+  m_BakedTriangleCollisionMesh: 
+  m_MeshMetrics[0]: 1
+  m_MeshMetrics[1]: 1
+  m_MeshOptimizationFlags: 1
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 
 --- !u!1001 &1134075587
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -31290,7 +31457,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts the field of view<br>of the camera in replays
+  Text: Adjusts the field of view of the camera in replays
 --- !u!1001 &1163709220
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -31413,7 +31580,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Allows you to override the background environment
+  Text: Allows you to override<br>the background environment
 --- !u!1 &1166451239
 GameObject:
   m_ObjectHideFlags: 0
@@ -32792,7 +32959,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: How far ahead (in seconds) to schedule hit sounds
+  Text: Adjusts how far ahead (in seconds)<br>to schedule hit sounds
 --- !u!1 &1207085338
 GameObject:
   m_ObjectHideFlags: 0
@@ -35994,7 +36161,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts the field of view<br>of the first-person camera
+  Text: Adjusts the field of view of the first-person camera
 --- !u!1001 &1386496878
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -37580,8 +37747,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts the field of view of the camera in previews<br>Has no effect in replay
-    viewing
+  Text: Adjusts the field of view of the camera in previews
 --- !u!1 &1471800215
 GameObject:
   m_ObjectHideFlags: 0
@@ -37948,7 +38114,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Text: Simulates the player height setting<br>by moving the camera and objects<br>(1.8m
-    is considered default)<br>Has no effect in replay viewing
+    is considered default)<br>[Only affects map previews]
 --- !u!1 &1479854793
 GameObject:
   m_ObjectHideFlags: 0
@@ -38227,7 +38393,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles colors from the environment<br>(Uses default red and blue when disabled)
+  Text: Enables colors from the environment
 --- !u!1 &1491974451
 GameObject:
   m_ObjectHideFlags: 0
@@ -38265,7 +38431,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 30, y: 0}
   m_SizeDelta: {x: 0, y: 30}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1491974453
@@ -39708,7 +39874,8 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2014895716, guid: 0b8e475dbbe2bc54993fad86c1556db3, type: 3}
       propertyPath: Text
-      value: Changes the color of the highlight<br>for notes that were missed
+      value: Changes the color of the highlight<br>for notes that were missed<br>[Only
+        affects replays]
       objectReference: {fileID: 0}
     - target: {fileID: 2014895717, guid: 0b8e475dbbe2bc54993fad86c1556db3, type: 3}
       propertyPath: rule
@@ -40055,7 +40222,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4378467592935618693, guid: f476c7c88fc2a8c48b018512b982bb8b, type: 3}
       propertyPath: m_text
-      value: Fog Brightness
+      value: Environment Brightness
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f476c7c88fc2a8c48b018512b982bb8b, type: 3}
@@ -40076,7 +40243,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts the brightness of the fog/glow around lights
+  Text: Adjusts the brightness of the fog/glow around lights<br>as well as environment
+    reflections
 --- !u!1 &1540820442
 GameObject:
   m_ObjectHideFlags: 0
@@ -42320,8 +42488,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts the field of view of the camera in previews<br>Has no effect in replay
-    viewing
+  Text: Adjusts the field of view of the camera in freecam
 --- !u!1 &1615482945 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8784582284307683101, guid: fbc917fc183df584da5c10f5efc2753c, type: 3}
@@ -43031,7 +43198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles the "fade in" effect on arcs<br>This is usually subtle, except on
+  Text: Enables the "fade in" effect on arcs<br>This is usually subtle, except on
     headless arcs
 --- !u!1 &1633778955
 GameObject:
@@ -44053,7 +44220,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Tilts the camera up/down in previews<br>Has no effect in replay viewing
+  Text: Tilts the camera up/down in previews
 --- !u!1001 &1722632633
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -44176,7 +44343,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles showing the player's head position
+  Text: Enables showing the player's head position<br>[Only affects replays]
 --- !u!1001 &1734555178
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -44775,7 +44942,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Mutes the hitsound for notes that were missed
+  Text: Mutes the hitsound for notes that were missed<br>[Only affects replays]
 --- !u!1001 &1751888082
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -45253,8 +45420,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts the forward/backward position of the camera in previews<br>Has no
-    effect in replay viewing
+  Text: Adjusts the forward/backward position<br>of the camera in previews
 --- !u!1001 &1779328751
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -46000,7 +46166,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Forces accurate object positions<br>in replays, regardless of other settings
+  Text: Forces accurate object positions<br>in replays, regardless of other settings<br>[Only
+    affects replays]
 --- !u!1001 &1796231313
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -46163,7 +46330,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: The number of replays to save on the disk<br>to avoid repeat downloads
+  Text: Adjusts the number of replays to save on the disk<br>to avoid repeat downloads
 --- !u!1001 &1804706401
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -46824,7 +46991,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles per-object colors from Chroma painting
+  Text: Enables per-object colors from Chroma painting
 --- !u!1 &1818102266
 GameObject:
   m_ObjectHideFlags: 0
@@ -47204,7 +47371,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2014895716, guid: 0b8e475dbbe2bc54993fad86c1556db3, type: 3}
       propertyPath: Text
-      value: Changes the second color of lights<br>(default blue)
+      value: Changes the second color of lights
       objectReference: {fileID: 0}
     - target: {fileID: 2014895717, guid: 0b8e475dbbe2bc54993fad86c1556db3, type: 3}
       propertyPath: rule
@@ -47576,7 +47743,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: The number of maps to save on the disk<br>to avoid repeat downloads
+  Text: Adjusts the number of maps to save on the disk<br>to avoid repeat downloads
 --- !u!1001 &1842391538
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -47703,7 +47870,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles a display showing your framerate<br>(Also shows the player's framerate
+  Text: Enables a display showing your framerate<br>(Also shows the player's framerate
     in replays)
 --- !u!1001 &1843094119
 PrefabInstance:
@@ -47827,7 +47994,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles the dynamic texture animations on arcs
+  Text: Enables the dynamic texture animations on arcs
 --- !u!1 &1851035720
 GameObject:
   m_ObjectHideFlags: 0
@@ -48357,7 +48524,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2014895716, guid: 0b8e475dbbe2bc54993fad86c1556db3, type: 3}
       propertyPath: Text
-      value: Changes the color of white lights<br>while boost colors are active
+      value: Changes the third color of lights<br>while boost colors are active
       objectReference: {fileID: 0}
     - target: {fileID: 2014895717, guid: 0b8e475dbbe2bc54993fad86c1556db3, type: 3}
       propertyPath: rule
@@ -49702,7 +49869,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles an outline around notes that were missed or badcut
+  Text: Enables an outline around notes<br>that were missed or badcut<br>[Only affects
+    replays]
 --- !u!1001 &1910881083
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -50132,7 +50300,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts music volume
+  Text: Adjusts the volume of the music
 --- !u!1 &1917878916
 GameObject:
   m_ObjectHideFlags: 0
@@ -50234,7 +50402,7 @@ PrefabInstance:
     - target: {fileID: 2014895716, guid: 0b8e475dbbe2bc54993fad86c1556db3, type: 3}
       propertyPath: Text
       value: Changes the color of the highlight<br>for notes and bombs that were
-        badcut
+        badcut<br>[Only affects replays]
       objectReference: {fileID: 0}
     - target: {fileID: 2014895717, guid: 0b8e475dbbe2bc54993fad86c1556db3, type: 3}
       propertyPath: rule
@@ -52911,7 +53079,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles trails that follow behind the sabers
+  Text: Enables trails that follow behind the sabers<br>[Only affects replays]
 --- !u!1001 &1996033805
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -53062,7 +53230,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Adjusts the thickness of the sabers
+  Text: Adjusts the thickness of the saber model<br>[Only affects replays]
 --- !u!1001 &2000402389
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -53749,7 +53917,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles the flip animations on crossover patterns
+  Text: Enables the flip animations on crossover hits
 --- !u!1001 &2009354203
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -54005,170 +54173,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 50
   m_TargetDisplay: 0
---- !u!43 &2018659565
-Mesh:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 10
-  m_SubMeshes:
-  - serializedVersion: 2
-    firstByte: 0
-    indexCount: 6
-    topology: 0
-    baseVertex: 0
-    firstVertex: 0
-    vertexCount: 4
-    localAABB:
-      m_Center: {x: 0, y: 0, z: 0}
-      m_Extent: {x: 1, y: 1, z: 0}
-  m_Shapes:
-    vertices: []
-    shapes: []
-    channels: []
-    fullWeights: []
-  m_BindPose: []
-  m_BoneNameHashes: 
-  m_RootBoneNameHash: 0
-  m_BonesAABB: []
-  m_VariableBoneCountWeights:
-    m_Data: 
-  m_MeshCompression: 0
-  m_IsReadable: 1
-  m_KeepVertices: 1
-  m_KeepIndices: 1
-  m_IndexFormat: 0
-  m_IndexBuffer: 000001000200020003000000
-  m_VertexData:
-    serializedVersion: 3
-    m_VertexCount: 4
-    m_Channels:
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 3
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    m_DataSize: 48
-    _typelessdata: 000080bf000080bf000000000000803f000080bf000000000000803f0000803f00000000000080bf0000803f00000000
-  m_CompressedMesh:
-    m_Vertices:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UV:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Normals:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Tangents:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Weights:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_NormalSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_TangentSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_FloatColors:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_BoneIndices:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Triangles:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UVInfo: 0
-  m_LocalAABB:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 50000000, y: 50000000, z: 50000000}
-  m_MeshUsageFlags: 0
-  m_BakedConvexCollisionMesh: 
-  m_BakedTriangleCollisionMesh: 
-  m_MeshMetrics[0]: 1
-  m_MeshMetrics[1]: 1
-  m_MeshOptimizationFlags: 1
-  m_StreamData:
-    serializedVersion: 2
-    offset: 0
-    size: 0
-    path: 
 --- !u!1 &2025347063
 GameObject:
   m_ObjectHideFlags: 0
@@ -54675,7 +54679,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles a simpler, more readable material for notes
+  Text: Enables a simpler, more readable material for notes
 --- !u!1001 &2047029330
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -55906,7 +55910,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles separate sound effects<br>for notes and bombs that were badcut
+  Text: Enables a separate sound effect<br>for notes and bombs that were badcut<br>[Only
+    affects replays]
 --- !u!224 &2068816987 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6536940767801351671, guid: 0d8d0c02ba6f730439f338a495c13696, type: 3}
@@ -56999,7 +57004,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50a1bb069cc015242a8fd646a471379c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Text: Toggles showing mistakes and pauses<br>as icons on the timeline
+  Text: Enables showing mistakes and pauses<br>as icons on the timeline<br>[Only
+    affects replays]
 --- !u!4 &2109431120 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6252490350082128095, guid: ce7411e93e6550b42ad3cf47c7c20737, type: 3}
