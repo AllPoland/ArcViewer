@@ -167,6 +167,8 @@ public class ColorManager : MonoBehaviour
                 return DaftPunkColors;
             case "HipHopEnvironment":
                 return HipHopColors;
+            case "ColliderEnvironment":
+                return ColliderColors;
         }
     }
 
@@ -610,6 +612,20 @@ public class ColorManager : MonoBehaviour
         BoostLightColor2 = new Color(0.227450980392f, 0.274509803922f, 1f),
         BoostWhiteLightColor = Color.white,
         WallColor = new Color(1f, 0.313725490196f, 0.552941176471f)
+    };
+
+
+    public static ColorPalette ColliderColors => new ColorPalette
+    {
+        LeftNoteColor = new Color(0.9647059f, 0.4947137f, 0.1504941f),
+        RightNoteColor = new Color(0.1686274f, 0.5998134f, 0.8588235f),
+        LightColor1 = new Color(0.9637059f, 0.4092787f, 0f),
+        LightColor2 = new Color(0.1686275f, 0.3921569f, 0.8588236f),
+        WhiteLightColor = Color.white,
+        BoostLightColor1 = new Color(0.8980393f, 0.03529412f, 0.02352941f),
+        BoostLightColor2 = new Color(0.854902f, 0.4117647f, 0.9725491f),
+        BoostWhiteLightColor = Color.white,
+        WallColor = new Color(0.8396226f, 0.09639232f, 0f)
     };
 }
 
