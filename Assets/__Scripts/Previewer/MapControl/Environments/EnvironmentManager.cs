@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -84,8 +85,14 @@ public class EnvironmentManager : MonoBehaviour
         "BigMirrorEnvironment",
         "DragonsEnvironment",
         "KDAEnvironment",
+        "MonstercatEnvironment",
         "TimbalandEnvironment",
         "FitBeatEnvironment"
+    };
+
+    private static readonly Dictionary<string, string> duplicateEnvironments = new Dictionary<string, string>
+    {
+        {"CrabRaveEnvironment", "MonstercatEnvironment"}
     };
 
     public static EnvironmentLightParameters CurrentEnvironmentParameters = new EnvironmentLightParameters();
@@ -144,6 +151,12 @@ public class EnvironmentManager : MonoBehaviour
             int customIndex = SettingsManager.GetInt("customenvironment");
             customIndex = Mathf.Clamp(customIndex, 0, supportedEnvironments.Length - 1);
             environmentName = supportedEnvironments[customIndex];
+        }
+
+        if(duplicateEnvironments.ContainsKey(environmentName))
+        {
+            //Some environments look identical, so the same scene gets loaded for them
+            environmentName = duplicateEnvironments[environmentName];
         }
 
         Debug.Log($"Setting new environment: {environmentName}");
