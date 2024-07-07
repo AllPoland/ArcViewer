@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Web;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -80,34 +79,7 @@ public class UrlArgHandler : MonoBehaviour
     private static DifficultyRank? diffRank;
     private static bool noProxy;
 
-    private static Dictionary<string, string> unknownArgs = new Dictionary<string, string>();
-
     [SerializeField] private MapLoader mapLoader;
-
-
-    private static string AddUnknownParameters(Uri uri)
-    {
-        List<string> newArguments = new List<string>();
-        foreach(KeyValuePair<string, string> arg in unknownArgs)
-        {
-            newArguments.Add($"{arg.Key}={arg.Value}");
-        }
-
-        string newQuery = string.Join('&', newArguments);
-        string url = uri.OriginalString;
-
-        NameValueCollection existingArgs = HttpUtility.ParseQueryString(uri.Query);
-        if(existingArgs.AllKeys.Length == 0)
-        {
-            url += $"?{newQuery}";
-        }
-        else
-        {
-            url += $"&{newQuery}";
-        }
-
-        return url;
-    }
 
 
     private void ParseParameter(string name, string value)
@@ -151,10 +123,6 @@ public class UrlArgHandler : MonoBehaviour
                 mapPath = value;
                 break;
 #endif
-            default:
-                //Unknown arguments are stored, since they're likely to be part of a download url
-                unknownArgs.Add(name, value);
-                break;
         }
     }
 
@@ -184,8 +152,6 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(replayURL))
         {
-            replayURL = AddUnknownParameters(new Uri(replayURL));
-
             StartCoroutine(mapLoader.LoadReplayURLCoroutine(replayURL, null, mapURL, mapID, noProxy));
             LoadedReplayURL = replayURL;
 
@@ -201,8 +167,6 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
-            mapURL = AddUnknownParameters(new Uri(mapURL));
-
             StartCoroutine(mapLoader.LoadMapZipURLCoroutine(mapURL, null, null, noProxy));
             LoadedMapURL = mapURL;
 
@@ -235,7 +199,7 @@ public class UrlArgHandler : MonoBehaviour
     {
         if(MapLoader.Loading)
         {
-            Debug.LogWarning("Tried to load from url args while already loading!");
+            Debug.LogWarning("Tried to load from url parameters while already loading!");
             return;
         }
 
@@ -249,18 +213,17 @@ public class UrlArgHandler : MonoBehaviour
         ResetArguments();
 
         url = HttpUtility.UrlDecode(url);
-        Uri uri = new Uri(url);
 
-        NameValueCollection args = HttpUtility.ParseQueryString(uri.Query);
-        if(args.AllKeys.Length == 0)
+        List<KeyValuePair<string, string>> parameters = UrlUtility.ParseUrlParams(url);
+        if(parameters.Count == 0)
         {
             Debug.LogWarning($"Invalid sharing URL: {url}");
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Invalid sharing URL!");
         }
 
-        foreach(string name in args.AllKeys)
+        foreach(KeyValuePair<string, string> parameter in parameters)
         {
-            ParseParameter(name, args.Get(name));
+            ParseParameter(parameter.Key, parameter.Value);
         }
 
         ApplyArguments();
@@ -343,8 +306,8 @@ public class UrlArgHandler : MonoBehaviour
         mode = null;
         diffRank = null;
         noProxy = false;
-
-        unknownArgs = new Dictionary<string, string>();
+        replayURL = "";
+        replayID = "";
     }
 
 

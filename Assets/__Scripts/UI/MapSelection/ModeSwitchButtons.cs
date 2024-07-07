@@ -10,9 +10,6 @@ public class ModeSwitchButtons : MonoBehaviour
     private void SetReplayMode(bool replayMode)
     {
         SettingsManager.SetRule("replaymode", replayMode);
-#if !UNITY_WEBGL || UNITY_EDITOR
-        SettingsManager.SaveSettingsStatic();
-#endif
     }
 
 

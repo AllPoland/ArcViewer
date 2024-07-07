@@ -300,7 +300,7 @@ public class ChainManager : MapElementManager<ChainLink>
     {
         foreach(ChainLink cl in RenderedObjects)
         {
-            if(cl.source != null && SettingsManager.GetFloat("hitsoundvolume") > 0 && SettingsManager.GetFloat("chainvolume") > 0)
+            if(cl.source != null)
             {
                 HitSoundManager.ScheduleHitsound(cl);
             }

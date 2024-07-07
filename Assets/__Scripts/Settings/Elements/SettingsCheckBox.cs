@@ -6,7 +6,6 @@ public class SettingsCheckBox : MonoBehaviour
 {
     [SerializeField] private string rule;
     [SerializeField] private bool hideInWebGL;
-    [SerializeField] private bool saveImmediate;
     [SerializeField] private Optional<SerializedOption<bool>> requiredSetting = new Optional<SerializedOption<bool>>(new SerializedOption<bool>(), false);
     [SerializeField] private TextMeshProUGUI label;
     [SerializeField] private Color enabledColor;
@@ -18,13 +17,6 @@ public class SettingsCheckBox : MonoBehaviour
     public void SetValue(bool value)
     {
         SettingsManager.SetRule(rule, value);
-
-#if !UNITY_WEBGL || UNITY_EDITOR
-        if(saveImmediate)
-        {
-            SettingsManager.SaveSettingsStatic();
-        }
-#endif
     }
 
 

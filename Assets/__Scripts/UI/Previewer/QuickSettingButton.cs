@@ -37,9 +37,6 @@ public class QuickSettingButton : MonoBehaviour
         bool settingOn = SettingsManager.GetBool(setting);
 
         SettingsManager.SetRule(setting, !settingOn);
-#if !UNITY_WEBGL || UNITY_EDITOR
-        SettingsManager.SaveSettingsStatic();
-#endif
 
         if(updateTooltip)
         {

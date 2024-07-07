@@ -87,7 +87,7 @@ public class ErrorHandler : MonoBehaviour
             if(popup.rectTransform.anchoredPosition.y == currentY)
             {
                 //This popup doesn't need to be moved
-                currentY += popupHeight;
+                currentY -= popupHeight;
                 continue;
             }
 
@@ -104,7 +104,7 @@ public class ErrorHandler : MonoBehaviour
                 popup.MoveToPosition(startPosition, targetPosition, transitionTime);
             }
 
-            currentY += popupHeight;
+            currentY -= popupHeight;
         }
     }
 

@@ -195,7 +195,6 @@ public class MapLoader : MonoBehaviour
             string url = urls[i];
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-            //Ignore map ID here because we're looking for a specific version
             CachedFile cachedFile = CacheManager.GetCachedMap(url, mapID, mapHash);
             if(!string.IsNullOrEmpty(cachedFile?.FilePath))
             {
@@ -298,8 +297,24 @@ public class MapLoader : MonoBehaviour
 
     private IEnumerator LoadMapFromReplayCoroutine(Replay loadedReplay, bool noProxy = false)
     {
-        //For some reason replay hash fields might have extra text past the hash
-        string mapHash = loadedReplay.info.hash[..40];
+        string mapHash = null;
+        if(!string.IsNullOrEmpty(loadedReplay.info?.hash) && loadedReplay.info.hash.Length >= 40)
+        {
+            //For some reason replay hash fields might have extra text past the hash
+            mapHash = loadedReplay.info.hash[..40];
+        }
+
+        if(mapHash == null)
+        {
+            Debug.Log("Invalid hash! Showing manual map selection.");
+
+            Loading = false;
+            LoadingMessage = "";
+
+            OnReplayMapPrompt?.Invoke();
+            yield break;
+        }
+
         Debug.Log($"Searching for map matching replay hash: {mapHash}");
 
 #if !UNITY_WEBGL || UNITY_EDITOR
@@ -388,11 +403,15 @@ public class MapLoader : MonoBehaviour
             mapHash = mapHash[..40];
         }
 
-        Debug.Log("Getting replay leaderboard ID.");
-        using Task<string> leaderboardTask = ReplayLoader.LeaderboardIDFromHash(mapHash, replay.info.mode, replay.info.difficulty);
+        Debug.Log("Getting replay leaderboard info.");
+        using Task<BeatleaderLeaderboardResponse> leaderboardTask = ReplayLoader.LeaderboardFromHash(mapHash);
         yield return new WaitUntil(() => leaderboardTask.IsCompleted);
 
-        ReplayManager.LeaderboardID = leaderboardTask.Result;
+        BeatleaderLeaderboardResponse leaderboard = leaderboardTask.Result;
+        if(leaderboard != null)
+        {
+            ReplayManager.LeaderboardID = ReplayLoader.LeaderboardIDFromResponse(leaderboard, replay.info.mode, replay.info.difficulty);
+        }
 
         if(!string.IsNullOrEmpty(mapID))
         {
@@ -405,6 +424,16 @@ public class MapLoader : MonoBehaviour
             Debug.Log($"Loading map from preset URL: {mapURL}");
             UrlArgHandler.LoadedMapURL = mapURL;
             StartCoroutine(LoadMapZipURLCoroutine(mapURL, mapID, mapHash, noProxy));
+        }
+        else if((string.IsNullOrEmpty(replay.info?.hash) || replay.info.hash.Length < 40) && !string.IsNullOrEmpty(leaderboard?.song?.downloadUrl))
+        {
+            //The replay doesn't include a valid hash, go by the specified map URL instead
+            if(!string.IsNullOrEmpty(leaderboard.song.id))
+            {
+                UrlArgHandler.LoadedMapID = leaderboard.song.id;
+            }
+            else UrlArgHandler.LoadedMapURL = leaderboard.song.downloadUrl;
+            StartCoroutine(LoadMapZipURLCoroutine(leaderboard.song.downloadUrl, leaderboard.song.id, mapHash, noProxy));
         }
         else StartCoroutine(LoadMapFromReplayCoroutine(replay, noProxy));
     }
@@ -679,7 +708,7 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    public void LoadMapInput(string input, bool forceReplay = false)
+    public void LoadMapInput(string input)
     {
         if(DialogueHandler.DialogueActive)
         {
@@ -692,6 +721,11 @@ public class MapLoader : MonoBehaviour
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "You're already loading something!");
             Debug.LogWarning("Trying to load a map while already loading!");
             return;
+        }
+
+        if(UIStateManager.CurrentState != UIState.MapSelection)
+        {
+            UIStateManager.CurrentState = UIState.MapSelection;
         }
 
         if(!ReplayManager.IsReplayMode)
@@ -736,7 +770,7 @@ public class MapLoader : MonoBehaviour
             return;
         }
 
-        if(!ReplayManager.IsReplayMode && (forceReplay || SettingsManager.GetBool("replaymode")))
+        if(!ReplayManager.IsReplayMode && SettingsManager.GetBool("replaymode"))
         {
             if(!input.Any(x => !char.IsDigit(x)))
             {
@@ -749,7 +783,7 @@ public class MapLoader : MonoBehaviour
         {
             const string IDchars = "0123456789abcdef";
             //If the directory doesn't contain any characters that aren't hexadecimal, that means it's probably an ID
-            if(!input.Any(x => !IDchars.Contains(x)))
+            if(!input.ToLower().Any(x => !IDchars.Contains(x)))
             {
                 StartCoroutine(LoadMapIDCoroutine(input));
                 UrlArgHandler.LoadedMapID = input;

@@ -372,22 +372,7 @@ public class LightManager : MonoBehaviour
 
     private void UpdateDifficulty(Difficulty newDifficulty)
     {
-        string environmentName = BeatmapManager.EnvironmentName;
-        if(newDifficulty.beatmapDifficulty.BasicEvents.Length == 0 || EnvironmentManager.V3Environments.Contains(environmentName))
-        {
-            StaticLights = true;
-            return;
-        }
-        else StaticLights = false;
-
-        FlipBackLasers = backLaserFlipEnvironments.Contains(environmentName);
-
         boostEvents.Clear();
-        foreach(BeatmapColorBoostBeatmapEvent beatmapBoostEvent in newDifficulty.beatmapDifficulty.BoostEvents)
-        {
-            boostEvents.Add(new BoostEvent(beatmapBoostEvent));
-        }
-        boostEvents.SortElementsByBeat();
 
         backLaserEvents.Clear();
         ringEvents.Clear();
@@ -402,6 +387,22 @@ public class LightManager : MonoBehaviour
         RingManager.BigRingRotationEvents.Clear();
 
         RingManager.RingZoomEvents.Clear();
+
+        string environmentName = BeatmapManager.EnvironmentName;
+        if(newDifficulty.beatmapDifficulty.BasicEvents.Length == 0 || EnvironmentManager.V3Environments.Contains(environmentName) || SettingsManager.GetBool("skiplights"))
+        {
+            StaticLights = true;
+            return;
+        }
+        else StaticLights = false;
+
+        FlipBackLasers = backLaserFlipEnvironments.Contains(environmentName);
+
+        foreach(BeatmapColorBoostBeatmapEvent beatmapBoostEvent in newDifficulty.beatmapDifficulty.BoostEvents)
+        {
+            boostEvents.Add(new BoostEvent(beatmapBoostEvent));
+        }
+        boostEvents.SortElementsByBeat();
 
         foreach(BeatmapBasicBeatmapEvent beatmapEvent in newDifficulty.beatmapDifficulty.BasicEvents)
         {

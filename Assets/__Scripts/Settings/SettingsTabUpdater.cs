@@ -45,10 +45,13 @@ public struct SettingsTabObject
 
 public enum SettingsTab
 {
-    General,
-    Visuals,
-    Graphics,
-    Replays,
+    Audio,
+    UI,
+    Camera,
+    Objects,
+    Lights,
+    Player,
     Colors,
+    Graphics,
     Advanced
 }

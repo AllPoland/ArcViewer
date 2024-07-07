@@ -27,10 +27,6 @@ public class TheSoup : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
         string popupText = newSoup ? "the soup" : "no soup";
         DialogueHandler.ShowDialogueBox(DialogueBoxType.Ok, popupText);
 
-#if !UNITY_WEBGL || UNITY_EDITOR
-        SettingsManager.SaveSettingsStatic();
-#endif
-
         clickCount = 0;
     }
 

@@ -135,7 +135,7 @@ public class UIColorManager : MonoBehaviour
         if(Instance && Instance != this)
         {
             Debug.LogWarning("Multiple UIColorManagers in the scene!");
-            this.enabled = false;
+            enabled = false;
         }
         else
         {
@@ -174,4 +174,13 @@ public class UIColorPalette
         backgroundColor.a = 1f;
         background2Color.a = 1f;
     }
+}
+
+
+public enum UIColorType
+{
+    Standard,
+    Background,
+    TransparentBackground,
+    DarkBackground
 }

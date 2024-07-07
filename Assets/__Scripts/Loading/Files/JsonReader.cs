@@ -224,7 +224,6 @@ public static class JsonReader
             else if(v2Versions.Contains(versionNumber))
             {
                 Debug.Log($"Parsing {filename} in V2 format.");
-
                 BeatmapDifficultyV2 beatmapData = DeserializeObject<BeatmapDifficultyV2>(json);
                 difficulty = new BeatmapWrapperV3(beatmapData.ConvertToV3());
             }

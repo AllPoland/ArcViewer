@@ -4,7 +4,14 @@ using UnityEngine.UI;
 public class UIColorUpdater : MonoBehaviour
 {
     [SerializeField] private Graphic graphic;
-    [SerializeField] private GraphicType graphicType;
+    [SerializeField] private UIColorType colorType;
+
+
+    public void SetColorType(UIColorType type)
+    {
+        colorType = type;
+        UpdateColors(UIColorManager.ColorPalette);
+    }
 
 
     private void UpdateColors(UIColorPalette palette)
@@ -15,19 +22,24 @@ public class UIColorUpdater : MonoBehaviour
             return;
         }
 
-        switch(graphicType)
+        if(palette == null)
+        {
+            return;
+        }
+
+        switch(colorType)
         {
             default:
-            case GraphicType.Standard:
+            case UIColorType.Standard:
                 graphic.color = palette.standardColor;
                 break;
-            case GraphicType.Background:
+            case UIColorType.Background:
                 graphic.color = palette.backgroundColor;
                 break;
-            case GraphicType.TransparentBackground:
+            case UIColorType.TransparentBackground:
                 graphic.color = palette.transparentBackgroundColor;
                 break;
-            case GraphicType.DarkBackground:
+            case UIColorType.DarkBackground:
                 graphic.color = palette.background2Color;
                 break;
         }
@@ -37,24 +49,12 @@ public class UIColorUpdater : MonoBehaviour
     private void OnEnable()
     {
         UIColorManager.OnColorPaletteChanged += UpdateColors;
-        if(UIColorManager.ColorPalette != null)
-        {
-            UpdateColors(UIColorManager.ColorPalette);
-        }
+        UpdateColors(UIColorManager.ColorPalette);
     }
 
 
     private void OnDisable()
     {
         UIColorManager.OnColorPaletteChanged -= UpdateColors;
-    }
-
-
-    private enum GraphicType
-    {
-        Standard,
-        Background,
-        TransparentBackground,
-        DarkBackground
     }
 }
