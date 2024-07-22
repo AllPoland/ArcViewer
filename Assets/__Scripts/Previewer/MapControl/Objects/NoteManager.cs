@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,6 +7,10 @@ public class NoteManager : MapElementManager<Note>
 {
     public static Color RedNoteColor => ColorManager.CurrentColors.LeftNoteColor;
     public static Color BlueNoteColor => ColorManager.CurrentColors.RightNoteColor;
+
+    public static Color LeftSaberColor;
+    public static Color RightSaberColor;
+    public static event Action OnSaberColorsChanged;
 
     [SerializeField] private ObjectPool<NoteHandler> notePool;
 
@@ -233,20 +238,46 @@ public class NoteManager : MapElementManager<Note>
     }
 
 
+    private void UpdateSaberColors(Note leftNote, Note rightNote, bool useChroma)
+    {
+        Color leftColor = RedNoteColor;
+        Color rightColor = BlueNoteColor;
+        if(useChroma)
+        {
+            leftColor = leftNote?.CustomNoteProperties?.GetColor("_BaseColor") ?? RedNoteColor;
+            rightColor = rightNote?.CustomNoteProperties?.GetColor("_BaseColor") ?? BlueNoteColor;
+        }
+
+        if(leftColor != LeftSaberColor || rightColor != RightSaberColor)
+        {
+            LeftSaberColor = leftColor;
+            RightSaberColor = rightColor;
+
+            OnSaberColorsChanged?.Invoke();
+        }
+    }
+
+
     public override void UpdateVisuals()
     {
         ClearOutsideVisuals();
 
         if(Objects.Count == 0)
         {
+            UpdateSaberColors(null, null, false);
             return;
         }
 
         int startIndex = GetStartIndex(TimeManager.CurrentTime);
         if(startIndex < 0)
         {
+            UpdateSaberColors(null, null, false);
             return;
         }
+
+        bool useChroma = SettingsManager.GetBool("chromaobjectcolors");
+        Note firstLeftNote = null;
+        Note firstRightNote = null;
 
         for(int i = startIndex; i < Objects.Count; i++)
         {
@@ -255,12 +286,48 @@ public class NoteManager : MapElementManager<Note>
             if(objectManager.CheckInSpawnRange(n.Time, !n.WasHit, true, n.HitOffset))
             {
                 UpdateVisual(n);
+
+                if(useChroma)
+                {
+                    if(n.Color == 0 && firstLeftNote == null)
+                    {
+                        firstLeftNote = n;
+                    }
+                    else if(n.Color == 1 && firstRightNote == null)
+                    {
+                        firstRightNote = n;
+                    }
+                }
             }
             else if(!VisualInSpawnRange(n))
             {
                 break;
             }
         }
+
+        if(useChroma && (firstLeftNote == null || firstRightNote == null))
+        {
+            //If the next notes haven't spawned yet, keep the color of the previous note
+            for(int i = startIndex; i >= 0; i--)
+            {
+                Note n = Objects[i];
+                if(n.Color == 0 && firstLeftNote == null)
+                {
+                    firstLeftNote = n;
+                }
+                else if(n.Color == 1 && firstRightNote == null)
+                {
+                    firstRightNote = n;
+                }
+
+                if(firstLeftNote != null && firstRightNote != null)
+                {
+                    break;
+                }
+            }
+        }
+
+        UpdateSaberColors(firstLeftNote, firstRightNote, useChroma);
     }
 
 
