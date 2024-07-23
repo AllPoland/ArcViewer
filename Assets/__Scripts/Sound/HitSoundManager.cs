@@ -68,6 +68,12 @@ public class HitSoundManager : MonoBehaviour
             source.pitch = Random.Range(0.95f, 1.05f);
         }
         else source.pitch = 1f;
+
+        if(emitter.WasBadCut && SettingsManager.GetBool("usebadhitsound"))
+        {
+            source.clip = BadHitSound;
+        }
+        else source.clip = HitSound;
         
         if(Spatial)
         {
@@ -99,21 +105,17 @@ public class HitSoundManager : MonoBehaviour
             if(scheduledSounds.Any(x => ObjectManager.CheckSameTime(x.time, emitter.Time) && x.source.clip == source.clip))
             {
                 //This sound has already been scheduled and we aren't using spatial audio, so sounds shouldn't stack
+                source.enabled = false;
                 return;
             }
         }
-
-        if(emitter.WasBadCut && SettingsManager.GetBool("usebadhitsound"))
-        {
-            source.clip = BadHitSound;
-        }
-        else source.clip = HitSound;
 
         ScheduledSound sound = new ScheduledSound
         {
             parentList = scheduledSounds,
             source = source,
-            time = emitter.ActualHitTime ? emitter.Time - emitter.HitOffset : emitter.Time
+            //If the object is a bomb, play the hitsound at the actual time it was hit
+            time = emitter.GetType() == typeof(Bomb) ? emitter.Time - emitter.HitOffset : emitter.Time
         };
         scheduledSounds.Add(sound);
     }

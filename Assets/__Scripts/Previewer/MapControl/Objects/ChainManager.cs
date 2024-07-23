@@ -375,6 +375,5 @@ public class ChainLink : HitSoundEmitter
         WasHit = true;
         WasBadCut = false;
         HitOffset = 0f;
-        ActualHitTime = false;
     }
 }
