@@ -11,12 +11,12 @@ public class LogLocationHandler : MonoBehaviour
 
     private void Awake()
     {
-#if UNITY_STANDALONE_LINUX
-        //Mostly hardcoded linux log path
-        LogPath = $"~/.config/unity3d/{Application.companyName}/{Application.productName}/{LogFileName}";
-#elif UNITY_STANDALONE_OSX
+// #if UNITY_STANDALONE_LINUX
+//         //Mostly hardcoded linux log path
+//         LogPath = Path.Combine("~/.config/unity3d/", Application.companyName, Application.productName, LogFileName);
+#if UNITY_STANDALONE_OSX
         //MacOS log path
-        LogPath = $"~/Library/Logs/{Application.companyName}/{Application.productName}/{LogFileName}";
+        LogPath = Path.Combine("~/Library/Logs/", Application.companyName, Application.productName, LogFileName);
 #else
         //Logs are sent to the persistent data path by default on windows
         LogPath = Path.Combine(Application.persistentDataPath, LogFileName);
