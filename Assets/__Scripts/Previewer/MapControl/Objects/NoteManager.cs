@@ -349,15 +349,13 @@ public class NoteManager : MapElementManager<Note>
 
         if(n.y <= 0) return 0;
 
-        if(objectsOnBeat.Count == 0) return 0;
-
         //Remove all notes that aren't directly below this one
         objectsOnBeat.RemoveAll(x => x.x != n.x || x.y >= n.y);
 
         if(objectsOnBeat.Count == 0) return 0;
 
         //Need to recursively calculate the startYs of each note underneath
-        return (objectsOnBeat.Max(x => GetStartY(x, objectsOnBeat)) + 1);
+        return objectsOnBeat.Max(x => GetStartY(x, objectsOnBeat)) + 1;
     }
 
 

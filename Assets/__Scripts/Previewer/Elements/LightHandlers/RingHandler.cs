@@ -13,6 +13,10 @@ public class RingHandler : MonoBehaviour
     [SerializeField] private int id;
     [SerializeField] private List<LightHandler> lightHandlers;
 
+    [Space]
+    [SerializeField] private float defaultZoom = 1f;
+    [SerializeField] private float defaultStep = 0f;
+
 
     public void UpdateRingRotations(RingRotationEventArgs eventArgs)
     {
@@ -87,6 +91,32 @@ public class RingHandler : MonoBehaviour
                 serialized.FindProperty("id").intValue = i + 1 + (ring.id * ring.lightHandlers.Count);
                 serialized.ApplyModifiedProperties();
             }
+        }
+        
+        EditorSceneManager.MarkSceneDirty(scene);
+    }
+
+
+    [MenuItem("Environment/SetRingPositions")]
+    public static void SetRingPositions()
+    {
+        Scene scene = EditorSceneManager.GetActiveScene();
+        GameObject[] rootObjects = scene.GetRootGameObjects();
+
+        List<RingHandler> ringHandlers = new List<RingHandler>();
+
+        foreach(GameObject gameObject in rootObjects)
+        {
+            ringHandlers.AddRange(gameObject.GetComponentsInChildren<RingHandler>());
+        }
+
+        foreach(RingHandler ring in ringHandlers)
+        {
+            float zPos = ring.defaultZoom * ring.id;
+            float zRot = ring.defaultStep * ring.id;
+            
+            ring.transform.localPosition = Vector3.forward * zPos;
+            ring.transform.localEulerAngles = Vector3.forward * zRot;
         }
         
         EditorSceneManager.MarkSceneDirty(scene);
