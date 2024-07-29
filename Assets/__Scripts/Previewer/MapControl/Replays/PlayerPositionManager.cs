@@ -272,19 +272,19 @@ public class PlayerPositionManager : MonoBehaviour
         float brightness = SettingsManager.GetFloat("sabertrailbrightness");
         Texture2D trail = trailTextures[trailIndex];
 
-        leftSaber.SetTrailProperties(NoteManager.RedNoteColor, brightness, trail);
-        rightSaber.SetTrailProperties(NoteManager.BlueNoteColor, brightness, trail);
+        leftSaber.SetTrailProperties(NoteManager.LeftSaberColor, brightness, trail);
+        rightSaber.SetTrailProperties(NoteManager.RightSaberColor, brightness, trail);
     }
 
 
     public void UpdateSaberMaterials()
     {
-        leftSaber.SetSaberProperties(NoteManager.RedNoteColor);
-        rightSaber.SetSaberProperties(NoteManager.BlueNoteColor);
+        leftSaber.SetSaberProperties(NoteManager.LeftSaberColor);
+        rightSaber.SetSaberProperties(NoteManager.RightSaberColor);
     }
 
 
-    public void UpdateColors(ColorPalette _)
+    public void UpdateColors()
     {
         if(!ReplayManager.IsReplayMode)
         {
@@ -481,7 +481,7 @@ public class PlayerPositionManager : MonoBehaviour
     private void OnEnable()
     {
         ReplayManager.OnReplayModeChanged += UpdateReplayMode;
-        ColorManager.OnColorsChanged += UpdateColors;
+        NoteManager.OnSaberColorsChanged += UpdateColors;
         SettingsManager.OnSettingsUpdated += UpdateSettings;
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
 
@@ -494,7 +494,7 @@ public class PlayerPositionManager : MonoBehaviour
         TimeManager.OnBeatChangedEarly -= UpdateBeat;
 
         ReplayManager.OnReplayModeChanged -= UpdateReplayMode;
-        ColorManager.OnColorsChanged -= UpdateColors;
+        NoteManager.OnSaberColorsChanged -= UpdateColors;
         SettingsManager.OnSettingsUpdated -= UpdateSettings;
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
 

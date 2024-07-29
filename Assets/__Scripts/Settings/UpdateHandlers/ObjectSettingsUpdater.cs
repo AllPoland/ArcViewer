@@ -11,6 +11,7 @@ public class ObjectSettingsUpdater : MonoBehaviour
 
     private static readonly string[] allObjectsSettings = new string[]
     {
+        "chromaobjectcolors",
         "moveanimations",
         "rotateanimations",
         "flipanimations",

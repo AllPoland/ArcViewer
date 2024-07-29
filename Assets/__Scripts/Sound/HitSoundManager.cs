@@ -63,26 +63,25 @@ public class HitSoundManager : MonoBehaviour
         source.Stop();
         source.volume = 1f;
 
+        if(RandomPitch)
+        {
+            source.pitch = Random.Range(0.95f, 1.05f);
+        }
+        else source.pitch = 1f;
+
         if(emitter.WasBadCut && SettingsManager.GetBool("usebadhitsound"))
         {
             source.clip = BadHitSound;
         }
         else source.clip = HitSound;
-
-        if(RandomPitch)
-        {
-            source.pitch = Random.Range(0.95f, 1.05f);
-        }
-        else source.pitch = 1;
-
+        
         if(Spatial)
         {
+            const float spread = 120f;
+
             source.spatialBlend = 1f;
-        }
-        else source.spatialBlend = 0;
+            source.spread = spread;
 
-        if(Spatial)
-        {
             //Findall my behated
             List<ScheduledSound> existingSounds = scheduledSounds.FindAll(x => ObjectManager.CheckSameTime(x.time, emitter.Time));
             if(existingSounds.Count > 0)
@@ -98,17 +97,25 @@ public class HitSoundManager : MonoBehaviour
                 source.pitch = existingSounds[0].source.pitch;
             }
         }
-        else if(scheduledSounds.Any(x => ObjectManager.CheckSameTime(x.time, emitter.Time) && x.source.clip == source.clip))
+        else 
         {
-            //This sound has already been scheduled and we aren't using spatial audio, so sounds shouldn't stack
-            return;
+            source.spatialBlend = 0f;
+            source.spread = 0f;
+
+            if(scheduledSounds.Any(x => ObjectManager.CheckSameTime(x.time, emitter.Time) && x.source.clip == source.clip))
+            {
+                //This sound has already been scheduled and we aren't using spatial audio, so sounds shouldn't stack
+                source.enabled = false;
+                return;
+            }
         }
 
         ScheduledSound sound = new ScheduledSound
         {
             parentList = scheduledSounds,
             source = source,
-            time = emitter.ActualHitTime ? emitter.Time - emitter.HitOffset : emitter.Time
+            //If the object is a bomb, play the hitsound at the actual time it was hit
+            time = emitter.GetType() == typeof(Bomb) ? emitter.Time - emitter.HitOffset : emitter.Time
         };
         scheduledSounds.Add(sound);
     }

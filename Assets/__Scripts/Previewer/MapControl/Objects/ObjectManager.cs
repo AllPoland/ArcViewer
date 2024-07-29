@@ -903,7 +903,6 @@ public abstract class HitSoundEmitter : MapObject
     public bool wasMissed;
     public bool WasBadCut;
     public float HitOffset;
-    public bool ActualHitTime;
 }
 
 

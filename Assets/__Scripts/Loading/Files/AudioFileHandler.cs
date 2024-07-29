@@ -139,18 +139,10 @@ public static class AudioFileHandler
             return null;
         }
 
-        //Encode uri reserved characters
-        StringBuilder encodedPath = new StringBuilder(HttpUtility.UrlEncode(path));
-        //Unencode characters that don't have a reserved purpose in this case (kinda scuffed)
-        encodedPath.Replace("%5c", "/");
-        encodedPath.Replace("%3a", ":");
-        encodedPath.Replace("+", " ");
-
-        Uri uri = new Uri("file://" + encodedPath.ToString());
-
         AudioClip song = null;
         try
         {
+            Uri uri = new Uri(path);
             DownloadHandlerAudioClip downloadHandler = new DownloadHandlerAudioClip(uri, type);
 
             using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(uri, type))

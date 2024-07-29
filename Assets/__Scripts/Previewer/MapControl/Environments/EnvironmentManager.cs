@@ -86,6 +86,7 @@ public class EnvironmentManager : MonoBehaviour
         "DragonsEnvironment",
         "KDAEnvironment",
         "MonstercatEnvironment",
+        "PanicEnvironment",
         "TimbalandEnvironment",
         "FitBeatEnvironment"
     };
