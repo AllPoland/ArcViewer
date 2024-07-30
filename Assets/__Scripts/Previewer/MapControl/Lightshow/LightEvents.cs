@@ -222,7 +222,7 @@ public class LightEventList : MapElementList<LightEvent>
 
 public class LaserSpeedEvent : LightEvent
 {
-    public const float DefaultRotationSpeedMult = 20f;
+    public const float RotationSpeedMult = 20f;
 
     public float RotationSpeed;
     public bool LockRotation = false;
@@ -247,7 +247,7 @@ public class LaserSpeedEvent : LightEvent
         Value = (LightEventValue)beatmapEvent.i;
         FloatValue = beatmapEvent.f;
 
-        RotationSpeed = (int)Value * DefaultRotationSpeedMult;
+        RotationSpeed = (int)Value;
 
         if(beatmapEvent.customData != null)
         {
@@ -256,6 +256,9 @@ public class LaserSpeedEvent : LightEvent
             LockRotation = customData.lockRotation ?? false;
             Direction = customData.direction ?? -1;
         }
+
+
+        RotationSpeed *= RotationSpeedMult;
     }
 
 
