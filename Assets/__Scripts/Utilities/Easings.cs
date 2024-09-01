@@ -257,88 +257,191 @@ public class Easings
     }
 
 
-    public delegate float EasingDelegate(float x);
-
-    public static EasingDelegate EasingFromString(string easingName)
+    public enum EasingType
     {
-        switch(easingName)
+        Linear  = 0b_0000_0000,
+        Sine    = 0b_0000_0001,
+        Quad    = 0b_0000_0010,
+        Cubic   = 0b_0000_0011,
+        Quart   = 0b_0000_0100,
+        Quint   = 0b_0000_0101,
+        Expo    = 0b_0000_0110,
+        Circ    = 0b_0000_0111,
+        Back    = 0b_0000_1001,
+        Elastic = 0b_0000_1010,
+        Bounce  = 0b_0000_1011,
+        Step    = 0b_0000_1100,
+
+        In      = 0b_1000_0000,
+        Out     = 0b_0100_0000,
+        InOut   = 0b_1100_0000,
+    }
+
+
+    public static float EasingFromType(EasingType easingType, float x)
+    {
+        switch(easingType)
+        {
+            case EasingType.Sine | EasingType.In:
+                return Sine.In(x);
+            case EasingType.Sine | EasingType.Out:
+                return Sine.Out(x);
+            case EasingType.Sine | EasingType.InOut:
+                return Sine.InOut(x);
+
+            case EasingType.Quad | EasingType.In:
+                return Quad.In(x);
+            case EasingType.Quad | EasingType.Out:
+                return Quad.Out(x);
+            case EasingType.Quad | EasingType.InOut:
+                return Quad.InOut(x);
+
+            case EasingType.Cubic | EasingType.In:
+                return Cubic.In(x);
+            case EasingType.Cubic | EasingType.Out:
+                return Cubic.Out(x);
+            case EasingType.Cubic | EasingType.InOut:
+                return Cubic.InOut(x);
+
+            case EasingType.Quart | EasingType.In:
+                return Quart.In(x);
+            case EasingType.Quart | EasingType.Out:
+                return Quart.Out(x);
+            case EasingType.Quart | EasingType.InOut:
+                return Quart.InOut(x);
+
+            case EasingType.Quint | EasingType.In:
+                return Quint.In(x);
+            case EasingType.Quint | EasingType.Out:
+                return Quint.Out(x);
+            case EasingType.Quint | EasingType.InOut:
+                return Quint.InOut(x);
+
+            case EasingType.Expo | EasingType.In:
+                return Expo.In(x);
+            case EasingType.Expo | EasingType.Out:
+                return Expo.Out(x);
+            case EasingType.Expo | EasingType.InOut:
+                return Expo.InOut(x);
+
+            case EasingType.Circ | EasingType.In:
+                return Circ.In(x);
+            case EasingType.Circ | EasingType.Out:
+                return Circ.Out(x);
+            case EasingType.Circ | EasingType.InOut:
+                return Circ.InOut(x);
+
+            case EasingType.Back | EasingType.In:
+                return Back.In(x);
+            case EasingType.Back | EasingType.Out:
+                return Back.Out(x);
+            case EasingType.Back | EasingType.InOut:
+                return Back.InOut(x);
+
+            case EasingType.Elastic | EasingType.In:
+                return Elastic.In(x);
+            case EasingType.Elastic | EasingType.Out:
+                return Elastic.Out(x);
+            case EasingType.Elastic | EasingType.InOut:
+                return Elastic.InOut(x);
+
+            case EasingType.Bounce | EasingType.In:
+                return Bounce.In(x);
+            case EasingType.Bounce | EasingType.Out:
+                return Bounce.Out(x);
+            case EasingType.Bounce | EasingType.InOut:
+                return Bounce.InOut(x);
+
+            case EasingType.Step:
+                return Step(x);
+
+            case EasingType.Linear:
+            default:
+                return Linear(x);
+        }
+    }
+
+
+    public static EasingType EasingTypeFromString(string easingType)
+    {
+        switch(easingType)
         {
             case "easeInSine":
-                return Sine.In;
+                return EasingType.Sine | EasingType.In;
             case "easeOutSine":
-                return Sine.Out;
+                return EasingType.Sine | EasingType.Out;
             case "easeInOutSine":
-                return Sine.InOut;
+                return EasingType.Sine | EasingType.InOut;
 
             case "easeInQuad":
-                return Quad.In;
+                return EasingType.Quad | EasingType.In;
             case "easeOutQuad":
-                return Quad.Out;
+                return EasingType.Quad | EasingType.Out;
             case "easeInOutQuad":
-                return Quad.InOut;
+                return EasingType.Quad | EasingType.InOut;
 
             case "easeInCubic":
-                return Cubic.In;
+                return EasingType.Cubic | EasingType.In;
             case "easeOutCubic":
-                return Cubic.Out;
+                return EasingType.Cubic | EasingType.Out;
             case "easeInOutCubic":
-                return Cubic.InOut;
+                return EasingType.Cubic | EasingType.InOut;
 
             case "easeInQuart":
-                return Quart.In;
+                return EasingType.Quart | EasingType.In;
             case "easeOutQuart":
-                return Quart.Out;
+                return EasingType.Quart | EasingType.Out;
             case "easeInOutQuart":
-                return Quart.InOut;
+                return EasingType.Quart | EasingType.InOut;
 
             case "easeInQuint":
-                return Quint.In;
+                return EasingType.Quint | EasingType.In;
             case "easeOutQuint":
-                return Quint.Out;
+                return EasingType.Quint | EasingType.Out;
             case "easeInOutQuint":
-                return Quint.InOut;
+                return EasingType.Quint | EasingType.InOut;
 
             case "easeInExpo":
-                return Expo.In;
+                return EasingType.Expo | EasingType.In;
             case "easeOutExpo":
-                return Expo.Out;
+                return EasingType.Expo | EasingType.Out;
             case "easeInOutExpo":
-                return Expo.InOut;
+                return EasingType.Expo | EasingType.InOut;
 
             case "easeInCirc":
-                return Circ.In;
+                return EasingType.Circ | EasingType.In;
             case "easeOutCirc":
-                return Circ.Out;
+                return EasingType.Circ | EasingType.Out;
             case "easeInOutCirc":
-                return Circ.InOut;
+                return EasingType.Circ | EasingType.InOut;
 
             case "easeInBack":
-                return Back.In;
+                return EasingType.Back | EasingType.In;
             case "easeOutBack":
-                return Back.Out;
+                return EasingType.Back | EasingType.Out;
             case "easeInOutBack":
-                return Back.InOut;
+                return EasingType.Back | EasingType.InOut;
 
             case "easeInElastic":
-                return Elastic.In;
+                return EasingType.Elastic | EasingType.In;
             case "easeOutElastic":
-                return Elastic.Out;
+                return EasingType.Elastic | EasingType.Out;
             case "easeInOutElastic":
-                return Elastic.InOut;
+                return EasingType.Elastic | EasingType.InOut;
 
             case "easeInBounce":
-                return Bounce.In;
+                return EasingType.Bounce | EasingType.In;
             case "easeOutBounce":
-                return Bounce.Out;
+                return EasingType.Bounce | EasingType.Out;
             case "easeInOutBounce":
-                return Bounce.InOut;
+                return EasingType.Bounce | EasingType.InOut;
 
             case "easeStep":
-                return Step;
+                return EasingType.Step;
 
             case "easeLinear":
             default:
-                return Linear;
+                return EasingType.Linear;
         }
     }
 }

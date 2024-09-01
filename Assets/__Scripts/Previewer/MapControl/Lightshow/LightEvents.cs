@@ -10,7 +10,7 @@ public class LightEvent : MapElement
 
     public Color? CustomColor;
     public int[] LightIDs;
-    public Easings.EasingDelegate TransitionEasing;
+    public Easings.EasingType TransitionEasing;
     public bool HsvLerp = false;
 
     public LightEvent LastGlobalEvent;
@@ -29,7 +29,7 @@ public class LightEvent : MapElement
         Type = (LightEventType)beatmapEvent.et;
         Value = (LightEventValue)beatmapEvent.i;
         FloatValue = beatmapEvent.f;
-        TransitionEasing = Easings.Linear;
+        TransitionEasing = Easings.EasingType.Linear;
 
         if(Type == LightEventType.BackLasers && LightManager.FlipBackLasers)
         {
@@ -46,7 +46,7 @@ public class LightEvent : MapElement
             }
             if(customData.easing != null)
             {
-                TransitionEasing = Easings.EasingFromString(customData.easing);
+                TransitionEasing = Easings.EasingTypeFromString(customData.easing);
             }
             if(customData.lerpType != null)
             {

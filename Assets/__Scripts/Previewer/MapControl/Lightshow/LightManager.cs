@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class LightManager : MonoBehaviour
@@ -241,7 +242,7 @@ public class LightManager : MonoBehaviour
 
             float transitionTime = nextEvent.Time - lightEvent.Time;
             float t = (TimeManager.CurrentTime - lightEvent.Time) / transitionTime;
-            t = lightEvent.TransitionEasing(t);
+            t = Easings.EasingFromType(lightEvent.TransitionEasing, t);
 
             if(lightEvent.HsvLerp)
             {
