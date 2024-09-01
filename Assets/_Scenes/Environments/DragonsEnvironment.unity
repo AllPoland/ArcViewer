@@ -1349,6 +1349,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
+--- !u!4 &330120783 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6313713894679119674, guid: bd36fa4b6006aad42a3b87486708a129, type: 3}
+  m_PrefabInstance: {fileID: 330120782}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &363926448
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3358,7 +3363,7 @@ PrefabInstance:
     - target: {fileID: 5368519577629066917, guid: 56d2aa36978ec864f90a2e2b20bf156a, type: 3}
       propertyPath: targets.Array.data[4]
       value: 
-      objectReference: {fileID: 999280590}
+      objectReference: {fileID: 330120783}
     - target: {fileID: 6388441197610832684, guid: 56d2aa36978ec864f90a2e2b20bf156a, type: 3}
       propertyPath: m_Name
       value: RightRotatingLasers
@@ -3416,11 +3421,6 @@ PrefabInstance:
 --- !u!4 &999280589 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6388441197610832685, guid: 56d2aa36978ec864f90a2e2b20bf156a, type: 3}
-  m_PrefabInstance: {fileID: 999280588}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &999280590 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1096235351289554427, guid: 56d2aa36978ec864f90a2e2b20bf156a, type: 3}
   m_PrefabInstance: {fileID: 999280588}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1012044492
