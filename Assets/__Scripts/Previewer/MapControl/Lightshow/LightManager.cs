@@ -46,7 +46,8 @@ public class LightManager : MonoBehaviour
     private static readonly string[] lightSettings = new string[]
     {
         "staticlights",
-        "lightglowbrightness"
+        "lightglowbrightness",
+        "chromalightcolors"
     };
 
     //These environments have red/blue flipped on their back/bottom lasers
@@ -145,7 +146,6 @@ public class LightManager : MonoBehaviour
 
     public Color GetLaserGlowColor(Color baseColor)
     {
-        Color glowColor = baseColor;
         baseColor.a *= lightGlowBrightness;
         return baseColor;
     }
@@ -188,7 +188,7 @@ public class LightManager : MonoBehaviour
     private static Color GetEventBaseColor(LightEvent lightEvent)
     {
         Color baseColor;
-        if(lightEvent.CustomColor != null)
+        if(lightEvent.CustomColor != null && SettingsManager.GetBool("chromalightcolors"))
         {
             baseColor = (Color)lightEvent.CustomColor;
         }
