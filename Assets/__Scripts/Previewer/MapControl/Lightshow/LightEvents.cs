@@ -8,7 +8,7 @@ public class LightEvent : MapElement
     public LightEventValue Value;
     public float FloatValue = 1f;
 
-    public Color? CustomColor;
+    public int? CustomColorIdx;
     public int[] LightIDs;
     public Easings.EasingType TransitionEasing;
     public bool HsvLerp = false;
@@ -42,7 +42,8 @@ public class LightEvent : MapElement
             BeatmapCustomBasicEventData customData = beatmapEvent.customData;
             if(customData.color != null)
             {
-                CustomColor = ColorManager.ColorFromCustomDataColor(customData.color);
+                Color customColor = ColorManager.ColorFromCustomDataColor(customData.color);
+                CustomColorIdx = LightColorManager.GetLightColorIdx(customColor);
             }
             if(customData.easing != null)
             {

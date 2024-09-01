@@ -189,9 +189,9 @@ public class LightManager : MonoBehaviour
     private static Color GetEventBaseColor(LightEvent lightEvent)
     {
         Color baseColor;
-        if(lightEvent.CustomColor != null && SettingsManager.GetBool("chromalightcolors"))
+        if(lightEvent.CustomColorIdx != null && SettingsManager.GetBool("chromalightcolors"))
         {
-            baseColor = (Color)lightEvent.CustomColor;
+            baseColor = LightColorManager.GetColor(lightEvent.CustomColorIdx);
         }
         else
         {
