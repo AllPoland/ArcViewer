@@ -390,13 +390,34 @@ public class LightManager : MonoBehaviour
         RingManager.RingZoomEvents.Clear();
 
         string environmentName = BeatmapManager.EnvironmentName;
-        if(newDifficulty.beatmapDifficulty.BasicEvents.Length == 0 || EnvironmentManager.V3Environments.Contains(environmentName) || SettingsManager.GetBool("skiplights"))
+        if(newDifficulty.beatmapDifficulty.BasicEvents.Length == 0)
         {
             StaticLights = true;
             return;
         }
-        else StaticLights = false;
 
+        if(SettingsManager.GetBool("skiplights"))
+        {
+            StaticLights = true;
+            return;
+        }
+
+        //Avoid loading lightshows with too many events (to avoid crashes)
+        int maxEvents = SettingsManager.GetInt("maxlightevents");
+        if(maxEvents > 0 && newDifficulty.beatmapDifficulty.BasicEvents.Length > maxEvents)
+        {
+            ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "Disabled the lightshow because it has too many events.");
+            StaticLights = true;
+            return;
+        }
+
+        if(EnvironmentManager.V3Environments.Contains(environmentName))
+        {
+            StaticLights = true;
+            return;
+        }
+
+        StaticLights = false;
         FlipBackLasers = backLaserFlipEnvironments.Contains(environmentName);
 
         foreach(BeatmapColorBoostBeatmapEvent beatmapBoostEvent in newDifficulty.beatmapDifficulty.BoostEvents)
