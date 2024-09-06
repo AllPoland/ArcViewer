@@ -254,7 +254,7 @@ public class LaserSpeedEvent : LightEvent
         {
             BeatmapCustomBasicEventData customData = beatmapEvent.customData;
             RotationSpeed = customData.speed ?? RotationSpeed;
-            LockRotation = customData.lockRotation ?? false;
+            LockRotation = customData.lockRotation;
             Direction = customData.direction ?? -1;
         }
 

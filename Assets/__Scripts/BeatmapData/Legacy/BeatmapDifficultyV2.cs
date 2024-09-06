@@ -451,7 +451,8 @@ public class BeatmapCustomEventDataV2
     public string _lerpType;
 
     //Laser speed specific data
-    public bool? _lockPosition;
+    [JsonConverter(typeof(StringBooleanConverter))]
+    public bool _lockPosition;
 
     //Ring specific data
     public string _nameFilter;
