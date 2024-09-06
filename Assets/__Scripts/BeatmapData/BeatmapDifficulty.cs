@@ -371,7 +371,7 @@ public class LightIDConverter : JsonConverter
     public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
         int[] val = null;
-        if(reader.TokenType == JsonToken.StartObject)
+        if(reader.TokenType == JsonToken.Integer)
         {
             int id = serializer.Deserialize<int>(reader);
             val = new int[] { id };
