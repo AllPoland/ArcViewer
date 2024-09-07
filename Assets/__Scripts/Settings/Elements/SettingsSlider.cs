@@ -72,7 +72,7 @@ public class SettingsSlider : MonoBehaviour
     {
         if(changedSetting == "all" || changedSetting == rule)
         {
-            float newValue = SettingsManager.GetFloat(rule);
+            float newValue = integerValue ? SettingsManager.GetInt(rule) : SettingsManager.GetFloat(rule);
             SetSliderValue(newValue);
             UpdateText(newValue);
         }
