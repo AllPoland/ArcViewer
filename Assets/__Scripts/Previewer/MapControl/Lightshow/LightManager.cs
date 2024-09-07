@@ -60,11 +60,11 @@ public class LightManager : MonoBehaviour
 
     private static MapElementList<BoostEvent> boostEvents = new MapElementList<BoostEvent>();
 
-    public LightEventList backLaserEvents = new LightEventList();
-    public LightEventList ringEvents = new LightEventList();
-    public LightEventList leftLaserEvents = new LightEventList();
-    public LightEventList rightLaserEvents = new LightEventList();
-    public LightEventList centerLightEvents = new LightEventList();
+    public MapElementList<LightEvent> backLaserEvents = new MapElementList<LightEvent>();
+    public MapElementList<LightEvent> ringEvents = new MapElementList<LightEvent>();
+    public MapElementList<LightEvent> leftLaserEvents = new MapElementList<LightEvent>();
+    public MapElementList<LightEvent> rightLaserEvents = new MapElementList<LightEvent>();
+    public MapElementList<LightEvent> centerLightEvents = new MapElementList<LightEvent>();
 
     public MapElementList<LaserSpeedEvent> leftLaserSpeedEvents = new MapElementList<LaserSpeedEvent>();
     public MapElementList<LaserSpeedEvent> rightLaserSpeedEvents = new MapElementList<LaserSpeedEvent>();
@@ -436,12 +436,6 @@ public class LightManager : MonoBehaviour
         leftLaserEvents.SortElementsByBeat();
         rightLaserEvents.SortElementsByBeat();
         centerLightEvents.SortElementsByBeat();
-
-        backLaserEvents.PrecalculateNeighboringEvents();
-        ringEvents.PrecalculateNeighboringEvents();
-        leftLaserEvents.PrecalculateNeighboringEvents();
-        rightLaserEvents.PrecalculateNeighboringEvents();
-        centerLightEvents.PrecalculateNeighboringEvents();
 
         leftLaserSpeedEvents.SortElementsByBeat();
         rightLaserEvents.SortElementsByBeat();
