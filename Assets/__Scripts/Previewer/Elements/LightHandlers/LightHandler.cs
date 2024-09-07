@@ -41,13 +41,24 @@ public class LightHandler : MonoBehaviour
         else
         {
             //Either the current event or the next don't affect this ID
-            //Find the last event that does - if any, and apply color based on that
-            LightEvent lightEvent = eventArgs.lightEvent;
-            if(!useThisEvent)
+            LightEvent lightEvent;
+            LightEvent nextEvent;
+            if(useThisEvent)
             {
-                lightEvent = GetLastEvent(eventArgs, id);
+                //Use the default lightEvent
+                lightEvent = eventArgs.lightEvent;
+                //Find the next event that affects this ID
+                nextEvent = GetNextEvent(eventArgs, eventArgs.eventIndex);
             }
-            LightEvent nextEvent = useNextEvent ? eventArgs.nextEvent : GetNextEvent(eventArgs, id);
+            else
+            {
+                //Find the last event that affects this ID
+                int eventIndex = GetLastEventIndex(eventArgs);
+                lightEvent = eventIndex >= 0 ? eventArgs.eventList[eventIndex] : null;
+                //Find the next event based on the current event's position
+                //(eventIndex is clamped inside the method)
+                nextEvent = GetNextEvent(eventArgs, eventIndex);
+            }
 
             Color eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
             SetProperties(eventArgs.sender.GetLaserColor(eventColor), eventArgs.sender.GetLaserGlowColor(eventColor));
@@ -55,14 +66,74 @@ public class LightHandler : MonoBehaviour
     }
 
 
-    private LightEvent GetNextEvent(LightingPropertyEventArgs eventArgs, int id)
+    private int GetLastEventIndex(LightingPropertyEventArgs eventArgs)
     {
         List<LightEvent> lightEvents = eventArgs.eventList;
-        int startIndex = Mathf.Clamp(eventArgs.eventIndex, 0, lightEvents.Count - 1);
+        int startIndex = Mathf.Clamp(eventArgs.eventIndex - 1, 0, lightEvents.Count - 1);
+
+        if(startIndex == lastCheckIndex)
+        {
+            return lastEventIndex;
+        }
+
+        if(startIndex < lastCheckIndex)
+        {
+            if(lastCheckIndex >= 0 && lastEventIndex < 0)
+            {
+                //We've already looked behind and found no last event
+                return -1;
+            }
+            else if(lastEventIndex >= 0 && startIndex > lastEventIndex)
+            {
+                //We've moved backward, but we haven't moved past the last event
+                return lastEventIndex;
+            }
+        }
+
+        //Avoid looping back past where we know there is no event
+        int minIndex = 0;
+        if(startIndex > lastCheckIndex)
+        {
+            //We've moved forward, so don't loop past the previous frame's last event
+            minIndex = lastEventIndex >= 0 ? lastEventIndex : Mathf.Max(lastCheckIndex, 0);
+        }
+        lastCheckIndex = startIndex;
+
+        for(int i = startIndex; i >= minIndex; i--)
+        {
+            if(lightEvents[i].AffectsID(id))
+            {
+                lastEventIndex = i;
+                return i;
+            }
+        }
+        lastEventIndex = -1;
+        return -1;
+    }
+
+
+    private LightEvent GetNextEvent(LightingPropertyEventArgs eventArgs, int eventIndex)
+    {
+        List<LightEvent> lightEvents = eventArgs.eventList;
+        int startIndex = Mathf.Clamp(eventIndex + 1, 0, lightEvents.Count - 1);
 
         if(startIndex == nextCheckIndex)
         {
             return nextEventIndex >= 0 ? lightEvents[nextEventIndex] : null;
+        }
+
+        if(startIndex > nextCheckIndex)
+        {
+            if(nextCheckIndex >= 0 && nextEventIndex < 0)
+            {
+                //We've already looked ahead and found no next event
+                return null;
+            }
+            else if(startIndex < nextEventIndex)
+            {
+                //We've moved forward, but we haven't moved past the next event yet
+                return lightEvents[nextEventIndex];
+            }
         }
 
         //Avoid looping ahead past where we know there is no event
@@ -71,12 +142,6 @@ public class LightHandler : MonoBehaviour
         {
             //We've moved backward, so don't loop past the previous frame's next event
             maxIndex = nextEventIndex >= 0 ? nextEventIndex : nextCheckIndex;
-        }
-        else if(startIndex <= nextEventIndex)
-        {
-            //We've moved forward, but we haven't moved past the next event yet
-            nextCheckIndex = startIndex;
-            return lightEvents[nextEventIndex];
         }
         nextCheckIndex = startIndex;
 
@@ -89,44 +154,6 @@ public class LightHandler : MonoBehaviour
             }
         }
         nextEventIndex = -1;
-        return null;
-    }
-
-
-    private LightEvent GetLastEvent(LightingPropertyEventArgs eventArgs, int id)
-    {
-        List<LightEvent> lightEvents = eventArgs.eventList;
-        int startIndex = Mathf.Clamp(eventArgs.eventIndex, 0, lightEvents.Count - 1);
-
-        if(startIndex == lastCheckIndex)
-        {
-            return lastEventIndex >= 0 ? lightEvents[lastEventIndex] : null;
-        }
-
-        //Avoid looping back past where we know there is no event
-        int minIndex = 0;
-        if(startIndex > lastCheckIndex)
-        {
-            //We've moved forward, so don't loop past the previous frame's last event
-            minIndex = lastEventIndex >= 0 ? lastEventIndex : Mathf.Max(lastCheckIndex, 0);
-        }
-        else if(lastEventIndex >= 0 && startIndex >= lastEventIndex)
-        {
-            //We've moved backward, but we haven't moved past the last event
-            lastCheckIndex = startIndex;
-            return lightEvents[lastEventIndex];
-        }
-        lastCheckIndex = startIndex;
-
-        for(int i = startIndex; i >= minIndex; i--)
-        {
-            if(lightEvents[i].AffectsID(id))
-            {
-                lastEventIndex = i;
-                return lightEvents[i];
-            }
-        }
-        lastEventIndex = -1;
         return null;
     }
 

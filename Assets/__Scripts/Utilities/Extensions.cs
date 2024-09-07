@@ -164,7 +164,7 @@ public static class Extensions
     ///<summary>
     ///Linearly interpolates between two colors using HSV.
     ///</summary>
-    public static Color LerpHSV(this Color a, Color b, float t)
+    public static Color LerpHSV(this Color a, Color b, float t, bool hdr = true)
     {
         float ha, sa, va;
         float hb, sb, vb;
@@ -172,7 +172,11 @@ public static class Extensions
         Color.RGBToHSV(a, out ha, out sa, out va);
         Color.RGBToHSV(b, out hb, out sb, out vb);
 
-        return Color.HSVToRGB(Mathf.Lerp(ha, hb, t), Mathf.Lerp(sa, sb, t), Mathf.Lerp(va, vb, t));
+        Color lerpColor = Color.HSVToRGB(Mathf.Lerp(ha, hb, t), Mathf.Lerp(sa, sb, t), Mathf.Lerp(va, vb, t), hdr);
+        lerpColor.a = Mathf.Lerp(a.a, b.a, t);
+        if(!hdr) lerpColor.a = Mathf.Clamp(lerpColor.a, 0, 1);
+
+        return lerpColor;
     }
 
 

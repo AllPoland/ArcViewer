@@ -10,7 +10,7 @@ public class LightEvent : MapElement
 
     public int? CustomColorIdx;
     public HashSet<int> LightIDs;
-    public Easings.EasingType TransitionEasing;
+    public Easings.EasingType TransitionEasing = Easings.EasingType.Linear;
     public bool HsvLerp = false;
 
     public LightEvent LastGlobalEvent;
@@ -26,7 +26,6 @@ public class LightEvent : MapElement
         Type = (LightEventType)beatmapEvent.et;
         Value = (LightEventValue)beatmapEvent.i;
         FloatValue = beatmapEvent.f;
-        TransitionEasing = Easings.EasingType.Linear;
 
         if(Type == LightEventType.BackLasers && LightManager.FlipBackLasers)
         {
@@ -97,6 +96,30 @@ public class LightEvent : MapElement
             return true;
         }
         return LightIDs.Contains(id);
+    }
+
+
+    public static int GetTransitionValue(int eventValue)
+    {
+        switch((LightEventValue)eventValue)
+        {
+            case LightEventValue.BlueOn:
+            case LightEventValue.BlueFlash:
+            case LightEventValue.BlueFade:
+            case LightEventValue.BlueTransition:
+                return (int)LightEventValue.BlueTransition;
+            case LightEventValue.RedOn:
+            case LightEventValue.RedFlash:
+            case LightEventValue.RedFade:
+            case LightEventValue.RedTransition:
+                return (int)LightEventValue.RedTransition;
+            case LightEventValue.WhiteOn:
+            case LightEventValue.WhiteFlash:
+            case LightEventValue.WhiteFade:
+            case LightEventValue.WhiteTransition:
+            default:
+                return (int)LightEventValue.WhiteTransition;
+        }
     }
 }
 
