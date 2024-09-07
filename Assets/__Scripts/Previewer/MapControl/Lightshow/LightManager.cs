@@ -48,7 +48,12 @@ public class LightManager : MonoBehaviour
     {
         "staticlights",
         "lightglowbrightness",
-        "chromalightcolors"
+        "chromalightcolors",
+        "staticbacklasers",
+        "staticringlights",
+        "staticleftlasers",
+        "staticrightlasers",
+        "staticcenterlights"
     };
 
     //These environments have red/blue flipped on their back/bottom lasers
@@ -292,35 +297,41 @@ public class LightManager : MonoBehaviour
 
     private void SetStaticLayout()
     {
+        int backLaserState = SettingsManager.GetInt("staticbacklasers");
+        int ringState = SettingsManager.GetInt("staticringlights");
+        int leftLaserState = SettingsManager.GetInt("staticleftlasers");
+        int rightLaserState = SettingsManager.GetInt("staticrightlasers");
+        int centerLightState = SettingsManager.GetInt("staticcenterlights");
+
         LightEvent backLasers = new LightEvent
         {
             Beat = 0f,
             Type = LightEventType.BackLasers,
-            Value = LightEventValue.BlueOn
+            Value = ValueFromSetting(backLaserState)
         };
         LightEvent rings = new LightEvent
         {
             Beat = 0f,
             Type = LightEventType.Rings,
-            Value = LightEventValue.BlueOn
+            Value = ValueFromSetting(ringState)
         };
         LightEvent leftLasers = new LightEvent
         {
             Beat = 0f,
             Type = LightEventType.LeftRotatingLasers,
-            Value = LightEventValue.Off
+            Value = ValueFromSetting(leftLaserState)
         };
         LightEvent rightLasers = new LightEvent
         {
             Beat = 0f,
             Type = LightEventType.RightRotatingLasers,
-            Value = LightEventValue.Off
+            Value = ValueFromSetting(rightLaserState)
         };
         LightEvent centerLights = new LightEvent
         {
             Beat = 0f,
             Type = LightEventType.CenterLights,
-            Value = LightEventValue.BlueOn
+            Value = ValueFromSetting(centerLightState)
         };
 
         UpdateLightEvent(LightEventType.BackLasers, backLasers, null, new MapElementList<LightEvent>(), -1);
@@ -333,6 +344,18 @@ public class LightManager : MonoBehaviour
         OnLaserRotationsChanged?.Invoke(null, LightEventType.RightRotationSpeed);
 
         RingManager.SetStaticRings();
+    }
+
+
+    private LightEventValue ValueFromSetting(int setting)
+    {
+        return setting switch
+        {
+            1 => LightEventValue.RedOn,
+            2 => LightEventValue.BlueOn,
+            3 => LightEventValue.WhiteOn,
+            _ => LightEventValue.Off
+        };
     }
 
 
