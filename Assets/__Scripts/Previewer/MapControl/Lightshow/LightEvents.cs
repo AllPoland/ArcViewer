@@ -8,15 +8,12 @@ public class LightEvent : MapElement
     public LightEventValue Value;
     public float FloatValue = 1f;
 
-    public Color? CustomColor;
-    public int[] LightIDs;
-    public Easings.EasingDelegate TransitionEasing;
+    public int? CustomColorIdx;
+    public HashSet<int> LightIDs;
+    public Easings.EasingType TransitionEasing = Easings.EasingType.Linear;
     public bool HsvLerp = false;
 
     public LightEvent LastGlobalEvent;
-
-    private Dictionary<int, LightEvent> lastEvents;
-    private Dictionary<int, LightEvent> nextEvents;
 
     public bool IsTransition => Value == LightEventValue.RedTransition || Value == LightEventValue.BlueTransition || Value == LightEventValue.WhiteTransition;
 
@@ -29,7 +26,6 @@ public class LightEvent : MapElement
         Type = (LightEventType)beatmapEvent.et;
         Value = (LightEventValue)beatmapEvent.i;
         FloatValue = beatmapEvent.f;
-        TransitionEasing = Easings.Linear;
 
         if(Type == LightEventType.BackLasers && LightManager.FlipBackLasers)
         {
@@ -42,18 +38,20 @@ public class LightEvent : MapElement
             BeatmapCustomBasicEventData customData = beatmapEvent.customData;
             if(customData.color != null)
             {
-                CustomColor = ColorManager.ColorFromCustomDataColor(customData.color);
+                Color customColor = ColorManager.ColorFromCustomDataColor(customData.color);
+                CustomColorIdx = LightColorManager.GetLightColorIdx(customColor);
             }
             if(customData.easing != null)
             {
-                TransitionEasing = Easings.EasingFromString(customData.easing);
+                TransitionEasing = Easings.EasingTypeFromString(customData.easing);
             }
             if(customData.lerpType != null)
             {
                 HsvLerp = customData.lerpType == "HSV";
             }
 
-            LightIDs = customData.lightID;
+            //Use a hash set to store lightIDs to turn AffectsID() into O(1)
+            LightIDs = customData.lightID?.ToHashSet();
         }
     }
 
@@ -93,7 +91,7 @@ public class LightEvent : MapElement
 
     public bool AffectsID(int id)
     {
-        if((LightIDs?.Length ?? 0) == 0)
+        if((LightIDs?.Count ?? 0) == 0)
         {
             return true;
         }
@@ -101,120 +99,26 @@ public class LightEvent : MapElement
     }
 
 
-    public LightEvent GetLastEvent(int id)
+    public static int GetTransitionValue(int eventValue)
     {
-        if(AffectsID(id))
+        switch((LightEventValue)eventValue)
         {
-            return this;
-        }
-
-        if(lastEvents != null && lastEvents.TryGetValue(id, out LightEvent lightEvent))
-        {
-            return lightEvent;
-        }
-        else return LastGlobalEvent;
-    }
-
-
-    public LightEvent GetNextEvent(int id)
-    {
-        if(nextEvents == null)
-        {
-            return null;
-        }
-
-        return nextEvents.TryGetValue(id, out LightEvent lightEvent) ? lightEvent : null;
-    }
-
-
-    public void SetLastEvent(int id, LightEvent lightEvent)
-    {
-        lastEvents ??= new Dictionary<int, LightEvent>();
-        lastEvents[id] = lightEvent;
-    }
-
-
-    public void SetNextEvent(int id, LightEvent lightEvent)
-    {
-        nextEvents ??= new Dictionary<int, LightEvent>();
-        nextEvents[id] = lightEvent;
-    }
-}
-
-
-public class LightEventList : MapElementList<LightEvent>
-{
-    public void PrecalculateNeighboringEvents()
-    {
-        if(!IsSorted)
-        {
-            Debug.LogWarning("Trying to precalculate events in an unsorted list!");
-            SortElementsByBeat();
-        }
-
-        //Precalculate the events that apply to each ID on this event
-        //Helps speed up lightID at runtime
-        LightEvent lastGlobalEvent = null;
-        Dictionary<int, LightEvent> lastEvents = new Dictionary<int, LightEvent>();
-
-        for(int i = 0; i < Elements.Count; i++)
-        {
-            LightEvent lightEvent = Elements[i];
-            if((lightEvent.LightIDs?.Length ?? 0) == 0)
-            {
-                //This event affects all IDs, so we can close all previous events with this one
-                if(lightEvent.IsTransition)
-                {
-                    //Only store next events if it's needed (if this is a transition event)
-                    foreach(KeyValuePair<int, LightEvent> pair in lastEvents)
-                    {
-                        pair.Value.SetNextEvent(pair.Key, lightEvent);
-                    }
-                }
-
-                lastEvents.Clear();
-                lastGlobalEvent = lightEvent;
-
-                continue;
-            }
-
-            foreach(KeyValuePair<int, LightEvent> pair in lastEvents)
-            {
-                int id = pair.Key;
-                if(!lightEvent.AffectsID(id))
-                {
-                    lightEvent.SetLastEvent(id, pair.Value);
-                }
-            }
-
-            lightEvent.LastGlobalEvent = lastGlobalEvent;
-
-            if(!lightEvent.IsTransition)
-            {
-                //In this case, there's no need to add pointers from previous events
-                foreach(int id in lightEvent.LightIDs)
-                {
-                    //Track the ids this event affects
-                    lastEvents[id] = lightEvent;
-                }
-            }
-            else
-            {
-                //This event is a transition, previous events also need a pointer to it
-                foreach(int id in lightEvent.LightIDs)
-                {
-                    //Find the last event that affected this id, if any
-                    LightEvent lastEvent = lastEvents.TryGetValue(id, out LightEvent x) ? x : lastGlobalEvent;
-
-                    if(lastEvent != null)
-                    {
-                        //Add a reference to this event to the previous event
-                        lastEvent.SetNextEvent(id, lightEvent);
-                    }
-
-                    lastEvents[id] = lightEvent;
-                }
-            }
+            case LightEventValue.BlueOn:
+            case LightEventValue.BlueFlash:
+            case LightEventValue.BlueFade:
+            case LightEventValue.BlueTransition:
+                return (int)LightEventValue.BlueTransition;
+            case LightEventValue.RedOn:
+            case LightEventValue.RedFlash:
+            case LightEventValue.RedFade:
+            case LightEventValue.RedTransition:
+                return (int)LightEventValue.RedTransition;
+            case LightEventValue.WhiteOn:
+            case LightEventValue.WhiteFlash:
+            case LightEventValue.WhiteFade:
+            case LightEventValue.WhiteTransition:
+            default:
+                return (int)LightEventValue.WhiteTransition;
         }
     }
 }
@@ -222,7 +126,7 @@ public class LightEventList : MapElementList<LightEvent>
 
 public class LaserSpeedEvent : LightEvent
 {
-    public const float DefaultRotationSpeedMult = 20f;
+    public const float RotationSpeedMult = 20f;
 
     public float RotationSpeed;
     public bool LockRotation = false;
@@ -247,15 +151,18 @@ public class LaserSpeedEvent : LightEvent
         Value = (LightEventValue)beatmapEvent.i;
         FloatValue = beatmapEvent.f;
 
-        RotationSpeed = (int)Value * DefaultRotationSpeedMult;
+        RotationSpeed = (int)Value;
 
         if(beatmapEvent.customData != null)
         {
             BeatmapCustomBasicEventData customData = beatmapEvent.customData;
             RotationSpeed = customData.speed ?? RotationSpeed;
-            LockRotation = customData.lockRotation ?? false;
+            LockRotation = customData.lockRotation;
             Direction = customData.direction ?? -1;
         }
+
+
+        RotationSpeed *= RotationSpeedMult;
     }
 
 
@@ -264,8 +171,8 @@ public class LaserSpeedEvent : LightEvent
         RotationValues = new List<LaserRotationData>();
 
         bool randomize = EnvironmentManager.CurrentEnvironmentParameters.RandomizeRotatingLasers;
-        float startAngle = UnityEngine.Random.Range(0f, 360f);
-        bool unifiedDirection = UnityEngine.Random.value >= 0.5f;
+        float startAngle = Random.Range(0f, 360f);
+        bool unifiedDirection = Random.value >= 0.5f;
 
         for(int i = 0; i < laserCount; i++)
         {
@@ -276,7 +183,7 @@ public class LaserSpeedEvent : LightEvent
                 {
                     if(randomize)
                     {
-                        newData.direction = UnityEngine.Random.value >= 0.5f;
+                        newData.direction = Random.value >= 0.5f;
                     }
                     else
                     {
@@ -287,7 +194,7 @@ public class LaserSpeedEvent : LightEvent
 
                 if(randomize)
                 {
-                    newData.startPosition = UnityEngine.Random.Range(0f, 360f);
+                    newData.startPosition = Random.Range(0f, 360f);
                 }
                 else
                 {

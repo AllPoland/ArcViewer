@@ -377,6 +377,8 @@ public class SettingsManager : MonoBehaviour
 
         OnSettingsReset?.Invoke();
         OnSettingsUpdated?.Invoke("all");
+
+        ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "Settings have been reset.");
     }
 
 

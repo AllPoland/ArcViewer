@@ -6,7 +6,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Networking; //Used in WebGL
+#if UNITY_WEBGL && !UNITY_EDITOR
+using UnityEngine.Networking;
+#endif
 
 public class MapLoader : MonoBehaviour
 {
@@ -31,7 +33,7 @@ public class MapLoader : MonoBehaviour
     public static event Action OnReplayMapPrompt;
 
 
-    private IEnumerator LoadMapFileCoroutine(IMapDataLoader loader)
+    private IEnumerator LoadMapCoroutine(IMapDataLoader loader)
     {
         Loading = true;
 
@@ -43,6 +45,12 @@ public class MapLoader : MonoBehaviour
         LoadingMessage = "Done";
 
         loader.Dispose();
+
+        LoadingMessage = "Initializing";
+        //Wait 2 frames to ensure the text updates
+        yield return null;
+        yield return null;
+
         SetMap(mapData);
     }
 
@@ -58,7 +66,7 @@ public class MapLoader : MonoBehaviour
             LoadingMessage = "Loading map zip";
 
             zipReader.Archive = ZipFile.OpenRead(directory);
-            StartCoroutine(LoadMapFileCoroutine(zipReader));
+            StartCoroutine(LoadMapCoroutine(zipReader));
         }
         catch(Exception err)
         {
@@ -90,7 +98,7 @@ public class MapLoader : MonoBehaviour
                 zipReader.ArchiveStream = new MemoryStream(uwr.downloadHandler.data);
                 zipReader.Archive = new ZipArchive(zipReader.ArchiveStream, ZipArchiveMode.Read);
 
-                StartCoroutine(LoadMapFileCoroutine(zipReader));
+                StartCoroutine(LoadMapCoroutine(zipReader));
             }
             catch(Exception e)
             {
@@ -172,7 +180,7 @@ public class MapLoader : MonoBehaviour
         try
         {
             zipReader.Archive = new ZipArchive(zipReader.ArchiveStream, ZipArchiveMode.Read);
-            StartCoroutine(LoadMapFileCoroutine(zipReader));
+            StartCoroutine(LoadMapCoroutine(zipReader));
         }
         catch(Exception err)
         {
@@ -238,7 +246,7 @@ public class MapLoader : MonoBehaviour
                 }
                 else UrlArgHandler.LoadedMapURL = url;
 
-                StartCoroutine(LoadMapFileCoroutine(zipReader));
+                StartCoroutine(LoadMapCoroutine(zipReader));
                 yield break;
             }
             catch(Exception err)
@@ -689,14 +697,14 @@ public class MapLoader : MonoBehaviour
                 //User is trying to load an unzipped map, get the parent directory
                 DirectoryInfo parentDir = Directory.GetParent(directory);
                 FileReader fileReader = new FileReader(parentDir.FullName);
-                StartCoroutine(LoadMapFileCoroutine(fileReader));
+                StartCoroutine(LoadMapCoroutine(fileReader));
                 HotReloader.loadedMapPath = parentDir.FullName;
             }
         }
         else if(Directory.Exists(directory))
         {
             FileReader fileReader = new FileReader(directory);
-            StartCoroutine(LoadMapFileCoroutine(fileReader));
+            StartCoroutine(LoadMapCoroutine(fileReader));
             HotReloader.loadedMapPath = directory;
         }
         else

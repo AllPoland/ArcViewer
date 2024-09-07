@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class LightManager : MonoBehaviour
@@ -46,7 +47,13 @@ public class LightManager : MonoBehaviour
     private static readonly string[] lightSettings = new string[]
     {
         "staticlights",
-        "lightglowbrightness"
+        "lightglowbrightness",
+        "chromalightcolors",
+        "staticbacklasers",
+        "staticringlights",
+        "staticleftlasers",
+        "staticrightlasers",
+        "staticcenterlights"
     };
 
     //These environments have red/blue flipped on their back/bottom lasers
@@ -58,11 +65,11 @@ public class LightManager : MonoBehaviour
 
     private static MapElementList<BoostEvent> boostEvents = new MapElementList<BoostEvent>();
 
-    public LightEventList backLaserEvents = new LightEventList();
-    public LightEventList ringEvents = new LightEventList();
-    public LightEventList leftLaserEvents = new LightEventList();
-    public LightEventList rightLaserEvents = new LightEventList();
-    public LightEventList centerLightEvents = new LightEventList();
+    public MapElementList<LightEvent> backLaserEvents = new MapElementList<LightEvent>();
+    public MapElementList<LightEvent> ringEvents = new MapElementList<LightEvent>();
+    public MapElementList<LightEvent> leftLaserEvents = new MapElementList<LightEvent>();
+    public MapElementList<LightEvent> rightLaserEvents = new MapElementList<LightEvent>();
+    public MapElementList<LightEvent> centerLightEvents = new MapElementList<LightEvent>();
 
     public MapElementList<LaserSpeedEvent> leftLaserSpeedEvents = new MapElementList<LaserSpeedEvent>();
     public MapElementList<LaserSpeedEvent> rightLaserSpeedEvents = new MapElementList<LaserSpeedEvent>();
@@ -145,7 +152,6 @@ public class LightManager : MonoBehaviour
 
     public Color GetLaserGlowColor(Color baseColor)
     {
-        Color glowColor = baseColor;
         baseColor.a *= lightGlowBrightness;
         return baseColor;
     }
@@ -188,9 +194,9 @@ public class LightManager : MonoBehaviour
     private static Color GetEventBaseColor(LightEvent lightEvent)
     {
         Color baseColor;
-        if(lightEvent.CustomColor != null)
+        if(lightEvent.CustomColorIdx != null && SettingsManager.GetBool("chromalightcolors"))
         {
-            baseColor = (Color)lightEvent.CustomColor;
+            baseColor = LightColorManager.GetColor(lightEvent.CustomColorIdx);
         }
         else
         {
@@ -241,7 +247,7 @@ public class LightManager : MonoBehaviour
 
             float transitionTime = nextEvent.Time - lightEvent.Time;
             float t = (TimeManager.CurrentTime - lightEvent.Time) / transitionTime;
-            t = lightEvent.TransitionEasing(t);
+            t = Easings.EasingFromType(lightEvent.TransitionEasing, t);
 
             if(lightEvent.HsvLerp)
             {
@@ -291,35 +297,41 @@ public class LightManager : MonoBehaviour
 
     private void SetStaticLayout()
     {
+        int backLaserState = SettingsManager.GetInt("staticbacklasers");
+        int ringState = SettingsManager.GetInt("staticringlights");
+        int leftLaserState = SettingsManager.GetInt("staticleftlasers");
+        int rightLaserState = SettingsManager.GetInt("staticrightlasers");
+        int centerLightState = SettingsManager.GetInt("staticcenterlights");
+
         LightEvent backLasers = new LightEvent
         {
             Beat = 0f,
             Type = LightEventType.BackLasers,
-            Value = LightEventValue.BlueOn
+            Value = ValueFromSetting(backLaserState)
         };
         LightEvent rings = new LightEvent
         {
             Beat = 0f,
             Type = LightEventType.Rings,
-            Value = LightEventValue.BlueOn
+            Value = ValueFromSetting(ringState)
         };
         LightEvent leftLasers = new LightEvent
         {
             Beat = 0f,
             Type = LightEventType.LeftRotatingLasers,
-            Value = LightEventValue.Off
+            Value = ValueFromSetting(leftLaserState)
         };
         LightEvent rightLasers = new LightEvent
         {
             Beat = 0f,
             Type = LightEventType.RightRotatingLasers,
-            Value = LightEventValue.Off
+            Value = ValueFromSetting(rightLaserState)
         };
         LightEvent centerLights = new LightEvent
         {
             Beat = 0f,
             Type = LightEventType.CenterLights,
-            Value = LightEventValue.BlueOn
+            Value = ValueFromSetting(centerLightState)
         };
 
         UpdateLightEvent(LightEventType.BackLasers, backLasers, null, new MapElementList<LightEvent>(), -1);
@@ -332,6 +344,18 @@ public class LightManager : MonoBehaviour
         OnLaserRotationsChanged?.Invoke(null, LightEventType.RightRotationSpeed);
 
         RingManager.SetStaticRings();
+    }
+
+
+    private LightEventValue ValueFromSetting(int setting)
+    {
+        return setting switch
+        {
+            1 => LightEventValue.RedOn,
+            2 => LightEventValue.BlueOn,
+            3 => LightEventValue.WhiteOn,
+            _ => LightEventValue.Off
+        };
     }
 
 
@@ -389,13 +413,34 @@ public class LightManager : MonoBehaviour
         RingManager.RingZoomEvents.Clear();
 
         string environmentName = BeatmapManager.EnvironmentName;
-        if(newDifficulty.beatmapDifficulty.BasicEvents.Length == 0 || EnvironmentManager.V3Environments.Contains(environmentName) || SettingsManager.GetBool("skiplights"))
+        if(newDifficulty.beatmapDifficulty.BasicEvents.Length == 0)
         {
             StaticLights = true;
             return;
         }
-        else StaticLights = false;
 
+        if(SettingsManager.GetBool("skiplights"))
+        {
+            StaticLights = true;
+            return;
+        }
+
+        //Avoid loading lightshows with too many events (to avoid crashes)
+        int maxEvents = SettingsManager.GetInt("maxlightevents");
+        if(maxEvents > 0 && newDifficulty.beatmapDifficulty.BasicEvents.Length > maxEvents)
+        {
+            ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "Disabled the lightshow because it has too many events.");
+            StaticLights = true;
+            return;
+        }
+
+        if(EnvironmentManager.V3Environments.Contains(environmentName))
+        {
+            StaticLights = true;
+            return;
+        }
+
+        StaticLights = false;
         FlipBackLasers = backLaserFlipEnvironments.Contains(environmentName);
 
         foreach(BeatmapColorBoostBeatmapEvent beatmapBoostEvent in newDifficulty.beatmapDifficulty.BoostEvents)
@@ -414,12 +459,6 @@ public class LightManager : MonoBehaviour
         leftLaserEvents.SortElementsByBeat();
         rightLaserEvents.SortElementsByBeat();
         centerLightEvents.SortElementsByBeat();
-
-        backLaserEvents.PrecalculateNeighboringEvents();
-        ringEvents.PrecalculateNeighboringEvents();
-        leftLaserEvents.PrecalculateNeighboringEvents();
-        rightLaserEvents.PrecalculateNeighboringEvents();
-        centerLightEvents.PrecalculateNeighboringEvents();
 
         leftLaserSpeedEvents.SortElementsByBeat();
         rightLaserEvents.SortElementsByBeat();

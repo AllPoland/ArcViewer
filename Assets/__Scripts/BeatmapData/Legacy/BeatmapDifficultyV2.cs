@@ -251,50 +251,34 @@ public class BeatmapDifficultyV2
                     f = e._floatValue ?? 1f,
                     customData = e._customData?.ConvertToV3() ?? null
                 };
-                basicBeatmapEvents.Add(newEvent);
 
                 if(e._customData?._lightGradient != null)
                 {
                     //Light gradients need to be converted to transition events
                     BeatmapChromaGradientV2 gradient = e._customData._lightGradient;
+                    float endBeat = e._time + gradient._duration;
 
                     //The v3 event will always have custom data if the v2 event does
                     newEvent.customData.color = gradient._startColor;
                     newEvent.customData.easing = gradient._easing;
 
-                    float endBeat = e._time + gradient._duration;
-                    int nextEventIndex = Array.FindIndex(_events, i, x =>
-                        x._type == e._type
-                        && (
-                            //This technically leads to a rare issue where one lightID might have to end early
-                            //but another doesn't, and both will end early anyway
-                            //It's my belief that this issue is so rare and unnoticeable, and is
-                            //due to lighter error so it doesn't matter
-                            x._customData?._lightID == null
-                            || x._customData._lightID.Any(y => e._customData._lightID.Contains(y))
-                        )
-                    );
-        
-                    if(nextEventIndex >= 0 && endBeat >= _events[nextEventIndex]._time)
-                    {
-                        //Don't allow the transition to overlap with the next event
-                        endBeat = _events[nextEventIndex]._time - 0.001f;
-                    }
-
+                    //Generate the transition event as the end of the gradient
                     BeatmapBasicBeatmapEvent newTransitionEvent = new BeatmapBasicBeatmapEvent
                     {
-                        b = e._time + gradient._duration,
+                        b = endBeat,
                         et = e._type,
-                        i = 4,    //Event type 4 is a transition event - color doesn't matter
-                        f = 1f,
+                        i = LightEvent.GetTransitionValue(e._value),
+                        f = e._floatValue ?? 1f,
                         customData = new BeatmapCustomBasicEventData
                         {
                             color = gradient._endColor,
                             lightID = e._customData._lightID
                         }
                     };
+                    basicBeatmapEvents.Add(newEvent);
                     basicBeatmapEvents.Add(newTransitionEvent);
                 }
+                else basicBeatmapEvents.Add(newEvent);
             }
         }
 
@@ -451,7 +435,8 @@ public class BeatmapCustomEventDataV2
     public string _lerpType;
 
     //Laser speed specific data
-    public bool? _lockPosition;
+    [JsonConverter(typeof(StringBooleanConverter))]
+    public bool _lockPosition;
 
     //Ring specific data
     public string _nameFilter;

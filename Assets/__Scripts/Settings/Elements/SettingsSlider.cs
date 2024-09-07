@@ -18,6 +18,7 @@ public class SettingsSlider : MonoBehaviour
 
     [Space]
     [SerializeField] private bool integerValue;
+    [SerializeField] private Optional<float> stepAmount;
     [SerializeField] private float minValue = 0f;
     [SerializeField] private float maxValue = 1f;
 
@@ -35,11 +36,13 @@ public class SettingsSlider : MonoBehaviour
 
     public void SetValue(float value)
     {
-        if(!integerValue)
-        {
-            SettingsManager.SetRule(rule, value);
-        }
-        else SettingsManager.SetRule(rule, Mathf.RoundToInt(value));
+        UpdateValue(GetSliderValue());
+    }
+
+
+    public void SetValueText(float value)
+    {
+        UpdateText(GetSliderValue());
     }
 
 
@@ -53,17 +56,35 @@ public class SettingsSlider : MonoBehaviour
             {
                 number = Mathf.RoundToInt(number);
             }
-            slider.SetValueWithoutNotify(number);
+            SetSliderValue(number);
 
-            SetValue(number);
+            UpdateValue(number);
             UpdateText(number);
         }
-        else UpdateText(slider.value);
+        else UpdateText(GetSliderValue());
+
+        //Force de-select the text field
         EventSystemHelper.SetSelectedGameObject(null);
     }
 
 
-    public void UpdateSettings(string changedSetting)
+    private void UpdateSettings(string changedSetting)
+    {
+        if(changedSetting == "all" || changedSetting == rule)
+        {
+            float newValue = integerValue ? SettingsManager.GetInt(rule) : SettingsManager.GetFloat(rule);
+            SetSliderValue(newValue);
+            UpdateText(newValue);
+        }
+
+        if(requiredSetting.Enabled)
+        {
+            CheckRequiredSetting(changedSetting);
+        }
+    }
+
+
+    private void CheckRequiredSetting(string changedSetting)
     {
         SerializedOption<bool> option = requiredSetting.Value;
         if(changedSetting == "all" || changedSetting == option.Name)
@@ -74,9 +95,19 @@ public class SettingsSlider : MonoBehaviour
             nameLabel.color = textColor;
         }
     }
+    
+
+    private void UpdateValue(float value)
+    {
+        if(integerValue)
+        {
+            SettingsManager.SetRule(rule, Mathf.RoundToInt(value));
+        }
+        else SettingsManager.SetRule(rule, value);
+    }
 
 
-    public void UpdateText(float value)
+    private void UpdateText(float value)
     {
         if(value > maxValue - 0.005 && maxOverride != "")
         {
@@ -89,6 +120,31 @@ public class SettingsSlider : MonoBehaviour
         else valueInput.SetTextWithoutNotify(Math.Round(value, 2).ToString());
 
         valueText.anchoredPosition = Vector2.zero;
+    }
+
+
+    private void SetSliderValue(float value)
+    {
+        if(!stepAmount.Enabled)
+        {
+            slider.SetValueWithoutNotify(value);
+            return;
+        }
+
+        float convertedValue = (value - minValue) / stepAmount.Value;
+        slider.SetValueWithoutNotify(convertedValue);
+    }
+
+
+    private float GetSliderValue()
+    {
+        if(!stepAmount.Enabled)
+        {
+            return slider.value;
+        }
+
+        float sliderValue = (slider.value * stepAmount.Value) + minValue;
+        return sliderValue;
     }
 
 
@@ -107,26 +163,39 @@ public class SettingsSlider : MonoBehaviour
             pointerUpHandler = slider.GetComponent<SliderPointerUpHandler>();
         }
 
-        slider.wholeNumbers = integerValue;
-        slider.minValue = minValue;
-        slider.maxValue = maxValue;
+        slider.wholeNumbers = integerValue || stepAmount.Enabled;
+        if(stepAmount.Enabled)
+        {
+            //Turn the slider into an integer slider, and convert the min and max
+            //into an equivalent number of steps
+            float valueRange = maxValue - minValue;
+            int numSteps = (int)(valueRange / stepAmount.Value);
+
+            slider.minValue = 0;
+            slider.maxValue = numSteps;
+        }
+        else
+        {
+            slider.minValue = minValue;
+            slider.maxValue = maxValue;
+        }
 
         if(integerValue)
         {
             int newValue = SettingsManager.GetInt(rule);
 
-            slider.SetValueWithoutNotify(newValue);
-            UpdateText(slider.value);
+            SetSliderValue(newValue);
+            UpdateText(newValue);
         }
         else
         {
             float newValue = SettingsManager.GetFloat(rule);
 
-            slider.SetValueWithoutNotify(newValue);
-            UpdateText(slider.value);
+            SetSliderValue(newValue);
+            UpdateText(newValue);
         }
 
-        slider.onValueChanged.AddListener(UpdateText);
+        slider.onValueChanged.AddListener(SetValueText);
 
         if(realTimeUpdates)
         {
@@ -137,11 +206,8 @@ public class SettingsSlider : MonoBehaviour
             pointerUpHandler.OnSliderEnd.AddListener(SetValue);
         }
 
-        if(requiredSetting.Enabled)
-        {
-            SettingsManager.OnSettingsUpdated += UpdateSettings;
-            UpdateSettings("all");
-        }
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
+        UpdateSettings("all");
     }
 
 

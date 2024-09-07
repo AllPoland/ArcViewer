@@ -10,6 +10,7 @@ public class SpeedSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     [SerializeField] private Slider slider;
     [SerializeField] private TMP_InputField inputField;
 
+    [Space]
     [SerializeField] private Color defaultColor;
     [SerializeField] private Color highlightedColor;
     [SerializeField] private string textSuffix;

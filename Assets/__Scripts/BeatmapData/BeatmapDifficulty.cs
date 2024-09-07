@@ -344,7 +344,8 @@ public class BeatmapCustomBasicEventData
     public string lerpType;
 
     //Laser speed specific data
-    public bool? lockRotation;
+    [JsonConverter(typeof(StringBooleanConverter))]
+    public bool lockRotation;
 
     //Ring specific data
     public string nameFilter;
@@ -370,14 +371,45 @@ public class LightIDConverter : JsonConverter
     public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
         int[] val = null;
-        if (reader.TokenType == JsonToken.StartObject)
+        if(reader.TokenType == JsonToken.Integer)
         {
             int id = serializer.Deserialize<int>(reader);
             val = new int[] { id };
         }
-        else if (reader.TokenType == JsonToken.StartArray)
+        else if(reader.TokenType == JsonToken.StartArray)
         {
             val = serializer.Deserialize<int[]>(reader);
+        }
+        return val;
+    }
+
+
+    public override bool CanConvert(Type objectType)
+    {
+        return true;
+    }
+}
+
+
+public class StringBooleanConverter : JsonConverter
+{
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    {
+        bool val = false;
+        if(reader.TokenType == JsonToken.Boolean)
+        {
+            val = serializer.Deserialize<bool>(reader);
+        }
+        else if(reader.TokenType == JsonToken.String)
+        {
+            string stringValue = serializer.Deserialize<string>(reader);
+            val = bool.TryParse(stringValue, out bool parsedVal) && parsedVal;
         }
         return val;
     }

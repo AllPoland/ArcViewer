@@ -11,6 +11,7 @@ public class RingHandler : MonoBehaviour
 {
     [SerializeField] private bool bigRing;
     [SerializeField] private int id;
+    [SerializeField] private int lightIdOffset;
     [SerializeField] private List<LightHandler> lightHandlers;
 
     [Space]
@@ -85,11 +86,29 @@ public class RingHandler : MonoBehaviour
 
         foreach(RingHandler ring in ringHandlers)
         {
-            for(int i = 0; i < ring.lightHandlers.Count; i++)
+            //Count each event type so they can be handled separately
+            Dictionary<LightEventType, int> typeCounts = new Dictionary<LightEventType, int>();
+            foreach(LightHandler lightHandler in ring.lightHandlers)
             {
-                SerializedObject serialized = new SerializedObject(ring.lightHandlers[i]);
-                serialized.FindProperty("id").intValue = i + 1 + (ring.id * ring.lightHandlers.Count);
+                if(typeCounts.TryGetValue(lightHandler.type, out int currentCount))
+                {
+                    typeCounts[lightHandler.type] = currentCount + 1;
+                }
+                else typeCounts[lightHandler.type] = 1;
+            }
+
+            Dictionary<LightEventType, int> typeIndices = new Dictionary<LightEventType, int>();
+            foreach(LightHandler lightHandler in ring.lightHandlers)
+            {
+                SerializedObject serialized = new SerializedObject(lightHandler);
+
+                int i = typeIndices.TryGetValue(lightHandler.type, out int index) ? index : 0;
+                int ringID = ring.id + ring.lightIdOffset;
+
+                serialized.FindProperty("id").intValue = i + 1 + (ringID * typeCounts[lightHandler.type]);
                 serialized.ApplyModifiedProperties();
+
+                typeIndices[lightHandler.type] = i + 1;
             }
         }
         

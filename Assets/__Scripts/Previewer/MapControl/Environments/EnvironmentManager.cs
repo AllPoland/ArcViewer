@@ -88,7 +88,8 @@ public class EnvironmentManager : MonoBehaviour
         "MonstercatEnvironment",
         "PanicEnvironment",
         "TimbalandEnvironment",
-        "FitBeatEnvironment"
+        "FitBeatEnvironment",
+        "KaleidoscopeEnvironment"
     };
 
     private static readonly Dictionary<string, string> duplicateEnvironments = new Dictionary<string, string>
