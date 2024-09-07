@@ -70,6 +70,22 @@ public class SettingsSlider : MonoBehaviour
 
     private void UpdateSettings(string changedSetting)
     {
+        if(changedSetting == "all" || changedSetting == rule)
+        {
+            float newValue = SettingsManager.GetFloat(rule);
+            SetSliderValue(newValue);
+            UpdateText(newValue);
+        }
+
+        if(requiredSetting.Enabled)
+        {
+            CheckRequiredSetting(changedSetting);
+        }
+    }
+
+
+    private void CheckRequiredSetting(string changedSetting)
+    {
         SerializedOption<bool> option = requiredSetting.Value;
         if(changedSetting == "all" || changedSetting == option.Name)
         {
@@ -190,11 +206,8 @@ public class SettingsSlider : MonoBehaviour
             pointerUpHandler.OnSliderEnd.AddListener(SetValue);
         }
 
-        if(requiredSetting.Enabled)
-        {
-            SettingsManager.OnSettingsUpdated += UpdateSettings;
-            UpdateSettings("all");
-        }
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
+        UpdateSettings("all");
     }
 
 
