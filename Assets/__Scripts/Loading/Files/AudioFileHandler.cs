@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Winista.Mime;
 
+#pragma warning disable CS4014 //Suppress warnings about lack of await for uwr.SendWebRequest()
 public static class AudioFileHandler
 {
 #if UNITY_WEBGL && !UNITY_EDITOR

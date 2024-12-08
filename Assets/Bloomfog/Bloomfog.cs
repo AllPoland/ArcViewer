@@ -99,7 +99,7 @@ public class Bloomfog : ScriptableRendererFeature
     {
         if(settings.blurMaterial && settings.prepassMaterial)
         {
-            bloomFogPass.SourceTexture = renderer.cameraColorTarget;
+            bloomFogPass.SourceTexture = renderer.cameraColorTargetHandle;
             renderer.EnqueuePass(bloomFogPass);
         }
     }
