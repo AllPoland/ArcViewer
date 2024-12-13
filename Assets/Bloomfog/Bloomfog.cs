@@ -99,7 +99,6 @@ public class Bloomfog : ScriptableRendererFeature
     {
         if(settings.blurMaterial && settings.prepassMaterial)
         {
-            bloomFogPass.SourceTexture = renderer.cameraColorTargetHandle;
             renderer.EnqueuePass(bloomFogPass);
         }
     }
@@ -107,8 +106,6 @@ public class Bloomfog : ScriptableRendererFeature
 
     private class BloomFogPass : ScriptableRenderPass
     {
-        public RenderTargetIdentifier SourceTexture;
-
         private BloomfogSettings settings;
 
         private int[] tempIDs;
@@ -170,7 +167,7 @@ public class Bloomfog : ScriptableRendererFeature
             cmd.SetGlobalFloat("_Threshold", settings.threshold);
             cmd.SetGlobalFloat("_BrightnessMult", settings.brightnessMult);
 
-            cmd.Blit(SourceTexture, tempRTs[0], settings.prepassMaterial);
+            cmd.Blit(renderingData.cameraData.targetTexture, tempRTs[0], settings.prepassMaterial);
 
             //Blit the source image into smaller and smaller textures, applying some blur
             cmd.SetGlobalFloat("_Offset", 0.5f);
