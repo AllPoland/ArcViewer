@@ -8,37 +8,36 @@ public class WebSongController : MonoBehaviour
     private static extern void InitSongController(float volume);
 
     [DllImport("__Internal")]
-    public static extern void CreateSongClip(int id);
+    public static extern void CreateSongClip();
 
     [DllImport("__Internal")]
-    public static extern void DisposeSongClip(int id);
+    public static extern void DisposeSongClip();
     
     [DllImport("__Internal")]
-    public static extern void UploadSongData(int id, byte[] data, int dataLength, bool isOgg, string gameObjectName, string methodName);
+    public static extern void UploadSongData(byte[] data, int dataLength, bool isOgg, string gameObjectName, string methodName);
 
     [DllImport("__Internal")]
-    public static extern void SetSongOffset(int id, float offset);
+    public static extern void SetSongOffset(float offset);
 
     [DllImport("__Internal")]
-    public static extern float GetSongTime(int id);
+    public static extern float GetSongTime();
 
     [DllImport("__Internal")]
-    public static extern float GetSongLength(int id);
+    public static extern float GetSongLength();
 
     [DllImport("__Internal")]
     public static extern void SetSongVolume(float volume);
 
     [DllImport("__Internal")]
-    public static extern void SetSongPlaybackSpeed(int id, float speed);
+    public static extern void SetSongPlaybackSpeed(float speed);
     
     [DllImport("__Internal")]
-    public static extern void StartSong(int id, float time);
+    public static extern void StartSong(float time);
 
     [DllImport("__Internal")]
-    public static extern void StopSong(int id);
+    public static extern void StopSong();
 
     private static WebSongController instance;
-    private static int clipId = 0;
     private static Action<int> callback;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -83,21 +82,10 @@ public class WebSongController : MonoBehaviour
     }
 
 
-    public static int NewClip()
-    {
-        // Register on JS side
-        int id = clipId;
-        clipId++;
-
-        CreateSongClip(id);
-        return id;
-    }
-
-
-    public static void SetDataClip(int id, byte[] data, bool isOgg, Action<int> callbackMethod = null)
+    public static void SetDataClip(byte[] data, bool isOgg, Action<int> callbackMethod = null)
     {
         callback = callbackMethod;
-        UploadSongData(id, data, data.Length, isOgg, instance.name, "AudioDataCallback");
+        UploadSongData(data, data.Length, isOgg, instance.name, "AudioDataCallback");
     }
 
 

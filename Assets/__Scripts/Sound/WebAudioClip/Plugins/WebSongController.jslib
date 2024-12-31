@@ -1,11 +1,9 @@
 mergeInto(LibraryManager.library, {
 
     InitSongController: function (volume) {
-        AudioCtx = new AudioContext();
-        this.clips = {};
-        this.soundStartTimes = {};
-        this.soundOffsets = {};
-        this.clipPlaying = {};
+        if (typeof AudioCtx === 'undefined') {
+            AudioCtx = new AudioContext();
+        }
 
         this.playing = false;
         this.volume = volume;
@@ -21,20 +19,24 @@ mergeInto(LibraryManager.library, {
         }
     },
 
-    CreateSongClip: function (id) {
+    CreateSongClip: function () {
         const clip = AudioCtx.createBufferSource();
 
-        this.clips[id] = clip;
-        this.soundOffsets[id] = 0;
+        this.clip = clip;
+        this.soundOffset = 0;
     },
 
-    DisposeSongClip: function (id) {
-        delete (this.clips[id]);
-        delete (this.soundStartTimes[id]);
-        delete (this.soundOffsets[id]);
+    DisposeSongClip: function () {
+        delete (this.clip);
+        delete (this.soundStartTime);
+        delete (this.soundOffset);
+
+        this.clip = null;
+        this.soundStartTime = null;
+        this.soundOffset = null;
     },
 
-    UploadSongData: function (id, data, dataLength, isOgg, gameObjectName, methodName) {
+    UploadSongData: function (data, dataLength, isOgg, gameObjectName, methodName) {
         //Convert the C# byte[] to an arraybuffer for audio decoding
         const byteArray = new Uint8Array(dataLength);
         for (var i = 0; i < dataLength; i++) {
@@ -55,8 +57,8 @@ mergeInto(LibraryManager.library, {
                 const newClip = AudioCtx.createBufferSource();
                 newClip.buffer = decodedData;
 
-                delete (this.clips[id]);
-                this.clips[id] = newClip;
+                delete (this.clip);
+                this.clip = newClip;
 
                 //Callback to C# says that decoding succeeded
                 SendMessage(gameObjectName, methodName, 1);
@@ -69,11 +71,11 @@ mergeInto(LibraryManager.library, {
             });
     },
 
-    SetSongOffset: function (id, offset) {
-        this.soundOffsets[id] = offset;
+    SetSongOffset: function (offset) {
+        this.soundOffset = offset;
     },
 
-    StartSong: function (id, time) {
+    StartSong: function (time) {
         if (this.playing) {
             return;
         }
@@ -84,8 +86,8 @@ mergeInto(LibraryManager.library, {
         }
 
         //Make sure the clip stops entirely
-        const clip = this.clips[id];
-        if (this.clipPlaying[id]) {
+        const clip = this.clip;
+        if (this.clipPlaying) {
             clip.stop();
             clip.disconnect(this.gainNode);
             AudioCtx.suspend();
@@ -99,7 +101,7 @@ mergeInto(LibraryManager.library, {
 
         AudioCtx.resume();
 
-        let startTime = time + this.soundOffsets[id];
+        let startTime = time + this.soundOffset;
         if (startTime >= 0) {
             //Start the clip normally
             newClip.start(0, startTime);
@@ -118,15 +120,15 @@ mergeInto(LibraryManager.library, {
         newClip.connect(this.gainNode);
 
         delete (clip);
-        this.clips[id] = newClip;
-        this.clipPlaying[id] = true;
+        this.clip = newClip;
+        this.clipPlaying = true;
 
-        this.soundStartTimes[id] = time;
+        this.soundStartTime = time;
         this.lastPlayed = AudioCtx.currentTime;
         this.playing = true;
     },
 
-    StopSong: function (id) {
+    StopSong: function () {
         if (!this.playing) {
             return;
         }
@@ -134,7 +136,7 @@ mergeInto(LibraryManager.library, {
         this.gainNode.gain.setValueAtTime(this.volume, AudioCtx.currentTime);
         this.gainNode.gain.exponentialRampToValueAtTime(0.0001, AudioCtx.currentTime + 0.1);
 
-        const clip = this.clips[id];
+        const clip = this.clip;
         this.playing = false;
         setTimeout(function () {
             //Don't stop the context if we've started playing again
@@ -142,31 +144,31 @@ mergeInto(LibraryManager.library, {
             if (!this.playing) {
                 AudioCtx.suspend();
 
-                if (this.clipPlaying[id]) {
+                if (this.clipPlaying) {
                     clip.stop();
                     clip.disconnect(this.gainNode);
-                    this.clipPlaying[id] = false;
+                    this.clipPlaying = false;
                 }
             }
         }, 100);
     },
 
-    GetSongTime: function (id) {
+    GetSongTime: function () {
         const passedTime = AudioCtx.currentTime - this.lastPlayed;
-        return this.soundStartTimes[id] + (passedTime * this.playbackSpeed);
+        return this.soundStartTime + (passedTime * this.playbackSpeed);
     },
 
-    GetSongLength: function (id) {
-        if (!this.clips[id]) {
+    GetSongLength: function () {
+        if (!this.clip) {
             return 0;
         }
 
-        const buffer = this.clips[id].buffer;
+        const buffer = this.clip.buffer;
         if (!buffer) {
             return 0;
         }
 
-        return buffer.duration - this.soundOffsets[id];
+        return buffer.duration - this.soundOffset;
     },
 
     SetSongVolume: function (volume) {
@@ -180,19 +182,19 @@ mergeInto(LibraryManager.library, {
         }
     },
 
-    SetSongPlaybackSpeed: function (id, speed) {
+    SetSongPlaybackSpeed: function (speed) {
         if (this.playing) {
-            this.clips[id].playbackRate.value = speed;
+            this.clip.playbackRate.value = speed;
 
             const passedTime = AudioCtx.currentTime - this.lastPlayed;
-            let time = soundStartTimes[id] + (passedTime * this.playbackSpeed);
+            let time = soundStartTime + (passedTime * this.playbackSpeed);
 
-            let startTime = time + this.soundOffsets[id];
+            let startTime = time + this.soundOffset;
             if (startTime < 0) {
                 //The sound is scheduled, but hasn't played yet. Reschedule, accounting for the new playback speed
                 //This fixes a very niche bug where changing playback speed with negative offset,
                 //before the sound actually starts playing, causes it to desync
-                const clip = this.clips[id];
+                const clip = this.clip;
                 clip.stop();
                 clip.disconnect(this.gainNode);
 
@@ -210,13 +212,17 @@ mergeInto(LibraryManager.library, {
                 newClip.start(AudioCtx.currentTime - startTime, 0);
                 newClip.connect(this.gainNode);
 
-                delete (this.clips[id]);
-                this.clips[id] = newClip;
+                delete (this.clip);
+                this.clip = newClip;
             }
 
-            this.soundStartTimes[id] = time;
+            this.soundStartTime = time;
         }
         this.playbackSpeed = speed;
         this.lastPlayed = AudioCtx.currentTime;
+    },
+
+    GetSongPlaybackSpeed: function () {
+        return this.playbackSpeed;
     }
 });

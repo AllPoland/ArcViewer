@@ -4,12 +4,11 @@ public class WebSongClip : IDisposable
 {
     public bool IsPlaying => isPlaying;
 
-    public float Length => WebSongController.GetSongLength(clipId);
+    public float Length => WebSongController.GetSongLength();
 
-    private int clipId;
     private bool isPlaying = false;
 
-    public float Time => WebSongController.GetSongTime(clipId);
+    public float Time => WebSongController.GetSongTime();
 
     public WebSongClip()
     {
@@ -21,7 +20,7 @@ public class WebSongClip : IDisposable
         WebSongController.Init();
 
         // Creates clip in the browser via JS
-        clipId = WebSongController.NewClip();
+        WebSongController.CreateSongClip();
 #endif
     }
 
@@ -31,26 +30,26 @@ public class WebSongClip : IDisposable
 #if UNITY_WEBGL && !UNITY_EDITOR
         Stop();
 #endif
-        WebSongController.DisposeSongClip(clipId);
+        WebSongController.DisposeSongClip();
     }
 
 
 #if UNITY_WEBGL && !UNITY_EDITOR
     public void SetData(byte[] data, bool isOgg, Action<int> callback)
     {
-        WebSongController.SetDataClip(clipId, data, isOgg, callback);
+        WebSongController.SetDataClip(data, isOgg, callback);
     }
 
 
     public void SetOffset(float offset)
     {
-        WebSongController.SetSongOffset(clipId, offset);
+        WebSongController.SetSongOffset(offset);
     }
 
 
     public void SetSpeed(float speed)
     {
-        WebSongController.SetSongPlaybackSpeed(clipId, speed);
+        WebSongController.SetSongPlaybackSpeed(speed);
     }
 
 
@@ -58,7 +57,7 @@ public class WebSongClip : IDisposable
     {
         if(isPlaying) return;
 
-        WebSongController.StartSong(clipId, time);
+        WebSongController.StartSong(time);
         isPlaying = true;
     }
 
@@ -67,7 +66,7 @@ public class WebSongClip : IDisposable
     {
         if(!isPlaying) return;
 
-        WebSongController.StopSong(clipId);
+        WebSongController.StopSong();
         isPlaying = false;
     }
 #endif
