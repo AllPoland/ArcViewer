@@ -14,13 +14,13 @@ public static class AudioFileHandler
     private static AudioUploadState uploadState;
 
 
-    public static async Task<WebAudioClip> WebAudioClipFromStream(MemoryStream stream, string filename)
+    public static async Task<WebSongClip> WebSongClipFromStream(MemoryStream stream, string filename)
     {
-        WebAudioClip newClip = null;
+        WebSongClip newClip = null;
         try
         {
             //Create the audio clip where we'll write the audio data
-            newClip = new WebAudioClip();
+            newClip = new WebSongClip();
 
             byte[] data = stream.ToArray();
             bool isOgg = filename.EndsWith(".ogg", StringComparison.InvariantCultureIgnoreCase)

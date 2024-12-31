@@ -1,27 +1,27 @@
 using System;
 
-public class WebAudioClip : IDisposable
+public class WebSongClip : IDisposable
 {
     public bool IsPlaying => isPlaying;
 
-    public float Length => WebAudioController.GetSoundLength(clipId);
+    public float Length => WebSongController.GetSongLength(clipId);
 
     private int clipId;
     private bool isPlaying = false;
 
-    public float Time => WebAudioController.GetSoundTime(clipId);
+    public float Time => WebSongController.GetSongTime(clipId);
 
-    public WebAudioClip()
+    public WebSongClip()
     {
 #if !UNITY_WEBGL || UNITY_EDITOR
-        throw new InvalidOperationException("WebAudioClip should only be used in WEBGL!");
+        throw new InvalidOperationException("WebSongClip should only be used in WEBGL!");
 #else
 
         // Make sure the audio controller was created
-        WebAudioController.Init();
+        WebSongController.Init();
 
         // Creates clip in the browser via JS
-        clipId = WebAudioController.NewClip();
+        clipId = WebSongController.NewClip();
 #endif
     }
 
@@ -31,26 +31,26 @@ public class WebAudioClip : IDisposable
 #if UNITY_WEBGL && !UNITY_EDITOR
         Stop();
 #endif
-        WebAudioController.DisposeClip(clipId);
+        WebSongController.DisposeSongClip(clipId);
     }
 
 
 #if UNITY_WEBGL && !UNITY_EDITOR
     public void SetData(byte[] data, bool isOgg, Action<int> callback)
     {
-        WebAudioController.SetDataClip(clipId, data, isOgg, callback);
+        WebSongController.SetDataClip(clipId, data, isOgg, callback);
     }
 
 
     public void SetOffset(float offset)
     {
-        WebAudioController.SetOffset(clipId, offset);
+        WebSongController.SetSongOffset(clipId, offset);
     }
 
 
     public void SetSpeed(float speed)
     {
-        WebAudioController.SetPlaybackSpeed(clipId, speed);
+        WebSongController.SetSongPlaybackSpeed(clipId, speed);
     }
 
 
@@ -58,7 +58,7 @@ public class WebAudioClip : IDisposable
     {
         if(isPlaying) return;
 
-        WebAudioController.Start(clipId, time);
+        WebSongController.StartSong(clipId, time);
         isPlaying = true;
     }
 
@@ -67,7 +67,7 @@ public class WebAudioClip : IDisposable
     {
         if(!isPlaying) return;
 
-        WebAudioController.Stop(clipId);
+        WebSongController.StopSong(clipId);
         isPlaying = false;
     }
 #endif

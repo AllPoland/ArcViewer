@@ -11,12 +11,15 @@ public class RingHandler : MonoBehaviour
 {
     [SerializeField] private bool bigRing;
     [SerializeField] private int id;
+
+#if UNITY_EDITOR
     [SerializeField] private int lightIdOffset;
     [SerializeField] private List<LightHandler> lightHandlers;
 
     [Space]
     [SerializeField] private float defaultZoom = 1f;
     [SerializeField] private float defaultStep = 0f;
+#endif
 
 
     public void UpdateRingRotations(RingRotationEventArgs eventArgs)

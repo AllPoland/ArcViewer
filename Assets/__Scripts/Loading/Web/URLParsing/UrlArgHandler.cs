@@ -71,7 +71,9 @@ public class UrlArgHandler : MonoBehaviour
 
     private static string mapID;
     private static string mapURL;
+#if !UNITY_WEBGL || UNITY_EDITOR
     private static string mapPath;
+#endif
     private static string replayID;
     private static string replayURL;
     private static float startTime;
@@ -301,7 +303,9 @@ public class UrlArgHandler : MonoBehaviour
     {
         mapID = "";
         mapURL = "";
+#if !UNITY_WEBGL || UNITY_EDITOR
         mapPath = "";
+#endif
         startTime = 0;
         mode = null;
         diffRank = null;
