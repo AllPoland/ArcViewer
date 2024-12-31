@@ -5,7 +5,7 @@ using UnityEngine.Audio;
 
 public class HitSoundManager : MonoBehaviour
 {
-    public const float SoundOffset = -0.185f;
+    public const float SoundOffset = 0.185f;
 
     public static AudioClip HitSound;
     public static AudioClip BadHitSound;
@@ -224,20 +224,20 @@ public class ScheduledSound
                 return;
             }
 
-            float scheduleIn = timeDifference + (HitSoundManager.SoundOffset / source.pitch);
+            float scheduleIn = timeDifference - (HitSoundManager.SoundOffset / source.pitch);
             if(!source.isPlaying && scheduleIn <= HitSoundManager.ScheduleBuffer)
             {
                 if(scheduleIn <= 0)
                 {
                     //The sound should already be playing the windup
                     //Instead, schedule the sound exactly on beat with no offset
-                    source.time = -HitSoundManager.SoundOffset;
-                    source.PlayScheduled(AudioSettings.dspTime + timeDifference);
+                    source.time = HitSoundManager.SoundOffset;
+                    source.PlayDelayed(timeDifference);
                 }
                 else
                 {
                     source.time = 0;
-                    source.PlayScheduled(AudioSettings.dspTime + scheduleIn);
+                    source.PlayDelayed(scheduleIn);
                 }
 
                 scheduled = true;
