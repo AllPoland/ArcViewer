@@ -1,7 +1,7 @@
 mergeInto(LibraryManager.library, {
 
   Initcontroller: function(volume) {
-    this.audioCtx = new AudioContext();
+    AudioCtx = new AudioContext();
     this.clips = {};
     this.soundStartTimes = {};
     this.soundOffsets = {};
@@ -10,11 +10,11 @@ mergeInto(LibraryManager.library, {
     this.playing = false;
     this.volume = volume;
     this.playbackSpeed = 1;
-    this.lastPlayed = this.audioCtx.currentTime;
+    this.lastPlayed = AudioCtx.currentTime;
 
-    this.gainNode = this.audioCtx.createGain();
-    this.gainNode.gain.setValueAtTime(0.0001, this.audioCtx.currentTime);
-    this.gainNode.connect(this.audioCtx.destination);
+    this.gainNode = AudioCtx.createGain();
+    this.gainNode.gain.setValueAtTime(0.0001, AudioCtx.currentTime);
+    this.gainNode.connect(AudioCtx.destination);
 
     if(this.volume < 0.0001)
     {
@@ -23,7 +23,7 @@ mergeInto(LibraryManager.library, {
   },
 
   CreateClip: function(id) {
-    const clip = this.audioCtx.createBufferSource();
+    const clip = AudioCtx.createBufferSource();
 
     this.clips[id] = clip;
     this.soundOffsets[id] = 0;
@@ -45,15 +45,15 @@ mergeInto(LibraryManager.library, {
     gameObjectName = UTF8ToString(gameObjectName);
     methodName = UTF8ToString(methodName);
 
-    let decodeFunction = (data, callback, errorCallback) => this.audioCtx.decodeAudioData(data, callback, errorCallback);
+    let decodeFunction = (data, callback, errorCallback) => AudioCtx.decodeAudioData(data, callback, errorCallback);
     if(isOgg && isSafari) {
       console.log("Using custom OggDecode module for Safari.");
-      decodeFunction = (data, callback, errorCallback) => this.audioCtx.decodeOggData(data, callback, errorCallback);
+      decodeFunction = (data, callback, errorCallback) => AudioCtx.decodeOggData(data, callback, errorCallback);
     }
 
     decodeFunction(byteArray.buffer,
       (decodedData) => {
-        const newClip = this.audioCtx.createBufferSource();
+        const newClip = AudioCtx.createBufferSource();
         newClip.buffer = decodedData;
 
         delete(this.clips[id]);
@@ -79,9 +79,9 @@ mergeInto(LibraryManager.library, {
       return;
     }
 
-    this.gainNode.gain.setValueAtTime(0.0001, this.audioCtx.currentTime);
+    this.gainNode.gain.setValueAtTime(0.0001, AudioCtx.currentTime);
     if(this.volume > 0.0001) {
-      this.gainNode.gain.exponentialRampToValueAtTime(this.volume, this.audioCtx.currentTime + 0.1);
+      this.gainNode.gain.exponentialRampToValueAtTime(this.volume, AudioCtx.currentTime + 0.1);
     }
 
     //Make sure the clip stops entirely
@@ -89,16 +89,16 @@ mergeInto(LibraryManager.library, {
     if(this.clipPlaying[id]) {
       clip.stop();
       clip.disconnect(this.gainNode);
-      this.audioCtx.suspend();
+      AudioCtx.suspend();
     }
 
     //Create a new clip to play because apparently once it plays it's forfeit
-    const newClip = this.audioCtx.createBufferSource();
+    const newClip = AudioCtx.createBufferSource();
 
     newClip.buffer = clip.buffer;
     newClip.playbackRate.value = this.playbackSpeed;
 
-    this.audioCtx.resume();
+    AudioCtx.resume();
 
     let startTime = time + this.soundOffsets[id];
     if(startTime >= 0) {
@@ -114,7 +114,7 @@ mergeInto(LibraryManager.library, {
       else startTime = 0;
 
       //Subtract startTime here because it's negative
-      newClip.start(this.audioCtx.currentTime - startTime, 0);
+      newClip.start(AudioCtx.currentTime - startTime, 0);
     }
     newClip.connect(this.gainNode);
 
@@ -123,7 +123,7 @@ mergeInto(LibraryManager.library, {
     this.clipPlaying[id] = true;
 
     this.soundStartTimes[id] = time;
-    this.lastPlayed = this.audioCtx.currentTime;
+    this.lastPlayed = AudioCtx.currentTime;
     this.playing = true;
   },
 
@@ -132,8 +132,8 @@ mergeInto(LibraryManager.library, {
       return;
     }
 
-    this.gainNode.gain.setValueAtTime(this.volume, this.audioCtx.currentTime);
-    this.gainNode.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + 0.1);
+    this.gainNode.gain.setValueAtTime(this.volume, AudioCtx.currentTime);
+    this.gainNode.gain.exponentialRampToValueAtTime(0.0001, AudioCtx.currentTime + 0.1);
 
     const clip = this.clips[id];
     this.playing = false;
@@ -141,7 +141,7 @@ mergeInto(LibraryManager.library, {
       //Don't stop the context if we've started playing again
       //This is pretty common when scrubbing through the track
       if(!this.playing) {
-        this.audioCtx.suspend();
+        AudioCtx.suspend();
 
         if(this.clipPlaying[id]) {
           clip.stop();
@@ -153,7 +153,7 @@ mergeInto(LibraryManager.library, {
   },
 
   GetSoundTime: function(id) {
-    const passedTime = this.audioCtx.currentTime - this.lastPlayed;
+    const passedTime = AudioCtx.currentTime - this.lastPlayed;
     return this.soundStartTimes[id] + (passedTime * this.playbackSpeed);
   },
 
@@ -178,7 +178,7 @@ mergeInto(LibraryManager.library, {
     }
 
     if(this.playing) {
-      this.gainNode.gain.setValueAtTime(volume, this.audioCtx.currentTime);
+      this.gainNode.gain.setValueAtTime(volume, AudioCtx.currentTime);
     }
   },
 
@@ -186,7 +186,7 @@ mergeInto(LibraryManager.library, {
     if(this.playing) {
       this.clips[id].playbackRate.value = speed;
 
-      const passedTime = this.audioCtx.currentTime - this.lastPlayed;
+      const passedTime = AudioCtx.currentTime - this.lastPlayed;
       let time = soundStartTimes[id] + (passedTime * this.playbackSpeed);
 
       let startTime = time + this.soundOffsets[id];
@@ -198,7 +198,7 @@ mergeInto(LibraryManager.library, {
         clip.stop();
         clip.disconnect(this.gainNode);
 
-        const newClip = this.audioCtx.createBufferSource();
+        const newClip = AudioCtx.createBufferSource();
         newClip.buffer = clip.buffer;
         newClip.playbackRate.value = speed;
 
@@ -209,7 +209,7 @@ mergeInto(LibraryManager.library, {
         else startTime = 0;
   
         //Subtract startTime here because it's negative
-        newClip.start(this.audioCtx.currentTime - startTime, 0);
+        newClip.start(AudioCtx.currentTime - startTime, 0);
         newClip.connect(this.gainNode);
 
         delete(this.clips[id]);
@@ -219,6 +219,6 @@ mergeInto(LibraryManager.library, {
       this.soundStartTimes[id] = time;
     }
     this.playbackSpeed = speed;
-    this.lastPlayed = this.audioCtx.currentTime;
+    this.lastPlayed = AudioCtx.currentTime;
   }
 });
