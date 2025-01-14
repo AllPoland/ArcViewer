@@ -1,4 +1,4 @@
-mergeInto(LibraryManager.library, {
+var SongController = {
 
     InitSongController: function (volume) {
         if (typeof AudioCtx === 'undefined') {
@@ -225,4 +225,6 @@ mergeInto(LibraryManager.library, {
     GetSongPlaybackSpeed: function () {
         return this.playbackSpeed;
     }
-});
+};
+
+mergeInto(LibraryManager.library, SongController);

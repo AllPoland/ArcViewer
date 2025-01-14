@@ -1,4 +1,4 @@
-mergeInto(LibraryManager.library, {
+var HitSoundController = {
 
     InitHitSoundController: function (volume) {
         if (typeof AudioCtx === 'undefined') {
@@ -8,96 +8,100 @@ mergeInto(LibraryManager.library, {
         this.hitSounds = {};
         this.volume = volume;
 
-        this.lowestOpenID = 0;
-        this.highestID = -1;
-
         if (this.volume < 0.0001) {
             this.volume = 0.0001;
         }
 
-        this.hitAudio = new Audio("TemplateData/SFX/Hitsounds/RabbitViewerTick.wav");
-        this.badCutAudio = new Audio("TemplateData/SFX/BadHitsounds/BloopBadHitsound.wav");
+        //Load the hitsound audio and create the base node
+        fetch("TemplateData/SFX/Hitsounds/RabbitViewerTick.wav")
+            .then((res) => res.arrayBuffer())
+            .then((buffer) => AudioCtx.decodeAudioData(buffer))
+            .then((buffer) => {
+                this.hitAudio = buffer;
+            })
+        fetch("TemplateData/SFX/Hitsounds/RabbitViewerTick.wav")
+            .then((res) => res.arrayBuffer())
+            .then((buffer) => AudioCtx.decodeAudioData(buffer))
+            .then((buffer) => {
+                this.badCutAudio = buffer;
+            })
 
         this.gainNode = AudioCtx.createGain();
         this.gainNode.gain.setValueAtTime(this.volume, AudioCtx.currentTime);
         this.gainNode.connect(AudioCtx.destination);
     },
 
-    ScheduleHitSound: function (id) {
+    ScheduleHitSound: function (id, songTime, songPlaybackSpeed) {
         //Schedules an already existing hitsound to be played
         //All hitsounds are offset by 0.185 seconds in their audio
         const universalDelay = 0.185;
         const hitSound = this.hitSounds[id];
 
-        hitSound[audio].pause();
+        if (typeof hitSound === 'undefined') {
+            return;
+        }
+
+        if (hitSound.playing) {
+            return;
+        }
         
         //Calculate the schedule delay with respect to song playback speed
-        const audioDelay = universalDelay / hitSound[speed];
-        let delay = ((hitSound[startTime] - GetSongTime()) / GetSongPlaybackSpeed()) - audioDelay;
+        const audioDelay = universalDelay / hitSound.speed;
+        let delay = ((hitSound.startTime - songTime) / songPlaybackSpeed) - audioDelay;
 
         if (delay >= 0) {
             //The audio can be played normally
-            hitSound[audio].currentTime = 0;
-            hitSound[audio].play(AudioContext.currentTime + delay);
+            hitSound.node.start(AudioCtx.currentTime + delay);
         }
         else if (delay + audioDelay >= 0) {
             //The audio delay time has already passed, try playing the hitsound with no audio delay
-            hitSound[audio].currentTime = universalDelay;
-            hitSound[audio].play(AudioContext.currentTime + delay + audioDelay);
+            hitSound.node.start(AudioCtx.currentTime + delay + audioDelay, universalDelay);
         }
-    },
 
-    RescheduleHitSounds: function () {
-        //Loop over each hitsound and reschedule them
-        for (let id = 0; id <= this.highestID; id++) {
-            ScheduleHitSound(id);
-        }
-    },
+        hitSound.playing = true;
 
-    AddHitSound: function (badCut, playTime, pitch) {
-        const newID = this.lowestOpenID;
-
-        //Create the audio source and connect it to the destination
-        const newAudio = badCut ? this.badCutAudio.cloneNode(true) : this.hitAudio.cloneNode(true);
-        newAudio.playbackRate = pitch;
-        newAudio.connect(this.gainNode);
-        
-        //Create an object to store relevant data for this hitsound
-        this.hitSounds[newID] = {
-            audio: newAudio,
-            startTime: playTime,
-            speed: pitch
-        };
-
-        //Schedule the hitsound to be played
-        ScheduleHitSound(newID);
-
-        //Update the lowest and highest IDs
-        this.lowestOpenID++;
-        while (this.hitSounds[this.lowestOpenID]) {
-            this.lowestOpenID++;
-        }
-        if (newID > this.highestID) {
-            this.highestID = newID;
-        }
+        //Automatically dispose the hitsound after it ends with a C# callback
+        hitSound.node.addEventListener("ended", (e) => SendMessage("Web Hit Sound Controller", "DeleteHitSound", id));
     },
 
     DisposeHitSound: function (id) {
+        if (typeof this.hitSounds[id] === 'undefined' || this.hitSounds[id] === null) {
+            return;
+        }
+
         //Stop playing and delete the hitsound
-        this.hitSounds[id][audio].pause();
+        if (typeof this.hitSounds[id].node !== 'undefined' && this.hitSounds[id].node !== null) {
+            this.hitSounds[id].node.stop();
+            this.hitSounds[id].node.disconnect(this.gainNode);
+            delete (this.hitSounds[id].node)
+        }
 
         delete (this.hitSounds[id]);
         this.hitSounds[id] = null;
+    },
 
-        //Update the lowest and highest IDs
-        if (id < lowestOpenID) {
-            lowestOpenID = id;
+    AddHitSound: function (id, badCut, playTime, pitch) {
+        //Create the audio node and connect it to the destination
+        const newNode = AudioCtx.createBufferSource();
+        newNode.buffer = badCut ? this.badCutAudio : this.hitAudio;
+        newNode.playbackRate.value = pitch;
+        newNode.connect(this.gainNode);
+        
+        //Create an object to store relevant data for this hitsound
+        this.hitSounds[id] = {
+            node: newNode,
+            startTime: playTime,
+            speed: pitch,
+            playing: false
+        };
+    },
+
+    GetHitSoundTime: function (id) {
+        if (typeof this.hitSounds[id] === 'undefined') {
+            return -1;
         }
-        if (id >= highestID) {
-            this.highestID--;
-            while (!this.hitSounds[this.highestID]) {
-                this.highestID--;
-            }
-        }
+        return this.hitSounds[id].startTime;
     }
-});
+};
+
+mergeInto(LibraryManager.library, HitSoundController);

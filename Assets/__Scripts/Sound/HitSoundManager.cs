@@ -57,6 +57,7 @@ public class HitSoundManager : MonoBehaviour
             return;
         }
 
+#if !UNITY_WEBGL || UNITY_EDITOR
         AudioSource source = emitter.source;
 
         source.enabled = true;
@@ -118,15 +119,26 @@ public class HitSoundManager : MonoBehaviour
             time = emitter.GetType() == typeof(Bomb) ? emitter.Time - emitter.HitOffset : emitter.Time
         };
         scheduledSounds.Add(sound);
+#else
+        bool badCut = emitter.WasBadCut && SettingsManager.GetBool("usebadhitsound");
+        float time = emitter.GetType() == typeof(Bomb) ? emitter.Time - emitter.HitOffset : emitter.Time;
+        float pitch = RandomPitch ? Random.Range(0.95f, 1.05f) : 1f;
+
+        WebHitSoundController.CreateHitSound(badCut, time, pitch);
+#endif
     }
 
 
     public static void ClearScheduledSounds()
     {
+#if !UNITY_WEBGL || UNITY_EDITOR
         for(int i = scheduledSounds.Count - 1; i >= 0; i--)
         {
             scheduledSounds[i].Destroy();
         }
+#else
+        WebHitSoundController.ClearScheduledSounds();
+#endif
     }
 
 
@@ -173,6 +185,10 @@ public class HitSoundManager : MonoBehaviour
     {
         TimeManager.OnPlayingChanged += UpdatePlaying;
         TimeSyncHandler.OnTimeScaleChanged += UpdateTimeScale;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        WebHitSoundController.Init();
+#endif
     }
 
 
