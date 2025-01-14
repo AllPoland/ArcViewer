@@ -59,6 +59,10 @@ var HitSoundController = {
             hitSound.node.start(AudioCtx.currentTime + delay + audioDelay, universalDelay);
             hitSound.playing = true;
         }
+        else {
+            //The hitsound has already passed, just dispose of it
+            SendMessage("Web Hit Sound Controller", "DeleteHitSound", id);
+        }
 
         //Automatically dispose the hitsound after it ends with a C# callback
         hitSound.node.addEventListener("ended", (e) => SendMessage("Web Hit Sound Controller", "DeleteHitSound", id));
