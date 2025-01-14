@@ -300,7 +300,9 @@ public class ChainManager : MapElementManager<ChainLink>
     {
         foreach(ChainLink cl in RenderedObjects)
         {
+#if !UNITY_WEBGL || UNITY_EDITOR
             if(cl.source != null)
+#endif
             {
                 HitSoundManager.ScheduleHitsound(cl);
             }

@@ -94,8 +94,6 @@ public class WebHitSoundController : MonoBehaviour
 
     public void DeleteHitSound(int id)
     {
-        Debug.Log("Disposing hitsound " + id);
-
         DisposeHitSound(id);
         soundIDs.Remove(id);
         if(id < lowestOpenID)

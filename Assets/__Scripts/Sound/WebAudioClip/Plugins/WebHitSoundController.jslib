@@ -19,16 +19,16 @@ var HitSoundController = {
             .then((buffer) => {
                 this.hitAudio = buffer;
             })
-        fetch("TemplateData/SFX/Hitsounds/RabbitViewerTick.wav")
+        fetch("TemplateData/SFX/BadHitsounds/BloopBadHitsound.wav")
             .then((res) => res.arrayBuffer())
             .then((buffer) => AudioCtx.decodeAudioData(buffer))
             .then((buffer) => {
                 this.badCutAudio = buffer;
             })
 
-        this.gainNode = AudioCtx.createGain();
-        this.gainNode.gain.setValueAtTime(this.volume, AudioCtx.currentTime);
-        this.gainNode.connect(AudioCtx.destination);
+        this.hitSoundGain = AudioCtx.createGain();
+        this.hitSoundGain.gain.setValueAtTime(this.volume, AudioCtx.currentTime);
+        this.hitSoundGain.connect(AudioCtx.destination);
     },
 
     ScheduleHitSound: function (id, songTime, songPlaybackSpeed) {
@@ -52,13 +52,13 @@ var HitSoundController = {
         if (delay >= 0) {
             //The audio can be played normally
             hitSound.node.start(AudioCtx.currentTime + delay);
+            hitSound.playing = true;
         }
         else if (delay + audioDelay >= 0) {
             //The audio delay time has already passed, try playing the hitsound with no audio delay
             hitSound.node.start(AudioCtx.currentTime + delay + audioDelay, universalDelay);
+            hitSound.playing = true;
         }
-
-        hitSound.playing = true;
 
         //Automatically dispose the hitsound after it ends with a C# callback
         hitSound.node.addEventListener("ended", (e) => SendMessage("Web Hit Sound Controller", "DeleteHitSound", id));
@@ -71,8 +71,10 @@ var HitSoundController = {
 
         //Stop playing and delete the hitsound
         if (typeof this.hitSounds[id].node !== 'undefined' && this.hitSounds[id].node !== null) {
-            this.hitSounds[id].node.stop();
-            this.hitSounds[id].node.disconnect(this.gainNode);
+            if (this.hitSounds[id].playing) {
+                this.hitSounds[id].node.stop();
+            }
+            this.hitSounds[id].node.disconnect(this.hitSoundGain);
             delete (this.hitSounds[id].node)
         }
 
@@ -84,8 +86,8 @@ var HitSoundController = {
         //Create the audio node and connect it to the destination
         const newNode = AudioCtx.createBufferSource();
         newNode.buffer = badCut ? this.badCutAudio : this.hitAudio;
-        newNode.playbackRate.value = pitch;
-        newNode.connect(this.gainNode);
+        newNode.playbackRate.value = pitch; 
+        newNode.connect(this.hitSoundGain);
         
         //Create an object to store relevant data for this hitsound
         this.hitSounds[id] = {

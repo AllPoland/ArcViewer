@@ -145,7 +145,11 @@ public class BombManager : MapElementManager<Bomb>
     {
         foreach(Bomb b in RenderedObjects)
         {
+#if !UNITY_WEBGL || UNITY_EDITOR
             if(b.WasHit && playBadCutSound && b.source != null)
+#else
+            if(b.WasHit && playBadCutSound)
+#endif
             {
                 HitSoundManager.ScheduleHitsound(b);
             }
