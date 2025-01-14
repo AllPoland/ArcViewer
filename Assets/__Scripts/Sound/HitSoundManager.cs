@@ -153,6 +153,7 @@ public class HitSoundManager : MonoBehaviour
 
     public void UpdateTimeScale(float newScale)
     {
+#if !UNITY_WEBGL || UNITY_EDITOR
         float currentTime = SongManager.GetSongTime();
         for(int i = scheduledSounds.Count - 1; i >= 0; i--)
         {
@@ -167,6 +168,9 @@ public class HitSoundManager : MonoBehaviour
                 sound.UpdateTime(currentTime);
             }
         }
+#else
+        WebHitSoundController.RescheduleHitsounds();
+#endif
     }
 
 

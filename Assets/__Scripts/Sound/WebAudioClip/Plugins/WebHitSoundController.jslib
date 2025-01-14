@@ -64,21 +64,48 @@ var HitSoundController = {
         hitSound.node.addEventListener("ended", (e) => SendMessage("Web Hit Sound Controller", "DeleteHitSound", id));
     },
 
+    RemakeHitSound: function (id) {
+        if (typeof this.hitSounds[id] === 'undefined' || this.hitSounds[id] === null) {
+            return;
+        }
+
+        const hitSound = this.hitSounds[id];
+
+        if (typeof hitSound.node !== 'undefined' && this.hitSounds[id].node !== null) {
+            //Stop playing the sound if it is playing
+            if (hitSound.playing) {
+                hitSound.node.stop();
+            }
+            hitSound.node.disconnect(this.hitSoundGain);
+            delete (hitSound.node)
+        }
+
+        //Create a new audio source for this hitsound
+        const newNode = AudioCtx.createBufferSource();
+        newNode.buffer = hitSound.isBadCut ? this.badCutAudio : this.hitAudio;
+        newNode.playbackRate.value = hitSound.speed;
+        newNode.connect(this.hitSoundGain);
+
+        hitSound.node = newNode;
+        hitSound.playing = false;
+    },
+
     DisposeHitSound: function (id) {
         if (typeof this.hitSounds[id] === 'undefined' || this.hitSounds[id] === null) {
             return;
         }
 
         //Stop playing and delete the hitsound
-        if (typeof this.hitSounds[id].node !== 'undefined' && this.hitSounds[id].node !== null) {
-            if (this.hitSounds[id].playing) {
-                this.hitSounds[id].node.stop();
+        const hitSound = this.hitSounds[id];
+        if (typeof hitSound.node !== 'undefined' && this.hitSounds[id].node !== null) {
+            if (hitSound.playing) {
+                hitSound.node.stop();
             }
-            this.hitSounds[id].node.disconnect(this.hitSoundGain);
-            delete (this.hitSounds[id].node)
+            hitSound.node.disconnect(this.hitSoundGain);
+            delete (hitSound.node)
         }
 
-        delete (this.hitSounds[id]);
+        delete (hitSound);
         this.hitSounds[id] = null;
     },
 
@@ -94,6 +121,7 @@ var HitSoundController = {
             node: newNode,
             startTime: playTime,
             speed: pitch,
+            isBadCut: badCut,
             playing: false
         };
     },
@@ -103,6 +131,13 @@ var HitSoundController = {
             return -1;
         }
         return this.hitSounds[id].startTime;
+    },
+
+    IsHitSoundBadCut: function (id) {
+        if (typeof this.hitSounds[id] === 'undefined') {
+            return false;
+        }
+        return this.hitSounds[id].isBadCut;
     }
 };
 

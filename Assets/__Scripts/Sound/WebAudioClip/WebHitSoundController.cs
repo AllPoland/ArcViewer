@@ -11,6 +11,9 @@ public class WebHitSoundController : MonoBehaviour
     public static extern void ScheduleHitSound(int id, float songTime, float songPlaybackSpeed);
 
     [DllImport("__Internal")]
+    public static extern void RemakeHitSound(int id);
+
+    [DllImport("__Internal")]
     public static extern void DisposeHitSound(int id);
 
     [DllImport("__Internal")]
@@ -18,6 +21,9 @@ public class WebHitSoundController : MonoBehaviour
 
     [DllImport("__Internal")]
     public static extern float GetHitSoundTime(int id);
+
+    [DllImport("__Internal")]
+    public static extern bool IsHitSoundBadCut(int id);
 
     private static WebHitSoundController instance;
     private static HashSet<int> soundIDs = new HashSet<int>();
@@ -54,7 +60,7 @@ public class WebHitSoundController : MonoBehaviour
     {
         foreach(int id in soundIDs)
         {
-            if(ObjectManager.CheckSameTime(GetHitSoundTime(id), playTime))
+            if(ObjectManager.CheckSameTime(GetHitSoundTime(id), playTime) && IsHitSoundBadCut(id) == badCut)
             {
                 //Don't schedule stacked hitsounds
                 return;
@@ -75,6 +81,7 @@ public class WebHitSoundController : MonoBehaviour
     {
         foreach(int id in soundIDs)
         {
+            RemakeHitSound(id);
             ScheduleHitSound(id, SongManager.GetSongTime(), TimeSyncHandler.TimeScale);
         }
     }
