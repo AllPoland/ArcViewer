@@ -52,6 +52,15 @@ public class WebHitSoundController : MonoBehaviour
 
     public static void CreateHitSound(bool badCut, float playTime, float pitch)
     {
+        foreach(int id in soundIDs)
+        {
+            if(ObjectManager.CheckSameTime(GetHitSoundTime(id), playTime))
+            {
+                //Don't schedule stacked hitsounds
+                return;
+            }
+        }
+
         int newID = lowestOpenID;
 
         AddHitSound(newID, badCut, playTime, pitch);
