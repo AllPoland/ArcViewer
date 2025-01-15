@@ -29,6 +29,10 @@ var HitSoundController = {
         this.hitSoundGain = AudioCtx.createGain();
         this.hitSoundGain.gain.setValueAtTime(this.volume, AudioCtx.currentTime);
         this.hitSoundGain.connect(AudioCtx.destination);
+
+        this.chainSoundGain = AudioCtx.createGain();
+        this.chainSoundGain.gain.setValueAtTime(1.0, AudioCtx.currentTime);
+        this.chainSoundGain.connect(this.hitSoundGain);
     },
 
     ScheduleHitSound: function (id, songTime, songPlaybackSpeed) {
@@ -80,7 +84,11 @@ var HitSoundController = {
             if (hitSound.playing) {
                 hitSound.node.stop();
             }
-            hitSound.node.disconnect(this.hitSoundGain);
+
+            if (hitSound.isChainLink) {
+                hitSound.node.disconnect(this.hitSoundGain);
+            }
+            else hitSound.node.disconnect(this.chainSoundGain);
             delete (hitSound.node)
         }
 
@@ -88,7 +96,10 @@ var HitSoundController = {
         const newNode = AudioCtx.createBufferSource();
         newNode.buffer = hitSound.isBadCut ? this.badCutAudio : this.hitAudio;
         newNode.playbackRate.value = hitSound.speed;
-        newNode.connect(this.hitSoundGain);
+        if (hitSound.isChainLink) {
+            newNode.disconnect(this.hitSoundGain);
+        }
+        else newNode.disconnect(this.chainSoundGain);
 
         hitSound.node = newNode;
         hitSound.playing = false;
@@ -105,7 +116,11 @@ var HitSoundController = {
             if (hitSound.playing) {
                 hitSound.node.stop();
             }
-            hitSound.node.disconnect(this.hitSoundGain);
+
+            if (hitSound.isChainLink) {
+                hitSound.node.disconnect(this.hitSoundGain);
+            }
+            else hitSound.node.disconnect(this.chainSoundGain);
             delete (hitSound.node)
         }
 
@@ -113,19 +128,24 @@ var HitSoundController = {
         this.hitSounds[id] = null;
     },
 
-    AddHitSound: function (id, badCut, playTime, pitch) {
+    AddHitSound: function (id, badCut, chainLink, playTime, pitch) {
         //Create the audio node and connect it to the destination
         const newNode = AudioCtx.createBufferSource();
         newNode.buffer = badCut ? this.badCutAudio : this.hitAudio;
         newNode.playbackRate.value = pitch; 
-        newNode.connect(this.hitSoundGain);
-        
+
+        if (chainLink) {
+            newNode.connect(this.hitSoundGain);
+        }
+        else newNode.connect(this.chainSoundGain);
+
         //Create an object to store relevant data for this hitsound
         this.hitSounds[id] = {
             node: newNode,
             startTime: playTime,
             speed: pitch,
             isBadCut: badCut,
+            isChainLink: chainLink,
             playing: false
         };
     },

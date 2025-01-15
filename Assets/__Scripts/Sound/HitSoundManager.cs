@@ -121,10 +121,11 @@ public class HitSoundManager : MonoBehaviour
         scheduledSounds.Add(sound);
 #else
         bool badCut = emitter.WasBadCut && SettingsManager.GetBool("usebadhitsound");
+        bool chainLink = emitter.GetType() == typeof(ChainLink);
         float time = emitter.GetType() == typeof(Bomb) ? emitter.Time - emitter.HitOffset : emitter.Time;
         float pitch = RandomPitch ? Random.Range(0.95f, 1.05f) : 1f;
 
-        WebHitSoundController.CreateHitSound(badCut, time, pitch);
+        WebHitSoundController.CreateHitSound(badCut, chainLink, time, pitch);
 #endif
     }
 

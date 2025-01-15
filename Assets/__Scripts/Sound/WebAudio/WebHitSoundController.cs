@@ -17,7 +17,7 @@ public class WebHitSoundController : MonoBehaviour
     public static extern void DisposeHitSound(int id);
 
     [DllImport("__Internal")]
-    public static extern int AddHitSound(int id, bool badCut, float playTime, float pitch);
+    public static extern int AddHitSound(int id, bool badCut, bool chainLink, float playTime, float pitch);
 
     [DllImport("__Internal")]
     public static extern float GetHitSoundTime(int id);
@@ -56,7 +56,7 @@ public class WebHitSoundController : MonoBehaviour
     }
 
 
-    public static void CreateHitSound(bool badCut, float playTime, float pitch)
+    public static void CreateHitSound(bool badCut, bool chainLink, float playTime, float pitch)
     {
         foreach(int id in soundIDs)
         {
@@ -69,7 +69,7 @@ public class WebHitSoundController : MonoBehaviour
 
         int newID = lowestOpenID;
 
-        AddHitSound(newID, badCut, playTime, pitch);
+        AddHitSound(newID, badCut, chainLink, playTime, pitch);
         ScheduleHitSound(newID, SongManager.GetSongTime(), TimeSyncHandler.TimeScale);
 
         soundIDs.Add(newID);
