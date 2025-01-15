@@ -147,6 +147,7 @@ var HitSoundController = {
         else {
             //The hitsound has already passed, just dispose of it
             SendMessage("Web Hit Sound Controller", "DeleteHitSound", id);
+            return;
         }
 
         //Automatically dispose the hitsound after it ends with a C# callback
@@ -178,9 +179,9 @@ var HitSoundController = {
         newNode.buffer = hitSound.isBadCut ? this.badHitAudio : this.hitAudio;
         newNode.playbackRate.value = hitSound.speed;
         if (!hitSound.isChainLink) {
-            newNode.disconnect(this.hitSoundGain);
+            newNode.connect(this.hitSoundGain);
         }
-        else newNode.disconnect(this.chainSoundGain);
+        else newNode.connect(this.chainSoundGain);
 
         hitSound.node = newNode;
         hitSound.playing = false;

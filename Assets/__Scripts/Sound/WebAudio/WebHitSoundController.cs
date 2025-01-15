@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -80,6 +81,7 @@ public class WebHitSoundController : MonoBehaviour
         }
 
         int newID = lowestOpenID;
+        Debug.Log("Scheduling id " + newID);
 
         AddHitSound(newID, badCut, chainLink, playTime, pitch);
         ScheduleHitSound(newID, SongManager.GetSongTime(), TimeSyncHandler.TimeScale);
@@ -91,8 +93,10 @@ public class WebHitSoundController : MonoBehaviour
 
     public static void RescheduleHitsounds()
     {
-        foreach(int id in soundIDs)
+        int[] idArray = soundIDs.ToArray();
+        foreach(int id in idArray)
         {
+            Debug.Log("Rescheduling id " + id);
             RemakeHitSound(id);
             ScheduleHitSound(id, SongManager.GetSongTime(), TimeSyncHandler.TimeScale);
         }
@@ -101,7 +105,8 @@ public class WebHitSoundController : MonoBehaviour
 
     public static void ClearScheduledSounds()
     {
-        foreach(int id in soundIDs)
+        int[] idArray = soundIDs.ToArray();
+        foreach(int id in idArray)
         {
             DisposeHitSound(id);
         }
