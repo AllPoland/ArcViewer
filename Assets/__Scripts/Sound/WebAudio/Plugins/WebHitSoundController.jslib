@@ -7,19 +7,54 @@ var HitSoundController = {
 
         this.hitSounds = {};
 
-        //Load the hitsound audio and create the base node
-        fetch("TemplateData/SFX/Hitsounds/RabbitViewerTick.wav")
-            .then((res) => res.arrayBuffer())
-            .then((buffer) => AudioCtx.decodeAudioData(buffer))
-            .then((buffer) => {
-                this.hitAudio = buffer;
-            })
-        fetch("TemplateData/SFX/BadHitsounds/BloopBadHitsound.wav")
-            .then((res) => res.arrayBuffer())
-            .then((buffer) => AudioCtx.decodeAudioData(buffer))
-            .then((buffer) => {
-                this.badCutAudio = buffer;
-            })
+        const hitSoundNames = [
+            "RabbitViewerTick",
+            "ChromapperTick",
+            "OsuHitsound",
+            "ThumpyHitsound",
+            "GalxHitsound"
+        ];
+
+        const badHitSoundNames = [
+            "BloopBadHitsound",
+            "RecordScratchBadHitsound",
+            "FunkyBadHitsound",
+            "VineBoomBadHitsound"
+        ];
+
+        if (typeof this.hitSoundIndex === 'undefined') {
+            this.hitSoundIndex = 0;
+        }
+        if (typeof this.badHitSoundIndex === 'undefined') {
+            this.badHitSoundIndex = 0;
+        }
+
+        this.hitSoundBuffers = [];
+        this.badHitSoundBuffers = [];
+
+        //Load the hitsound audio
+        for (let i = 0; i < hitSoundNames.length; i++) {
+            fetch("TemplateData/SFX/Hitsounds/" + hitSoundNames[i] + ".wav")
+                .then((res) => res.arrayBuffer())
+                .then((buffer) => AudioCtx.decodeAudioData(buffer))
+                .then((buffer) => {
+                    this.hitSoundBuffers[i] = buffer;
+                    if (i == this.hitSoundIndex) {
+                        this.hitAudio = this.hitSoundBuffers[i];
+                    }
+                })
+        }
+        for (let i = 0; i < badHitSoundNames.length; i++) {
+            fetch("TemplateData/SFX/BadHitsounds/" + badHitSoundNames[i] + ".wav")
+                .then((res) => res.arrayBuffer())
+                .then((buffer) => AudioCtx.decodeAudioData(buffer))
+                .then((buffer) => {
+                    this.badHitSoundBuffers[i] = buffer;
+                    if (i == this.badHitSoundIndex) {
+                        this.badHitAudio = this.badHitSoundBuffers[i];
+                    }
+                })
+        }
 
         if (typeof this.hitSoundGain === 'undefined') {
             this.hitSoundGain = AudioCtx.createGain();
@@ -61,6 +96,24 @@ var HitSoundController = {
         }
 
         this.chainSoundGain.gain.setValueAtTime(volume, AudioCtx.currentTime);
+    },
+
+    SetHitSound: function (hitSound) {
+        this.hitSoundIndex = hitSound;
+        if (typeof this.hitSoundBuffers !== 'undefined' && this.hitSoundBuffers.length > hitSound) {
+            //Only update the buffer if the hitsounds are initialized
+            //otherwise the hitsound will automatically be picked on init
+            this.hitAudio = this.hitSoundBuffers[hitSound];
+        }
+    },
+
+    SetBadHitSound: function (badHitSound) {
+        this.badHitSoundIndex = badHitSound;
+        if (typeof this.badHitSoundBuffers !== 'undefined' && this.badHitSoundBuffers.length > badHitSound) {
+            //Only update the buffer if the hitsounds are initialized
+            //otherwise the hitsound will automatically be picked on init
+            this.badHitAudio = this.badHitSoundBuffers[badHitSound];
+        }
     },
 
     ScheduleHitSound: function (id, songTime, songPlaybackSpeed) {
@@ -122,7 +175,7 @@ var HitSoundController = {
 
         //Create a new audio source for this hitsound
         const newNode = AudioCtx.createBufferSource();
-        newNode.buffer = hitSound.isBadCut ? this.badCutAudio : this.hitAudio;
+        newNode.buffer = hitSound.isBadCut ? this.badHitAudio : this.hitAudio;
         newNode.playbackRate.value = hitSound.speed;
         if (!hitSound.isChainLink) {
             newNode.disconnect(this.hitSoundGain);
@@ -159,7 +212,7 @@ var HitSoundController = {
     AddHitSound: function (id, badCut, chainLink, playTime, pitch) {
         //Create the audio node and connect it to the destination
         const newNode = AudioCtx.createBufferSource();
-        newNode.buffer = badCut ? this.badCutAudio : this.hitAudio;
+        newNode.buffer = badCut ? this.badHitAudio : this.hitAudio;
         newNode.playbackRate.value = pitch; 
 
         if (!chainLink) {

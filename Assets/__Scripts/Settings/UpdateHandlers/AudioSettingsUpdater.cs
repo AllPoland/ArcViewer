@@ -45,11 +45,17 @@ public class AudioSettingsUpdater : MonoBehaviour
         {
             int hitsound = SettingsManager.GetInt("hitsound");
             hitsound = Mathf.Clamp(hitsound, 0, hitSounds.Length - 1);
-            HitSoundManager.HitSound = hitSounds[hitsound];
 
             int badHitsound = SettingsManager.GetInt("badhitsound");
             badHitsound = Mathf.Clamp(badHitsound, 0, badHitSounds.Length - 1);
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+            HitSoundManager.HitSound = hitSounds[hitsound];
             HitSoundManager.BadHitSound = badHitSounds[badHitsound];
+#else
+            WebHitSoundController.SetHitSound(hitsound);
+            WebHitSoundController.SetBadHitSound(badHitsound);
+#endif
 
             HitSoundManager.ClearScheduledSounds();
             ObjectManager.Instance.RescheduleHitsounds(TimeManager.Playing);

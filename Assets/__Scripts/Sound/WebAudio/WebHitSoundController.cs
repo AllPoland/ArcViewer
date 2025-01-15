@@ -11,6 +11,12 @@ public class WebHitSoundController : MonoBehaviour
     public static extern void SetChainSoundVolume(float volume);
 
     [DllImport("__Internal")]
+    public static extern void SetHitSound(int hitSound);
+
+    [DllImport("__Internal")]
+    public static extern void SetBadHitSound(int badHitSound);
+
+    [DllImport("__Internal")]
     public static extern void InitHitSoundController();
 
     [DllImport("__Internal")]
