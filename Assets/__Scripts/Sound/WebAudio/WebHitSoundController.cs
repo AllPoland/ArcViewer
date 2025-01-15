@@ -5,7 +5,13 @@ using UnityEngine;
 public class WebHitSoundController : MonoBehaviour
 {
     [DllImport("__Internal")]
-    public static extern void InitHitSoundController(float volume);
+    public static extern void SetHitSoundVolume(float volume);
+
+    [DllImport("__Internal")]
+    public static extern void SetChainSoundVolume(float volume);
+
+    [DllImport("__Internal")]
+    public static extern void InitHitSoundController();
 
     [DllImport("__Internal")]
     public static extern void ScheduleHitSound(int id, float songTime, float songPlaybackSpeed);
@@ -41,7 +47,7 @@ public class WebHitSoundController : MonoBehaviour
         // This just keeps the inspector sane
         instance.gameObject.hideFlags = HideFlags.HideAndDontSave;
 
-        InitHitSoundController(1f);
+        InitHitSoundController();
     }
 
 

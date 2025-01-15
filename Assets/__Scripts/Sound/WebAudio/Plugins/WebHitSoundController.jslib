@@ -1,16 +1,11 @@
 var HitSoundController = {
 
-    InitHitSoundController: function (volume) {
+    InitHitSoundController: function () {
         if (typeof AudioCtx === 'undefined') {
             AudioCtx = new AudioContext();
         }
 
         this.hitSounds = {};
-        this.volume = volume;
-
-        if (this.volume < 0.0001) {
-            this.volume = 0.0001;
-        }
 
         //Load the hitsound audio and create the base node
         fetch("TemplateData/SFX/Hitsounds/RabbitViewerTick.wav")
@@ -26,13 +21,46 @@ var HitSoundController = {
                 this.badCutAudio = buffer;
             })
 
-        this.hitSoundGain = AudioCtx.createGain();
-        this.hitSoundGain.gain.setValueAtTime(this.volume, AudioCtx.currentTime);
-        this.hitSoundGain.connect(AudioCtx.destination);
+        if (typeof this.hitSoundGain === 'undefined') {
+            this.hitSoundGain = AudioCtx.createGain();
+            this.hitSoundGain.gain.setValueAtTime(1.0, AudioCtx.currentTime);
+            this.hitSoundGain.connect(AudioCtx.destination);
+        }
 
-        this.chainSoundGain = AudioCtx.createGain();
-        this.chainSoundGain.gain.setValueAtTime(1.0, AudioCtx.currentTime);
-        this.chainSoundGain.connect(this.hitSoundGain);
+        if (typeof this.chainSoundGain === 'undefined') {
+            this.chainSoundGain = AudioCtx.createGain();
+            this.chainSoundGain.gain.setValueAtTime(0.8, AudioCtx.currentTime);
+            this.chainSoundGain.connect(this.hitSoundGain);
+        }
+    },
+
+    SetHitSoundVolume: function (volume) {
+        if (typeof AudioCtx === 'undefined') {
+            AudioCtx = new AudioContext();
+        }
+        if (typeof this.hitSoundGain === 'undefined') {
+            this.hitSoundGain = AudioCtx.createGain();
+            this.hitSoundGain.connect(AudioCtx.destination);
+        }
+
+        this.hitSoundGain.gain.setValueAtTime(volume, AudioCtx.currentTime);
+    },
+
+    SetChainSoundVolume: function (volume) {
+        if (typeof AudioCtx === 'undefined') {
+            AudioCtx = new AudioContext();
+        }
+        if (typeof this.hitSoundGain === 'undefined') {
+            this.hitSoundGain = AudioCtx.createGain();
+            this.hitSoundGain.gain.setValueAtTime(1.0, AudioCtx.currentTime);
+            this.hitSoundGain.connect(AudioCtx.destination);
+        }
+        if (typeof this.chainSoundGain === 'undefined') {
+            this.chainSoundGain = AudioCtx.createGain();
+            this.chainSoundGain.connect(this.hitSoundGain);
+        }
+
+        this.chainSoundGain.gain.setValueAtTime(volume, AudioCtx.currentTime);
     },
 
     ScheduleHitSound: function (id, songTime, songPlaybackSpeed) {
@@ -85,7 +113,7 @@ var HitSoundController = {
                 hitSound.node.stop();
             }
 
-            if (hitSound.isChainLink) {
+            if (!hitSound.isChainLink) {
                 hitSound.node.disconnect(this.hitSoundGain);
             }
             else hitSound.node.disconnect(this.chainSoundGain);
@@ -96,7 +124,7 @@ var HitSoundController = {
         const newNode = AudioCtx.createBufferSource();
         newNode.buffer = hitSound.isBadCut ? this.badCutAudio : this.hitAudio;
         newNode.playbackRate.value = hitSound.speed;
-        if (hitSound.isChainLink) {
+        if (!hitSound.isChainLink) {
             newNode.disconnect(this.hitSoundGain);
         }
         else newNode.disconnect(this.chainSoundGain);
@@ -117,7 +145,7 @@ var HitSoundController = {
                 hitSound.node.stop();
             }
 
-            if (hitSound.isChainLink) {
+            if (!hitSound.isChainLink) {
                 hitSound.node.disconnect(this.hitSoundGain);
             }
             else hitSound.node.disconnect(this.chainSoundGain);
@@ -134,7 +162,7 @@ var HitSoundController = {
         newNode.buffer = badCut ? this.badCutAudio : this.hitAudio;
         newNode.playbackRate.value = pitch; 
 
-        if (chainLink) {
+        if (!chainLink) {
             newNode.connect(this.hitSoundGain);
         }
         else newNode.connect(this.chainSoundGain);

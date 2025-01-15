@@ -31,9 +31,14 @@ public class AudioSettingsUpdater : MonoBehaviour
 
         if(allSettings || setting == "hitsoundvolume" || setting == "chainvolume")
         {
+#if !UNITY_WEBGL || UNITY_EDITOR
             float hitsoundVolume = SettingsManager.GetFloat("hitsoundvolume");
             hitSoundManager.HitSoundVolume = hitsoundVolume;
             hitSoundManager.ChainVolume = SettingsManager.GetFloat("chainvolume") * hitsoundVolume;
+#else
+            WebHitSoundController.SetHitSoundVolume(SettingsManager.GetFloat("hitsoundvolume"));
+            WebHitSoundController.SetChainSoundVolume(SettingsManager.GetFloat("chainvolume"));
+#endif
         }
 
         if(allSettings || hitSoundSettings.Contains(setting))
