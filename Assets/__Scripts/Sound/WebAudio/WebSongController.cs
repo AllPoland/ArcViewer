@@ -8,9 +8,6 @@ public class WebSongController : MonoBehaviour
     private static extern void InitSongController(float volume);
 
     [DllImport("__Internal")]
-    public static extern void CreateSongClip();
-
-    [DllImport("__Internal")]
     public static extern void DisposeSongClip();
     
     [DllImport("__Internal")]

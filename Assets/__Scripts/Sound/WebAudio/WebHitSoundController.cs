@@ -81,7 +81,6 @@ public class WebHitSoundController : MonoBehaviour
         }
 
         int newID = lowestOpenID;
-        Debug.Log("Scheduling id " + newID);
 
         AddHitSound(newID, badCut, chainLink, playTime, pitch);
         ScheduleHitSound(newID, SongManager.GetSongTime(), TimeSyncHandler.TimeScale);
@@ -97,7 +96,6 @@ public class WebHitSoundController : MonoBehaviour
         float songTime = SongManager.GetSongTime();
         foreach(int id in idArray)
         {
-            Debug.Log("Rescheduling id " + id);
             RemakeHitSound(id);
             ScheduleHitSound(id, songTime, TimeSyncHandler.TimeScale);
         }
@@ -106,7 +104,6 @@ public class WebHitSoundController : MonoBehaviour
 
     public static void ClearScheduledSounds()
     {
-        Debug.Log("Clearing hitsounds");
         int[] idArray = soundIDs.ToArray();
         foreach(int id in idArray)
         {

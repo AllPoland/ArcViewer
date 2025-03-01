@@ -237,14 +237,14 @@ var HitSoundController = {
     },
 
     GetHitSoundTime: function (id) {
-        if (typeof this.hitSounds[id] === 'undefined') {
+        if (typeof this.hitSounds[id] === 'undefined' || this.hitSounds[id] === null) {
             return -1;
         }
         return this.hitSounds[id].startTime;
     },
 
     IsHitSoundBadCut: function (id) {
-        if (typeof this.hitSounds[id] === 'undefined') {
+        if (typeof this.hitSounds[id] === 'undefined' || this.hitSounds[id] === null) {
             return false;
         }
         return this.hitSounds[id].isBadCut;

@@ -23,7 +23,7 @@ public class UIUpdater : MonoBehaviour
             directoryField.text = "";
 
             SongManager.Instance.DestroyClip();
-            if(CoverImageHandler.Instance != null)
+            if(CoverImageHandler.Instance)
             {
                 CoverImageHandler.Instance.ClearImage();
             }

@@ -18,9 +18,6 @@ public class WebSongClip : IDisposable
 
         // Make sure the audio controller was created
         WebSongController.Init();
-
-        // Creates clip in the browser via JS
-        WebSongController.CreateSongClip();
 #endif
     }
 
@@ -30,6 +27,7 @@ public class WebSongClip : IDisposable
 #if UNITY_WEBGL && !UNITY_EDITOR
         Stop();
 #endif
+        WebSongController.StopSong();
         WebSongController.DisposeSongClip();
     }
 

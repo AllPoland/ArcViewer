@@ -17,7 +17,10 @@ public class SongManager : MonoBehaviour
         get => _musicClip;
         set
         {
+#if !UNITY_WEBGL || UNITY_EDITOR
             DestroyClip();
+#endif
+
             _musicClip = value;
 
             //Make sure the clip has the correct speed

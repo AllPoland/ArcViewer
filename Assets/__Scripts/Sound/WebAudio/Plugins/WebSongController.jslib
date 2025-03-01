@@ -9,6 +9,8 @@ var SongController = {
         this.volume = volume;
         this.playbackSpeed = 1;
         this.lastPlayed = AudioCtx.currentTime;
+        this.soundStartTime = 0;
+        this.soundOffset = 0;
 
         this.gainNode = AudioCtx.createGain();
         this.gainNode.gain.setValueAtTime(0.0001, AudioCtx.currentTime);
@@ -19,21 +21,21 @@ var SongController = {
         }
     },
 
-    CreateSongClip: function () {
-        const clip = AudioCtx.createBufferSource();
-
-        this.clip = clip;
-        this.soundOffset = 0;
-    },
-
     DisposeSongClip: function () {
-        delete (this.clip);
-        delete (this.soundStartTime);
-        delete (this.soundOffset);
+        if(!this.clip) {
+            return;
+        }
 
-        this.clip = null;
-        this.soundStartTime = null;
-        this.soundOffset = null;
+        if (this.clipPlaying) {
+            this.clip.stop();
+            this.clip.disconnect(this.gainNode);
+        }
+
+        delete (this.clip.buffer);
+        delete (this.clip);
+
+        this.playing = false;
+        this.clipPlaying = false;
     },
 
     UploadSongData: function (data, dataLength, isOgg, gameObjectName, methodName) {
@@ -52,12 +54,24 @@ var SongController = {
             decodeFunction = (data, callback, errorCallback) => AudioCtx.decodeOggData(data, callback, errorCallback);
         }
 
+        if (this.clip) {
+            if (this.clipPlaying) {
+                this.clip.stop();
+                this.clip.disconnect(this.gainNode);
+            }
+
+            delete (this.clip.buffer);
+            delete (this.clip);
+
+            this.playing = false;
+            this.clipPlaying = false;
+        }
+
         decodeFunction(byteArray.buffer,
             (decodedData) => {
                 const newClip = AudioCtx.createBufferSource();
                 newClip.buffer = decodedData;
 
-                delete (this.clip);
                 this.clip = newClip;
 
                 //Callback to C# says that decoding succeeded
@@ -90,7 +104,6 @@ var SongController = {
         if (this.clipPlaying) {
             clip.stop();
             clip.disconnect(this.gainNode);
-            AudioCtx.suspend();
         }
 
         //Create a new clip to play because apparently once it plays it's forfeit
@@ -98,8 +111,6 @@ var SongController = {
 
         newClip.buffer = clip.buffer;
         newClip.playbackRate.value = this.playbackSpeed;
-
-        AudioCtx.resume();
 
         let startTime = time + this.soundOffset;
         if (startTime >= 0) {
@@ -139,16 +150,12 @@ var SongController = {
         const clip = this.clip;
         this.playing = false;
         setTimeout(function () {
-            //Don't stop the context if we've started playing again
+            //Don't stop the song if we've started playing again
             //This is pretty common when scrubbing through the track
-            if (!this.playing) {
-                AudioCtx.suspend();
-
-                if (this.clipPlaying) {
-                    clip.stop();
-                    clip.disconnect(this.gainNode);
-                    this.clipPlaying = false;
-                }
+            if (!this.playing && this.clip && this.clipPlaying) {
+                clip.stop();
+                clip.disconnect(this.gainNode);
+                this.clipPlaying = false;
             }
         }, 100);
     },
