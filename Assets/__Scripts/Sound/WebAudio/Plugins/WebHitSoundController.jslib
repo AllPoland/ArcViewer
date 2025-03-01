@@ -151,7 +151,8 @@ var HitSoundController = {
         }
 
         //Automatically dispose the hitsound after it ends with a C# callback
-        hitSound.node.addEventListener("ended", (e) => SendMessage("Web Hit Sound Controller", "DeleteHitSound", id));
+        hitSound.callback = (e) => SendMessage("Web Hit Sound Controller", "DeleteHitSound", id);
+        hitSound.node.addEventListener("ended", hitSound.callback);
     },
 
     RemakeHitSound: function (id) {
@@ -164,6 +165,7 @@ var HitSoundController = {
         if (typeof hitSound.node !== 'undefined' && this.hitSounds[id].node !== null) {
             //Stop playing the sound if it is playing
             if (hitSound.playing) {
+                hitSound.node.removeEventListener("ended", hitSound.callback);
                 hitSound.node.stop();
             }
 
@@ -196,6 +198,7 @@ var HitSoundController = {
         const hitSound = this.hitSounds[id];
         if (typeof hitSound.node !== 'undefined' && this.hitSounds[id].node !== null) {
             if (hitSound.playing) {
+                hitSound.node.removeEventListener("ended", hitSound.callback);
                 hitSound.node.stop();
             }
 
@@ -204,6 +207,7 @@ var HitSoundController = {
             }
             else hitSound.node.disconnect(this.chainSoundGain);
             delete (hitSound.node)
+            delete (this.hitSounds[id]);
         }
 
         delete (hitSound);

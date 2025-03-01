@@ -94,17 +94,19 @@ public class WebHitSoundController : MonoBehaviour
     public static void RescheduleHitsounds()
     {
         int[] idArray = soundIDs.ToArray();
+        float songTime = SongManager.GetSongTime();
         foreach(int id in idArray)
         {
             Debug.Log("Rescheduling id " + id);
             RemakeHitSound(id);
-            ScheduleHitSound(id, SongManager.GetSongTime(), TimeSyncHandler.TimeScale);
+            ScheduleHitSound(id, songTime, TimeSyncHandler.TimeScale);
         }
     }
 
 
     public static void ClearScheduledSounds()
     {
+        Debug.Log("Clearing hitsounds");
         int[] idArray = soundIDs.ToArray();
         foreach(int id in idArray)
         {

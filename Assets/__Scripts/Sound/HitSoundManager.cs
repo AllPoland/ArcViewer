@@ -5,17 +5,20 @@ using UnityEngine.Audio;
 
 public class HitSoundManager : MonoBehaviour
 {
+#if !UNITY_WEBGL || UNITY_EDITOR
     public const float SoundOffset = 0.185f;
 
     public static AudioClip HitSound;
     public static AudioClip BadHitSound;
     public static List<ScheduledSound> scheduledSounds = new List<ScheduledSound>();
+#endif
 
     public static bool RandomPitch => SettingsManager.GetBool("randomhitsoundpitch");
     public static bool Spatial => SettingsManager.GetBool("spatialhitsounds");
     public static float ScheduleBuffer => SettingsManager.GetFloat("hitsoundbuffer");
     public static bool DynamicPriority => SettingsManager.GetBool("dynamicsoundpriority");
 
+#if !UNITY_WEBGL || UNITY_EDITOR
     public float HitSoundVolume
     {
         set
@@ -47,6 +50,7 @@ public class HitSoundManager : MonoBehaviour
     [SerializeField] private AudioMixer hitSoundMixer;
     [SerializeField] private AudioClip defaultHitsound;
     [SerializeField] private AudioClip defaultBadHitsound;
+#endif
 
 
     public static void ScheduleHitsound(HitSoundEmitter emitter)
@@ -175,6 +179,7 @@ public class HitSoundManager : MonoBehaviour
     }
 
 
+#if !UNITY_WEBGL || UNITY_EDITOR
     private void Update()
     {
         float currentTime = SongManager.GetSongTime();
@@ -184,6 +189,7 @@ public class HitSoundManager : MonoBehaviour
             scheduledSounds[i].UpdateTime(currentTime);
         }
     }
+#endif
 
 
     private void Start()
@@ -197,14 +203,17 @@ public class HitSoundManager : MonoBehaviour
     }
 
 
+#if !UNITY_WEBGL || UNITY_EDITOR
     private void Awake()
     {
         HitSound = defaultHitsound;
         BadHitSound = defaultBadHitsound;
     }
+#endif
 }
 
 
+#if !UNITY_WEBGL || UNITY_EDITOR
 public class ScheduledSound
 {
     public List<ScheduledSound> parentList;
@@ -264,7 +273,6 @@ public class ScheduledSound
                 scheduled = true;
             }
         }
-#if !UNITY_WEBGL || UNITY_EDITOR
         else 
         {
             if(HitSoundManager.DynamicPriority)
@@ -284,6 +292,6 @@ public class ScheduledSound
             }
             else source.priority = 100;
         }
-#endif
     }
 }
+#endif
