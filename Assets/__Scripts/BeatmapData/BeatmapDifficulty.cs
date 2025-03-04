@@ -17,6 +17,8 @@ public abstract class BeatmapDifficulty
     public abstract BeatmapElementList<BeatmapSlider> Arcs { get; }
     public abstract BeatmapElementList<BeatmapBurstSlider> Chains { get; }
 
+    public abstract BeatmapElementList<BeatmapNjsEvent> NjsEvents { get; }
+
     public abstract BeatmapElementList<BeatmapBasicBeatmapEvent> BasicEvents { get; }
     public abstract BeatmapElementList<BeatmapColorBoostBeatmapEvent> BoostEvents { get; }
 
@@ -53,6 +55,15 @@ public class BeatmapRotationEvent
     public float b;
     public float e;
     public float r;
+}
+
+
+public class BeatmapNjsEvent
+{
+    public float b;
+    public int p;
+    public int e;
+    public float d;
 }
 
 

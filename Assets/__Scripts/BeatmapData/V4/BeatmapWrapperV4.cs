@@ -17,6 +17,8 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
     private BeatmapArcArrayV4 arcs;
     private BeatmapChainArrayV4 chains;
 
+    private BeatmapNjsEventArrayV4 njsEvents;
+
     private BeatmapBasicEventArrayV4 basicEvents;
     private BeatmapColorBoostEventArrayV4 colorBoostEvents;
 
@@ -29,6 +31,8 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
     public override BeatmapElementList<BeatmapObstacle> Walls => obstacles;
     public override BeatmapElementList<BeatmapSlider> Arcs => arcs;
     public override BeatmapElementList<BeatmapBurstSlider> Chains => chains;
+
+    public override BeatmapElementList<BeatmapNjsEvent> NjsEvents => njsEvents;
 
     public override BeatmapElementList<BeatmapBasicBeatmapEvent> BasicEvents => basicEvents;
     public override BeatmapElementList<BeatmapColorBoostBeatmapEvent> BoostEvents => colorBoostEvents;
@@ -282,6 +286,24 @@ public class BeatmapSpawnRotationArrayV4 : BeatmapElementArrayV4<BeatmapRotation
             b = element.b, //Beat
             e = data.t, //Execution time (early/late)
             r = data.r //Rotation amount
+        };
+    }
+}
+
+
+public class BeatmapNjsEventArrayV4 : BeatmapElementArrayV4<BeatmapNjsEvent, BeatmapElementV4, BeatmapNjsEventDataV4>
+{
+    public BeatmapNjsEventArrayV4(BeatmapDifficultyV4 beatmap) : base(beatmap.njsEvents, beatmap.njsEventData){}
+
+    public override BeatmapNjsEvent CreateOutput(BeatmapElementV4 element)
+    {
+        BeatmapNjsEventDataV4 data = GetDataAtIndex(element.i);
+        return new BeatmapNjsEvent
+        {
+            b = element.b,
+            p = data.p,
+            e = data.e,
+            d = data.d
         };
     }
 }
