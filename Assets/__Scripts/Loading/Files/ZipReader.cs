@@ -70,7 +70,7 @@ public class ZipReader : IMapDataLoader
 #if !UNITY_WEBGL || UNITY_EDITOR
         AudioClip song = await AudioClipFromMemoryStream(songData, songFilename);
 #else
-        WebAudioClip song = await AudioFileHandler.WebAudioClipFromStream(songData, songFilename);
+        WebSongClip song = await AudioFileHandler.WebSongClipFromStream(songData, songFilename);
 #endif
         if(song == null)
         {

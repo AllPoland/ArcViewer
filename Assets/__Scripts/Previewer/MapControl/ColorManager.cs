@@ -169,6 +169,12 @@ public class ColorManager : MonoBehaviour
                 return HipHopColors;
             case "ColliderEnvironment":
                 return ColliderColors;
+            case "BritneyEnvironment":
+                return BritneyColors;
+            case "Monstercat2Environment":
+                return Monstercat2Colors;
+            case "MetallicaEnvironment":
+                return MetallicaColors;
         }
     }
 
@@ -626,6 +632,48 @@ public class ColorManager : MonoBehaviour
         BoostLightColor2 = new Color(0.854902f, 0.4117647f, 0.9725491f),
         BoostWhiteLightColor = Color.white,
         WallColor = new Color(0.8396226f, 0.09639232f, 0f)
+    };
+
+
+    public static ColorPalette BritneyColors => new ColorPalette
+    {
+        LeftNoteColor = new Color(0.9137255f, 0.1411765f, 0.6008013f),
+        RightNoteColor = new Color(0.2484275f, 0.578789f, 1f),
+        LightColor1 = new Color(0.9921569f, 0.01176471f, 0.9882353f),
+        LightColor2 = new Color(0.1921569f, 0.5058824f, 0.9058824f),
+        WhiteLightColor = Color.white,
+        BoostLightColor1 = new Color(1f, 0.4591194f, 0.5087922f),
+        BoostLightColor2 = new Color(0.482353f, 0.9294118f, 0.7960785f),
+        BoostWhiteLightColor = Color.white,
+        WallColor = new Color(0.8396226f, 0.09639232f, 0f)
+    };
+    
+
+    public static ColorPalette Monstercat2Colors => new ColorPalette
+    {
+        LeftNoteColor = new Color(0.8745099f, 0.3450981f, 0.5215687f),
+        RightNoteColor = new Color(0.3882353f, 0.3019608f, 0.6117647f),
+        LightColor1 = new Color(0.6196079f, 0.0509804f, 0.8274511f),
+        LightColor2 = new Color(0.3372549f, 0.7137255f, 0.1098039f),
+        WhiteLightColor = Color.white,
+        BoostLightColor1 = new Color(0.7137255f, 0.1098039f, 0.1098039f),
+        BoostLightColor2 = new Color(0.08627451f, 0.5490196f, 0.6470588f),
+        BoostWhiteLightColor = Color.white,
+        WallColor = new Color(0.2313726f, 0.1490196f, 0.6392157f)
+    };
+
+
+    public static ColorPalette MetallicaColors => new ColorPalette
+    {
+        LeftNoteColor = new Color(0.282353f, 0.3333333f, 0.4039216f),
+        RightNoteColor = new Color(0.5764706f, 0.7176471f, 0.8235294f),
+        LightColor1 = new Color(0.8666667f, 0.4941176f, 0.3803922f),
+        LightColor2 = new Color(0.254902f, 0.454902f, 0.8666667f),
+        WhiteLightColor = new Color(0.5137255f, 0.6078314f, 0.6784314f),
+        BoostLightColor1 = new Color(0.8588235f, 0.3921569f, 0.09803922f),
+        BoostLightColor2 = new Color(0f, 0.7490196f, 0.6313726f),
+        BoostWhiteLightColor = new Color(0.5137255f, 0.6078314f, 0.6784314f),
+        WallColor = new Color(0.8392157f, 0.09803922f, 0f)
     };
 }
 

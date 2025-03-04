@@ -335,7 +335,9 @@ public class NoteManager : MapElementManager<Note>
     {
         foreach(Note n in RenderedObjects)
         {
+#if !UNITY_WEBGL || UNITY_EDITOR
             if(n.source != null)
+#endif
             {
                 HitSoundManager.ScheduleHitsound(n);
             }

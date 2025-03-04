@@ -10,14 +10,17 @@ public class SongManager : MonoBehaviour
     private AudioClip _musicClip;
     public AudioClip MusicClip
 #else
-    private WebAudioClip _musicClip;
-    public WebAudioClip MusicClip
+    private WebSongClip _musicClip;
+    public WebSongClip MusicClip
 #endif
     {
         get => _musicClip;
         set
         {
+#if !UNITY_WEBGL || UNITY_EDITOR
             DestroyClip();
+#endif
+
             _musicClip = value;
 
             //Make sure the clip has the correct speed
@@ -52,7 +55,7 @@ public class SongManager : MonoBehaviour
             //Logarithmic scaling makes volume slider feel more natural to the user
             musicMixer.SetFloat("Volume", Mathf.Log10(value) * 20);
 #else
-            WebAudioController.SetVolume(value);
+            WebSongController.SetSongVolume(value);
 #endif
         }
     }

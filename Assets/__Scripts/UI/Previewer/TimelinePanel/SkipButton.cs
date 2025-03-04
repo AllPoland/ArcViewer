@@ -22,6 +22,7 @@ public class SkipButton : MonoBehaviour
         TimeManager.SetPlaying(wasPlaying && TimeManager.CurrentTime < SongManager.GetSongLength());
     }
 
+
     public void SkipFrame(bool isForward)
     {
         // If replay is not found default to skipping 1/60 seconds
@@ -40,6 +41,7 @@ public class SkipButton : MonoBehaviour
             Skip(frameToSkipTo.time - TimeManager.CurrentTime);
         }
     }
+
 
     private void Update()
     {

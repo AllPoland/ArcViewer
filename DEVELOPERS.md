@@ -1,12 +1,12 @@
 # Developer guide
 
-ArcViewer is developed with Unity **2021.3.20f1** in C#.
+ArcViewer is developed with Unity **6000.0.30f1** in C#.
 
 ## Development Environment Setup
 * Clone the project from GitHub to your local work folder.
 * Download and install [Unity Hub](https://unity3d.com/get-unity/download).
 * Activate your license within Unity Hub. Most people should be eligible for a free Personal license.
-* Install unity version 2021.3.20f1 from within Unity Hub in the "Installs" section. This may not be the latest release; in this case, you should consult the "download archive" (from within Unity Hub). The installer will take care of the required dependencies as well.
+* Install unity version 6000.0.30f1 from within Unity Hub in the "Installs" section. This may not be the latest release; in this case, you should consult the "download archive" (from within Unity Hub). The installer will take care of the required dependencies as well.
 * Add the project in the "Projects" section. Select your main folder you cloned from GitHub.
 * Open the project. The Unity editor should launch, and the project dependencies should download automatically.
 

@@ -830,7 +830,7 @@ public class LoadedMap
 #if !UNITY_WEBGL || UNITY_EDITOR
     public LoadedMap(LoadedMapData mapData, byte[] coverImageData, AudioClip song)
 #else
-    public LoadedMap(LoadedMapData mapData, byte[] coverImageData, WebAudioClip song)
+    public LoadedMap(LoadedMapData mapData, byte[] coverImageData, WebSongClip song)
 #endif
     {
         MapData = mapData;
@@ -845,7 +845,7 @@ public class LoadedMap
 #if !UNITY_WEBGL || UNITY_EDITOR
     public AudioClip Song { get; private set; }
 #else
-    public WebAudioClip Song { get; private set; }
+    public WebSongClip Song { get; private set; }
 #endif
 
     public static LoadedMap Empty => new LoadedMap(LoadedMapData.Empty, null, null);

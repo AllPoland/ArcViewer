@@ -5,17 +5,20 @@ using UnityEngine.Audio;
 
 public class HitSoundManager : MonoBehaviour
 {
-    public const float SoundOffset = -0.185f;
+#if !UNITY_WEBGL || UNITY_EDITOR
+    public const float SoundOffset = 0.185f;
 
     public static AudioClip HitSound;
     public static AudioClip BadHitSound;
     public static List<ScheduledSound> scheduledSounds = new List<ScheduledSound>();
+#endif
 
     public static bool RandomPitch => SettingsManager.GetBool("randomhitsoundpitch");
     public static bool Spatial => SettingsManager.GetBool("spatialhitsounds");
     public static float ScheduleBuffer => SettingsManager.GetFloat("hitsoundbuffer");
     public static bool DynamicPriority => SettingsManager.GetBool("dynamicsoundpriority");
 
+#if !UNITY_WEBGL || UNITY_EDITOR
     public float HitSoundVolume
     {
         set
@@ -47,6 +50,7 @@ public class HitSoundManager : MonoBehaviour
     [SerializeField] private AudioMixer hitSoundMixer;
     [SerializeField] private AudioClip defaultHitsound;
     [SerializeField] private AudioClip defaultBadHitsound;
+#endif
 
 
     public static void ScheduleHitsound(HitSoundEmitter emitter)
@@ -57,6 +61,7 @@ public class HitSoundManager : MonoBehaviour
             return;
         }
 
+#if !UNITY_WEBGL || UNITY_EDITOR
         AudioSource source = emitter.source;
 
         source.enabled = true;
@@ -118,15 +123,27 @@ public class HitSoundManager : MonoBehaviour
             time = emitter.GetType() == typeof(Bomb) ? emitter.Time - emitter.HitOffset : emitter.Time
         };
         scheduledSounds.Add(sound);
+#else
+        bool badCut = emitter.WasBadCut && SettingsManager.GetBool("usebadhitsound");
+        bool chainLink = emitter.GetType() == typeof(ChainLink);
+        float time = emitter.GetType() == typeof(Bomb) ? emitter.Time - emitter.HitOffset : emitter.Time;
+        float pitch = RandomPitch ? Random.Range(0.95f, 1.05f) : 1f;
+
+        WebHitSoundController.CreateHitSound(badCut, chainLink, time, pitch);
+#endif
     }
 
 
     public static void ClearScheduledSounds()
     {
+#if !UNITY_WEBGL || UNITY_EDITOR
         for(int i = scheduledSounds.Count - 1; i >= 0; i--)
         {
             scheduledSounds[i].Destroy();
         }
+#else
+        WebHitSoundController.ClearScheduledSounds();
+#endif
     }
 
 
@@ -141,6 +158,7 @@ public class HitSoundManager : MonoBehaviour
 
     public void UpdateTimeScale(float newScale)
     {
+#if !UNITY_WEBGL || UNITY_EDITOR
         float currentTime = SongManager.GetSongTime();
         for(int i = scheduledSounds.Count - 1; i >= 0; i--)
         {
@@ -155,9 +173,13 @@ public class HitSoundManager : MonoBehaviour
                 sound.UpdateTime(currentTime);
             }
         }
+#else
+        WebHitSoundController.RescheduleHitsounds();
+#endif
     }
 
 
+#if !UNITY_WEBGL || UNITY_EDITOR
     private void Update()
     {
         float currentTime = SongManager.GetSongTime();
@@ -167,23 +189,31 @@ public class HitSoundManager : MonoBehaviour
             scheduledSounds[i].UpdateTime(currentTime);
         }
     }
+#endif
 
 
     private void Start()
     {
         TimeManager.OnPlayingChanged += UpdatePlaying;
         TimeSyncHandler.OnTimeScaleChanged += UpdateTimeScale;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        WebHitSoundController.Init();
+#endif
     }
 
 
+#if !UNITY_WEBGL || UNITY_EDITOR
     private void Awake()
     {
         HitSound = defaultHitsound;
         BadHitSound = defaultBadHitsound;
     }
+#endif
 }
 
 
+#if !UNITY_WEBGL || UNITY_EDITOR
 public class ScheduledSound
 {
     public List<ScheduledSound> parentList;
@@ -224,26 +254,25 @@ public class ScheduledSound
                 return;
             }
 
-            float scheduleIn = timeDifference + (HitSoundManager.SoundOffset / source.pitch);
+            float scheduleIn = timeDifference - (HitSoundManager.SoundOffset / source.pitch);
             if(!source.isPlaying && scheduleIn <= HitSoundManager.ScheduleBuffer)
             {
                 if(scheduleIn <= 0)
                 {
                     //The sound should already be playing the windup
                     //Instead, schedule the sound exactly on beat with no offset
-                    source.time = -HitSoundManager.SoundOffset;
-                    source.PlayScheduled(AudioSettings.dspTime + timeDifference);
+                    source.time = HitSoundManager.SoundOffset;
+                    source.PlayDelayed(timeDifference);
                 }
                 else
                 {
                     source.time = 0;
-                    source.PlayScheduled(AudioSettings.dspTime + scheduleIn);
+                    source.PlayDelayed(scheduleIn);
                 }
 
                 scheduled = true;
             }
         }
-#if !UNITY_WEBGL || UNITY_EDITOR
         else 
         {
             if(HitSoundManager.DynamicPriority)
@@ -263,6 +292,6 @@ public class ScheduledSound
             }
             else source.priority = 100;
         }
-#endif
     }
 }
+#endif

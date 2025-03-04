@@ -6,6 +6,8 @@ using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
 
+#pragma warning disable CS4014 //Suppress warnings about lack of await for uwr.SendWebRequest()
+#pragma warning disable 1998
 public class ReplayLoader
 {
     private const string beatleaderApiURL = "https://api.beatleader.xyz/";
@@ -13,8 +15,6 @@ public class ReplayLoader
     private const string userDirect = "player/";
     private const string leaderboardDirect = "leaderboards/hash/";
 
-//Suppress warnings about a lack of await when building for WebGL
-#pragma warning disable 1998
     public static async Task<Replay> ReplayFromDirectory(string directory)
     {
 #if UNITY_WEBGL && !UNITY_EDITOR

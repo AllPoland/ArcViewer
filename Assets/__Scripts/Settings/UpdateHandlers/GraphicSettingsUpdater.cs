@@ -4,7 +4,6 @@ using UnityEngine.Rendering.Universal;
 
 public class GraphicSettingsUpdater : MonoBehaviour
 {
-    [SerializeField] private Camera targetCamera;
     [SerializeField] private Volume bloomVolume;
     [SerializeField] private UniversalRenderPipelineAsset urpAsset;
     [SerializeField] private RenderTexture orthoCameraTexture;
@@ -86,8 +85,6 @@ public class GraphicSettingsUpdater : MonoBehaviour
         {
             bloom.intensity.value = defaultBloomStrength * SettingsManager.GetFloat("bloom");
             bloom.active = bloom.intensity.value >= 0.001f;
-
-            targetCamera.UpdateVolumeStack();
         }
 
         if(allSettings || setting == "renderscale")

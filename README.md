@@ -31,8 +31,6 @@ These features aren't included, and most likely never will be. If you ask for th
 
 - Gameplay. This should be self explanatory
 
-- Removing start screen watermark (this costs money :fw_nofwoompdespair)
-
 ## Get Started
 ArcViewer is available both in the browser, and as a desktop app.
 
@@ -43,7 +41,7 @@ To use ArcViewer as a desktop app, download the latest release from the [the rel
 **Don't know which one to use?** Check out an explanation of both versons [here](https://github.com/AllPoland/ArcViewer/wiki/Which-Version-Should-I-Use%3f).
 
 ## For Developers
-ArcViewer is developed in Unity version 2021.3.20
+ArcViewer is developed in Unity version 6000.0.30
 
 For more info on setting up your environment, contributing, and reporting bugs, check out the [Developer Guide](DEVELOPERS.md).
 

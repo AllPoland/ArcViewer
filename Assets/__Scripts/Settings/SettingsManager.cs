@@ -28,10 +28,12 @@ public class SettingsManager : MonoBehaviour
 
     public static bool Loaded { get; private set; }
 
+#if !UNITY_WEBGL || UNITY_EDITOR
     private const string settingsFile = "UserSettings.json";
 
     private const float autoSaveLength = 0.25f;
     private static float dirtyTime = 0f;
+#endif
 
     [SerializeField] private List<SerializedOption<bool>> defaultBools;
     [SerializeField] private List<SerializedOption<int>> defaultInts;
