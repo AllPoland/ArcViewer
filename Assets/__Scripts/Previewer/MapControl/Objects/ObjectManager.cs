@@ -656,11 +656,19 @@ public class ObjectManager : MonoBehaviour
                     ScoringType scoringType;
                     if(newNote.IsChainHead)
                     {
-                        scoringType = ScoringType.ChainHead;
+                        if(hasTail)
+                        {
+                            scoringType = ScoringType.ChainHeadArcTail;
+                        }
+                        else scoringType = ScoringType.ChainHead;
                     }
                     else if(hasHead)
                     {
-                        scoringType = ScoringType.ArcHead;
+                        if(hasTail)
+                        {
+                            scoringType = ScoringType.ArcHeadArcTail;
+                        }
+                        else scoringType = ScoringType.ArcHead;
                     }
                     else if(hasTail)
                     {
@@ -673,40 +681,8 @@ public class ObjectManager : MonoBehaviour
 
                     if(matchingEvent == null)
                     {
-                        //Check to make sure there aren't any variants of this ID present
-                        const int headTailDifference = (int)ScoringType.ArcHead - (int)ScoringType.ArcTail;
-                        const int chainArcDifference = (int)ScoringType.ChainHead - (int)ScoringType.ArcHead;
-                        if(scoringType == ScoringType.Note)
-                        {
-                            //Note scoringType can also count as 0 sometimes (very scuffed)
-                            noteID -= (int)scoringType * 10000;
-                        }
-                        else if(scoringType == ScoringType.ArcHead && hasTail)
-                        {
-                            //Type for a note that's both a head and a tail might be swapped
-                            noteID -= headTailDifference * 10000;
-                            scoringType = ScoringType.ArcTail;
-                        }
-                        else if(scoringType == ScoringType.ArcTail && hasHead)
-                        {
-                            noteID += headTailDifference * 10000;
-                            scoringType = ScoringType.ArcHead;
-                        }
-                        else if(scoringType == ScoringType.ChainHead && (hasHead || hasTail))
-                        {
-                            //A chain head that's also an arc head may be counted as an arc instead
-                            noteID -= chainArcDifference * 10000;
-                            matchingEvent = scoringEventsOnBeat.Find(x => x.ID == noteID);
-                            scoringType = ScoringType.ArcHead;
-                            if(matchingEvent == null)
-                            {
-                                //It might also be an arc tail :smil
-                                noteID -= headTailDifference * 10000;
-                                scoringType = ScoringType.ArcTail;
-                            }
-                        }
-
-                        matchingEvent = scoringEventsOnBeat.Find(x => x.ID == noteID);
+                        //Unable to match the note with its "correct" ID, try brute forcing all scoring types
+                        matchingEvent = ScoringEvent.BruteForceMatchNote(scoringEventsOnBeat, ref scoringType, noteID, hasTail, hasHead, newNote.IsChainHead);
                     }
 
                     if(matchingEvent == null || matchingEvent.noteEventType == NoteEventType.miss)
@@ -818,10 +794,6 @@ public class ObjectManager : MonoBehaviour
                 Wall newWall = new Wall(o);
                 walls.Add(newWall);
             }
-
-            //This is necessary because negative duration objects won't be sorted properly
-            walls.SortElementsByBeat();
-            arcs.SortElementsByBeat();
         }
 
         // pair slider heads/tails back up and make final arcs
@@ -852,6 +824,10 @@ public class ObjectManager : MonoBehaviour
 
             arcs.Add(newArc);
         }
+
+        //This is necessary because negative duration objects won't be sorted properly
+        walls.SortElementsByBeat();
+        arcs.SortElementsByBeat();
     }
 
 
@@ -860,7 +836,7 @@ public class ObjectManager : MonoBehaviour
         if(Instance && Instance != this)
         {
             Debug.Log("Duplicate ObjectManager in scene.");
-            this.enabled = false;
+            enabled = false;
         }
         else Instance = this;
     }

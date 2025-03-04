@@ -138,18 +138,22 @@ public class ScoreManager : MonoBehaviour
                 }
             }
 
-            int maxEventScore = 0;
+            int maxEventScore;
             switch(currentEvent.scoringType)
             {
+                default:
                 case ScoringType.Note:
                 case ScoringType.ArcHead:
                 case ScoringType.ArcTail:
+                case ScoringType.ArcHeadArcTail:
                     maxEventScore = MaxNoteScore;
                     break;
                 case ScoringType.ChainHead:
+                case ScoringType.ChainHeadArcTail:
                     maxEventScore = MaxChainHeadScore;
                     break;
                 case ScoringType.ChainLink:
+                case ScoringType.ChainLinkArcHead:
                     maxEventScore = MaxChainLinkScore;
                     break;
             }

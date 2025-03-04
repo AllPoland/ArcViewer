@@ -94,11 +94,27 @@ public class ChainManager : MapElementManager<ChainLink>
                 ScoringEvent matchingEvent = scoringEventsOnBeat.Find(x => x.ID == linkID && !usedScoringEvents.Contains(x));
                 if(matchingEvent == null && isLastElement)
                 {
-                    //Sometimes the last link doesn't get tail coordinates though :smil
-                    linkX = originalSlider.x;
-                    linkY = originalSlider.y;
-                    linkID = ((int)ScoringType.ChainLink * 10000) + (linkX * 1000) + (linkY * 100) + (c.Color * 10) + 8;
+                    //See if this link counts as an arc head
+                    linkID -= (int)ScoringType.ChainLink * 10000;
+                    linkID += (int)ScoringType.ChainLinkArcHead * 10000;
                     matchingEvent = scoringEventsOnBeat.Find(x => x.ID == linkID && !usedScoringEvents.Contains(x));
+
+                    if(matchingEvent == null)
+                    {
+                        //Sometimes the last link doesn't get tail coordinates though :smil
+                        linkX = originalSlider.x;
+                        linkY = originalSlider.y;
+                        linkID = ((int)ScoringType.ChainLink * 10000) + (linkX * 1000) + (linkY * 100) + (c.Color * 10) + 8;
+                        matchingEvent = scoringEventsOnBeat.Find(x => x.ID == linkID && !usedScoringEvents.Contains(x));
+
+                        if(matchingEvent == null)
+                        {
+                            //Once again see if this counts as an arc head
+                            linkID -= (int)ScoringType.ChainLink * 10000;
+                            linkID += (int)ScoringType.ChainLinkArcHead * 10000;
+                            matchingEvent = scoringEventsOnBeat.Find(x => x.ID == linkID && !usedScoringEvents.Contains(x));
+                        }
+                    }
                 }
 
                 if(matchingEvent == null)
