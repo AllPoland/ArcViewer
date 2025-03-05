@@ -92,11 +92,11 @@ public class ObjectManager : MonoBehaviour
     };
 
     public float EffectiveNJS { get; private set; }
+    public float EffectiveHalfJumpDistance { get; private set; }
 
     public float NjsRelativeMult => EffectiveNJS / BeatmapManager.NJS;
 
     public float CutPlanePos => ReplayManager.IsReplayMode ? PlayerPositionManager.HeadPosition.z + PlayerCutPlaneDistance : 0f;
-    public float EffectiveHalfJumpDistance => ReplayManager.IsReplayMode ? jumpManager.HalfJumpDistance - CutPlanePos : jumpManager.HalfJumpDistance;
 
     public static event Action OnObjectsLoaded;
 
@@ -156,7 +156,7 @@ public class ObjectManager : MonoBehaviour
         {
             //Note hasn't jumped in yet. Place based on the jump-in stuff
             float timeDist = (objectTime - jumpTime) / moveTime;
-            return jumpManager.HalfJumpDistance + (moveZ * timeDist);
+            return EffectiveHalfJumpDistance + (moveZ * timeDist);
         }
     }
 
@@ -173,9 +173,9 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public static float SpawnParabola(float targetHeight, float baseHeight, float halfJumpDistance, float t)
+    public float SpawnParabola(float targetHeight, float baseHeight, float t)
     {
-        float dSquared = Mathf.Pow(halfJumpDistance, 2);
+        float dSquared = Mathf.Pow(EffectiveHalfJumpDistance, 2);
         float tSquared = Mathf.Pow(t, 2);
 
         float movementRange = targetHeight - baseHeight;
@@ -193,7 +193,7 @@ public class ObjectManager : MonoBehaviour
             return startY;
         }
 
-        return SpawnParabola(targetY, startY, EffectiveHalfJumpDistance, GetZPosition(objectTime) - CutPlanePos);
+        return SpawnParabola(targetY, startY, GetZPosition(objectTime) - CutPlanePos);
     }
 
 
@@ -402,6 +402,13 @@ public class ObjectManager : MonoBehaviour
 
         float njsMult = adjustedJumpDistance / halfJumpDistance;
         EffectiveNJS = jumpManager.NJS * njsMult;
+
+        if(float.IsNaN(EffectiveNJS) || Mathf.Abs(EffectiveNJS) < 0.01f)
+        {
+            EffectiveNJS = 0.01f;
+        }
+
+        EffectiveHalfJumpDistance = jumpManager.ReactionTime * EffectiveNJS;
     }
 
 

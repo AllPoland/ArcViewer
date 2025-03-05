@@ -47,20 +47,21 @@ public class BeatmapManager : MonoBehaviour
 
             SpawnOffset = _currentDifficulty.spawnOffset;
             NJS = _currentDifficulty.noteJumpSpeed;
-            if(NJS == 0)
+            if(Mathf.Approximately(NJS, 0f))
             {
                 switch(_currentDifficulty.difficultyRank)
                 {
+                    default:
                     case DifficultyRank.Easy:
                     case DifficultyRank.Normal:
                     case DifficultyRank.Hard:
-                        NJS = 10;
+                        NJS = 10f;
                         break;
                     case DifficultyRank.Expert:
-                        NJS = 12;
+                        NJS = 12f;
                         break;
                     case DifficultyRank.ExpertPlus:
-                        NJS = 16;
+                        NJS = 16f;
                         break;
                 }
             }

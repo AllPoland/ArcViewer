@@ -16,28 +16,22 @@ public class JumpManager : MonoBehaviour
         NJS = BeatmapManager.NJS;
         JumpDistance = BeatmapManager.JumpDistance;
 
-        HalfJumpDistance = JumpDistance / 2f;
+        HalfJumpDistance = JumpDistance * 0.5f;
         ReactionTime = HalfJumpDistance / NJS;
     }
 
 
     private void SetNjsOffset(float njsOffset)
     {
-        NJS = BeatmapManager.NJS + njsOffset;
+        NJS = Mathf.Max(BeatmapManager.NJS + njsOffset, 0.01f);
 
-        if(njsOffset > 0f)
-        {
-            //When NJS is increased, reaction time stays constant
-            JumpDistance = BeatmapManager.ReactionTime * NJS * 2f;
-        }
-        else
-        {
-            //When NJS is decreased, jump distance stays constant
-            JumpDistance = BeatmapManager.JumpDistance;
-        }
-
-        HalfJumpDistance = JumpDistance / 2f;
-        ReactionTime = HalfJumpDistance / NJS;
+        //Scale up reaction time based on the decrease in NJS
+        //The result of this is that an increase in NJS keeps RT constant
+        //while a decrease in NJS keeps JD constant
+        float njsRatio = Mathf.Min(NJS / BeatmapManager.NJS, 1f);
+        ReactionTime = Mathf.Approximately(njsRatio, 0f) ? 1000f : BeatmapManager.ReactionTime / njsRatio;
+        HalfJumpDistance = ReactionTime * NJS;
+        JumpDistance = HalfJumpDistance * 2f;
     }
 
 
