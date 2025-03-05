@@ -20,14 +20,14 @@ public class BombManager : MapElementManager<Bomb>
 
     public override void UpdateVisual(Bomb b)
     {
-        float worldDist = objectManager.GetZPosition(b.Time);
+        float worldDist = jumpManager.GetZPosition(b.Time);
         Vector3 worldPos = new Vector3(b.Position.x, b.Position.y, worldDist);
 
         worldPos.y += objectManager.playerHeightOffset;
 
         if(objectManager.doMovementAnimation)
         {
-            worldPos.y = objectManager.GetObjectY(b.StartY, worldPos.y, b.Time);
+            worldPos.y = jumpManager.GetObjectY(b.StartY, worldPos.y, b.Time);
         }
 
         if(b.Visual == null)
@@ -73,7 +73,7 @@ public class BombManager : MapElementManager<Bomb>
 
     public override bool VisualInSpawnRange(Bomb b)
     {
-        return objectManager.CheckInSpawnRange(b.Time, true, true, b.HitOffset);
+        return jumpManager.CheckInSpawnRange(b.Time, true, true, b.HitOffset);
     }
 
 
@@ -93,7 +93,7 @@ public class BombManager : MapElementManager<Bomb>
         for(int i = RenderedObjects.Count - 1; i >= 0; i--)
         {
             Bomb b = RenderedObjects[i];
-            if(!objectManager.CheckInSpawnRange(b.Time, !b.WasHit, true, b.HitOffset))
+            if(!jumpManager.CheckInSpawnRange(b.Time, !b.WasHit, true, b.HitOffset))
             {
                 if(b.source.isPlaying || (ReplayManager.IsReplayMode && b.Time > TimeManager.CurrentTime && b.Time < TimeManager.CurrentTime + 0.5f))
                 {
@@ -129,7 +129,7 @@ public class BombManager : MapElementManager<Bomb>
         for(int i = startIndex; i < Objects.Count; i++)
         {
             Bomb b = Objects[i];
-            if(objectManager.CheckInSpawnRange(b.Time, !b.WasHit, true, b.HitOffset))
+            if(jumpManager.CheckInSpawnRange(b.Time, !b.WasHit, true, b.HitOffset))
             {
                 UpdateVisual(b);
             }

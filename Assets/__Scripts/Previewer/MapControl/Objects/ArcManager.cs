@@ -52,7 +52,7 @@ public class ArcManager : MapElementManager<Arc>
 
     public override void UpdateVisual(Arc a)
     {
-        float zDist = objectManager.GetZPosition(a.Time);
+        float zDist = jumpManager.GetZPosition(a.Time);
 
         if(a.Visual == null)
         {
@@ -117,15 +117,15 @@ public class ArcManager : MapElementManager<Arc>
             float headStartY = a.HeadStartY - objectManager.playerHeightOffset;
             float tailStartY = a.TailStartY - objectManager.playerHeightOffset;
 
-            float headOffsetY = objectManager.GetObjectY(headStartY, a.Position.y, a.Time) - a.Position.y;
-            float tailOffsetY = objectManager.GetObjectY(tailStartY, a.TailPosition.y, a.TailTime) - a.TailPosition.y;
+            float headOffsetY = jumpManager.GetObjectY(headStartY, a.Position.y, a.Time) - a.Position.y;
+            float tailOffsetY = jumpManager.GetObjectY(tailStartY, a.TailPosition.y, a.TailTime) - a.TailPosition.y;
 
-            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, headOffsetY, tailOffsetY, objectManager.NjsRelativeMult)); // arc visuals get reset on settings change, so fine to only update in here
+            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, headOffsetY, tailOffsetY, jumpManager.NjsRelativeMult)); // arc visuals get reset on settings change, so fine to only update in here
         }
         else if(ReplayManager.IsReplayMode)
         {
             //The arc curve still needs to be squashed because of variable NJS
-            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, 0f, 0f, objectManager.NjsRelativeMult));
+            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, 0f, 0f, jumpManager.NjsRelativeMult));
         }
 
         a.Visual.transform.localPosition = new Vector3(0, objectManager.playerHeightOffset, zDist);
@@ -134,7 +134,7 @@ public class ArcManager : MapElementManager<Arc>
 
     public override bool VisualInSpawnRange(Arc a)
     {
-        return objectManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false, false);
+        return jumpManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false, false);
     }
 
 
@@ -165,7 +165,7 @@ public class ArcManager : MapElementManager<Arc>
         for(int i = startIndex; i < Objects.Count; i++)
         {
             Arc a = Objects[i];
-            if(objectManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false, false))
+            if(jumpManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false, false))
             {
                 UpdateVisual(a);
                 lastBeat = a.TailBeat;
@@ -265,7 +265,7 @@ public class ArcManager : MapElementManager<Arc>
     public static Vector3[] GetArcBaseCurve(Arc a)
     {
         float duration = Mathf.Abs(a.TailTime - a.Time);
-        float length = ObjectManager.Instance.WorldSpaceFromTime(duration);
+        float length = ObjectManager.Instance.jumpManager.WorldSpaceFromTime(duration);
 
         Vector3 p0 = new Vector3(a.Position.x, a.Position.y, 0);
         Vector3 p1 = new Vector3(a.HeadControlPoint.x, a.HeadControlPoint.y, 0);

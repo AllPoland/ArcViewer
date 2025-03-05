@@ -151,10 +151,10 @@ public class ChainManager : MapElementManager<ChainLink>
 
     public override void UpdateVisual(ChainLink cl)
     {
-        float reactionTime = objectManager.jumpManager.ReactionTime;
+        float reactionTime = jumpManager.ReactionTime;
         float jumpTime = TimeManager.CurrentTime + reactionTime;
 
-        float worldDist = objectManager.GetZPosition(cl.Time);
+        float worldDist = jumpManager.GetZPosition(cl.Time);
         Vector3 worldPos = new Vector3(cl.Position.x, cl.Position.y, worldDist);
 
         worldPos.y += objectManager.playerHeightOffset;
@@ -162,7 +162,7 @@ public class ChainManager : MapElementManager<ChainLink>
         if(objectManager.doMovementAnimation)
         {
             float startY = objectManager.objectFloorOffset;
-            worldPos.y = objectManager.GetObjectY(startY, worldPos.y, cl.Time);
+            worldPos.y = jumpManager.GetObjectY(startY, worldPos.y, cl.Time);
         }
 
         float angle = cl.Angle;
@@ -243,7 +243,7 @@ public class ChainManager : MapElementManager<ChainLink>
 
     public override bool VisualInSpawnRange(ChainLink cl)
     {
-        return objectManager.CheckInSpawnRange(cl.Time, true, true, cl.HitOffset);
+        return jumpManager.CheckInSpawnRange(cl.Time, true, true, cl.HitOffset);
     }
 
 
@@ -263,7 +263,7 @@ public class ChainManager : MapElementManager<ChainLink>
         for(int i = RenderedObjects.Count - 1; i >= 0; i--)
         {
             ChainLink cl = RenderedObjects[i];
-            if(!objectManager.CheckInSpawnRange(cl.Time, !cl.WasHit, true, cl.HitOffset))
+            if(!jumpManager.CheckInSpawnRange(cl.Time, !cl.WasHit, true, cl.HitOffset))
             {
                 if(cl.source.isPlaying || (ReplayManager.IsReplayMode && cl.Time > TimeManager.CurrentTime && cl.Time < TimeManager.CurrentTime + 0.5f))
                 {
@@ -300,7 +300,7 @@ public class ChainManager : MapElementManager<ChainLink>
         {
             //Update each link's position
             ChainLink cl = Objects[i];
-            if(objectManager.CheckInSpawnRange(cl.Time, !cl.WasHit, true, cl.HitOffset))
+            if(jumpManager.CheckInSpawnRange(cl.Time, !cl.WasHit, true, cl.HitOffset))
             {
                 UpdateVisual(cl);
             }

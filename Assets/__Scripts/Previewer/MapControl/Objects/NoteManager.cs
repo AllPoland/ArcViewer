@@ -71,16 +71,16 @@ public class NoteManager : MapElementManager<Note>
 
     public override void UpdateVisual(Note n)
     {
-        float reactionTime = objectManager.jumpManager.ReactionTime;
+        float reactionTime = jumpManager.ReactionTime;
 
-        float worldDist = objectManager.GetZPosition(n.Time);
+        float worldDist = jumpManager.GetZPosition(n.Time);
         Vector3 worldPos = new Vector3(n.Position.x, n.Position.y, worldDist);
 
         worldPos.y += objectManager.playerHeightOffset;
 
         if(objectManager.doMovementAnimation)
         {
-            worldPos.y = objectManager.GetObjectY(n.StartY, worldPos.y, n.Time);
+            worldPos.y = jumpManager.GetObjectY(n.StartY, worldPos.y, n.Time);
         }
 
         float angle = n.Angle;
@@ -200,7 +200,7 @@ public class NoteManager : MapElementManager<Note>
 
     public override bool VisualInSpawnRange(Note n)
     {
-        return objectManager.CheckInSpawnRange(n.Time, true, true, n.HitOffset);
+        return jumpManager.CheckInSpawnRange(n.Time, true, true, n.HitOffset);
     }
 
 
@@ -220,7 +220,7 @@ public class NoteManager : MapElementManager<Note>
         for(int i = RenderedObjects.Count - 1; i >= 0; i--)
         {
             Note n = RenderedObjects[i];
-            if(!objectManager.CheckInSpawnRange(n.Time, !n.WasHit, true, n.HitOffset))
+            if(!jumpManager.CheckInSpawnRange(n.Time, !n.WasHit, true, n.HitOffset))
             {
                 if(n.source.isPlaying || (ReplayManager.IsReplayMode && n.Time > TimeManager.CurrentTime && n.Time < TimeManager.CurrentTime + 0.5f))
                 {
@@ -283,7 +283,7 @@ public class NoteManager : MapElementManager<Note>
         {
             //Update each note's position
             Note n = Objects[i];
-            if(objectManager.CheckInSpawnRange(n.Time, !n.WasHit, true, n.HitOffset))
+            if(jumpManager.CheckInSpawnRange(n.Time, !n.WasHit, true, n.HitOffset))
             {
                 UpdateVisual(n);
 

@@ -8,7 +8,14 @@ public class JumpManager : MonoBehaviour
     public float HalfJumpDistance { get; private set; }
     public float ReactionTime { get; private set; }
 
+    public float EffectiveNJS { get; private set; }
+    public float EffectiveHalfJumpDistance { get; private set; }
+
+    public float NjsRelativeMult => EffectiveNJS / BeatmapManager.NJS;
+
     private MapElementList<NjsEvent> njsEvents = new MapElementList<NjsEvent>();
+
+    private ObjectManager objectManager => ObjectManager.Instance;
 
 
     private void SetDefaultJump()
@@ -51,7 +58,111 @@ public class JumpManager : MonoBehaviour
     }
 
 
-    private void UpdateNjs(float beat)
+    public bool CheckInSpawnRange(float time, bool extendBehindCamera = false, bool includeMoveTime = true, float hitOffset = 0f)
+    {
+        float despawnTime = extendBehindCamera ? TimeManager.CurrentTime + objectManager.BehindCameraTime : TimeManager.CurrentTime;
+        float spawnTime = TimeManager.CurrentTime + ReactionTime;
+        if(includeMoveTime)
+        {
+            spawnTime += objectManager.moveTime;
+        }
+
+        float hitTime = extendBehindCamera ? time : time - hitOffset;
+        return time <= spawnTime && hitTime > despawnTime;
+    }
+
+
+    public bool DurationObjectInSpawnRange(float startTime, float endTime, bool extendBehindCamera = true, bool includeMoveTime = true)
+    {
+        if(extendBehindCamera)
+        {
+            endTime -= objectManager.BehindCameraTime;
+        }
+
+        bool timeInRange = TimeManager.CurrentTime >= startTime && TimeManager.CurrentTime <= endTime;
+        return timeInRange || CheckInSpawnRange(startTime, extendBehindCamera, includeMoveTime);
+    }
+
+
+    public float GetZPosition(float objectTime)
+    {
+        float reactionTime = ReactionTime;
+        float jumpTime = TimeManager.CurrentTime + reactionTime;
+
+        if(objectTime <= jumpTime)
+        {
+            //Note has jumped in. Place based on Jump Setting stuff
+            float timeDist = objectTime - TimeManager.CurrentTime;
+            return WorldSpaceFromTimeAdjusted(timeDist);
+        }
+        else
+        {
+            //Note hasn't jumped in yet. Place based on the jump-in stuff
+            float timeDist = (objectTime - jumpTime) / objectManager.moveTime;
+            return EffectiveHalfJumpDistance + (objectManager.moveZ * timeDist);
+        }
+    }
+
+
+    public float WorldSpaceFromTime(float time)
+    {
+        return time * BeatmapManager.NJS;
+    }
+
+
+    public float WorldSpaceFromTimeAdjusted(float time)
+    {
+        return (time * EffectiveNJS) + objectManager.CutPlanePos;
+    }
+
+
+    public float SpawnParabola(float targetHeight, float baseHeight, float t)
+    {
+        float dSquared = Mathf.Pow(EffectiveHalfJumpDistance, 2);
+        float tSquared = Mathf.Pow(t, 2);
+
+        float movementRange = targetHeight - baseHeight;
+
+        return Mathf.Clamp(-(movementRange / dSquared) * tSquared + targetHeight, -9999f, 9999f);
+    }
+
+
+    public float GetObjectY(float startY, float targetY, float objectTime)
+    {
+        float jumpTime = TimeManager.CurrentTime + ReactionTime;
+
+        if(objectTime > jumpTime)
+        {
+            return startY;
+        }
+
+        return SpawnParabola(targetY, startY, GetZPosition(objectTime) - objectManager.CutPlanePos);
+    }
+
+
+    private void UpdateEffectiveNJS()
+    {
+        if(!ReplayManager.IsReplayMode)
+        {
+            EffectiveNJS = NJS;
+        }
+
+        float halfJumpDistance = HalfJumpDistance;
+        float adjustedJumpDistance = halfJumpDistance - objectManager.CutPlanePos;
+
+        float njsMult = adjustedJumpDistance / halfJumpDistance;
+        EffectiveNJS = NJS * njsMult;
+
+        if(float.IsNaN(EffectiveNJS) || Mathf.Abs(EffectiveNJS) < 0.01f)
+        {
+            EffectiveNJS = 0.01f;
+        }
+
+        EffectiveHalfJumpDistance = ReactionTime * EffectiveNJS;
+    }
+
+
+    public void UpdateNjs(float beat)
     {
         if(njsEvents.Count == 0)
         {
@@ -97,6 +208,7 @@ public class JumpManager : MonoBehaviour
         }
 
         SetNjsEvents(currentOffset, currentTime, nextEvent);
+        UpdateEffectiveNJS();
     }
 
 

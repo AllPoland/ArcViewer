@@ -22,11 +22,11 @@ public class WallManager : MapElementManager<Wall>
 
     public override void UpdateVisual(Wall w)
     {
-        float wallLength = objectManager.WorldSpaceFromTimeAdjusted(w.DurationTime);
+        float wallLength = jumpManager.WorldSpaceFromTimeAdjusted(w.DurationTime);
         wallLength = Mathf.Max(wallLength, MinWallSize);
 
         //Subtract 0.25 to make front face of wall line up with front face of note (walls just built like that)
-        float frontDist = objectManager.GetZPosition(w.Time) - 0.25f;
+        float frontDist = jumpManager.GetZPosition(w.Time) - 0.25f;
         float worldDist = frontDist + (wallLength / 2);
 
         if(w.Visual == null)
@@ -84,7 +84,7 @@ public class WallManager : MapElementManager<Wall>
 
     public override bool VisualInSpawnRange(Wall w)
     {
-        return objectManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime);
+        return jumpManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime);
     }
 
 
@@ -116,7 +116,7 @@ public class WallManager : MapElementManager<Wall>
         {
             //Update each wall's position
             Wall w = Objects[i];
-            if(objectManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime))
+            if(jumpManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime))
             {
                 UpdateVisual(w);
                 lastBeat = w.Beat + w.DurationBeats;
