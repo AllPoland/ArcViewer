@@ -120,12 +120,12 @@ public class ArcManager : MapElementManager<Arc>
             float headOffsetY = objectManager.GetObjectY(headStartY, a.Position.y, a.Time) - a.Position.y;
             float tailOffsetY = objectManager.GetObjectY(tailStartY, a.TailPosition.y, a.TailTime) - a.TailPosition.y;
 
-            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, headOffsetY, tailOffsetY, objectManager.NjsMult)); // arc visuals get reset on settings change, so fine to only update in here
+            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, headOffsetY, tailOffsetY, objectManager.NjsRelativeMult)); // arc visuals get reset on settings change, so fine to only update in here
         }
         else if(ReplayManager.IsReplayMode)
         {
             //The arc curve still needs to be squashed because of variable NJS
-            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, 0f, 0f, objectManager.NjsMult));
+            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, 0f, 0f, objectManager.NjsRelativeMult));
         }
 
         a.Visual.transform.localPosition = new Vector3(0, objectManager.playerHeightOffset, zDist);

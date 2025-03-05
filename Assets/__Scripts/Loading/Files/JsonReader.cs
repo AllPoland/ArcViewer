@@ -43,7 +43,7 @@ public static class JsonReader
             string versionNumber = match.Value.Split('"').Last();
             Debug.Log($"Info.dat is version: {versionNumber}");
 
-            string[] v4Versions = {"4.0.0"};
+            string[] v4Versions = {"4.0.0", "4.0.1"};
             string[] v2Versions = {"2.0.0", "2.1.0"};
             
             if(v4Versions.Contains(versionNumber))
@@ -198,7 +198,7 @@ public static class JsonReader
 
         try
         {
-            string[] v4Versions = {"4.0.0"};
+            string[] v4Versions = {"4.0.0", "4.1.0"};
             string[] v3Versions = {"3.0.0", "3.1.0", "3.2.0", "3.3.0"};
             string[] v2Versions = {"2.0.0", "2.2.0", "2.5.0", "2.6.0"};
 

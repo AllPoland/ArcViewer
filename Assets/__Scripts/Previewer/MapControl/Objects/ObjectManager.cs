@@ -11,7 +11,7 @@ public class ObjectManager : MonoBehaviour
     [SerializeField] public float moveZ;
     [SerializeField] public float moveTime;
     [SerializeField] public float rotationAnimationTime;
-    [SerializeField] public float behindCameraZ;
+    [SerializeField] public float BehindCameraTime = -1f;
     [SerializeField] public float objectFloorOffset;
 
     [Header("Managers")]
@@ -20,6 +20,7 @@ public class ObjectManager : MonoBehaviour
     [SerializeField] public WallManager wallManager;
     [SerializeField] public ChainManager chainManager;
     [SerializeField] public ArcManager arcManager;
+    [SerializeField] public JumpManager jumpManager;
 
     public bool forceGameAccuracy => ReplayManager.IsReplayMode && SettingsManager.GetBool("accuratereplays");
 
@@ -90,29 +91,27 @@ public class ObjectManager : MonoBehaviour
         {8, 8}
     };
 
-    //Clamp this so objects don't get ignored before they reach the cut plane, or stick around for way too long
-    public float BehindCameraTime => Mathf.Clamp(TimeFromWorldspaceAdjusted(behindCameraZ), -5f, 0f);
-
-    public float NjsMult
+    public float EffectiveNJS
     {
         get
         {
             if(!ReplayManager.IsReplayMode)
             {
-                return 1f;
+                return jumpManager.NJS;
             }
 
-            float halfJumpDistance = BeatmapManager.HalfJumpDistance;
+            float halfJumpDistance = jumpManager.HalfJumpDistance;
             float adjustedJumpDistance = halfJumpDistance - CutPlanePos;
-            return adjustedJumpDistance / halfJumpDistance;
+
+            float njsMult = adjustedJumpDistance / halfJumpDistance;
+            return jumpManager.NJS * njsMult;
         }
     }
 
-    public float CutPlanePos => ReplayManager.IsReplayMode ? PlayerPositionManager.HeadPosition.z + PlayerCutPlaneDistance : 0f;
-    public float EffectiveHalfJumpDistance => ReplayManager.IsReplayMode ? BeatmapManager.HalfJumpDistance - CutPlanePos : BeatmapManager.HalfJumpDistance;
+    public float NjsRelativeMult => EffectiveNJS / BeatmapManager.NJS;
 
-    //Give a minimum value to avoid divide by 0 errors
-    public float EffectiveNJS => Mathf.Max(BeatmapManager.NJS * NjsMult, 0.0001f);
+    public float CutPlanePos => ReplayManager.IsReplayMode ? PlayerPositionManager.HeadPosition.z + PlayerCutPlaneDistance : 0f;
+    public float EffectiveHalfJumpDistance => ReplayManager.IsReplayMode ? jumpManager.HalfJumpDistance - CutPlanePos : jumpManager.HalfJumpDistance;
 
     public static event Action OnObjectsLoaded;
 
@@ -134,7 +133,7 @@ public class ObjectManager : MonoBehaviour
     public bool CheckInSpawnRange(float time, bool extendBehindCamera = false, bool includeMoveTime = true, float hitOffset = 0f)
     {
         float despawnTime = extendBehindCamera ? TimeManager.CurrentTime + BehindCameraTime : TimeManager.CurrentTime;
-        float spawnTime = TimeManager.CurrentTime + BeatmapManager.ReactionTime;
+        float spawnTime = TimeManager.CurrentTime + jumpManager.ReactionTime;
         if(includeMoveTime)
         {
             spawnTime += Instance.moveTime;
@@ -149,7 +148,7 @@ public class ObjectManager : MonoBehaviour
     {
         if(extendBehindCamera)
         {
-            endTime = endTime - BehindCameraTime;
+            endTime -= BehindCameraTime;
         }
 
         bool timeInRange = TimeManager.CurrentTime >= startTime && TimeManager.CurrentTime <= endTime;
@@ -159,7 +158,7 @@ public class ObjectManager : MonoBehaviour
 
     public float GetZPosition(float objectTime)
     {
-        float reactionTime = BeatmapManager.ReactionTime;
+        float reactionTime = jumpManager.ReactionTime;
         float jumpTime = TimeManager.CurrentTime + reactionTime;
 
         if(objectTime <= jumpTime)
@@ -172,7 +171,7 @@ public class ObjectManager : MonoBehaviour
         {
             //Note hasn't jumped in yet. Place based on the jump-in stuff
             float timeDist = (objectTime - jumpTime) / moveTime;
-            return BeatmapManager.HalfJumpDistance + (moveZ * timeDist);
+            return jumpManager.HalfJumpDistance + (moveZ * timeDist);
         }
     }
 
@@ -189,18 +188,6 @@ public class ObjectManager : MonoBehaviour
     }
 
 
-    public float TimeFromWorldspace(float position)
-    {
-        return position / BeatmapManager.NJS;
-    }
-
-
-    public float TimeFromWorldspaceAdjusted(float position)
-    {
-        return (position - CutPlanePos) / EffectiveNJS;
-    }
-
-
     public static float SpawnParabola(float targetHeight, float baseHeight, float halfJumpDistance, float t)
     {
         float dSquared = Mathf.Pow(halfJumpDistance, 2);
@@ -214,7 +201,7 @@ public class ObjectManager : MonoBehaviour
 
     public float GetObjectY(float startY, float targetY, float objectTime)
     {
-        float jumpTime = TimeManager.CurrentTime + BeatmapManager.ReactionTime;
+        float jumpTime = TimeManager.CurrentTime + jumpManager.ReactionTime;
 
         if(objectTime > jumpTime)
         {

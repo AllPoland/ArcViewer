@@ -71,7 +71,7 @@ public class NoteManager : MapElementManager<Note>
 
     public override void UpdateVisual(Note n)
     {
-        float reactionTime = BeatmapManager.ReactionTime;
+        float reactionTime = objectManager.jumpManager.ReactionTime;
 
         float worldDist = objectManager.GetZPosition(n.Time);
         Vector3 worldPos = new Vector3(n.Position.x, n.Position.y, worldDist);

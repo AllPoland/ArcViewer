@@ -151,7 +151,7 @@ public class ChainManager : MapElementManager<ChainLink>
 
     public override void UpdateVisual(ChainLink cl)
     {
-        float reactionTime = BeatmapManager.ReactionTime;
+        float reactionTime = objectManager.jumpManager.ReactionTime;
         float jumpTime = TimeManager.CurrentTime + reactionTime;
 
         float worldDist = objectManager.GetZPosition(cl.Time);

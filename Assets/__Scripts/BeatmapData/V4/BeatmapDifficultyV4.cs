@@ -59,7 +59,9 @@ public class BeatmapDifficultyV4
         obstaclesData ??= new BeatmapObstacleDataV4[0];
         arcsData ??= new BeatmapArcDataV4[0];
         chainsData ??= new BeatmapChainDataV4[0];
+        njsEvents ??= new BeatmapElementV4[0];
         spawnRotations ??= new BeatmapElementV4[0];
+        njsEventData ??= new BeatmapNjsEventDataV4[0];
         spawnRotationsData ??= new BeatmapSpawnRotationDataV4[0];
     }
 }
