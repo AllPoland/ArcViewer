@@ -5,8 +5,8 @@ public class JumpManager : MonoBehaviour
     public float NJS { get; private set; }
     public float JumpDistance { get; private set; }
 
-    public float HalfJumpDistance => JumpDistance / 2f;
-    public float ReactionTime => HalfJumpDistance / NJS;
+    public float HalfJumpDistance { get; private set; }
+    public float ReactionTime { get; private set; }
 
     private MapElementList<NjsEvent> njsEvents = new MapElementList<NjsEvent>();
 
@@ -15,6 +15,9 @@ public class JumpManager : MonoBehaviour
     {
         NJS = BeatmapManager.NJS;
         JumpDistance = BeatmapManager.JumpDistance;
+
+        HalfJumpDistance = JumpDistance / 2f;
+        ReactionTime = HalfJumpDistance / NJS;
     }
 
 
@@ -32,6 +35,9 @@ public class JumpManager : MonoBehaviour
             //When NJS is decreased, jump distance stays constant
             JumpDistance = BeatmapManager.JumpDistance;
         }
+
+        HalfJumpDistance = JumpDistance / 2f;
+        ReactionTime = HalfJumpDistance / NJS;
     }
 
 
@@ -109,6 +115,8 @@ public class JumpManager : MonoBehaviour
             njsEvents.Add(new NjsEvent(ne));
         }
         njsEvents.SortElementsByBeat();
+
+        UpdateNjs(TimeManager.CurrentBeat);
     }
 
 

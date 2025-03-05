@@ -91,22 +91,7 @@ public class ObjectManager : MonoBehaviour
         {8, 8}
     };
 
-    public float EffectiveNJS
-    {
-        get
-        {
-            if(!ReplayManager.IsReplayMode)
-            {
-                return jumpManager.NJS;
-            }
-
-            float halfJumpDistance = jumpManager.HalfJumpDistance;
-            float adjustedJumpDistance = halfJumpDistance - CutPlanePos;
-
-            float njsMult = adjustedJumpDistance / halfJumpDistance;
-            return jumpManager.NJS * njsMult;
-        }
-    }
+    public float EffectiveNJS { get; private set; }
 
     public float NjsRelativeMult => EffectiveNJS / BeatmapManager.NJS;
 
@@ -366,6 +351,8 @@ public class ObjectManager : MonoBehaviour
 
     public void UpdateBeat(float currentBeat)
     {
+        UpdateEffectiveNJS();
+
         noteManager.UpdateVisuals();
         bombManager.UpdateVisuals();
         wallManager.UpdateVisuals();
@@ -400,6 +387,21 @@ public class ObjectManager : MonoBehaviour
         noteManager.RescheduleHitsounds();
         bombManager.RescheduleHitsounds();
         chainManager.RescheduleHitsounds();
+    }
+
+
+    private void UpdateEffectiveNJS()
+    {
+        if(!ReplayManager.IsReplayMode)
+        {
+            EffectiveNJS = jumpManager.NJS;
+        }
+
+        float halfJumpDistance = jumpManager.HalfJumpDistance;
+        float adjustedJumpDistance = halfJumpDistance - CutPlanePos;
+
+        float njsMult = adjustedJumpDistance / halfJumpDistance;
+        EffectiveNJS = jumpManager.NJS * njsMult;
     }
 
 
