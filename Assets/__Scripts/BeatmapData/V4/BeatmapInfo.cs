@@ -142,6 +142,10 @@ public class BeatmapInfoAudio
 [Serializable]
 public class BeatmapInfoColorScheme
 {
+    public bool useOverride;
+    public bool overrideNotes;
+    public bool overrideLights;
+
     public string colorSchemeName;
 
     public string saberAColor;
@@ -157,6 +161,10 @@ public class BeatmapInfoColorScheme
 
     public BeatmapInfoColorScheme(string name, NullableColorPalette palette)
     {
+        useOverride = true;
+        overrideNotes = true;
+        overrideLights = true;
+
         colorSchemeName = name;
 
         saberAColor = HexFromColor(palette?.LeftNoteColor);
@@ -173,17 +181,22 @@ public class BeatmapInfoColorScheme
 
     public NullableColorPalette GetPalette()
     {
+        if(!useOverride && !overrideNotes && !overrideLights)
+        {
+            return null;
+        }
+
         return new NullableColorPalette
         {
-            LeftNoteColor = ColorFromHex(saberAColor),
-            RightNoteColor = ColorFromHex(saberBColor),
-            WallColor = ColorFromHex(obstaclesColor),
-            LightColor1 = ColorFromHex(environmentColor0),
-            LightColor2 = ColorFromHex(environmentColor1),
-            WhiteLightColor = Color.white,
-            BoostLightColor1 = ColorFromHex(environmentColor1),
-            BoostLightColor2 = ColorFromHex(environmentColor1Boost),
-            BoostWhiteLightColor = Color.white
+            LeftNoteColor = overrideNotes ? ColorFromHex(saberAColor) : null,
+            RightNoteColor = overrideNotes ? ColorFromHex(saberBColor) : null,
+            WallColor = overrideNotes ? ColorFromHex(obstaclesColor) : null,
+            LightColor1 = overrideLights ? ColorFromHex(environmentColor0) : null,
+            LightColor2 = overrideLights ? ColorFromHex(environmentColor1) : null,
+            WhiteLightColor = overrideLights ? Color.white : null,
+            BoostLightColor1 = overrideLights ? ColorFromHex(environmentColor1) : null,
+            BoostLightColor2 = overrideLights ? ColorFromHex(environmentColor1Boost) : null,
+            BoostWhiteLightColor = overrideLights ? Color.white : null
         };
     }
 
