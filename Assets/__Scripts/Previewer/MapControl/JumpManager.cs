@@ -18,46 +18,6 @@ public class JumpManager : MonoBehaviour
     private ObjectManager objectManager => ObjectManager.Instance;
 
 
-    private void SetDefaultJump()
-    {
-        NJS = BeatmapManager.NJS;
-        JumpDistance = BeatmapManager.JumpDistance;
-
-        HalfJumpDistance = JumpDistance * 0.5f;
-        ReactionTime = HalfJumpDistance / NJS;
-    }
-
-
-    private void SetNjsOffset(float njsOffset)
-    {
-        NJS = Mathf.Max(BeatmapManager.NJS + njsOffset, 0.01f);
-
-        //Scale up reaction time based on the decrease in NJS
-        //The result of this is that an increase in NJS keeps RT constant
-        //while a decrease in NJS keeps JD constant
-        float njsRatio = Mathf.Min(NJS / BeatmapManager.NJS, 1f);
-        ReactionTime = Mathf.Approximately(njsRatio, 0f) ? 1000f : BeatmapManager.ReactionTime / njsRatio;
-        HalfJumpDistance = ReactionTime * NJS;
-        JumpDistance = HalfJumpDistance * 2f;
-    }
-
-
-    private void SetNjsEvents(float currentOffset, float currentTime, NjsEvent nextEvent)
-    {
-        if(nextEvent != null)
-        {
-            //Interpolate between the current event's NJS and the next event NJS
-            float transitionTime = nextEvent.Time - currentTime;
-            float t = (TimeManager.CurrentTime - currentTime) / transitionTime;
-            t = BeatSaberEasings.Ease(t, nextEvent.Easing);
-
-            currentOffset = Mathf.Lerp(currentOffset, nextEvent.RelativeNJS, t);
-        }
-
-        SetNjsOffset(currentOffset);
-    }
-
-
     public bool CheckInSpawnRange(float time, bool extendBehindCamera = false, bool includeMoveTime = true, float hitOffset = 0f)
     {
         float despawnTime = extendBehindCamera ? TimeManager.CurrentTime + objectManager.BehindCameraTime : TimeManager.CurrentTime;
@@ -140,6 +100,46 @@ public class JumpManager : MonoBehaviour
     }
 
 
+    private void SetDefaultJump()
+    {
+        NJS = BeatmapManager.NJS;
+        JumpDistance = BeatmapManager.JumpDistance;
+
+        HalfJumpDistance = JumpDistance * 0.5f;
+        ReactionTime = HalfJumpDistance / NJS;
+    }
+
+
+    private void SetNjsOffset(float njsOffset)
+    {
+        NJS = Mathf.Max(BeatmapManager.NJS + njsOffset, 0.01f);
+
+        //Scale up reaction time based on the decrease in NJS
+        //The result of this is that an increase in NJS keeps RT constant
+        //while a decrease in NJS keeps JD constant
+        float njsRatio = Mathf.Min(NJS / BeatmapManager.NJS, 1f);
+        ReactionTime = Mathf.Approximately(njsRatio, 0f) ? 1000f : BeatmapManager.ReactionTime / njsRatio;
+        HalfJumpDistance = ReactionTime * NJS;
+        JumpDistance = HalfJumpDistance * 2f;
+    }
+
+
+    private void SetNjsEvents(float currentOffset, float currentTime, NjsEvent nextEvent)
+    {
+        if(nextEvent != null)
+        {
+            //Interpolate between the current event's NJS and the next event NJS
+            float transitionTime = nextEvent.Time - currentTime;
+            float t = (TimeManager.CurrentTime - currentTime) / transitionTime;
+            t = BeatSaberEasings.Ease(t, nextEvent.Easing);
+
+            currentOffset = Mathf.Lerp(currentOffset, nextEvent.RelativeNJS, t);
+        }
+
+        SetNjsOffset(currentOffset);
+    }
+
+
     private void UpdateEffectiveNJS()
     {
         if(!ReplayManager.IsReplayMode)
@@ -168,6 +168,7 @@ public class JumpManager : MonoBehaviour
         {
             //No NJS events, so just use the map defaults
             SetDefaultJump();
+            UpdateEffectiveNJS();
             return;
         }
 

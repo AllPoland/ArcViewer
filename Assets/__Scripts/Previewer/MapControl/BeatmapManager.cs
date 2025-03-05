@@ -2,20 +2,11 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Collections;
 
 public class BeatmapManager : MonoBehaviour
 {
     public static List<Difficulty> Difficulties = new List<Difficulty>();
-
-    public static List<Difficulty> StandardDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Standard);
-    public static List<Difficulty> OneSaberDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.OneSaber);
-    public static List<Difficulty> NoArrowsDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.NoArrows);
-    public static List<Difficulty> ThreeSixtyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.ThreeSixty);
-    public static List<Difficulty> NinetyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Ninety);
-    public static List<Difficulty> LegacyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Legacy);
-    public static List<Difficulty> LightshowDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lightshow);
-    public static List<Difficulty> LawlessDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lawless);
-    public static List<Difficulty> UnknownDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Unknown);
 
     private static BeatmapInfo _info = new BeatmapInfo();
     public static BeatmapInfo Info
@@ -162,48 +153,35 @@ public class BeatmapManager : MonoBehaviour
     }
 
 
+    private static Difficulty GetDefaultDifficultyFromCharacteristic(List<Difficulty> difficulties)
+    {
+        Difficulty max = null;
+        foreach(Difficulty difficulty in difficulties)
+        {
+            if(max == null || difficulty.difficultyRank > max.difficultyRank)
+            {
+                max = difficulty;
+            }
+        }
+        return max;
+    }
+
+
     public static Difficulty GetDefaultDifficulty()
     {
-        //Else if chains my behated (I can't think of a better way to do this)
         if(Difficulties.Count == 0)
         {
             return Difficulty.Empty;
         }
-        else if(StandardDifficulties.Count > 0)
+
+        IEnumerable<DifficultyCharacteristic> characteristics = Enum.GetValues(typeof(DifficultyCharacteristic)).Cast<DifficultyCharacteristic>();
+        foreach(DifficultyCharacteristic characteristic in characteristics)
         {
-            return StandardDifficulties.Last();
-        }
-        else if(OneSaberDifficulties.Count > 0)
-        {
-            return OneSaberDifficulties.Last();
-        }
-        else if(NoArrowsDifficulties.Count > 0)
-        {
-            return NoArrowsDifficulties.Last();
-        }
-        else if(ThreeSixtyDifficulties.Count > 0)
-        {
-            return ThreeSixtyDifficulties.Last();
-        }
-        else if(NinetyDifficulties.Count > 0)
-        {
-            return NinetyDifficulties.Last();
-        }
-        else if(LegacyDifficulties.Count > 0)
-        {
-            return LegacyDifficulties.Last();
-        }
-        else if(LightshowDifficulties.Count > 0)
-        {
-            return LightshowDifficulties.Last();
-        }
-        else if(LawlessDifficulties.Count > 0)
-        {
-            return LawlessDifficulties.Last();
-        }
-        else if(UnknownDifficulties.Count > 0)
-        {
-            return UnknownDifficulties.Last();
+            List<Difficulty> difficulties = GetDifficultiesByCharacteristic(characteristic);
+            if(difficulties.Count > 0)
+            {
+                return GetDefaultDifficultyFromCharacteristic(difficulties);
+            }
         }
 
         return Difficulty.Empty;
