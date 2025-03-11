@@ -487,6 +487,7 @@ public class ObjectManager : MonoBehaviour
             }
 
             //Precalculate values for all objects on this beat
+            Dictionary<(int, int, int), Note> notesAtPos = new Dictionary<(int, int, int), Note>();
             List<Note> newNotes = new List<Note>();
             (float? redSnapAngle, float? blueSnapAngle) = NoteManager.GetSnapAngles(notesOnBeat);
 
@@ -588,6 +589,7 @@ public class ObjectManager : MonoBehaviour
                     scoringEventsOnBeat.Remove(matchingEvent);
                 }
 
+                notesAtPos.Add((n.x, n.y, n.c), newNote);
                 newNotes.Add(newNote);
             }
 
@@ -660,6 +662,13 @@ public class ObjectManager : MonoBehaviour
             foreach(BeatmapBurstSlider b in burstSlidersOnBeat)
             {
                 Chain newChain = new Chain(b);
+
+                //Chains inherit the StartY from the attached note
+                if(notesAtPos.TryGetValue((b.x, b.y, b.c), out Note n))
+                {
+                    newChain.StartY = n.StartY;
+                }
+                else newChain.StartY = Instance.objectFloorOffset;
 
                 //Arcs can attach to chain tails
                 foreach(BeatmapSliderEnd a in sliderEndsOnBeat)

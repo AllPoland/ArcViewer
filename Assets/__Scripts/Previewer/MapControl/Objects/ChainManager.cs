@@ -72,6 +72,7 @@ public class ChainManager : MapElementManager<ChainLink>
                 Position = linkPos,
                 Color = c.Color,
                 Angle = linkAngle,
+                StartY = c.StartY,
                 CustomColor = c.CustomColor,
                 CustomNoteProperties = linkProperties,
                 CustomDotProperties = linkDotProperties
@@ -161,8 +162,7 @@ public class ChainManager : MapElementManager<ChainLink>
 
         if(objectManager.doMovementAnimation)
         {
-            float startY = objectManager.objectFloorOffset;
-            worldPos.y = jumpManager.GetObjectY(startY, worldPos.y, cl.Time);
+            worldPos.y = jumpManager.GetObjectY(cl.StartY, worldPos.y, cl.Time);
         }
 
         float angle = cl.Angle;
@@ -345,6 +345,7 @@ public class Chain : BaseSlider
     public float Angle;
     public int SegmentCount;
     public float Squish;
+    public float StartY;
 
     //I really don't wanna keep this around but it's necessary for replays
     public BeatmapBurstSlider burstSlider;
@@ -379,6 +380,7 @@ public class ChainLink : HitSoundEmitter
 {
     public int Color;
     public float Angle;
+    public float StartY;
 
     public ChainLinkHandler ChainLinkHandler;
     public MaterialPropertyBlock CustomNoteProperties;
