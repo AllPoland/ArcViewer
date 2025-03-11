@@ -3,11 +3,12 @@ using UnityEngine;
 
 public class ObjectSettingsUpdater : MonoBehaviour
 {
-    private NoteManager noteManager => ObjectManager.Instance.noteManager;
-    private BombManager bombManager => ObjectManager.Instance.bombManager;
-    private ChainManager chainManager => ObjectManager.Instance.chainManager;
-    private ArcManager arcManager => ObjectManager.Instance.arcManager;
-    private WallManager wallManager => ObjectManager.Instance.wallManager;
+    private ObjectManager objectManager => ObjectManager.Instance;
+    private NoteManager noteManager => objectManager.noteManager;
+    private BombManager bombManager => objectManager.bombManager;
+    private ChainManager chainManager => objectManager.chainManager;
+    private ArcManager arcManager => objectManager.arcManager;
+    private WallManager wallManager => objectManager.wallManager;
 
     private static readonly string[] allObjectsSettings = new string[]
     {
@@ -15,6 +16,7 @@ public class ObjectSettingsUpdater : MonoBehaviour
         "moveanimations",
         "rotateanimations",
         "flipanimations",
+        "variablenjs",
         "playerheight",
         "accuratereplays"
     };
@@ -42,6 +44,8 @@ public class ObjectSettingsUpdater : MonoBehaviour
         if(allSettings || allObjectsSettings.Contains(setting))
         {
             HitSoundManager.ClearScheduledSounds();
+            objectManager.jumpManager.UpdateNjs(TimeManager.CurrentBeat);
+
             noteManager.ClearRenderedVisuals();
             noteManager.UpdateVisuals();
 

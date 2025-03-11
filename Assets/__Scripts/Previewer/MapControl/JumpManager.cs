@@ -16,6 +16,7 @@ public class JumpManager : MonoBehaviour
     private MapElementList<NjsEvent> njsEvents = new MapElementList<NjsEvent>();
 
     private ObjectManager objectManager => ObjectManager.Instance;
+    private bool useVariableNJS => objectManager.forceGameAccuracy || SettingsManager.GetBool("variablenjs");
 
 
     public bool CheckInSpawnRange(float time, bool extendBehindCamera = false, bool includeMoveTime = true, float hitOffset = 0f)
@@ -164,7 +165,7 @@ public class JumpManager : MonoBehaviour
 
     public void UpdateNjs(float beat)
     {
-        if(njsEvents.Count == 0)
+        if(njsEvents.Count == 0 || !useVariableNJS)
         {
             //No NJS events, so just use the map defaults
             SetDefaultJump();
