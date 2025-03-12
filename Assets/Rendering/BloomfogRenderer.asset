@@ -27,8 +27,8 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: 5368229730383077877}
   m_RendererFeatureMap: f5a12c687fc87f4a
-  m_UseNativeRenderPass: 0
-  postProcessData: {fileID: 0}
+  m_UseNativeRenderPass: 1
+  postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 2
   m_OpaqueLayerMask:
     serializedVersion: 2
@@ -50,7 +50,7 @@ MonoBehaviour:
   m_DepthAttachmentFormat: 0
   m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
-  m_IntermediateTextureMode: 1
+  m_IntermediateTextureMode: 0
 --- !u!114 &5368229730383077877
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92,7 +92,7 @@ MonoBehaviour:
       downsamplePasses: 8
       upsampleBlend: 9
       ignoreUpsampleIndex: 5
-    - referenceScreenHeight: 3072
+    - referenceScreenHeight: 4096
       downsamplePasses: 9
-      upsampleBlend: 6
+      upsampleBlend: 10
       ignoreUpsampleIndex: 6

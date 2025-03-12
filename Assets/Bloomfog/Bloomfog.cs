@@ -83,14 +83,17 @@ public class Bloomfog : ScriptableRendererFeature
         float screenPlaneDistance = qualitySettings.referenceScreenHeight / 2 / Mathf.Tan(originalVertFov / 2);
 
         //Set the new texture size
-        settings.textureWidth = Mathf.RoundToInt(Mathf.Tan(horizontalFov / 2) * screenPlaneDistance * 2);
-        settings.textureHeight = Mathf.RoundToInt(Mathf.Tan(verticalFov / 2) * screenPlaneDistance * 2);
+        float textureWidth = Mathf.Tan(horizontalFov / 2) * screenPlaneDistance * 2;
+        float textureHeight = Mathf.Tan(verticalFov / 2) * screenPlaneDistance * 2;
 
         float referenceWidth = qualitySettings.referenceScreenHeight * mainCamera.aspect;
-        float widthRatio = referenceWidth / settings.textureWidth;
-        float heightRatio = (float)qualitySettings.referenceScreenHeight / settings.textureHeight;
+        float widthRatio = referenceWidth / textureWidth;
+        float heightRatio = (float)qualitySettings.referenceScreenHeight / textureHeight;
 
         // Debug.Log($"fov: {verticalFov} horizontal: {horizontalFov} width: {settings.textureWidth} height: {settings.textureHeight} ratio: {widthRatio}, {heightRatio}");
+
+        settings.textureHeight = qualitySettings.referenceScreenHeight;
+        settings.textureWidth = (int)referenceWidth;
 
         Shader.SetGlobalVector("_FogTextureToScreenRatio", new Vector2(widthRatio, heightRatio));
     }
