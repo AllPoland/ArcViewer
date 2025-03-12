@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class NoteManager : MapElementManager<Note>
@@ -71,16 +72,20 @@ public class NoteManager : MapElementManager<Note>
 
     public override void UpdateVisual(Note n)
     {
-        float reactionTime = jumpManager.ReactionTime;
+        float reactionTime = n.CustomRT ?? jumpManager.ReactionTime;
+        float njs = n.CustomNJS != null
+            ? jumpManager.GetAdjustedNJS((float)n.CustomNJS, reactionTime)
+            : jumpManager.EffectiveNJS;
+        float halfJumpDistance = jumpManager.WorldSpaceFromTime(reactionTime, njs);
 
-        float worldDist = jumpManager.GetZPosition(n.Time);
+        float worldDist = jumpManager.GetZPosition(n.Time, njs, reactionTime, halfJumpDistance);
         Vector3 worldPos = new Vector3(n.Position.x, n.Position.y, worldDist);
 
         worldPos.y += objectManager.playerHeightOffset;
 
         if(objectManager.doMovementAnimation)
         {
-            worldPos.y = jumpManager.GetObjectY(n.StartY, worldPos.y, n.Time);
+            worldPos.y = jumpManager.GetObjectY(n.StartY, worldPos.y, worldDist, halfJumpDistance, n.Time, reactionTime);
         }
 
         float angle = n.Angle;
@@ -200,7 +205,7 @@ public class NoteManager : MapElementManager<Note>
 
     public override bool VisualInSpawnRange(Note n)
     {
-        return jumpManager.CheckInSpawnRange(n.Time, true, true, n.HitOffset);
+        return jumpManager.CheckInSpawnRange(n.Time, n.CustomRT ?? jumpManager.ReactionTime, true, true, n.HitOffset);
     }
 
 
@@ -220,7 +225,7 @@ public class NoteManager : MapElementManager<Note>
         for(int i = RenderedObjects.Count - 1; i >= 0; i--)
         {
             Note n = RenderedObjects[i];
-            if(!jumpManager.CheckInSpawnRange(n.Time, !n.WasHit, true, n.HitOffset))
+            if(!jumpManager.CheckInSpawnRange(n.Time, n.CustomRT ?? jumpManager.ReactionTime, !n.WasHit, true, n.HitOffset))
             {
                 if(n.source.isPlaying || (ReplayManager.IsReplayMode && n.Time > TimeManager.CurrentTime && n.Time < TimeManager.CurrentTime + 0.5f))
                 {
@@ -283,7 +288,7 @@ public class NoteManager : MapElementManager<Note>
         {
             //Update each note's position
             Note n = Objects[i];
-            if(jumpManager.CheckInSpawnRange(n.Time, !n.WasHit, true, n.HitOffset))
+            if(jumpManager.CheckInSpawnRange(n.Time, n.CustomRT ?? jumpManager.ReactionTime, !n.WasHit, true, n.HitOffset))
             {
                 UpdateVisual(n);
 
@@ -538,13 +543,22 @@ public class Note : HitSoundEmitter
         WasBadCut = false;
         HitOffset = 0f;
 
-        if(n.customData?.color != null)
+        if(n.customData != null)
         {
-            CustomColor = ColorManager.ColorFromCustomDataColor(n.customData.color);
+            if(n.customData.color != null)
+            {
+                CustomColor = ColorManager.ColorFromCustomDataColor(n.customData.color);
 
-            CustomNoteProperties = new MaterialPropertyBlock();
-            CustomArrowProperties = new MaterialPropertyBlock();
-            ObjectManager.Instance.noteManager.SetNoteMaterialProperties(ref CustomNoteProperties, ref CustomArrowProperties, (Color)CustomColor);
+                CustomNoteProperties = new MaterialPropertyBlock();
+                CustomArrowProperties = new MaterialPropertyBlock();
+                ObjectManager.Instance.noteManager.SetNoteMaterialProperties(ref CustomNoteProperties, ref CustomArrowProperties, (Color)CustomColor);
+            }
+
+            CustomNJS = n.customData.noteJumpMovementSpeed;
+            if(n.customData.noteJumpStartBeatOffset != null)
+            {
+                CustomRT = BeatmapManager.GetCustomRT((float)n.customData.noteJumpStartBeatOffset);
+            }
         }
     }
 }

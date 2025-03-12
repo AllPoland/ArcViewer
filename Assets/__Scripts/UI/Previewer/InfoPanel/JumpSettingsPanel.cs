@@ -36,7 +36,7 @@ public class JumpSettingsPanel : MonoBehaviour
     public void ResetValues()
     {
         BeatmapManager.NJS = BeatmapManager.CurrentDifficulty.noteJumpSpeed;
-        BeatmapManager.JumpDistance = BeatmapManager.defaultJumpDistance;
+        BeatmapManager.JumpDistance = BeatmapManager.DefaultJumpDistance;
 
         UpdateValues();
     }

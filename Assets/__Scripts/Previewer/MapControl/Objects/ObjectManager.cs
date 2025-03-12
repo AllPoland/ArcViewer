@@ -763,6 +763,8 @@ public abstract class MapObject : MapElement
     public GameObject Visual;
     public Vector2 Position;
     public Color? CustomColor;
+    public float? CustomNJS;
+    public float? CustomRT;
 }
 
 

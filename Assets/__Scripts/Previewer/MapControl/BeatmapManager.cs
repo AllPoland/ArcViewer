@@ -56,12 +56,19 @@ public class BeatmapManager : MonoBehaviour
                         break;
                 }
             }
+
+            DefaultHJD = 4;
+            while(GetJumpDistance(DefaultHJD, Info.audio.bpm, NJS) > 35.998f)
+            {
+                DefaultHJD /= 2;
+            }
+
             if(ReplayManager.IsReplayMode)
             {
-                defaultJumpDistance = ReplayManager.CurrentReplay.info.jumpDistance;
+                DefaultJumpDistance = ReplayManager.CurrentReplay.info.jumpDistance;
             }
-            else defaultJumpDistance = GetJumpDistance(HJD, Info.audio.bpm, NJS);
-            JumpDistance = defaultJumpDistance;
+            else DefaultJumpDistance = GetJumpDistance(HJD, Info.audio.bpm, NJS);
+            JumpDistance = DefaultJumpDistance;
 
             MappingExtensions = _currentDifficulty.requirements.Contains("Mapping Extensions");
             NoodleExtensions = _currentDifficulty.requirements.Contains("Noodle Extensions");
@@ -84,7 +91,9 @@ public class BeatmapManager : MonoBehaviour
 
     public static bool MappingExtensions { get; private set; }
     public static bool NoodleExtensions { get; private set; }
-    public static float defaultJumpDistance { get; private set; }
+
+    public static float DefaultHJD { get; private set; }
+    public static float DefaultJumpDistance { get; private set; }
 
     public static float SpawnOffset;
 
@@ -116,28 +125,19 @@ public class BeatmapManager : MonoBehaviour
     public static float HJD => Mathf.Max(DefaultHJD + SpawnOffset, 0.25f);
     public static float ReactionTime => JumpDistance / 2 / NJS;
 
-    private static float DefaultHJD
-    {
-        get
-        {
-            float value = 4;
-
-            float JD = GetJumpDistance(value, Info.audio.bpm, NJS);
-            while(JD > 35.998f)
-            {
-                value /= 2;
-                JD = GetJumpDistance(value, Info.audio.bpm, NJS);
-            }
-            
-            return value;
-        }
-    }
-
 
     public static float GetJumpDistance(float HJD, float BPM, float NJS)
     {
-        float RT = (60 / BPM) * HJD;
+        float RT = 60f / BPM * HJD;
         return NJS * 2 * RT;
+    }
+
+
+    public static float GetCustomRT(float customOffset)
+    {
+        float hjd = DefaultHJD + customOffset;
+        float bpm = Info.audio.bpm;
+        return 60f / bpm * hjd;
     }
 
 

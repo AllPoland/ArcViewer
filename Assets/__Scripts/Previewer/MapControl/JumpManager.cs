@@ -11,18 +11,16 @@ public class JumpManager : MonoBehaviour
     public float EffectiveNJS { get; private set; }
     public float EffectiveHalfJumpDistance { get; private set; }
 
-    public float NjsRelativeMult => EffectiveNJS / BeatmapManager.NJS;
-
     private MapElementList<NjsEvent> njsEvents = new MapElementList<NjsEvent>();
 
     private ObjectManager objectManager => ObjectManager.Instance;
     private bool useVariableNJS => objectManager.forceGameAccuracy || SettingsManager.GetBool("variablenjs");
 
 
-    public bool CheckInSpawnRange(float time, bool extendBehindCamera = false, bool includeMoveTime = true, float hitOffset = 0f)
+    public bool CheckInSpawnRange(float time, float reactionTime, bool extendBehindCamera = false, bool includeMoveTime = true, float hitOffset = 0f)
     {
         float despawnTime = extendBehindCamera ? TimeManager.CurrentTime + objectManager.BehindCameraTime : TimeManager.CurrentTime;
-        float spawnTime = TimeManager.CurrentTime + ReactionTime;
+        float spawnTime = TimeManager.CurrentTime + reactionTime;
         if(includeMoveTime)
         {
             spawnTime += objectManager.moveTime;
@@ -33,7 +31,7 @@ public class JumpManager : MonoBehaviour
     }
 
 
-    public bool DurationObjectInSpawnRange(float startTime, float endTime, bool extendBehindCamera = true, bool includeMoveTime = true)
+    public bool DurationObjectInSpawnRange(float startTime, float endTime, float reactionTime, bool extendBehindCamera = true, bool includeMoveTime = true)
     {
         if(extendBehindCamera)
         {
@@ -41,45 +39,44 @@ public class JumpManager : MonoBehaviour
         }
 
         bool timeInRange = TimeManager.CurrentTime >= startTime && TimeManager.CurrentTime <= endTime;
-        return timeInRange || CheckInSpawnRange(startTime, extendBehindCamera, includeMoveTime);
+        return timeInRange || CheckInSpawnRange(startTime, reactionTime, extendBehindCamera, includeMoveTime);
     }
 
 
-    public float GetZPosition(float objectTime)
+    public float GetZPosition(float objectTime, float njs, float reactionTime, float halfJumpDistance)
     {
-        float reactionTime = ReactionTime;
         float jumpTime = TimeManager.CurrentTime + reactionTime;
 
         if(objectTime <= jumpTime)
         {
             //Note has jumped in. Place based on Jump Setting stuff
             float timeDist = objectTime - TimeManager.CurrentTime;
-            return WorldSpaceFromTimeAdjusted(timeDist);
+            return WorldSpaceFromTimeAdjusted(timeDist, njs);
         }
         else
         {
             //Note hasn't jumped in yet. Place based on the jump-in stuff
             float timeDist = (objectTime - jumpTime) / objectManager.moveTime;
-            return EffectiveHalfJumpDistance + (objectManager.moveZ * timeDist);
+            return halfJumpDistance + (objectManager.moveZ * timeDist);
         }
     }
 
 
-    public float WorldSpaceFromTime(float time)
+    public float WorldSpaceFromTime(float time, float njs)
     {
-        return time * BeatmapManager.NJS;
+        return time * njs;
     }
 
 
-    public float WorldSpaceFromTimeAdjusted(float time)
+    public float WorldSpaceFromTimeAdjusted(float time, float njs)
     {
-        return (time * EffectiveNJS) + objectManager.CutPlanePos;
+        return (time * njs) + objectManager.CutPlanePos;
     }
 
 
-    public float SpawnParabola(float targetHeight, float baseHeight, float t)
+    public float SpawnParabola(float targetHeight, float baseHeight, float halfJumpDistance, float t)
     {
-        float dSquared = Mathf.Pow(EffectiveHalfJumpDistance, 2);
+        float dSquared = Mathf.Pow(halfJumpDistance, 2);
         float tSquared = Mathf.Pow(t, 2);
 
         float movementRange = targetHeight - baseHeight;
@@ -88,16 +85,16 @@ public class JumpManager : MonoBehaviour
     }
 
 
-    public float GetObjectY(float startY, float targetY, float objectTime)
+    public float GetObjectY(float startY, float targetY, float zPosition, float halfJumpDistance, float objectTime, float reactionTime)
     {
-        float jumpTime = TimeManager.CurrentTime + ReactionTime;
+        float jumpTime = TimeManager.CurrentTime + reactionTime;
 
         if(objectTime > jumpTime)
         {
             return startY;
         }
 
-        return SpawnParabola(targetY, startY, GetZPosition(objectTime) - objectManager.CutPlanePos);
+        return SpawnParabola(targetY, startY, halfJumpDistance, zPosition - objectManager.CutPlanePos);
     }
 
 
@@ -141,11 +138,33 @@ public class JumpManager : MonoBehaviour
     }
 
 
+    public float GetAdjustedNJS(float njs, float reactionTime)
+    {
+        if(!ReplayManager.IsReplayMode)
+        {
+            return njs;
+        }
+
+        float halfJumpDistance = njs * reactionTime;
+        float adjustedJumpDistance = halfJumpDistance - objectManager.CutPlanePos;
+
+        float njsMult = adjustedJumpDistance / halfJumpDistance;
+        EffectiveNJS = njs * njsMult;
+
+        if(float.IsNaN(EffectiveNJS) || Mathf.Abs(EffectiveNJS) < 0.01f)
+        {
+            return 0.01f;
+        }
+        return EffectiveNJS;
+    }
+
+
     private void UpdateEffectiveNJS()
     {
         if(!ReplayManager.IsReplayMode)
         {
             EffectiveNJS = NJS;
+            return;
         }
 
         float halfJumpDistance = HalfJumpDistance;

@@ -52,7 +52,13 @@ public class ArcManager : MapElementManager<Arc>
 
     public override void UpdateVisual(Arc a)
     {
-        float zDist = jumpManager.GetZPosition(a.Time);
+        float reactionTime = a.CustomRT ?? jumpManager.ReactionTime;
+        float njs = a.CustomNJS != null
+            ? jumpManager.GetAdjustedNJS((float)a.CustomNJS, reactionTime)
+            : jumpManager.EffectiveNJS;
+        float halfJumpDistance = jumpManager.WorldSpaceFromTime(reactionTime, njs);
+
+        float zDist = jumpManager.GetZPosition(a.Time, njs, reactionTime, halfJumpDistance);
 
         if(a.Visual == null)
         {
@@ -111,21 +117,23 @@ public class ArcManager : MapElementManager<Arc>
 
         a.arcHandler.SetProperties(alpha, textureOffset, arcColor, objectManager.CutPlanePos);
 
+        float njsMult = njs / BeatmapManager.NJS;
         if(objectManager.doMovementAnimation)
         {
             //Need to "undo" the player height so startY remains consistent with different heights
             float headStartY = a.HeadStartY - objectManager.playerHeightOffset;
             float tailStartY = a.TailStartY - objectManager.playerHeightOffset;
 
-            float headOffsetY = jumpManager.GetObjectY(headStartY, a.Position.y, a.Time) - a.Position.y;
-            float tailOffsetY = jumpManager.GetObjectY(tailStartY, a.TailPosition.y, a.TailTime) - a.TailPosition.y;
+            float tailZDist = zDist + jumpManager.WorldSpaceFromTime(a.TailTime - a.Time, njs);
+            float headOffsetY = jumpManager.GetObjectY(headStartY, a.Position.y, zDist, halfJumpDistance, a.Time, reactionTime) - a.Position.y;
+            float tailOffsetY = jumpManager.GetObjectY(tailStartY, a.TailPosition.y, tailZDist, halfJumpDistance, a.TailTime, reactionTime) - a.TailPosition.y;
 
-            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, headOffsetY, tailOffsetY, jumpManager.NjsRelativeMult)); // arc visuals get reset on settings change, so fine to only update in here
+            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, headOffsetY, tailOffsetY, njsMult));
         }
-        else if(ReplayManager.IsReplayMode)
+        else
         {
             //The arc curve still needs to be squashed because of variable NJS
-            a.arcHandler.SetArcPoints(GetAdjustedArcCurve(a.BaseCurve, 0f, 0f, jumpManager.NjsRelativeMult));
+            a.arcHandler.SetArcPoints(GetSquishedArcCurve(a.BaseCurve, njsMult));
         }
 
         a.Visual.transform.localPosition = new Vector3(0, objectManager.playerHeightOffset, zDist);
@@ -134,7 +142,7 @@ public class ArcManager : MapElementManager<Arc>
 
     public override bool VisualInSpawnRange(Arc a)
     {
-        return jumpManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false, false);
+        return jumpManager.DurationObjectInSpawnRange(a.Time, a.TailTime, a.CustomRT ?? jumpManager.ReactionTime, false, false);
     }
 
 
@@ -165,7 +173,7 @@ public class ArcManager : MapElementManager<Arc>
         for(int i = startIndex; i < Objects.Count; i++)
         {
             Arc a = Objects[i];
-            if(jumpManager.DurationObjectInSpawnRange(a.Time, a.TailTime, false, false))
+            if(jumpManager.DurationObjectInSpawnRange(a.Time, a.TailTime, a.CustomRT ?? jumpManager.ReactionTime, false, false))
             {
                 UpdateVisual(a);
                 lastBeat = a.TailBeat;
@@ -264,8 +272,10 @@ public class ArcManager : MapElementManager<Arc>
 
     public static Vector3[] GetArcBaseCurve(Arc a)
     {
-        float duration = Mathf.Abs(a.TailTime - a.Time);
-        float length = ObjectManager.Instance.jumpManager.WorldSpaceFromTime(duration);
+        float duration = a.TailTime - a.Time;
+        float njs = a.CustomNJS ?? BeatmapManager.NJS;
+
+        float length = ObjectManager.Instance.jumpManager.WorldSpaceFromTime(duration, njs);
 
         Vector3 p0 = new Vector3(a.Position.x, a.Position.y, 0);
         Vector3 p1 = new Vector3(a.HeadControlPoint.x, a.HeadControlPoint.y, 0);
@@ -310,6 +320,20 @@ public class ArcManager : MapElementManager<Arc>
             length += (curve[i - 1] - curve[i]).magnitude;
         }
         return length;
+    }
+
+
+    public static Vector3[] GetSquishedArcCurve(Vector3[] baseCurve, float lengthMult)
+    {
+        Vector3[] points = new Vector3[baseCurve.Length];
+        for(int i = 0; i < baseCurve.Length; i++)
+        {
+            Vector3 point = baseCurve[i];
+            point.z *= lengthMult;
+            points[i] = point;
+        }
+
+        return points;
     }
 
 
@@ -441,9 +465,18 @@ public class Arc : BaseSlider
         TailStartY = tailPosition.y;
         MidRotationDirection = rotationDirection;
 
-        if(a.customData?.color != null)
+        if(a.customData != null)
         {
-            CustomColor = ColorManager.ColorFromCustomDataColor(a.customData.color);
+            if(a.customData.color != null)
+            {
+                CustomColor = ColorManager.ColorFromCustomDataColor(a.customData.color);
+            }
+
+            CustomNJS = a.customData.noteJumpMovementSpeed;
+            if(a.customData.noteJumpStartBeatOffset != null)
+            {
+                CustomRT = BeatmapManager.GetCustomRT((float)a.customData.noteJumpStartBeatOffset);
+            }
         }
     }
 }

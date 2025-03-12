@@ -73,6 +73,8 @@ public class ChainManager : MapElementManager<ChainLink>
                 Color = c.Color,
                 Angle = linkAngle,
                 StartY = c.StartY,
+                CustomNJS = c.CustomNJS,
+                CustomRT = c.CustomRT,
                 CustomColor = c.CustomColor,
                 CustomNoteProperties = linkProperties,
                 CustomDotProperties = linkDotProperties
@@ -152,24 +154,29 @@ public class ChainManager : MapElementManager<ChainLink>
 
     public override void UpdateVisual(ChainLink cl)
     {
-        float reactionTime = jumpManager.ReactionTime;
-        float jumpTime = TimeManager.CurrentTime + reactionTime;
+        float reactionTime = cl.CustomRT ?? jumpManager.ReactionTime;
+        float njs = cl.CustomNJS != null
+            ? jumpManager.GetAdjustedNJS((float)cl.CustomNJS, reactionTime)
+            : jumpManager.EffectiveNJS;
+        float halfJumpDistance = jumpManager.WorldSpaceFromTime(reactionTime, njs);
 
-        float worldDist = jumpManager.GetZPosition(cl.Time);
+        float worldDist = jumpManager.GetZPosition(cl.Time, njs, reactionTime, halfJumpDistance);
         Vector3 worldPos = new Vector3(cl.Position.x, cl.Position.y, worldDist);
 
         worldPos.y += objectManager.playerHeightOffset;
 
         if(objectManager.doMovementAnimation)
         {
-            worldPos.y = jumpManager.GetObjectY(cl.StartY, worldPos.y, cl.Time);
+            worldPos.y = jumpManager.GetObjectY(cl.StartY, cl.StartY, worldPos.y, worldDist, halfJumpDistance, reactionTime);
         }
 
+        float jumpTime = TimeManager.CurrentTime + reactionTime;
         float angle = cl.Angle;
-        float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
 
         if(objectManager.doRotationAnimation)
         {
+            float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
+
             if(cl.Time > jumpTime)
             {
                 //Note is still jumping in
@@ -243,7 +250,7 @@ public class ChainManager : MapElementManager<ChainLink>
 
     public override bool VisualInSpawnRange(ChainLink cl)
     {
-        return jumpManager.CheckInSpawnRange(cl.Time, true, true, cl.HitOffset);
+        return jumpManager.CheckInSpawnRange(cl.Time, cl.CustomRT ?? jumpManager.ReactionTime, true, true, cl.HitOffset);
     }
 
 
@@ -263,7 +270,7 @@ public class ChainManager : MapElementManager<ChainLink>
         for(int i = RenderedObjects.Count - 1; i >= 0; i--)
         {
             ChainLink cl = RenderedObjects[i];
-            if(!jumpManager.CheckInSpawnRange(cl.Time, !cl.WasHit, true, cl.HitOffset))
+            if(!jumpManager.CheckInSpawnRange(cl.Time, cl.CustomRT ?? jumpManager.ReactionTime, !cl.WasHit, true, cl.HitOffset))
             {
                 if(cl.source.isPlaying || (ReplayManager.IsReplayMode && cl.Time > TimeManager.CurrentTime && cl.Time < TimeManager.CurrentTime + 0.5f))
                 {
@@ -300,7 +307,7 @@ public class ChainManager : MapElementManager<ChainLink>
         {
             //Update each link's position
             ChainLink cl = Objects[i];
-            if(jumpManager.CheckInSpawnRange(cl.Time, !cl.WasHit, true, cl.HitOffset))
+            if(jumpManager.CheckInSpawnRange(cl.Time, cl.CustomRT ?? jumpManager.ReactionTime, !cl.WasHit, true, cl.HitOffset))
             {
                 UpdateVisual(cl);
             }
@@ -368,9 +375,18 @@ public class Chain : BaseSlider
 
         burstSlider = b;
 
-        if(b.customData?.color != null)
+        if(b.customData != null)
         {
-            CustomColor = ColorManager.ColorFromCustomDataColor(b.customData.color);
+            if(b.customData.color != null)
+            {
+                CustomColor = ColorManager.ColorFromCustomDataColor(b.customData.color);
+            }
+
+            CustomNJS = b.customData.noteJumpMovementSpeed;
+            if(b.customData.noteJumpStartBeatOffset != null)
+            {
+                CustomRT = BeatmapManager.GetCustomRT((float)b.customData.noteJumpStartBeatOffset);
+            }
         }
     }
 }

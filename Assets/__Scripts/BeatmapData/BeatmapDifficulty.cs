@@ -320,6 +320,8 @@ public class BeatmapCustomObjectData
 {
     public float[] coordinates;
     public float[] color;
+    public float? noteJumpMovementSpeed;
+    public float? noteJumpStartBeatOffset;
 }
 
 
