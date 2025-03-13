@@ -167,7 +167,7 @@ public class ChainManager : MapElementManager<ChainLink>
 
         if(objectManager.doMovementAnimation)
         {
-            worldPos.y = jumpManager.GetObjectY(cl.StartY, cl.StartY, worldPos.y, worldDist, halfJumpDistance, reactionTime);
+            worldPos.y = jumpManager.GetObjectY(cl.StartY, worldPos.y, worldDist, halfJumpDistance, cl.Time, reactionTime);
         }
 
         float jumpTime = TimeManager.CurrentTime + reactionTime;
