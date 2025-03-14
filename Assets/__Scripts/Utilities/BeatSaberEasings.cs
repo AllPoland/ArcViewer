@@ -60,9 +60,9 @@ public static class BeatSaberEasings
     {
         switch(easing)
         {
+            default:
             case BeatSaberEasingType.None:
                 return t >= 1f ? 1f : 0f;
-            default:
             case BeatSaberEasingType.Linear:
                 return t;
 
