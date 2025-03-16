@@ -800,6 +800,7 @@ public abstract class BaseSlider : MapObject
 public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
 {
     public MapElementList<T> Objects = new MapElementList<T>();
+    public MapElementList<T> CustomRTObjects = new MapElementList<T>();
     public List<T> RenderedObjects = new List<T>();
 
     public ObjectManager objectManager => ObjectManager.Instance;
@@ -808,7 +809,17 @@ public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
     public abstract void UpdateVisual(T visual);
     public abstract bool VisualInSpawnRange(T visual);
     public abstract void ReleaseVisual(T visual);
-    public abstract void UpdateVisuals();
+
+    public abstract void UpdateObjects(MapElementList<T> objects);
+    public abstract float GetSpawnTime(T visual);
+
+
+    public virtual void UpdateVisuals()
+    {
+        ClearOutsideVisuals();
+        UpdateObjects(Objects);
+        UpdateObjects(CustomRTObjects);
+    }
 
 
     public virtual void ClearOutsideVisuals()
@@ -835,5 +846,5 @@ public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
     }
 
 
-    public int GetStartIndex(float currentTime) => Objects.GetFirstIndex(currentTime, VisualInSpawnRange);
+    public int GetStartIndex(float currentTime, MapElementList<T> objects) => objects.GetFirstIndex(currentTime, VisualInSpawnRange);
 }

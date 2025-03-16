@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MapElement : IComparable<MapElement>
+public class MapElement
 {
     private float _beat;
     public float Beat
@@ -25,20 +25,6 @@ public class MapElement : IComparable<MapElement>
             _time = value;
             _beat = TimeManager.BeatFromTime(_time);
         }
-    }
-
-
-    public int CompareTo(MapElement other)
-    {
-        if(Time < other.Time)
-        {
-            return -1;
-        }
-        else if(Time > other.Time)
-        {
-            return 1;
-        }
-        else return 0;
     }
 }
 
@@ -73,11 +59,13 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     public T Last => Elements.Count > 0 ? Elements[Elements.Count - 1] : null;
     public List<T> FindAll(Predicate<T> match) => Elements.FindAll(match);
 
+    public GetTimeDelegate GetTime = (e) => e.Time;
+
 
     public void Add(T item)
     {
         //If the new item is in order, don't wanna bother resorting the whole list
-        IsSorted = Count == 0 || (IsSorted && item.Beat >= Last.Beat);
+        IsSorted = Count == 0 || (IsSorted && GetTime(item) >= GetTime(Last));
         Elements.Add(item);
     }
 
@@ -101,8 +89,14 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
             SortElementsByBeat();
         }
 
-        int lastItemIndex = GetLastIndexUnoptimized(x => x.Time < item.Time);
+        int lastItemIndex = GetLastIndexUnoptimized(x => GetTime(x) < GetTime(item));
         Elements.Insert(lastItemIndex + 1, item);
+    }
+
+
+    public void Remove(T item)
+    {
+        Elements.Remove(item);
     }
 
 
@@ -124,6 +118,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     public static implicit operator List<T>(MapElementList<T> elementList) => elementList.Elements;
     public static implicit operator MapElementList<T>(List<T> convertList) => new MapElementList<T>(convertList);
 
+    public delegate float GetTimeDelegate(T element);
     public delegate bool CheckInRangeDelegate(T element);
 
     IEnumerator IEnumerable.GetEnumerator() => Elements.GetEnumerator();
@@ -134,7 +129,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
     {
         if(!IsSorted)
         {
-            Elements.Sort();
+            Elements.Sort((x, y) => GetTime(x).CompareTo(GetTime(y)));
             IsSorted = true;
         }
     }
@@ -175,7 +170,7 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
                 //We've found the first object in range
                 return i;
             }
-            else if(Elements[i].Time > currentTime)
+            else if(GetTime(Elements[i]) > currentTime)
             {
                 //We've gone past the search range and haven't found anything
                 return -1;

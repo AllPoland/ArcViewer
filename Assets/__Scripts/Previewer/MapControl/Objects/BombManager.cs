@@ -13,6 +13,22 @@ public class BombManager : MapElementManager<Bomb>
 
     public void ReloadBombs()
     {
+        CustomRTObjects.Clear();
+        CustomRTObjects.GetTime = GetSpawnTime;
+        for(int i = Objects.Count - 1; i >= 0; i--)
+        {
+            Bomb b = Objects[i];
+            if(b.CustomRT != null)
+            {
+                Objects.Remove(b);
+                CustomRTObjects.Add(b);
+            }
+        }
+        CustomRTObjects.SortElementsByBeat();
+
+        Objects.ResetStartIndex();
+        CustomRTObjects.ResetStartIndex();
+
         ClearRenderedVisuals();
         UpdateVisuals();
     }
@@ -77,6 +93,12 @@ public class BombManager : MapElementManager<Bomb>
     }
 
 
+    public override float GetSpawnTime(Bomb b)
+    {
+        return b.Time - (float)b.CustomRT - objectManager.moveTime;
+    }
+
+
     public override bool VisualInSpawnRange(Bomb b)
     {
         return jumpManager.CheckInSpawnRange(b.Time, b.CustomRT ?? jumpManager.ReactionTime, true, true, b.HitOffset);
@@ -117,24 +139,22 @@ public class BombManager : MapElementManager<Bomb>
     }
 
 
-    public override void UpdateVisuals()
+    public override void UpdateObjects(MapElementList<Bomb> objects)
     {
-        ClearOutsideVisuals();
-
-        if(Objects.Count == 0)
+        if(objects.Count == 0)
         {
             return;
         }
 
-        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        int startIndex = GetStartIndex(TimeManager.CurrentTime, objects);
         if(startIndex < 0)
         {
             return;
         }
 
-        for(int i = startIndex; i < Objects.Count; i++)
+        for(int i = startIndex; i < objects.Count; i++)
         {
-            Bomb b = Objects[i];
+            Bomb b = objects[i];
             if(jumpManager.CheckInSpawnRange(b.Time, b.CustomRT ?? jumpManager.ReactionTime, !b.WasHit, true, b.HitOffset))
             {
                 UpdateVisual(b);

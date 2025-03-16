@@ -15,6 +15,22 @@ public class WallManager : MapElementManager<Wall>
 
     public void ReloadWalls()
     {
+        CustomRTObjects.Clear();
+        CustomRTObjects.GetTime = GetSpawnTime;
+        for(int i = Objects.Count - 1; i >= 0; i--)
+        {
+            Wall w = Objects[i];
+            if(w.CustomRT != null)
+            {
+                Objects.Remove(w);
+                CustomRTObjects.Add(w);
+            }
+        }
+        CustomRTObjects.SortElementsByBeat();
+
+        Objects.ResetStartIndex();
+        CustomRTObjects.ResetStartIndex();
+
         ClearRenderedVisuals();
         UpdateVisuals();
     }
@@ -88,6 +104,12 @@ public class WallManager : MapElementManager<Wall>
     }
 
 
+    public override float GetSpawnTime(Wall w)
+    {
+        return w.Time - (float)w.CustomRT - objectManager.moveTime;
+    }
+
+
     public override bool VisualInSpawnRange(Wall w)
     {
         return jumpManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime, w.CustomRT ?? jumpManager.ReactionTime);
@@ -102,26 +124,24 @@ public class WallManager : MapElementManager<Wall>
     }
 
 
-    public override void UpdateVisuals()
+    public override void UpdateObjects(MapElementList<Wall> objects)
     {
-        ClearOutsideVisuals();
-
-        if(Objects.Count == 0)
+        if(objects.Count == 0)
         {
             return;
         }
 
-        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        int startIndex = GetStartIndex(TimeManager.CurrentTime, objects);
         if(startIndex < 0)
         {
             return;
         }
 
         float lastBeat = 0;
-        for(int i = startIndex; i < Objects.Count; i++)
+        for(int i = startIndex; i < objects.Count; i++)
         {
             //Update each wall's position
-            Wall w = Objects[i];
+            Wall w = objects[i];
             if(jumpManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime, w.CustomRT ?? jumpManager.ReactionTime))
             {
                 UpdateVisual(w);

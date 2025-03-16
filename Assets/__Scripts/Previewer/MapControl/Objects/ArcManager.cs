@@ -27,6 +27,22 @@ public class ArcManager : MapElementManager<Arc>
 
     public void ReloadArcs()
     {
+        CustomRTObjects.Clear();
+        CustomRTObjects.GetTime = GetSpawnTime;
+        for(int i = Objects.Count - 1; i >= 0; i--)
+        {
+            Arc a = Objects[i];
+            if(a.CustomRT != null)
+            {
+                Objects.Remove(a);
+                CustomRTObjects.Add(a);
+            }
+        }
+        CustomRTObjects.SortElementsByBeat();
+
+        Objects.ResetStartIndex();
+        CustomRTObjects.ResetStartIndex();
+
         ClearRenderedVisuals();
         UpdateMaterials();
     }
@@ -140,6 +156,12 @@ public class ArcManager : MapElementManager<Arc>
     }
 
 
+    public override float GetSpawnTime(Arc a)
+    {
+        return a.Time - (float)a.CustomRT;
+    }
+
+
     public override bool VisualInSpawnRange(Arc a)
     {
         return jumpManager.DurationObjectInSpawnRange(a.Time, a.TailTime, a.CustomRT ?? jumpManager.ReactionTime, false, false);
@@ -154,25 +176,23 @@ public class ArcManager : MapElementManager<Arc>
     }
 
 
-    public override void UpdateVisuals()
+    public override void UpdateObjects(MapElementList<Arc> objects)
     {
-        ClearOutsideVisuals();
-
-        if(Objects.Count == 0)
+        if(objects.Count == 0)
         {
             return;
         }
 
-        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        int startIndex = GetStartIndex(TimeManager.CurrentTime, objects);
         if(startIndex < 0)
         {
             return;
         }
 
         float lastBeat = 0;
-        for(int i = startIndex; i < Objects.Count; i++)
+        for(int i = startIndex; i < objects.Count; i++)
         {
-            Arc a = Objects[i];
+            Arc a = objects[i];
             if(jumpManager.DurationObjectInSpawnRange(a.Time, a.TailTime, a.CustomRT ?? jumpManager.ReactionTime, false, false))
             {
                 UpdateVisual(a);

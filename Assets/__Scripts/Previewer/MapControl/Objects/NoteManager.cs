@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class NoteManager : MapElementManager<Note>
@@ -36,9 +35,28 @@ public class NoteManager : MapElementManager<Note>
     public MaterialPropertyBlock redArrowProperties;
     public MaterialPropertyBlock blueArrowProperties;
 
+    private Note firstLeftNote;
+    private Note firstRightNote;
+
 
     public void ReloadNotes()
     {
+        CustomRTObjects.Clear();
+        CustomRTObjects.GetTime = GetSpawnTime;
+        for(int i = Objects.Count - 1; i >= 0; i--)
+        {
+            Note n = Objects[i];
+            if(n.CustomRT != null)
+            {
+                Objects.Remove(n);
+                CustomRTObjects.Add(n);
+            }
+        }
+        CustomRTObjects.SortElementsByBeat();
+
+        Objects.ResetStartIndex();
+        CustomRTObjects.ResetStartIndex();
+
         ClearRenderedVisuals();
         UpdateMaterials();
     }
@@ -203,6 +221,12 @@ public class NoteManager : MapElementManager<Note>
     }
 
 
+    public override float GetSpawnTime(Note n)
+    {
+        return n.Time - (float)n.CustomRT - objectManager.moveTime;
+    }
+
+
     public override bool VisualInSpawnRange(Note n)
     {
         return jumpManager.CheckInSpawnRange(n.Time, n.CustomRT ?? jumpManager.ReactionTime, true, true, n.HitOffset);
@@ -243,14 +267,14 @@ public class NoteManager : MapElementManager<Note>
     }
 
 
-    private void UpdateSaberColors(Note leftNote, Note rightNote, bool useChroma)
+    private void UpdateSaberColors()
     {
         Color leftColor = RedNoteColor;
         Color rightColor = BlueNoteColor;
-        if(useChroma)
+        if(SettingsManager.GetBool("chromaobjectcolors"))
         {
-            leftColor = leftNote?.CustomNoteProperties?.GetColor("_BaseColor") ?? RedNoteColor;
-            rightColor = rightNote?.CustomNoteProperties?.GetColor("_BaseColor") ?? BlueNoteColor;
+            leftColor = firstLeftNote?.CustomNoteProperties?.GetColor("_BaseColor") ?? RedNoteColor;
+            rightColor = firstRightNote?.CustomNoteProperties?.GetColor("_BaseColor") ?? BlueNoteColor;
         }
 
         if(leftColor != LeftSaberColor || rightColor != RightSaberColor)
@@ -267,38 +291,45 @@ public class NoteManager : MapElementManager<Note>
     {
         ClearOutsideVisuals();
 
-        if(Objects.Count == 0)
+        firstLeftNote = null;
+        firstRightNote = null;
+        if(Objects.Count == 0 && CustomRTObjects.Count == 0)
         {
-            UpdateSaberColors(null, null, false);
+            UpdateSaberColors();
             return;
         }
 
-        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        UpdateObjects(Objects);
+        UpdateObjects(CustomRTObjects);
+
+        UpdateSaberColors();
+    }
+
+
+    public override void UpdateObjects(MapElementList<Note> objects)
+    {
+        int startIndex = GetStartIndex(TimeManager.CurrentTime, objects);
         if(startIndex < 0)
         {
-            UpdateSaberColors(null, null, false);
             return;
         }
 
         bool useChroma = SettingsManager.GetBool("chromaobjectcolors");
-        Note firstLeftNote = null;
-        Note firstRightNote = null;
-
-        for(int i = startIndex; i < Objects.Count; i++)
+        for(int i = startIndex; i < objects.Count; i++)
         {
             //Update each note's position
-            Note n = Objects[i];
+            Note n = objects[i];
             if(jumpManager.CheckInSpawnRange(n.Time, n.CustomRT ?? jumpManager.ReactionTime, !n.WasHit, true, n.HitOffset))
             {
                 UpdateVisual(n);
 
                 if(useChroma)
                 {
-                    if(n.Color == 0 && firstLeftNote == null)
+                    if(n.Color == 0 && (firstLeftNote == null || firstLeftNote.Time > n.Time))
                     {
                         firstLeftNote = n;
                     }
-                    else if(n.Color == 1 && firstRightNote == null)
+                    else if(n.Color == 1 && (firstRightNote == null || firstRightNote.Time > n.Time))
                     {
                         firstRightNote = n;
                     }
@@ -315,7 +346,7 @@ public class NoteManager : MapElementManager<Note>
             //If the next notes haven't spawned yet, keep the color of the previous note
             for(int i = startIndex; i >= 0; i--)
             {
-                Note n = Objects[i];
+                Note n = objects[i];
                 if(n.Color == 0 && firstLeftNote == null)
                 {
                     firstLeftNote = n;
@@ -331,8 +362,6 @@ public class NoteManager : MapElementManager<Note>
                 }
             }
         }
-
-        UpdateSaberColors(firstLeftNote, firstRightNote, useChroma);
     }
 
 

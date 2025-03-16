@@ -15,12 +15,17 @@ public class ChainManager : MapElementManager<ChainLink>
         ClearRenderedVisuals();
 
         Objects.Clear();
+        CustomRTObjects.Clear();
+        CustomRTObjects.GetTime = GetSpawnTime;
         foreach(Chain c in Chains)
         {
             CreateChainLinks(c);
         }
         Objects.SortElementsByBeat();
+        CustomRTObjects.SortElementsByBeat();
+
         Objects.ResetStartIndex();
+        CustomRTObjects.ResetStartIndex();
 
         UpdateVisuals();
     }
@@ -147,7 +152,11 @@ public class ChainManager : MapElementManager<ChainLink>
                 }
             }
 
-            Objects.Add(newLink);
+            if(newLink.CustomRT != null)
+            {
+                CustomRTObjects.Add(newLink);
+            }
+            else Objects.Add(newLink);
         }
     }
 
@@ -248,6 +257,12 @@ public class ChainManager : MapElementManager<ChainLink>
     }
 
 
+    public override float GetSpawnTime(ChainLink cl)
+    {
+        return cl.Time - (float)cl.CustomRT - objectManager.moveTime;
+    }
+
+
     public override bool VisualInSpawnRange(ChainLink cl)
     {
         return jumpManager.CheckInSpawnRange(cl.Time, cl.CustomRT ?? jumpManager.ReactionTime, true, true, cl.HitOffset);
@@ -288,25 +303,23 @@ public class ChainManager : MapElementManager<ChainLink>
     }
 
 
-    public override void UpdateVisuals()
+    public override void UpdateObjects(MapElementList<ChainLink> objects)
     {
-        ClearOutsideVisuals();
-
-        if(Objects.Count == 0)
+        if(objects.Count == 0)
         {
             return;
         }
 
-        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        int startIndex = GetStartIndex(TimeManager.CurrentTime, objects);
         if(startIndex < 0)
         {
             return;
         }
 
-        for(int i = startIndex; i < Objects.Count; i++)
+        for(int i = startIndex; i < objects.Count; i++)
         {
             //Update each link's position
-            ChainLink cl = Objects[i];
+            ChainLink cl = objects[i];
             if(jumpManager.CheckInSpawnRange(cl.Time, cl.CustomRT ?? jumpManager.ReactionTime, !cl.WasHit, true, cl.HitOffset))
             {
                 UpdateVisual(cl);
