@@ -11,7 +11,7 @@ public class JumpManager : MonoBehaviour
     public float EffectiveNJS { get; private set; }
     public float EffectiveHalfJumpDistance { get; private set; }
 
-    private MapElementList<NjsEvent> njsEvents = new MapElementList<NjsEvent>();
+    public MapElementList<NjsEvent> NjsEvents = new MapElementList<NjsEvent>();
 
     private ObjectManager objectManager => ObjectManager.Instance;
     private bool useVariableNJS => objectManager.forceGameAccuracy || SettingsManager.GetBool("variablenjs");
@@ -184,7 +184,7 @@ public class JumpManager : MonoBehaviour
 
     public void UpdateNjs(float beat)
     {
-        if(njsEvents.Count == 0 || !useVariableNJS)
+        if(NjsEvents.Count == 0 || !useVariableNJS)
         {
             //No NJS events, so just use the map defaults
             SetDefaultJump();
@@ -192,10 +192,10 @@ public class JumpManager : MonoBehaviour
             return;
         }
 
-        int lastIndex = njsEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= beat);
+        int lastIndex = NjsEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= beat);
 
         bool foundEvent = lastIndex >= 0;
-        NjsEvent currentEvent = foundEvent ? njsEvents[lastIndex] : null;
+        NjsEvent currentEvent = foundEvent ? NjsEvents[lastIndex] : null;
         float currentOffset = foundEvent ? currentEvent.RelativeNJS : 0f;
         float currentTime = foundEvent ? currentEvent.Time : 0f;
 
@@ -204,7 +204,7 @@ public class JumpManager : MonoBehaviour
             //The current event is an extension, use the previous non-extension offset
             for(int i = lastIndex - 1; i >= 0; i--)
             {
-                currentEvent = njsEvents[i];
+                currentEvent = NjsEvents[i];
                 if(!currentEvent.Extend)
                 {
                     //This is the previous non-extend event, inherit its offset
@@ -220,8 +220,8 @@ public class JumpManager : MonoBehaviour
             }
         }
 
-        bool hasNextEvent = lastIndex + 1 < njsEvents.Count;
-        NjsEvent nextEvent = hasNextEvent ? njsEvents[lastIndex + 1] : null;
+        bool hasNextEvent = lastIndex + 1 < NjsEvents.Count;
+        NjsEvent nextEvent = hasNextEvent ? NjsEvents[lastIndex + 1] : null;
         if(hasNextEvent && nextEvent.Extend)
         {
             //The next event is an extension, so ignore it for now
@@ -235,13 +235,13 @@ public class JumpManager : MonoBehaviour
 
     private void UpdateDifficulty(Difficulty newDifficulty)
     {
-        njsEvents.Clear();
+        NjsEvents.Clear();
 
         foreach(BeatmapNjsEvent ne in newDifficulty.beatmapDifficulty.NjsEvents)
         {
-            njsEvents.Add(new NjsEvent(ne));
+            NjsEvents.Add(new NjsEvent(ne));
         }
-        njsEvents.SortElementsByBeat();
+        NjsEvents.SortElementsByBeat();
 
         UpdateNjs(TimeManager.CurrentBeat);
     }

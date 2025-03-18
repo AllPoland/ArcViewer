@@ -9,14 +9,22 @@ public class StatsPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI arcsText;
     [SerializeField] private TextMeshProUGUI chainsText;
     [SerializeField] private TextMeshProUGUI eventsText;
+
+    [Space]
+    [SerializeField] private TextMeshProUGUI njsEventsText;
+    [SerializeField] private TextMeshProUGUI currentNJSText;
+
+    [Space]
     [SerializeField] private TextMeshProUGUI bpmEventsText;
     [SerializeField] private TextMeshProUGUI currentBPMText;
 
+    [Space]
     [SerializeField] private TextMeshProUGUI npsText;
     [SerializeField] private TextMeshProUGUI peakNps16Text;
     [SerializeField] private TextMeshProUGUI peakNps8Text;
     [SerializeField] private TextMeshProUGUI peakNps4Text;
 
+    [Space]
     [SerializeField] private TextMeshProUGUI spsText;
     [SerializeField] private TextMeshProUGUI peakSps16Text;
     [SerializeField] private TextMeshProUGUI peakSps8Text;
@@ -37,6 +45,8 @@ public class StatsPanel : MonoBehaviour
         arcsText.text = $"Arcs: {MapStats.ArcCount}";
         chainsText.text = $"Chains: {MapStats.ChainCount}";
         eventsText.text = $"Events: {MapStats.EventCount}";
+
+        njsEventsText.text = $"NJS Events: {MapStats.NjsEventCount}";
         bpmEventsText.text = $"BPM Events: {MapStats.BpmEventCount}";
 
         npsText.text = $"Notes Per Second: {MapStats.NotesPerSecond}";
@@ -51,15 +61,23 @@ public class StatsPanel : MonoBehaviour
     }
 
 
+    private void UpdateCurrentNJS()
+    {
+        string njs = ObjectManager.Instance.jumpManager.NJS.Round(3).ToString();
+        currentNJSText.text = $"Current NJS: {njs}";
+    }
+
+
     private void UpdateCurrentBPM()
     {
-        string bpm = TimeManager.CurrentBPM.ToString();
+        string bpm = TimeManager.CurrentBPM.Round(3).ToString();
         currentBPMText.text = $"Current BPM: {bpm}";
     }
 
 
     private void UpdateBeat(float beat)
     {
+        UpdateCurrentNJS();
         UpdateCurrentBPM();
     }
 
@@ -70,6 +88,7 @@ public class StatsPanel : MonoBehaviour
         TimeManager.OnBeatChanged += UpdateBeat;
 
         UpdateText();
+        UpdateCurrentNJS();
         UpdateCurrentBPM();
     }
 
