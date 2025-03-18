@@ -7,19 +7,20 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Winista.Mime;
 
+#pragma warning disable CS4014 //Suppress warnings about lack of await for uwr.SendWebRequest()
 public static class AudioFileHandler
 {
 #if UNITY_WEBGL && !UNITY_EDITOR
     private static AudioUploadState uploadState;
 
 
-    public static async Task<WebAudioClip> WebAudioClipFromStream(MemoryStream stream, string filename)
+    public static async Task<WebSongClip> WebSongClipFromStream(MemoryStream stream, string filename)
     {
-        WebAudioClip newClip = null;
+        WebSongClip newClip = null;
         try
         {
             //Create the audio clip where we'll write the audio data
-            newClip = new WebAudioClip();
+            newClip = new WebSongClip();
 
             byte[] data = stream.ToArray();
             bool isOgg = filename.EndsWith(".ogg", StringComparison.InvariantCultureIgnoreCase)

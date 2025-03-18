@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
+#pragma warning disable CS4014 //Suppress warnings about lack of await for uwr.SendWebRequest()
 public static class BeatSaverHandler
 {
     public static readonly string[] BeatSaverCdnURLs = new string[]

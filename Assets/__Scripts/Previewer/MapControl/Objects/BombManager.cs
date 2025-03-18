@@ -13,6 +13,22 @@ public class BombManager : MapElementManager<Bomb>
 
     public void ReloadBombs()
     {
+        CustomRTObjects.Clear();
+        CustomRTObjects.GetTime = GetSpawnTime;
+        for(int i = Objects.Count - 1; i >= 0; i--)
+        {
+            Bomb b = Objects[i];
+            if(b.CustomRT != null)
+            {
+                Objects.Remove(b);
+                CustomRTObjects.Add(b);
+            }
+        }
+        CustomRTObjects.SortElementsByBeat();
+
+        Objects.ResetStartIndex();
+        CustomRTObjects.ResetStartIndex();
+
         ClearRenderedVisuals();
         UpdateVisuals();
     }
@@ -20,14 +36,20 @@ public class BombManager : MapElementManager<Bomb>
 
     public override void UpdateVisual(Bomb b)
     {
-        float worldDist = objectManager.GetZPosition(b.Time);
+        float reactionTime = b.CustomRT ?? jumpManager.ReactionTime;
+        float njs = b.CustomNJS != null
+            ? jumpManager.GetAdjustedNJS((float)b.CustomNJS, reactionTime)
+            : jumpManager.EffectiveNJS;
+        float halfJumpDistance = jumpManager.WorldSpaceFromTime(reactionTime, njs);
+
+        float worldDist = jumpManager.GetZPosition(b.Time, njs, reactionTime, halfJumpDistance);
         Vector3 worldPos = new Vector3(b.Position.x, b.Position.y, worldDist);
 
         worldPos.y += objectManager.playerHeightOffset;
 
         if(objectManager.doMovementAnimation)
         {
-            worldPos.y = objectManager.GetObjectY(b.StartY, worldPos.y, b.Time);
+            worldPos.y = jumpManager.GetObjectY(b.StartY, worldPos.y, worldDist, halfJumpDistance, b.Time, reactionTime);
         }
 
         if(b.Visual == null)
@@ -71,9 +93,15 @@ public class BombManager : MapElementManager<Bomb>
     }
 
 
+    public override float GetSpawnTime(Bomb b)
+    {
+        return b.Time - (float)b.CustomRT - objectManager.moveTime;
+    }
+
+
     public override bool VisualInSpawnRange(Bomb b)
     {
-        return objectManager.CheckInSpawnRange(b.Time, true, true, b.HitOffset);
+        return jumpManager.CheckInSpawnRange(b.Time, b.CustomRT ?? jumpManager.ReactionTime, true, true, b.HitOffset);
     }
 
 
@@ -93,7 +121,7 @@ public class BombManager : MapElementManager<Bomb>
         for(int i = RenderedObjects.Count - 1; i >= 0; i--)
         {
             Bomb b = RenderedObjects[i];
-            if(!objectManager.CheckInSpawnRange(b.Time, !b.WasHit, true, b.HitOffset))
+            if(!jumpManager.CheckInSpawnRange(b.Time, b.CustomRT ?? jumpManager.ReactionTime, !b.WasHit, true, b.HitOffset))
             {
                 if(b.source.isPlaying || (ReplayManager.IsReplayMode && b.Time > TimeManager.CurrentTime && b.Time < TimeManager.CurrentTime + 0.5f))
                 {
@@ -111,25 +139,23 @@ public class BombManager : MapElementManager<Bomb>
     }
 
 
-    public override void UpdateVisuals()
+    public override void UpdateObjects(MapElementList<Bomb> objects)
     {
-        ClearOutsideVisuals();
-
-        if(Objects.Count == 0)
+        if(objects.Count == 0)
         {
             return;
         }
 
-        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        int startIndex = GetStartIndex(TimeManager.CurrentTime, objects);
         if(startIndex < 0)
         {
             return;
         }
 
-        for(int i = startIndex; i < Objects.Count; i++)
+        for(int i = startIndex; i < objects.Count; i++)
         {
-            Bomb b = Objects[i];
-            if(objectManager.CheckInSpawnRange(b.Time, !b.WasHit, true, b.HitOffset))
+            Bomb b = objects[i];
+            if(jumpManager.CheckInSpawnRange(b.Time, b.CustomRT ?? jumpManager.ReactionTime, !b.WasHit, true, b.HitOffset))
             {
                 UpdateVisual(b);
             }
@@ -145,7 +171,11 @@ public class BombManager : MapElementManager<Bomb>
     {
         foreach(Bomb b in RenderedObjects)
         {
+#if !UNITY_WEBGL || UNITY_EDITOR
             if(b.WasHit && playBadCutSound && b.source != null)
+#else
+            if(b.WasHit && playBadCutSound)
+#endif
             {
                 HitSoundManager.ScheduleHitsound(b);
             }
@@ -172,12 +202,21 @@ public class Bomb : HitSoundEmitter
         WasBadCut = false;
         HitOffset = 0f;
 
-        if(b.customData?.color != null)
+        if(b.customData != null)
         {
-            CustomColor = ColorManager.ColorFromCustomDataColor(b.customData.color);
+            if(b.customData.color != null)
+            {
+                CustomColor = ColorManager.ColorFromCustomDataColor(b.customData.color);
 
-            CustomMaterialProperties = new MaterialPropertyBlock();
-            CustomMaterialProperties.SetColor("_BaseColor", (Color)CustomColor);
+                CustomMaterialProperties = new MaterialPropertyBlock();
+                CustomMaterialProperties.SetColor("_BaseColor", (Color)CustomColor);
+            }
+
+            CustomNJS = b.customData.noteJumpMovementSpeed;
+            if(b.customData.noteJumpStartBeatOffset != null)
+            {
+                CustomRT = BeatmapManager.GetCustomRT((float)b.customData.noteJumpStartBeatOffset);
+            }
         }
     }
 }

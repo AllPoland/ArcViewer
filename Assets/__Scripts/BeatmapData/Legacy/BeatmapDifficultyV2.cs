@@ -376,6 +376,8 @@ public class BeatmapCustomObjectDataV2
     public float[] _position;
     public float[] _color;
     public bool? _fake;
+    public float? _noteJumpMovementSpeed;
+    public float? _noteJumpStartBeatOffset;
 
 
     public BeatmapCustomObjectData ConvertToV3()
@@ -383,7 +385,9 @@ public class BeatmapCustomObjectDataV2
         return new BeatmapCustomObjectData
         {
             coordinates = _position,
-            color = _color
+            color = _color,
+            noteJumpMovementSpeed = _noteJumpMovementSpeed,
+            noteJumpStartBeatOffset = _noteJumpStartBeatOffset
         };
     }
 }
@@ -401,7 +405,9 @@ public class BeatmapCustomNoteDataV2 : BeatmapCustomObjectDataV2
         {
             coordinates = _position,
             color = _color,
-            angle = _cutDirection
+            angle = _cutDirection,
+            noteJumpMovementSpeed = _noteJumpMovementSpeed,
+            noteJumpStartBeatOffset = _noteJumpStartBeatOffset
         };
     }
 }
@@ -419,7 +425,9 @@ public class BeatmapCustomObstacleDataV2 : BeatmapCustomObjectDataV2
         {
             coordinates = _position,
             color = _color,
-            size = _scale
+            size = _scale,
+            noteJumpMovementSpeed = _noteJumpMovementSpeed,
+            noteJumpStartBeatOffset = _noteJumpStartBeatOffset
         };
     }
 }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 5
+  version: 9
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -22,6 +22,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Arrow
   m_Shader: {fileID: -6465566751694194690, guid: 2e6764df4b8962b4083d4edbea4769e9, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _RECEIVE_SHADOWS_OFF
   m_InvalidKeywords: []
@@ -33,6 +35,8 @@ Material:
     RenderType: Opaque
   disabledShaderPasses:
   - SHADOWCASTER
+  - MOTIONVECTORS
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -95,7 +99,9 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaClip: 0
+    - _AlphaToMask: 0
     - _Blend: 0
+    - _BlendModePreserveSpecular: 0
     - _BumpScale: 1
     - _CastShadows: 0
     - _ClearCoatMask: 0
@@ -140,3 +146,4 @@ Material:
     - _EmissionColor: {r: 1.7207954, g: 0.7117426, b: 0.7117426, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.5}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

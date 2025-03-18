@@ -15,6 +15,22 @@ public class WallManager : MapElementManager<Wall>
 
     public void ReloadWalls()
     {
+        CustomRTObjects.Clear();
+        CustomRTObjects.GetTime = GetSpawnTime;
+        for(int i = Objects.Count - 1; i >= 0; i--)
+        {
+            Wall w = Objects[i];
+            if(w.CustomRT != null)
+            {
+                Objects.Remove(w);
+                CustomRTObjects.Add(w);
+            }
+        }
+        CustomRTObjects.SortElementsByBeat();
+
+        Objects.ResetStartIndex();
+        CustomRTObjects.ResetStartIndex();
+
         ClearRenderedVisuals();
         UpdateVisuals();
     }
@@ -22,11 +38,17 @@ public class WallManager : MapElementManager<Wall>
 
     public override void UpdateVisual(Wall w)
     {
-        float wallLength = objectManager.WorldSpaceFromTime(w.DurationTime) * objectManager.NjsMult;
+        float reactionTime = w.CustomRT ?? jumpManager.ReactionTime;
+        float njs = w.CustomNJS != null
+            ? jumpManager.GetAdjustedNJS((float)w.CustomNJS, reactionTime)
+            : jumpManager.EffectiveNJS;
+        float halfJumpDistance = jumpManager.WorldSpaceFromTime(reactionTime, njs);
+
+        float wallLength = jumpManager.WorldSpaceFromTime(w.DurationTime, w.CustomNJS ?? jumpManager.EffectiveNJS);
         wallLength = Mathf.Max(wallLength, MinWallSize);
 
         //Subtract 0.25 to make front face of wall line up with front face of note (walls just built like that)
-        float frontDist = objectManager.GetZPosition(w.Time) - 0.25f;
+        float frontDist = jumpManager.GetZPosition(w.Time, njs, reactionTime, halfJumpDistance) - 0.25f;
         float worldDist = frontDist + (wallLength / 2);
 
         if(w.Visual == null)
@@ -82,9 +104,15 @@ public class WallManager : MapElementManager<Wall>
     }
 
 
+    public override float GetSpawnTime(Wall w)
+    {
+        return w.Time - (float)w.CustomRT - objectManager.moveTime;
+    }
+
+
     public override bool VisualInSpawnRange(Wall w)
     {
-        return objectManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime);
+        return jumpManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime, w.CustomRT ?? jumpManager.ReactionTime);
     }
 
 
@@ -96,27 +124,25 @@ public class WallManager : MapElementManager<Wall>
     }
 
 
-    public override void UpdateVisuals()
+    public override void UpdateObjects(MapElementList<Wall> objects)
     {
-        ClearOutsideVisuals();
-
-        if(Objects.Count == 0)
+        if(objects.Count == 0)
         {
             return;
         }
 
-        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        int startIndex = GetStartIndex(TimeManager.CurrentTime, objects);
         if(startIndex < 0)
         {
             return;
         }
 
         float lastBeat = 0;
-        for(int i = startIndex; i < Objects.Count; i++)
+        for(int i = startIndex; i < objects.Count; i++)
         {
             //Update each wall's position
-            Wall w = Objects[i];
-            if(objectManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime))
+            Wall w = objects[i];
+            if(jumpManager.DurationObjectInSpawnRange(w.Time, w.Time + w.DurationTime, w.CustomRT ?? jumpManager.ReactionTime))
             {
                 UpdateVisual(w);
                 lastBeat = w.Beat + w.DurationBeats;
@@ -246,9 +272,18 @@ public class Wall : MapObject
         Height = Mathf.Max(Mathf.Abs(worldHeight), WallManager.MinWallSize) * Mathf.Sign(worldHeight);
         ClampPlayerHeight = o.customData?.coordinates == null && !(BeatmapManager.MappingExtensions && Mathf.Abs(o.y) >= 1000);
 
-        if(o.customData?.color != null)
+        if(o.customData != null)
         {
-            CustomColor = ColorManager.ColorFromCustomDataColor(o.customData.color);
+            if(o.customData.color != null)
+            {
+                CustomColor = ColorManager.ColorFromCustomDataColor(o.customData.color);
+            }
+
+            CustomNJS = o.customData.noteJumpMovementSpeed;
+            if(o.customData.noteJumpStartBeatOffset != null)
+            {
+                CustomRT = BeatmapManager.GetCustomRT((float)o.customData.noteJumpStartBeatOffset);
+            }
         }
     }
 }

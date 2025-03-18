@@ -73,7 +73,10 @@ public class EnvironmentManager : MonoBehaviour
         "LatticeEnvironment",
         "DaftPunkEnvironment",
         "HipHopEnvironment",
-        "ColliderEnvironment"
+        "ColliderEnvironment",
+        "BritneyEnvironment",
+        "Monstercat2Environment",
+        "MetallicaEnvironment"
     };
 
     private static readonly string[] supportedEnvironments = new string[]

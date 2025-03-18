@@ -2,43 +2,39 @@ using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-public class WebAudioController : MonoBehaviour
+public class WebSongController : MonoBehaviour
 {
     [DllImport("__Internal")]
-    private static extern void Initcontroller(float volume);
+    private static extern void InitSongController(float volume);
 
     [DllImport("__Internal")]
-    public static extern void CreateClip(int id);
-
-    [DllImport("__Internal")]
-    public static extern void DisposeClip(int id);
+    public static extern void DisposeSongClip();
     
     [DllImport("__Internal")]
-    public static extern void UploadData(int id, byte[] data, int dataLength, bool isOgg, string gameObjectName, string methodName);
+    public static extern void UploadSongData(byte[] data, int dataLength, bool isOgg, string gameObjectName, string methodName);
 
     [DllImport("__Internal")]
-    public static extern void SetOffset(int id, float offset);
+    public static extern void SetSongOffset(float offset);
 
     [DllImport("__Internal")]
-    public static extern float GetSoundTime(int id);
+    public static extern float GetSongTime();
 
     [DllImport("__Internal")]
-    public static extern float GetSoundLength(int id);
+    public static extern float GetSongLength();
 
     [DllImport("__Internal")]
-    public static extern void SetVolume(float volume);
+    public static extern void SetSongVolume(float volume);
 
     [DllImport("__Internal")]
-    public static extern void SetPlaybackSpeed(int id, float speed);
+    public static extern void SetSongPlaybackSpeed(float speed);
     
     [DllImport("__Internal")]
-    public static extern void Start(int id, float time);
+    public static extern void StartSong(float time);
 
     [DllImport("__Internal")]
-    public static extern void Stop(int id);
+    public static extern void StopSong();
 
-    private static WebAudioController instance;
-    private static int clipId = 0;
+    private static WebSongController instance;
     private static Action<int> callback;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -52,14 +48,14 @@ public class WebAudioController : MonoBehaviour
         if (instance != null) return;
 
         instance = new GameObject("Web Audio Controller")
-            .AddComponent<WebAudioController>();
-        
+            .AddComponent<WebSongController>();
+
         // This just keeps the inspector sane
         instance.gameObject.hideFlags = HideFlags.HideAndDontSave;
 #if UNITY_WEBGL && !UNITY_EDITOR
         if (!initialized)
         {
-            Initcontroller(SettingsManager.GetFloat("musicvolume"));
+            InitSongController(SettingsManager.GetFloat("musicvolume"));
             initialized = true;
         }
 #endif
@@ -83,21 +79,10 @@ public class WebAudioController : MonoBehaviour
     }
 
 
-    public static int NewClip()
-    {
-        // Register on JS side
-        int id = clipId;
-        clipId++;
-
-        CreateClip(id);
-        return id;
-    }
-
-
-    public static void SetDataClip(int id, byte[] data, bool isOgg, Action<int> callbackMethod = null)
+    public static void SetDataClip(byte[] data, bool isOgg, Action<int> callbackMethod = null)
     {
         callback = callbackMethod;
-        UploadData(id, data, data.Length, isOgg, instance.name, "AudioDataCallback");
+        UploadSongData(data, data.Length, isOgg, instance.name, "AudioDataCallback");
     }
 
 

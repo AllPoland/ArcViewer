@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ScoringEvent : MapElement
@@ -94,7 +95,7 @@ public class ScoringEvent : MapElement
 
     private void CalculateNoteScore()
     {
-        if(scoringType == ScoringType.ChainLink)
+        if(scoringType == ScoringType.ChainLink || scoringType == ScoringType.ChainLinkArcHead)
         {
             ScoreGained = ScoreManager.MaxChainLinkScore;
             PreSwingScore = 0;
@@ -115,7 +116,14 @@ public class ScoringEvent : MapElement
             PreSwingAmount = 1f;
             MaxSwingScore = ScoreManager.MaxNoteScore;
         }
-        else if(scoringType == ScoringType.ChainHead)
+        else if(scoringType == ScoringType.ArcHeadArcTail)
+        {
+            //Arc head/tails get both pre and post swing for free
+            PreSwingAmount = 1f;
+            PostSwingAmount = 1f;
+            MaxSwingScore = ScoreManager.MaxNoteScore;
+        }
+        else if(scoringType == ScoringType.ChainHead || scoringType == ScoringType.ChainHeadArcTail)
         {
             //Chain heads don't get post swing points at all
             PostSwingAmount = 0f;
@@ -159,11 +167,12 @@ public class ScoringEvent : MapElement
         colorType /= 10;
 
         bool isBomb = noteEventType == NoteEventType.bomb;
-        if(ID >= 80000 || colorType > 10 || cutDirection > 8)
+        if(ID >= 110000 || colorType > 10 || cutDirection > 8)
         {
             //In ME, the ID can become worthless for identifying note type and position
             //so we can only tell whether this was a bomb or a note
             SetEventValues(isBomb ? ScoringType.NoScore : ScoringType.Note, Vector2.zero);
+            return;
         }
 
         int y = noteID % 1000;
@@ -179,6 +188,101 @@ public class ScoringEvent : MapElement
 
         SetEventValues((ScoringType)type, newPosition);
     }
+
+
+    public static ScoringEvent BruteForceMatchNote(List<ScoringEvent> scoringEvents, ref ScoringType scoringType, int noteID, bool hasTail, bool hasHead, bool isChainHead)
+    {
+        int noTypeID = noteID - (int)scoringType * 10000;
+        if(scoringType == ScoringType.Note)
+        {
+            //Note scoringType can also count as 0 sometimes (very scuffed)
+            noteID = noTypeID;
+            return scoringEvents.Find(x => x.ID == noteID);
+        }
+        
+        ScoringEvent scoringEvent;
+        if(scoringType == ScoringType.ArcHeadArcTail)
+        {
+            if(isChainHead)
+            {
+                //Try ChainHeadArcTail
+                noteID = noTypeID + (int)ScoringType.ChainHeadArcTail * 10000;
+                scoringEvent = scoringEvents.Find(x => x.ID == noteID);
+                if(scoringEvent != null)
+                {
+                    scoringType = ScoringType.ChainHeadArcTail;
+                    return scoringEvent;
+                }
+
+                //Try just chain head
+                noteID = noTypeID + (int) ScoringType.ChainHead * 10000;
+                scoringEvent = scoringEvents.Find(x => x.ID == noteID);
+                if(scoringEvent != null)
+                {
+                    scoringType = ScoringType.ChainHead;
+                    return scoringEvent;
+                }
+            }
+
+            //Replays pre-1.40 can only include head *or* tail
+            noteID = noTypeID + (int)ScoringType.ArcHead * 10000;
+            scoringEvent = scoringEvents.Find(x => x.ID == noteID);
+            if(scoringEvent != null)
+            {
+                scoringType = ScoringType.ArcHead;
+                return scoringEvent;
+            }
+
+            //If this last check fails, we'll return null regardless
+            noteID = noTypeID + (int)ScoringType.ArcTail * 10000;
+            scoringType = ScoringType.ArcTail;
+            return scoringEvents.Find(x => x.ID == noteID);
+        }
+
+        if(scoringType == ScoringType.ChainHeadArcTail)
+        {
+            //Try just chain head
+            noteID = noTypeID + (int) ScoringType.ChainHead * 10000;
+            scoringEvent = scoringEvents.Find(x => x.ID == noteID);
+            if(scoringEvent != null)
+            {
+                scoringType = ScoringType.ChainHead;
+                return scoringEvent;
+            }
+
+            if(hasHead)
+            {
+                //Try just arc head
+                noteID = noTypeID + (int)ScoringType.ArcHead * 10000;
+                scoringEvent = scoringEvents.Find(x => x.ID == noteID);
+                if(scoringEvent != null)
+                {
+                    scoringType = ScoringType.ArcHead;
+                    return scoringEvent;
+                }
+            }
+
+            //If this last check fails, we'll return null regardless
+            noteID = noTypeID + (int)ScoringType.ArcTail * 10000;
+            scoringType = ScoringType.ArcTail;
+            return scoringEvents.Find(x => x.ID == noteID);
+        }
+
+        if(scoringType == ScoringType.ChainHead && hasHead)
+        {
+            //Try just arc head
+            noteID = noTypeID + (int)ScoringType.ArcHead * 10000;
+            scoringEvent = scoringEvents.Find(x => x.ID == noteID);
+            if(scoringEvent != null)
+            {
+                scoringType = ScoringType.ArcHead;
+                return scoringEvent;
+            }
+        }
+
+        //Nothing matched
+        return null;
+    }
 }
 
 
@@ -190,5 +294,8 @@ public enum ScoringType
     ArcHead = 4,
     ArcTail = 5,
     ChainHead = 6,
-    ChainLink = 7
+    ChainLink = 7,
+    ArcHeadArcTail = 8,
+    ChainHeadArcTail = 9,
+    ChainLinkArcHead = 10
 }

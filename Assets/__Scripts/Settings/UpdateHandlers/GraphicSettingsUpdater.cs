@@ -4,7 +4,6 @@ using UnityEngine.Rendering.Universal;
 
 public class GraphicSettingsUpdater : MonoBehaviour
 {
-    [SerializeField] private Camera targetCamera;
     [SerializeField] private Volume bloomVolume;
     [SerializeField] private UniversalRenderPipelineAsset urpAsset;
     [SerializeField] private RenderTexture orthoCameraTexture;
@@ -22,6 +21,23 @@ public class GraphicSettingsUpdater : MonoBehaviour
         orthoCameraTexture.antiAliasing = msaa;
         orthoCameraTexture.Create();
 #endif
+    }
+
+
+    private int GetMSAA(int antiAliasing)
+    {
+        switch(antiAliasing)
+        {
+            default:
+            case 0:
+                return 1;
+            case 1:
+                return 2;
+            case 2:
+                return 4;
+            case 3:
+                return 8;
+        }
     }
 
 
@@ -54,26 +70,9 @@ public class GraphicSettingsUpdater : MonoBehaviour
             int antiAliasing = SettingsManager.GetInt("antialiasing");
             Camera.main.allowMSAA = antiAliasing > 0;
 
-            switch(antiAliasing)
-            {
-                default:
-                case 0:
-                    urpAsset.msaaSampleCount = 1;
-                    SetOrthoCameraMSAA(1);
-                    break;
-                case 1:
-                    urpAsset.msaaSampleCount = 2;
-                    SetOrthoCameraMSAA(2);
-                    break;
-                case 2:
-                    urpAsset.msaaSampleCount = 4;
-                    SetOrthoCameraMSAA(4);
-                    break;
-                case 3:
-                    urpAsset.msaaSampleCount = 8;
-                    SetOrthoCameraMSAA(8);
-                    break;
-            }
+            int msaa = GetMSAA(antiAliasing);
+            urpAsset.msaaSampleCount = msaa;
+            SetOrthoCameraMSAA(msaa);
         }
 #else
         if(allSettings)
@@ -86,8 +85,6 @@ public class GraphicSettingsUpdater : MonoBehaviour
         {
             bloom.intensity.value = defaultBloomStrength * SettingsManager.GetFloat("bloom");
             bloom.active = bloom.intensity.value >= 0.001f;
-
-            targetCamera.UpdateVolumeStack();
         }
 
         if(allSettings || setting == "renderscale")

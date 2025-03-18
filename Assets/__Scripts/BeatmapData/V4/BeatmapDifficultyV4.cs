@@ -18,7 +18,10 @@ public class BeatmapDifficultyV4
     public BeatmapChainDataV4[] chainsData;
 
     public BeatmapElementV4[] spawnRotations;
+    public BeatmapElementV4[] njsEvents;
+
     public BeatmapSpawnRotationDataV4[] spawnRotationsData;
+    public BeatmapNjsEventDataV4[] njsEventData;
 
     public bool HasObjects => colorNotes.Length + bombNotes.Length
         + obstacles.Length + arcs.Length
@@ -56,7 +59,9 @@ public class BeatmapDifficultyV4
         obstaclesData ??= new BeatmapObstacleDataV4[0];
         arcsData ??= new BeatmapArcDataV4[0];
         chainsData ??= new BeatmapChainDataV4[0];
+        njsEvents ??= new BeatmapElementV4[0];
         spawnRotations ??= new BeatmapElementV4[0];
+        njsEventData ??= new BeatmapNjsEventDataV4[0];
         spawnRotationsData ??= new BeatmapSpawnRotationDataV4[0];
     }
 }
@@ -170,4 +175,13 @@ public class BeatmapSpawnRotationDataV4
 {
     public int t;
     public int r;
+}
+
+
+[Serializable]
+public class BeatmapNjsEventDataV4
+{
+    public int p;
+    public int e;
+    public float d;
 }

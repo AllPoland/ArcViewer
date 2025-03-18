@@ -15,12 +15,17 @@ public class ChainManager : MapElementManager<ChainLink>
         ClearRenderedVisuals();
 
         Objects.Clear();
+        CustomRTObjects.Clear();
+        CustomRTObjects.GetTime = GetSpawnTime;
         foreach(Chain c in Chains)
         {
             CreateChainLinks(c);
         }
         Objects.SortElementsByBeat();
+        CustomRTObjects.SortElementsByBeat();
+
         Objects.ResetStartIndex();
+        CustomRTObjects.ResetStartIndex();
 
         UpdateVisuals();
     }
@@ -72,6 +77,9 @@ public class ChainManager : MapElementManager<ChainLink>
                 Position = linkPos,
                 Color = c.Color,
                 Angle = linkAngle,
+                StartY = c.StartY,
+                CustomNJS = c.CustomNJS,
+                CustomRT = c.CustomRT,
                 CustomColor = c.CustomColor,
                 CustomNoteProperties = linkProperties,
                 CustomDotProperties = linkDotProperties
@@ -94,11 +102,27 @@ public class ChainManager : MapElementManager<ChainLink>
                 ScoringEvent matchingEvent = scoringEventsOnBeat.Find(x => x.ID == linkID && !usedScoringEvents.Contains(x));
                 if(matchingEvent == null && isLastElement)
                 {
-                    //Sometimes the last link doesn't get tail coordinates though :smil
-                    linkX = originalSlider.x;
-                    linkY = originalSlider.y;
-                    linkID = ((int)ScoringType.ChainLink * 10000) + (linkX * 1000) + (linkY * 100) + (c.Color * 10) + 8;
+                    //See if this link counts as an arc head
+                    linkID -= (int)ScoringType.ChainLink * 10000;
+                    linkID += (int)ScoringType.ChainLinkArcHead * 10000;
                     matchingEvent = scoringEventsOnBeat.Find(x => x.ID == linkID && !usedScoringEvents.Contains(x));
+
+                    if(matchingEvent == null)
+                    {
+                        //Sometimes the last link doesn't get tail coordinates though :smil
+                        linkX = originalSlider.x;
+                        linkY = originalSlider.y;
+                        linkID = ((int)ScoringType.ChainLink * 10000) + (linkX * 1000) + (linkY * 100) + (c.Color * 10) + 8;
+                        matchingEvent = scoringEventsOnBeat.Find(x => x.ID == linkID && !usedScoringEvents.Contains(x));
+
+                        if(matchingEvent == null)
+                        {
+                            //Once again see if this counts as an arc head
+                            linkID -= (int)ScoringType.ChainLink * 10000;
+                            linkID += (int)ScoringType.ChainLinkArcHead * 10000;
+                            matchingEvent = scoringEventsOnBeat.Find(x => x.ID == linkID && !usedScoringEvents.Contains(x));
+                        }
+                    }
                 }
 
                 if(matchingEvent == null)
@@ -128,32 +152,40 @@ public class ChainManager : MapElementManager<ChainLink>
                 }
             }
 
-            Objects.Add(newLink);
+            if(newLink.CustomRT != null)
+            {
+                CustomRTObjects.Add(newLink);
+            }
+            else Objects.Add(newLink);
         }
     }
 
 
     public override void UpdateVisual(ChainLink cl)
     {
-        float reactionTime = BeatmapManager.ReactionTime;
-        float jumpTime = TimeManager.CurrentTime + reactionTime;
+        float reactionTime = cl.CustomRT ?? jumpManager.ReactionTime;
+        float njs = cl.CustomNJS != null
+            ? jumpManager.GetAdjustedNJS((float)cl.CustomNJS, reactionTime)
+            : jumpManager.EffectiveNJS;
+        float halfJumpDistance = jumpManager.WorldSpaceFromTime(reactionTime, njs);
 
-        float worldDist = objectManager.GetZPosition(cl.Time);
+        float worldDist = jumpManager.GetZPosition(cl.Time, njs, reactionTime, halfJumpDistance);
         Vector3 worldPos = new Vector3(cl.Position.x, cl.Position.y, worldDist);
 
         worldPos.y += objectManager.playerHeightOffset;
 
         if(objectManager.doMovementAnimation)
         {
-            float startY = objectManager.objectFloorOffset;
-            worldPos.y = objectManager.GetObjectY(startY, worldPos.y, cl.Time);
+            worldPos.y = jumpManager.GetObjectY(cl.StartY, worldPos.y, worldDist, halfJumpDistance, cl.Time, reactionTime);
         }
 
+        float jumpTime = TimeManager.CurrentTime + reactionTime;
         float angle = cl.Angle;
-        float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
 
         if(objectManager.doRotationAnimation)
         {
+            float rotationAnimationLength = reactionTime * objectManager.rotationAnimationTime;
+
             if(cl.Time > jumpTime)
             {
                 //Note is still jumping in
@@ -225,9 +257,15 @@ public class ChainManager : MapElementManager<ChainLink>
     }
 
 
+    public override float GetSpawnTime(ChainLink cl)
+    {
+        return cl.Time - (float)cl.CustomRT - objectManager.moveTime;
+    }
+
+
     public override bool VisualInSpawnRange(ChainLink cl)
     {
-        return objectManager.CheckInSpawnRange(cl.Time, true, true, cl.HitOffset);
+        return jumpManager.CheckInSpawnRange(cl.Time, cl.CustomRT ?? jumpManager.ReactionTime, true, true, cl.HitOffset);
     }
 
 
@@ -247,7 +285,7 @@ public class ChainManager : MapElementManager<ChainLink>
         for(int i = RenderedObjects.Count - 1; i >= 0; i--)
         {
             ChainLink cl = RenderedObjects[i];
-            if(!objectManager.CheckInSpawnRange(cl.Time, !cl.WasHit, true, cl.HitOffset))
+            if(!jumpManager.CheckInSpawnRange(cl.Time, cl.CustomRT ?? jumpManager.ReactionTime, !cl.WasHit, true, cl.HitOffset))
             {
                 if(cl.source.isPlaying || (ReplayManager.IsReplayMode && cl.Time > TimeManager.CurrentTime && cl.Time < TimeManager.CurrentTime + 0.5f))
                 {
@@ -265,26 +303,24 @@ public class ChainManager : MapElementManager<ChainLink>
     }
 
 
-    public override void UpdateVisuals()
+    public override void UpdateObjects(MapElementList<ChainLink> objects)
     {
-        ClearOutsideVisuals();
-
-        if(Objects.Count == 0)
+        if(objects.Count == 0)
         {
             return;
         }
 
-        int startIndex = GetStartIndex(TimeManager.CurrentTime);
+        int startIndex = GetStartIndex(TimeManager.CurrentTime, objects);
         if(startIndex < 0)
         {
             return;
         }
 
-        for(int i = startIndex; i < Objects.Count; i++)
+        for(int i = startIndex; i < objects.Count; i++)
         {
             //Update each link's position
-            ChainLink cl = Objects[i];
-            if(objectManager.CheckInSpawnRange(cl.Time, !cl.WasHit, true, cl.HitOffset))
+            ChainLink cl = objects[i];
+            if(jumpManager.CheckInSpawnRange(cl.Time, cl.CustomRT ?? jumpManager.ReactionTime, !cl.WasHit, true, cl.HitOffset))
             {
                 UpdateVisual(cl);
             }
@@ -300,7 +336,9 @@ public class ChainManager : MapElementManager<ChainLink>
     {
         foreach(ChainLink cl in RenderedObjects)
         {
+#if !UNITY_WEBGL || UNITY_EDITOR
             if(cl.source != null)
+#endif
             {
                 HitSoundManager.ScheduleHitsound(cl);
             }
@@ -327,6 +365,7 @@ public class Chain : BaseSlider
     public float Angle;
     public int SegmentCount;
     public float Squish;
+    public float StartY;
 
     //I really don't wanna keep this around but it's necessary for replays
     public BeatmapBurstSlider burstSlider;
@@ -349,9 +388,18 @@ public class Chain : BaseSlider
 
         burstSlider = b;
 
-        if(b.customData?.color != null)
+        if(b.customData != null)
         {
-            CustomColor = ColorManager.ColorFromCustomDataColor(b.customData.color);
+            if(b.customData.color != null)
+            {
+                CustomColor = ColorManager.ColorFromCustomDataColor(b.customData.color);
+            }
+
+            CustomNJS = b.customData.noteJumpMovementSpeed;
+            if(b.customData.noteJumpStartBeatOffset != null)
+            {
+                CustomRT = BeatmapManager.GetCustomRT((float)b.customData.noteJumpStartBeatOffset);
+            }
         }
     }
 }
@@ -361,6 +409,7 @@ public class ChainLink : HitSoundEmitter
 {
     public int Color;
     public float Angle;
+    public float StartY;
 
     public ChainLinkHandler ChainLinkHandler;
     public MaterialPropertyBlock CustomNoteProperties;

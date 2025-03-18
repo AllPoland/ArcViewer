@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
+#pragma warning disable CS4014 //Suppress warnings about lack of await for uwr.SendWebRequest()
 public class WebLoader
 {
     public const string CorsProxy = "https://cors.bsmg.dev/";

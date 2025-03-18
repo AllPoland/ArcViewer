@@ -11,7 +11,7 @@ public class ObjectManager : MonoBehaviour
     [SerializeField] public float moveZ;
     [SerializeField] public float moveTime;
     [SerializeField] public float rotationAnimationTime;
-    [SerializeField] public float behindCameraZ;
+    [SerializeField] public float BehindCameraTime = -1f;
     [SerializeField] public float objectFloorOffset;
 
     [Header("Managers")]
@@ -20,6 +20,7 @@ public class ObjectManager : MonoBehaviour
     [SerializeField] public WallManager wallManager;
     [SerializeField] public ChainManager chainManager;
     [SerializeField] public ArcManager arcManager;
+    [SerializeField] public JumpManager jumpManager;
 
     public bool forceGameAccuracy => ReplayManager.IsReplayMode && SettingsManager.GetBool("accuratereplays");
 
@@ -90,29 +91,7 @@ public class ObjectManager : MonoBehaviour
         {8, 8}
     };
 
-    //Clamp this so objects don't get ignored before they reach the cut plane, or stick around for way too long
-    public float BehindCameraTime => Mathf.Clamp(TimeFromWorldspaceAdjusted(behindCameraZ), -5f, 0f);
-
-    public float NjsMult
-    {
-        get
-        {
-            if(!ReplayManager.IsReplayMode)
-            {
-                return 1f;
-            }
-
-            float halfJumpDistance = BeatmapManager.HalfJumpDistance;
-            float adjustedJumpDistance = halfJumpDistance - CutPlanePos;
-            return adjustedJumpDistance / halfJumpDistance;
-        }
-    }
-
     public float CutPlanePos => ReplayManager.IsReplayMode ? PlayerPositionManager.HeadPosition.z + PlayerCutPlaneDistance : 0f;
-    public float EffectiveHalfJumpDistance => ReplayManager.IsReplayMode ? BeatmapManager.HalfJumpDistance - CutPlanePos : BeatmapManager.HalfJumpDistance;
-
-    //Give a minimum value to avoid divide by 0 errors
-    public float EffectiveNJS => Mathf.Max(BeatmapManager.NJS * NjsMult, 0.0001f);
 
     public static event Action OnObjectsLoaded;
 
@@ -128,100 +107,6 @@ public class ObjectManager : MonoBehaviour
     {
         const float epsilon = 0.001f;
         return Mathf.Abs(time1 - time2) <= epsilon;
-    }
-
-
-    public bool CheckInSpawnRange(float time, bool extendBehindCamera = false, bool includeMoveTime = true, float hitOffset = 0f)
-    {
-        float despawnTime = extendBehindCamera ? TimeManager.CurrentTime + BehindCameraTime : TimeManager.CurrentTime;
-        float spawnTime = TimeManager.CurrentTime + BeatmapManager.ReactionTime;
-        if(includeMoveTime)
-        {
-            spawnTime += Instance.moveTime;
-        }
-
-        float hitTime = extendBehindCamera ? time : time - hitOffset;
-        return time <= spawnTime && hitTime > despawnTime;
-    }
-
-
-    public bool DurationObjectInSpawnRange(float startTime, float endTime, bool extendBehindCamera = true, bool includeMoveTime = true)
-    {
-        if(extendBehindCamera)
-        {
-            endTime = endTime - BehindCameraTime;
-        }
-
-        bool timeInRange = TimeManager.CurrentTime >= startTime && TimeManager.CurrentTime <= endTime;
-        return timeInRange || CheckInSpawnRange(startTime, extendBehindCamera, includeMoveTime);
-    }
-
-
-    public float GetZPosition(float objectTime)
-    {
-        float reactionTime = BeatmapManager.ReactionTime;
-        float jumpTime = TimeManager.CurrentTime + reactionTime;
-
-        if(objectTime <= jumpTime)
-        {
-            //Note has jumped in. Place based on Jump Setting stuff
-            float timeDist = objectTime - TimeManager.CurrentTime;
-            return WorldSpaceFromTimeAdjusted(timeDist);
-        }
-        else
-        {
-            //Note hasn't jumped in yet. Place based on the jump-in stuff
-            float timeDist = (objectTime - jumpTime) / moveTime;
-            return BeatmapManager.HalfJumpDistance + (moveZ * timeDist);
-        }
-    }
-
-
-    public float WorldSpaceFromTime(float time)
-    {
-        return time * BeatmapManager.NJS;
-    }
-
-
-    public float WorldSpaceFromTimeAdjusted(float time)
-    {
-        return (time * EffectiveNJS) + CutPlanePos;
-    }
-
-
-    public float TimeFromWorldspace(float position)
-    {
-        return position / BeatmapManager.NJS;
-    }
-
-
-    public float TimeFromWorldspaceAdjusted(float position)
-    {
-        return (position - CutPlanePos) / EffectiveNJS;
-    }
-
-
-    public static float SpawnParabola(float targetHeight, float baseHeight, float halfJumpDistance, float t)
-    {
-        float dSquared = Mathf.Pow(halfJumpDistance, 2);
-        float tSquared = Mathf.Pow(t, 2);
-
-        float movementRange = targetHeight - baseHeight;
-
-        return Mathf.Clamp(-(movementRange / dSquared) * tSquared + targetHeight, -9999f, 9999f);
-    }
-
-
-    public float GetObjectY(float startY, float targetY, float objectTime)
-    {
-        float jumpTime = TimeManager.CurrentTime + BeatmapManager.ReactionTime;
-
-        if(objectTime > jumpTime)
-        {
-            return startY;
-        }
-
-        return SpawnParabola(targetY, startY, EffectiveHalfJumpDistance, GetZPosition(objectTime) - CutPlanePos);
     }
 
 
@@ -602,6 +487,7 @@ public class ObjectManager : MonoBehaviour
             }
 
             //Precalculate values for all objects on this beat
+            Dictionary<(int, int, int), Note> notesAtPos = new Dictionary<(int, int, int), Note>();
             List<Note> newNotes = new List<Note>();
             (float? redSnapAngle, float? blueSnapAngle) = NoteManager.GetSnapAngles(notesOnBeat);
 
@@ -656,11 +542,19 @@ public class ObjectManager : MonoBehaviour
                     ScoringType scoringType;
                     if(newNote.IsChainHead)
                     {
-                        scoringType = ScoringType.ChainHead;
+                        if(hasTail)
+                        {
+                            scoringType = ScoringType.ChainHeadArcTail;
+                        }
+                        else scoringType = ScoringType.ChainHead;
                     }
                     else if(hasHead)
                     {
-                        scoringType = ScoringType.ArcHead;
+                        if(hasTail)
+                        {
+                            scoringType = ScoringType.ArcHeadArcTail;
+                        }
+                        else scoringType = ScoringType.ArcHead;
                     }
                     else if(hasTail)
                     {
@@ -673,40 +567,8 @@ public class ObjectManager : MonoBehaviour
 
                     if(matchingEvent == null)
                     {
-                        //Check to make sure there aren't any variants of this ID present
-                        const int headTailDifference = (int)ScoringType.ArcHead - (int)ScoringType.ArcTail;
-                        const int chainArcDifference = (int)ScoringType.ChainHead - (int)ScoringType.ArcHead;
-                        if(scoringType == ScoringType.Note)
-                        {
-                            //Note scoringType can also count as 0 sometimes (very scuffed)
-                            noteID -= (int)scoringType * 10000;
-                        }
-                        else if(scoringType == ScoringType.ArcHead && hasTail)
-                        {
-                            //Type for a note that's both a head and a tail might be swapped
-                            noteID -= headTailDifference * 10000;
-                            scoringType = ScoringType.ArcTail;
-                        }
-                        else if(scoringType == ScoringType.ArcTail && hasHead)
-                        {
-                            noteID += headTailDifference * 10000;
-                            scoringType = ScoringType.ArcHead;
-                        }
-                        else if(scoringType == ScoringType.ChainHead && (hasHead || hasTail))
-                        {
-                            //A chain head that's also an arc head may be counted as an arc instead
-                            noteID -= chainArcDifference * 10000;
-                            matchingEvent = scoringEventsOnBeat.Find(x => x.ID == noteID);
-                            scoringType = ScoringType.ArcHead;
-                            if(matchingEvent == null)
-                            {
-                                //It might also be an arc tail :smil
-                                noteID -= headTailDifference * 10000;
-                                scoringType = ScoringType.ArcTail;
-                            }
-                        }
-
-                        matchingEvent = scoringEventsOnBeat.Find(x => x.ID == noteID);
+                        //Unable to match the note with its "correct" ID, try brute forcing all scoring types
+                        matchingEvent = ScoringEvent.BruteForceMatchNote(scoringEventsOnBeat, ref scoringType, noteID, hasTail, hasHead, newNote.IsChainHead);
                     }
 
                     if(matchingEvent == null || matchingEvent.noteEventType == NoteEventType.miss)
@@ -727,6 +589,7 @@ public class ObjectManager : MonoBehaviour
                     scoringEventsOnBeat.Remove(matchingEvent);
                 }
 
+                notesAtPos.Add((n.x, n.y, n.c), newNote);
                 newNotes.Add(newNote);
             }
 
@@ -800,6 +663,13 @@ public class ObjectManager : MonoBehaviour
             {
                 Chain newChain = new Chain(b);
 
+                //Chains inherit the StartY from the attached note
+                if(notesAtPos.TryGetValue((b.x, b.y, b.c), out Note n))
+                {
+                    newChain.StartY = n.StartY;
+                }
+                else newChain.StartY = Instance.objectFloorOffset;
+
                 //Arcs can attach to chain tails
                 foreach(BeatmapSliderEnd a in sliderEndsOnBeat)
                 {
@@ -818,10 +688,6 @@ public class ObjectManager : MonoBehaviour
                 Wall newWall = new Wall(o);
                 walls.Add(newWall);
             }
-
-            //This is necessary because negative duration objects won't be sorted properly
-            walls.SortElementsByBeat();
-            arcs.SortElementsByBeat();
         }
 
         // pair slider heads/tails back up and make final arcs
@@ -852,6 +718,10 @@ public class ObjectManager : MonoBehaviour
 
             arcs.Add(newArc);
         }
+
+        //This is necessary because negative duration objects won't be sorted properly
+        walls.SortElementsByBeat();
+        arcs.SortElementsByBeat();
     }
 
 
@@ -860,7 +730,7 @@ public class ObjectManager : MonoBehaviour
         if(Instance && Instance != this)
         {
             Debug.Log("Duplicate ObjectManager in scene.");
-            this.enabled = false;
+            enabled = false;
         }
         else Instance = this;
     }
@@ -893,6 +763,8 @@ public abstract class MapObject : MapElement
     public GameObject Visual;
     public Vector2 Position;
     public Color? CustomColor;
+    public float? CustomNJS;
+    public float? CustomRT;
 }
 
 
@@ -928,14 +800,26 @@ public abstract class BaseSlider : MapObject
 public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
 {
     public MapElementList<T> Objects = new MapElementList<T>();
+    public MapElementList<T> CustomRTObjects = new MapElementList<T>();
     public List<T> RenderedObjects = new List<T>();
 
     public ObjectManager objectManager => ObjectManager.Instance;
+    public JumpManager jumpManager => objectManager.jumpManager;
 
     public abstract void UpdateVisual(T visual);
     public abstract bool VisualInSpawnRange(T visual);
     public abstract void ReleaseVisual(T visual);
-    public abstract void UpdateVisuals();
+
+    public abstract void UpdateObjects(MapElementList<T> objects);
+    public abstract float GetSpawnTime(T visual);
+
+
+    public virtual void UpdateVisuals()
+    {
+        ClearOutsideVisuals();
+        UpdateObjects(Objects);
+        UpdateObjects(CustomRTObjects);
+    }
 
 
     public virtual void ClearOutsideVisuals()
@@ -962,5 +846,5 @@ public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
     }
 
 
-    public int GetStartIndex(float currentTime) => Objects.GetFirstIndex(currentTime, VisualInSpawnRange);
+    public int GetStartIndex(float currentTime, MapElementList<T> objects) => objects.GetFirstIndex(currentTime, VisualInSpawnRange);
 }

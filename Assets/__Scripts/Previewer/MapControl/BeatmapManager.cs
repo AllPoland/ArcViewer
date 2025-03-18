@@ -2,20 +2,11 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Collections;
 
 public class BeatmapManager : MonoBehaviour
 {
     public static List<Difficulty> Difficulties = new List<Difficulty>();
-
-    public static List<Difficulty> StandardDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Standard);
-    public static List<Difficulty> OneSaberDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.OneSaber);
-    public static List<Difficulty> NoArrowsDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.NoArrows);
-    public static List<Difficulty> ThreeSixtyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.ThreeSixty);
-    public static List<Difficulty> NinetyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Ninety);
-    public static List<Difficulty> LegacyDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Legacy);
-    public static List<Difficulty> LightshowDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lightshow);
-    public static List<Difficulty> LawlessDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Lawless);
-    public static List<Difficulty> UnknownDifficulties => GetDifficultiesByCharacteristic(DifficultyCharacteristic.Unknown);
 
     private static BeatmapInfo _info = new BeatmapInfo();
     public static BeatmapInfo Info
@@ -47,29 +38,37 @@ public class BeatmapManager : MonoBehaviour
 
             SpawnOffset = _currentDifficulty.spawnOffset;
             NJS = _currentDifficulty.noteJumpSpeed;
-            if(NJS == 0)
+            if(Mathf.Approximately(NJS, 0f))
             {
                 switch(_currentDifficulty.difficultyRank)
                 {
+                    default:
                     case DifficultyRank.Easy:
                     case DifficultyRank.Normal:
                     case DifficultyRank.Hard:
-                        NJS = 10;
+                        NJS = 10f;
                         break;
                     case DifficultyRank.Expert:
-                        NJS = 12;
+                        NJS = 12f;
                         break;
                     case DifficultyRank.ExpertPlus:
-                        NJS = 16;
+                        NJS = 16f;
                         break;
                 }
             }
+
+            DefaultHJD = 4;
+            while(GetJumpDistance(DefaultHJD, Info.audio.bpm, NJS) > 35.998f)
+            {
+                DefaultHJD /= 2;
+            }
+
             if(ReplayManager.IsReplayMode)
             {
-                defaultJumpDistance = ReplayManager.CurrentReplay.info.jumpDistance;
+                DefaultJumpDistance = ReplayManager.CurrentReplay.info.jumpDistance;
             }
-            else defaultJumpDistance = GetJumpDistance(HJD, Info.audio.bpm, NJS);
-            JumpDistance = defaultJumpDistance;
+            else DefaultJumpDistance = GetJumpDistance(HJD, Info.audio.bpm, NJS);
+            JumpDistance = DefaultJumpDistance;
 
             MappingExtensions = _currentDifficulty.requirements.Contains("Mapping Extensions");
             NoodleExtensions = _currentDifficulty.requirements.Contains("Noodle Extensions");
@@ -92,7 +91,9 @@ public class BeatmapManager : MonoBehaviour
 
     public static bool MappingExtensions { get; private set; }
     public static bool NoodleExtensions { get; private set; }
-    public static float defaultJumpDistance { get; private set; }
+
+    public static float DefaultHJD { get; private set; }
+    public static float DefaultJumpDistance { get; private set; }
 
     public static float SpawnOffset;
 
@@ -124,28 +125,19 @@ public class BeatmapManager : MonoBehaviour
     public static float HJD => Mathf.Max(DefaultHJD + SpawnOffset, 0.25f);
     public static float ReactionTime => JumpDistance / 2 / NJS;
 
-    private static float DefaultHJD
-    {
-        get
-        {
-            float value = 4;
-
-            float JD = GetJumpDistance(value, Info.audio.bpm, NJS);
-            while(JD > 35.998f)
-            {
-                value /= 2;
-                JD = GetJumpDistance(value, Info.audio.bpm, NJS);
-            }
-            
-            return value;
-        }
-    }
-
 
     public static float GetJumpDistance(float HJD, float BPM, float NJS)
     {
-        float RT = (60 / BPM) * HJD;
+        float RT = 60f / BPM * HJD;
         return NJS * 2 * RT;
+    }
+
+
+    public static float GetCustomRT(float customOffset)
+    {
+        float hjd = DefaultHJD + customOffset;
+        float bpm = Info.audio.bpm;
+        return 60f / bpm * hjd;
     }
 
 
@@ -161,48 +153,35 @@ public class BeatmapManager : MonoBehaviour
     }
 
 
+    private static Difficulty GetDefaultDifficultyFromCharacteristic(List<Difficulty> difficulties)
+    {
+        Difficulty max = null;
+        foreach(Difficulty difficulty in difficulties)
+        {
+            if(max == null || difficulty.difficultyRank > max.difficultyRank)
+            {
+                max = difficulty;
+            }
+        }
+        return max;
+    }
+
+
     public static Difficulty GetDefaultDifficulty()
     {
-        //Else if chains my behated (I can't think of a better way to do this)
         if(Difficulties.Count == 0)
         {
             return Difficulty.Empty;
         }
-        else if(StandardDifficulties.Count > 0)
+
+        IEnumerable<DifficultyCharacteristic> characteristics = Enum.GetValues(typeof(DifficultyCharacteristic)).Cast<DifficultyCharacteristic>();
+        foreach(DifficultyCharacteristic characteristic in characteristics)
         {
-            return StandardDifficulties.Last();
-        }
-        else if(OneSaberDifficulties.Count > 0)
-        {
-            return OneSaberDifficulties.Last();
-        }
-        else if(NoArrowsDifficulties.Count > 0)
-        {
-            return NoArrowsDifficulties.Last();
-        }
-        else if(ThreeSixtyDifficulties.Count > 0)
-        {
-            return ThreeSixtyDifficulties.Last();
-        }
-        else if(NinetyDifficulties.Count > 0)
-        {
-            return NinetyDifficulties.Last();
-        }
-        else if(LegacyDifficulties.Count > 0)
-        {
-            return LegacyDifficulties.Last();
-        }
-        else if(LightshowDifficulties.Count > 0)
-        {
-            return LightshowDifficulties.Last();
-        }
-        else if(LawlessDifficulties.Count > 0)
-        {
-            return LawlessDifficulties.Last();
-        }
-        else if(UnknownDifficulties.Count > 0)
-        {
-            return UnknownDifficulties.Last();
+            List<Difficulty> difficulties = GetDifficultiesByCharacteristic(characteristic);
+            if(difficulties.Count > 0)
+            {
+                return GetDefaultDifficultyFromCharacteristic(difficulties);
+            }
         }
 
         return Difficulty.Empty;

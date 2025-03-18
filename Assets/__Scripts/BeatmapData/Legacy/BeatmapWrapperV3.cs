@@ -15,6 +15,8 @@ public class BeatmapWrapperV3 : BeatmapDifficulty
     public override BeatmapElementList<BeatmapSlider> Arcs => sliders;
     public override BeatmapElementList<BeatmapBurstSlider> Chains => burstSliders;
 
+    public override BeatmapElementList<BeatmapNjsEvent> NjsEvents => njsEvents;
+
     public override BeatmapElementList<BeatmapBasicBeatmapEvent> BasicEvents => basicBeatMapEvents;
     public override BeatmapElementList<BeatmapColorBoostBeatmapEvent> BoostEvents => colorBoostBeatMapEvents;
 
@@ -27,6 +29,8 @@ public class BeatmapWrapperV3 : BeatmapDifficulty
     private BeatmapElementArray<BeatmapObstacle> obstacles;
     private BeatmapElementArray<BeatmapSlider> sliders;
     private BeatmapElementArray<BeatmapBurstSlider> burstSliders;
+
+    private BeatmapElementArray<BeatmapNjsEvent> njsEvents;
 
     private BeatmapElementArray<BeatmapBasicBeatmapEvent> basicBeatMapEvents;
     private BeatmapElementArray<BeatmapColorBoostBeatmapEvent> colorBoostBeatMapEvents;
@@ -57,6 +61,8 @@ public class BeatmapWrapperV3 : BeatmapDifficulty
         obstacles = Beatmap.obstacles;
         sliders = Beatmap.sliders;
         burstSliders = Beatmap.burstSliders;
+
+        njsEvents = new BeatmapElementArray<BeatmapNjsEvent>();
 
         basicBeatMapEvents = Beatmap.basicBeatMapEvents;
         colorBoostBeatMapEvents = Beatmap.colorBoostBeatMapEvents;
