@@ -1,20 +1,20 @@
 var SongController = {
 
     InitSongController: function (volume) {
-        if (typeof AudioCtx === 'undefined') {
-            AudioCtx = new AudioContext();
+        if (typeof SongCtx === 'undefined') {
+            SongCtx = new AudioContext();
         }
 
         this.playing = false;
         this.volume = volume;
         this.playbackSpeed = 1;
-        this.lastPlayed = AudioCtx.currentTime;
+        this.lastPlayed = SongCtx.currentTime;
         this.soundStartTime = 0;
         this.soundOffset = 0;
 
-        this.gainNode = AudioCtx.createGain();
-        this.gainNode.gain.setValueAtTime(0.0001, AudioCtx.currentTime);
-        this.gainNode.connect(AudioCtx.destination);
+        this.gainNode = SongCtx.createGain();
+        this.gainNode.gain.setValueAtTime(0.0001, SongCtx.currentTime);
+        this.gainNode.connect(SongCtx.destination);
 
         if (this.volume < 0.0001) {
             this.volume = 0.0001;
@@ -26,7 +26,7 @@ var SongController = {
             return;
         }
 
-        if (this.clipPlaying) {
+        if (this.playing) {
             this.clip.stop();
             this.clip.disconnect(this.gainNode);
         }
@@ -35,7 +35,6 @@ var SongController = {
         delete (this.clip);
 
         this.playing = false;
-        this.clipPlaying = false;
     },
 
     UploadSongData: function (data, dataLength, isOgg, gameObjectName, methodName) {
@@ -48,14 +47,14 @@ var SongController = {
         gameObjectName = UTF8ToString(gameObjectName);
         methodName = UTF8ToString(methodName);
 
-        let decodeFunction = (data, callback, errorCallback) => AudioCtx.decodeAudioData(data, callback, errorCallback);
+        let decodeFunction = (data, callback, errorCallback) => SongCtx.decodeAudioData(data, callback, errorCallback);
         if (isOgg && isSafari) {
             console.log("Using custom OggDecode module for Safari.");
-            decodeFunction = (data, callback, errorCallback) => AudioCtx.decodeOggData(data, callback, errorCallback);
+            decodeFunction = (data, callback, errorCallback) => SongCtx.decodeOggData(data, callback, errorCallback);
         }
 
         if (this.clip) {
-            if (this.clipPlaying) {
+            if (this.playing) {
                 this.clip.stop();
                 this.clip.disconnect(this.gainNode);
             }
@@ -64,12 +63,11 @@ var SongController = {
             delete (this.clip);
 
             this.playing = false;
-            this.clipPlaying = false;
         }
 
         decodeFunction(byteArray.buffer,
             (decodedData) => {
-                const newClip = AudioCtx.createBufferSource();
+                const newClip = SongCtx.createBufferSource();
                 newClip.buffer = decodedData;
 
                 this.clip = newClip;
@@ -94,28 +92,26 @@ var SongController = {
             return;
         }
 
-        this.gainNode.gain.setValueAtTime(0.0001, AudioCtx.currentTime);
+        this.gainNode.gain.setValueAtTime(0.0001, SongCtx.currentTime);
         if (this.volume > 0.0001) {
-            this.gainNode.gain.exponentialRampToValueAtTime(this.volume, AudioCtx.currentTime + 0.1);
+            this.gainNode.gain.exponentialRampToValueAtTime(this.volume, SongCtx.currentTime + 0.075);
         }
 
-        //Make sure the clip stops entirely
-        const clip = this.clip;
-        if (this.clipPlaying) {
-            clip.stop();
-            clip.disconnect(this.gainNode);
-        }
+        //Create a new clip to play because after it plays it's forfeit
+        const newClip = SongCtx.createBufferSource();
 
-        //Create a new clip to play because apparently once it plays it's forfeit
-        const newClip = AudioCtx.createBufferSource();
-
-        newClip.buffer = clip.buffer;
+        newClip.buffer = this.clip.buffer;
         newClip.playbackRate.value = this.playbackSpeed;
+        newClip.connect(this.gainNode);
+
+        //Schedule the music to start playing 35ms in the future to avoid desync
+        this.lastPlayed = SongCtx.currentTime + 0.035;
+        this.soundStartTime = time;
 
         let startTime = time + this.soundOffset;
         if (startTime >= 0) {
             //Start the clip normally
-            newClip.start(0, startTime);
+            newClip.start(this.lastPlayed, startTime);
         }
         else {
             //Schedule the sound to be played ahead of time if playing at negative time
@@ -126,16 +122,11 @@ var SongController = {
             else startTime = 0;
 
             //Subtract startTime here because it's negative
-            newClip.start(AudioCtx.currentTime - startTime, 0);
+            newClip.start(this.lastPlayed - startTime, 0);
         }
-        newClip.connect(this.gainNode);
 
-        delete (clip);
+        delete (this.clip);
         this.clip = newClip;
-        this.clipPlaying = true;
-
-        this.soundStartTime = time;
-        this.lastPlayed = AudioCtx.currentTime;
         this.playing = true;
     },
 
@@ -144,24 +135,37 @@ var SongController = {
             return;
         }
 
-        this.gainNode.gain.setValueAtTime(this.volume, AudioCtx.currentTime);
-        this.gainNode.gain.exponentialRampToValueAtTime(0.0001, AudioCtx.currentTime + 0.1);
+        this.gainNode.gain.setValueAtTime(this.volume, SongCtx.currentTime);
+        this.gainNode.gain.exponentialRampToValueAtTime(0.0001, SongCtx.currentTime + 0.075);
 
         const clip = this.clip;
+        const wasPlaying = this.playing;
+        const oldGain = this.gainNode;
+        const oldCtx = SongCtx;
+
+        //Create a new audio context to avoid desync stemming from AudioContext.currentTime
+        SongCtx = new AudioContext();
+        this.gainNode = SongCtx.createGain();
+        this.gainNode.gain.setValueAtTime(0.0001, SongCtx.currentTime);
+        this.gainNode.connect(SongCtx.destination);
+
         this.playing = false;
         setTimeout(function () {
-            //Don't stop the song if we've started playing again
-            //This is pretty common when scrubbing through the track
-            if (!this.playing && this.clip && this.clipPlaying) {
+            if (clip && wasPlaying) {
                 clip.stop();
-                clip.disconnect(this.gainNode);
-                this.clipPlaying = false;
+                clip.disconnect(oldGain);
             }
-        }, 100);
+
+            oldGain.disconnect(oldCtx.destination);
+
+            delete (oldGain);
+            oldCtx.close();
+            delete (oldCtx);
+        }, 75);
     },
 
     GetSongTime: function () {
-        const passedTime = AudioCtx.currentTime - this.lastPlayed;
+        const passedTime = SongCtx.currentTime - this.lastPlayed;
         return this.soundStartTime + (passedTime * this.playbackSpeed);
     },
 
@@ -185,18 +189,18 @@ var SongController = {
         }
 
         if (this.playing) {
-            this.gainNode.gain.setValueAtTime(volume, AudioCtx.currentTime);
+            this.gainNode.gain.setValueAtTime(volume, SongCtx.currentTime);
         }
     },
 
     SetSongPlaybackSpeed: function (speed) {
         if (this.playing) {
-            this.clip.playbackRate.value = speed;
-
-            const passedTime = AudioCtx.currentTime - this.lastPlayed;
+            const passedTime = (SongCtx.currentTime - this.lastPlayed) + 0.035;
             let time = soundStartTime + (passedTime * this.playbackSpeed);
 
+            this.lastPlayed = SongCtx.currentTime + 0.035;
             let startTime = time + this.soundOffset;
+
             if (startTime < 0) {
                 //The sound is scheduled, but hasn't played yet. Reschedule, accounting for the new playback speed
                 //This fixes a very niche bug where changing playback speed with negative offset,
@@ -205,28 +209,37 @@ var SongController = {
                 clip.stop();
                 clip.disconnect(this.gainNode);
 
-                const newClip = AudioCtx.createBufferSource();
+                this.gainNode.disconnect(SongCtx.destination);
+                delete (this.gainNode);
+                SongCtx.close();
+                delete (SongCtx);
+
+                SongCtx = new AudioContext();
+                this.gainNode = SongCtx.createGain();
+                this.gainNode.gain.setValueAtTime(this.volume, SongCtx.currentTime);
+                this.gainNode.connect(SongCtx.destination);
+
+                const newClip = SongCtx.createBufferSource();
                 newClip.buffer = clip.buffer;
                 newClip.playbackRate.value = speed;
 
-                if (speed > 0) {
-                    //Account for playback speed, but don't divide by 0
-                    startTime /= speed;
-                }
-                else startTime = 0;
+                startTime /= speed;
 
                 //Subtract startTime here because it's negative
-                newClip.start(AudioCtx.currentTime - startTime, 0);
+                newClip.start(this.lastPlayed - startTime, 0);
                 newClip.connect(this.gainNode);
 
                 delete (this.clip);
                 this.clip = newClip;
             }
+            else {
+                this.clip.playbackRate.setValueAtTime(speed, this.lastPlayed);
+            }
 
             this.soundStartTime = time;
         }
+
         this.playbackSpeed = speed;
-        this.lastPlayed = AudioCtx.currentTime;
     },
 
     GetSongPlaybackSpeed: function () {

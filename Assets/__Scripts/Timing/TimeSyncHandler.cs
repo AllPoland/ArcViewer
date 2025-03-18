@@ -12,36 +12,37 @@ public class TimeSyncHandler : MonoBehaviour
         {
             _speed = value;
             OnTimeScaleChanged?.Invoke(value);
+            CheckSync();
         }
     }
 
     public static Action<float> OnTimeScaleChanged;
 
-    [SerializeField] private float timeWarpMult;
-    [SerializeField] private float forceAlignTime;
+    private const float timeWarpMult = 1f;
+    private const float maxTimeWarp = 0.5f;
 
 
-    public void CheckSync()
+    public static void CheckSync()
     {
-        if(!TimeManager.Playing) return;
+        if(!TimeManager.Playing)
+        {
+            return;
+        }
 
+        //Warp the map time scale slightly to keep it on track with the music
         float musicTime = SongManager.GetSongTime();
         float mapTime = TimeManager.CurrentTime;
 
         float discrepancy = mapTime - musicTime;
-        float absDiscrepancy = Mathf.Abs(discrepancy);
+        float timeWarp = discrepancy * timeWarpMult;
+        TimeManager.TimeScale = TimeScale - (timeWarp * TimeScale);
 
-        if(absDiscrepancy >= forceAlignTime || TimeScale == 0)
+        if(Mathf.Abs(1f - (TimeManager.TimeScale / TimeScale)) >= maxTimeWarp)
         {
             //Immediately snap back in sync if we're way off
-            //Debug.Log($"Force correcting by {discrepancy}");
             TimeManager.CurrentTime = musicTime;
-        }
-        
-        //Warp the map time scale slightly to keep it on track
-        float timeWarp = discrepancy * timeWarpMult;
-        TimeManager.TimeScale = TimeScale - timeWarp;
-        
+            TimeManager.TimeScale = 1f;
+        }  
     }
 
 
