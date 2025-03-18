@@ -82,10 +82,20 @@ public class StatsPanel : MonoBehaviour
     }
 
 
+    private void UpdateSettings(string setting)
+    {
+        if(setting == "all" || setting == "variablenjs")
+        {
+            UpdateCurrentNJS();
+        }
+    }
+
+
     private void OnEnable()
     {
         MapStats.OnStatsUpdated += UpdateText;
         TimeManager.OnBeatChanged += UpdateBeat;
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
 
         UpdateText();
         UpdateCurrentNJS();
@@ -97,5 +107,6 @@ public class StatsPanel : MonoBehaviour
     {
         MapStats.OnStatsUpdated -= UpdateText;
         TimeManager.OnBeatChanged -= UpdateBeat;
+        SettingsManager.OnSettingsUpdated -= UpdateSettings;
     }
 }
