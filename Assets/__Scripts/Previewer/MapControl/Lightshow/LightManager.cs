@@ -514,12 +514,13 @@ public class LightManager : MonoBehaviour
                 rightLaserSpeedEvents.Add(new LaserSpeedEvent(beatmapEvent));
                 break;
             case LightEventType.RingSpin:
+                EnvironmentLightParameters envParams = EnvironmentManager.DefaultEnvironmentParameters;
                 //Account for name filters for rotation events that only effect big/small rings
-                if(string.IsNullOrEmpty(beatmapEvent.customData?.nameFilter) || beatmapEvent.customData.nameFilter == "SmallTrackLaneRings")
+                if(string.IsNullOrEmpty(beatmapEvent.customData?.nameFilter) || envParams.SmallRingNameFilters.Contains(beatmapEvent.customData.nameFilter))
                 {
                     RingManager.SmallRingRotationEvents.Add(new RingRotationEvent(beatmapEvent, false));
                 }
-                if(string.IsNullOrEmpty(beatmapEvent.customData?.nameFilter) || beatmapEvent.customData.nameFilter == "BigTrackLaneRings")
+                if(string.IsNullOrEmpty(beatmapEvent.customData?.nameFilter) || envParams.BigRingNameFilters.Contains(beatmapEvent.customData.nameFilter))
                 {
                     RingManager.BigRingRotationEvents.Add(new RingRotationEvent(beatmapEvent, true));
                 }
