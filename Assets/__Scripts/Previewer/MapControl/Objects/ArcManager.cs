@@ -240,8 +240,10 @@ public class ArcManager : MapElementManager<Arc>
         Vector3 p1Dist = (p1 - midPoint).Abs();
         Vector3 p2Dist = (p2 - midPoint).Abs();
 
-        bool equalXOffset = p1.x.Approximately(p2.x);
-        bool equalYOffset = p1.y.Approximately(p2.y);
+        Vector3 p1Offset = p1 - p0;
+        Vector3 p2Offset = p2 - p3;
+        bool equalXOffset = p1Offset.x.Approximately(p2Offset.x);
+        bool equalYOffset = p1Offset.y.Approximately(p2Offset.y);
 
         //Offset the middle control point based on distances from head and tail control points
         //Don't offset a coordinate if the end control point offsets are equal
