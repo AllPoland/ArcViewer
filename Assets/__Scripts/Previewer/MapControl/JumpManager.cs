@@ -233,7 +233,7 @@ public class JumpManager : MonoBehaviour
     }
 
 
-    private void UpdateDifficulty(Difficulty newDifficulty)
+    public void UpdateDifficulty(Difficulty newDifficulty)
     {
         NjsEvents.Clear();
 
@@ -249,7 +249,6 @@ public class JumpManager : MonoBehaviour
 
     private void Start()
     {
-        TimeManager.OnDifficultyBpmEventsLoaded += UpdateDifficulty;
         TimeManager.OnBeatChangedEarly += UpdateNjs;
     }
 }

@@ -75,27 +75,9 @@ public class StatsPanel : MonoBehaviour
     }
 
 
-    private void UpdateBeat(float beat)
-    {
-        UpdateCurrentNJS();
-        UpdateCurrentBPM();
-    }
-
-
-    private void UpdateSettings(string setting)
-    {
-        if(setting == "all" || setting == "variablenjs")
-        {
-            UpdateCurrentNJS();
-        }
-    }
-
-
     private void OnEnable()
     {
         MapStats.OnStatsUpdated += UpdateText;
-        TimeManager.OnBeatChanged += UpdateBeat;
-        SettingsManager.OnSettingsUpdated += UpdateSettings;
 
         UpdateText();
         UpdateCurrentNJS();
@@ -106,7 +88,12 @@ public class StatsPanel : MonoBehaviour
     private void OnDisable()
     {
         MapStats.OnStatsUpdated -= UpdateText;
-        TimeManager.OnBeatChanged -= UpdateBeat;
-        SettingsManager.OnSettingsUpdated -= UpdateSettings;
+    }
+
+
+    private void LateUpdate()
+    {
+        UpdateCurrentNJS();
+        UpdateCurrentBPM();
     }
 }

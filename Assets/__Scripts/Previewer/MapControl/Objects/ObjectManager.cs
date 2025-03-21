@@ -246,6 +246,8 @@ public class ObjectManager : MonoBehaviour
     {
         HitSoundManager.ClearScheduledSounds();
 
+        jumpManager.UpdateDifficulty(difficulty);
+
         LoadMapObjects(difficulty.beatmapDifficulty, out noteManager.Objects, out bombManager.Objects, out chainManager.Chains, out arcManager.Objects, out wallManager.Objects);
 
         noteManager.ReloadNotes();
