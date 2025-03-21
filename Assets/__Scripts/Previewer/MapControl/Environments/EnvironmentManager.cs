@@ -101,6 +101,7 @@ public class EnvironmentManager : MonoBehaviour
     };
 
     public static EnvironmentLightParameters CurrentEnvironmentParameters = new EnvironmentLightParameters();
+    public static EnvironmentLightParameters DefaultEnvironmentParameters = new EnvironmentLightParameters();
 
     [SerializeField] private EnvironmentLightParameters[] EnvironmentParameters;
 
@@ -200,8 +201,26 @@ public class EnvironmentManager : MonoBehaviour
 
     private void UpdateDifficulty(Difficulty difficulty)
     {
-        Debug.Log($"Map has environment: {BeatmapManager.EnvironmentName}");
-        SetEnvironment(BeatmapManager.EnvironmentName);
+        string environmentName = BeatmapManager.EnvironmentName;
+        Debug.Log($"Map has environment: {environmentName}");
+
+        if(duplicateEnvironments.ContainsKey(environmentName))
+        {
+            //Some environments look identical, so the same scene gets loaded for them
+            environmentName = duplicateEnvironments[environmentName];
+        }
+
+        try
+        {
+            DefaultEnvironmentParameters = EnvironmentParameters.First(x => x.EnvironmentName == environmentName);
+        }
+        catch(InvalidOperationException)
+        {
+            //Missing parameters for this environment
+            DefaultEnvironmentParameters = new EnvironmentLightParameters();
+        }
+
+        SetEnvironment(environmentName);
     }
 
 
@@ -255,4 +274,8 @@ public class EnvironmentLightParameters
     public float CloseZoomStep = 2f;
     public float FarZoomStep = 5f;
     public bool StartRingZoomParity = true;
+
+    [Space]
+    public string[] SmallRingNameFilters = {"SmallTrackLaneRings"};
+    public string[] BigRingNameFilters = {"BigTrackLaneRings"};
 }

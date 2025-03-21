@@ -246,6 +246,8 @@ public class ObjectManager : MonoBehaviour
     {
         HitSoundManager.ClearScheduledSounds();
 
+        jumpManager.UpdateDifficulty(difficulty);
+
         LoadMapObjects(difficulty.beatmapDifficulty, out noteManager.Objects, out bombManager.Objects, out chainManager.Chains, out arcManager.Objects, out wallManager.Objects);
 
         noteManager.ReloadNotes();
@@ -487,7 +489,14 @@ public class ObjectManager : MonoBehaviour
             }
 
             //Precalculate values for all objects on this beat
-            Dictionary<(int, int, int), Note> notesAtPos = new Dictionary<(int, int, int), Note>();
+
+            //Start by generating the list of chains so notes can attach to them
+            List<Chain> newChains = new List<Chain>();
+            for(int bi = 0; bi < burstSlidersOnBeat.Count; bi++)
+            {
+                newChains.Add(new Chain(burstSlidersOnBeat[bi]));
+            }
+
             List<Note> newNotes = new List<Note>();
             (float? redSnapAngle, float? blueSnapAngle) = NoteManager.GetSnapAngles(notesOnBeat);
 
@@ -499,7 +508,13 @@ public class ObjectManager : MonoBehaviour
                 Note newNote = new Note(n);
                 newNote.StartY = ((float)NoteManager.GetStartY(n, notesAndBombs) * StartYSpacing) + Instance.objectFloorOffset;
 
-                newNote.IsChainHead = NoteManager.CheckChainHead(n, burstSlidersOnBeat);
+                Chain attachedChain = NoteManager.CheckChainHead(n, burstSlidersOnBeat, newChains);
+                if(attachedChain != null)
+                {
+                    //This note is a chain head, let the chain inherit this note's startY
+                    newNote.IsChainHead = true;
+                    attachedChain.StartY = newNote.StartY;
+                }
                 chainAttachment |= newNote.IsChainHead;
 
                 // set angle snapping here because angle offset is an int in ColorNote
@@ -589,7 +604,6 @@ public class ObjectManager : MonoBehaviour
                     scoringEventsOnBeat.Remove(matchingEvent);
                 }
 
-                notesAtPos.Add((n.x, n.y, n.c), newNote);
                 newNotes.Add(newNote);
             }
 
@@ -659,29 +673,22 @@ public class ObjectManager : MonoBehaviour
                 bombs.Add(newBomb);
             }
 
-            foreach(BeatmapBurstSlider b in burstSlidersOnBeat)
+            //Check arc attachment to chain tails
+            for(int bi = 0; bi < burstSlidersOnBeat.Count; bi++)
             {
-                Chain newChain = new Chain(b);
+                BeatmapBurstSlider b = burstSlidersOnBeat[bi];
+                Chain chain = newChains[bi];
 
-                //Chains inherit the StartY from the attached note
-                if(notesAtPos.TryGetValue((b.x, b.y, b.c), out Note n))
-                {
-                    newChain.StartY = n.StartY;
-                }
-                else newChain.StartY = Instance.objectFloorOffset;
-
-                //Arcs can attach to chain tails
                 foreach(BeatmapSliderEnd a in sliderEndsOnBeat)
                 {
                     if(!a.HasAttachment && a.AttachToObject(b))
                     {
-                        a.StartY = Instance.objectFloorOffset;
+                        a.StartY = chain.StartY;
                         a.HasAttachment = true;
                     }
                 }
-
-                chains.Add(newChain);
             }
+            chains.AddRange(newChains);
 
             foreach(BeatmapObstacle o in obstaclesOnBeat)
             {
