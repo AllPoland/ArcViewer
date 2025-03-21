@@ -217,7 +217,6 @@ public class EnvironmentManager : MonoBehaviour
         catch(InvalidOperationException)
         {
             //Missing parameters for this environment
-            Debug.LogWarning($"Missing environment parameters for {environmentName}!");
             DefaultEnvironmentParameters = new EnvironmentLightParameters();
         }
 
