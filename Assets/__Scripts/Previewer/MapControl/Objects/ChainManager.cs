@@ -381,6 +381,7 @@ public class Chain : BaseSlider
         Position = headPosition;
         Color = b.c;
         Angle = angle;
+        StartY = ObjectManager.Instance.objectFloorOffset;
         TailBeat = b.tb;
         TailPosition = tailPosition;
         SegmentCount = b.sc;

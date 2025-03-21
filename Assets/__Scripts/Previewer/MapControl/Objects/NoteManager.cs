@@ -395,17 +395,36 @@ public class NoteManager : MapElementManager<Note>
     }
 
 
-    public static bool CheckChainHead(BeatmapColorNote n, List<BeatmapBurstSlider> sameBeatBurstSliders)
+    public static Chain CheckChainHead(BeatmapColorNote n, List<BeatmapBurstSlider> sameBeatBurstSliders, List<Chain> sameBeatChains)
     {
-        foreach(BeatmapBurstSlider c in sameBeatBurstSliders)
+        float[] coordinates = n.customData?.coordinates;
+        for(int i = 0; i < sameBeatBurstSliders.Count; i++)
         {
+            BeatmapBurstSlider c = sameBeatBurstSliders[i];
+            
             if(c.x == n.x && c.y == n.y && c.c == n.c)
             {
-                return true;
+                return sameBeatChains[i];
+            }
+
+            float[] chainCoords = c.customData?.coordinates;
+            if(chainCoords != null && chainCoords.Length >= 2)
+            {
+                if(coordinates != null && coordinates.Length >= 2)
+                {
+                    if(coordinates[0].Approximately(chainCoords[0]) && coordinates[1].Approximately(chainCoords[1]))
+                    {
+                        return sameBeatChains[i];
+                    }
+                }
+                else if(Mathf.RoundToInt(chainCoords[0] + 2) == n.x && Mathf.RoundToInt(chainCoords[1] + 2) == n.y)
+                {
+                    return sameBeatChains[i];
+                }
             }
         }
 
-        return false;
+        return null;
     }
 
 
