@@ -76,22 +76,22 @@ public abstract class BeatmapObject
     public abstract void Mirror();
 
 
-    public int MirrorPosition(int x)
+    public int MirrorPosition(int p)
     {
-        if(Mathf.Abs(x) >= 1000)
+        if(Mathf.Abs(p) >= 1000)
         {
-            float position = ObjectManager.MappingExtensionsPrecision(x);
+            float position = ObjectManager.MappingExtensionsPrecision(p);
             position = -(position - 2) + 1;
             return Mathf.RoundToInt((position * 1000) + Mathf.Sign(position) * 1000);
         }
-        else return -(x - 2) + 1;
+        else return -(p - 2) + 1;
     }
 
 
-    public float MirrorNoodlePosition(float x)
+    public float MirrorNoodlePosition(float p)
     {
         //Noodle coordinates are centered around the middle right column
-        return -(x + 0.5f) - 0.5f;
+        return -(p + 0.5f) - 0.5f;
     }
 
 
@@ -237,7 +237,7 @@ public class BeatmapSlider : BeatmapObject
         c = c == 1 ? 0 : 1;
         d = MirrorDirection(d);
 
-        tx = -(tx - 2) + 1;
+        tx = MirrorPosition(tx);
         tc = MirrorDirection(tc);
 
         m = m == 0 ? 0

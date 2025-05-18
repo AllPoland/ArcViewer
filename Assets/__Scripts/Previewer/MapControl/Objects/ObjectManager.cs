@@ -316,7 +316,7 @@ public class ObjectManager : MonoBehaviour
 
         public override void Mirror()
         {
-            x = -(x - 2) + 1;
+            x = MirrorPosition(x);
         }
 
 
@@ -368,11 +368,13 @@ public class ObjectManager : MonoBehaviour
     public static void LoadMapObjects(BeatmapDifficulty beatmapDifficulty, out MapElementList<Note> notes, out MapElementList<Bomb> bombs, out MapElementList<Chain> chains, out MapElementList<Arc> arcs, out MapElementList<Wall> walls)
     {
         // split arcs into heads and tails for easier processing
+        List<BeatmapSlider> beatmapSliders = new List<BeatmapSlider>();
         List<BeatmapSliderEnd> beatmapSliderHeads = new List<BeatmapSliderEnd>();
         List<BeatmapSliderEnd> beatmapSliderTails = new List<BeatmapSliderEnd>();
         for(int i = 0; i < beatmapDifficulty.Arcs.Length; i++)
         {
             BeatmapSlider a = beatmapDifficulty.Arcs[i];
+            beatmapSliders.Add(a);
 
             BeatmapSliderEnd head = new BeatmapSliderEnd
             {
@@ -411,7 +413,7 @@ public class ObjectManager : MonoBehaviour
         List<BeatmapObject> allObjects = new List<BeatmapObject>();
         allObjects.AddRange(beatmapDifficulty.Notes);
         allObjects.AddRange(beatmapDifficulty.Bombs);
-        allObjects.AddRange(beatmapDifficulty.Arcs);
+        allObjects.AddRange(beatmapSliders);
         allObjects.AddRange(beatmapDifficulty.Chains);
         allObjects.AddRange(beatmapDifficulty.Walls);
         allObjects.AddRange(beatmapSliderHeads);
@@ -705,7 +707,7 @@ public class ObjectManager : MonoBehaviour
             BeatmapSliderEnd head = beatmapSliderHeads[i];
             BeatmapSliderEnd tail = beatmapSliderTails[i];
 
-            Arc newArc = new Arc(beatmapDifficulty.Arcs[i]);
+            Arc newArc = new Arc(beatmapSliders[i]);
 
             if(head.HasAttachment)
             {
