@@ -238,7 +238,7 @@ public class Difficulty
         beatmapDifficulty = BeatmapDifficulty.GetDefault(),
         noteJumpSpeed = 0,
         spawnOffset = 0,
-        environmentName = "",
+        environmentName = "DefaultEnvironment",
         colorScheme = null,
         mappers = new string[0],
         lighters = new string[0],
