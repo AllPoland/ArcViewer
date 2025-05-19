@@ -80,12 +80,9 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
         currentCharacteristic = selectedCharacteristic;
         availableDifficulties = BeatmapManager.GetDifficultiesByCharacteristic(currentCharacteristic);
 
-        //Figure out the offset difficulty buttons should be placed on
-        //to line them up with the selected characteristic
-        int diffStartIndex = GetDifficultyStartIndex();
-
         //The button directly next to this characteristic should be selected
-        int selectedDiffIndex = currentCharacteristicIndex - diffStartIndex;
+        int selectedDiffIndex = currentCharacteristicIndex - GetDifficultyStartIndex();
+        selectedDiffIndex = Mathf.Clamp(selectedDiffIndex, 0, availableDifficulties.Count - 1);
         UpdateDifficultyButtons(availableDifficulties[selectedDiffIndex].difficultyRank);
     }
 
@@ -139,8 +136,8 @@ public class DifficultyButtonController : MonoBehaviour, IPointerEnterHandler, I
 
     private int GetDifficultyStartIndex()
     {
-        int diffCount = availableDifficulties.Count;
-        return Mathf.Max(currentCharacteristicIndex - (diffCount - 1), 0);
+        //Returns the minimum Y index to line the difficulties up with the selected characteristic
+        return Mathf.Max(currentCharacteristicIndex - (availableDifficulties.Count - 1), 0);
     }
 
 

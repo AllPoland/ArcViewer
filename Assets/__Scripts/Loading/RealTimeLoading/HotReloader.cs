@@ -97,7 +97,7 @@ public class HotReloader : MonoBehaviour
         DifficultyRank currentRank = currentDiff.difficultyRank;
 
         BeatmapManager.Info = mapData.Info;
-        BeatmapManager.Difficulties = mapData.Difficulties;
+        BeatmapManager.SetDifficulties(mapData.Difficulties);
 
         //Set the difficulty to the one matching the current characteristic and rank
         List<Difficulty> characteristicDiffs = BeatmapManager.GetDifficultiesByCharacteristic(currentCharacteristic);

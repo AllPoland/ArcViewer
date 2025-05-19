@@ -6,7 +6,7 @@ using Unity.Collections;
 
 public class BeatmapManager : MonoBehaviour
 {
-    public static List<Difficulty> Difficulties = new List<Difficulty>();
+    private static List<Difficulty> Difficulties = new List<Difficulty>();
 
     private static BeatmapInfo _info = new BeatmapInfo();
     public static BeatmapInfo Info
@@ -185,6 +185,13 @@ public class BeatmapManager : MonoBehaviour
         }
 
         return Difficulty.Empty;
+    }
+
+
+    public static void SetDifficulties(List<Difficulty> difficulties)
+    {
+        Difficulties.Clear();
+        Difficulties.AddRange(difficulties.OrderBy(x => x.difficultyRank));
     }
 
 
