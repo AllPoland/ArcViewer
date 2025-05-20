@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using B83.Image.GIF;
+using TreeckSabers;
 using UnityEngine;
 
 public class ReplayManager : MonoBehaviour
@@ -109,6 +110,9 @@ public class ReplayManager : MonoBehaviour
         {
             return;
         }
+
+        //Process custom replay data
+        TreeckSaberDecoder.ProcessReplay(newReplay);
 
         newReplay.notes.OrderBy(x => x.spawnTime);
         newReplay.pauses.OrderBy(x => x.time);
