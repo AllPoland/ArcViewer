@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace TreeckSabers
@@ -44,16 +43,16 @@ namespace TreeckSabers
         private const int expectedMagic = 1630166513;
 
 
-        private static int FindFrameIndexByTime(IReadOnlyList<Frame> frames, float songTime, int startFrom = 0)
+        private static int FindFrameIndexByTime(MapElementList<ReplayFrame> frames, float songTime, int startFrom = 0)
         {
-            var index = startFrom;
+            int index = startFrom;
 
-            if(songTime >= frames[index].time)
+            if(songTime >= frames[index].Time)
             {
                 //Search forwards
-                for (var i = index; i < frames.Count; ++i)
+                for(int i = index; i < frames.Count; ++i)
                 {
-                    if (songTime < frames[i].time) break;
+                    if(songTime < frames[i].Time) break;
                     index = i;
                 }
 
@@ -63,7 +62,7 @@ namespace TreeckSabers
             //Search backwards
             for(int i = index; i >= 0; --i)
             {
-                if (songTime > frames[i].time) break;
+                if(songTime > frames[i].Time) break;
                 index = i;
             }
 
@@ -71,14 +70,7 @@ namespace TreeckSabers
         }
 
 
-        private static void ApplyPose(PositionData saberTransform, ReeTransform trickTransform)
-        {
-            saberTransform.position = trickTransform.Position;
-            saberTransform.rotation = trickTransform.Rotation;
-        }
-
-
-        private static void ApplyTricks(ref List<Frame> frames, TricksReplay tricksReplay) {
+        private static void ApplyTricks(ref MapElementList<ReplayFrame> frames, TricksReplay tricksReplay) {
             int frameIndex = 0;
 
             foreach(TricksSegment segment in tricksReplay.LeftSaber.Segments)
@@ -86,7 +78,14 @@ namespace TreeckSabers
                 foreach(TricksFrame frame in segment.Frames)
                 {
                     frameIndex = FindFrameIndexByTime(frames, frame.SongTime, frameIndex);
-                    ApplyPose(frames[frameIndex].leftHand, frame.SaberPos);
+                    ReplayFrame targetFrame = frames[frameIndex];
+
+                    //Apply the trick position to the frame's custom data
+                    targetFrame.customData = new CustomFrameData
+                    {
+                        trickLeftSaberPosition = frame.SaberPos.Position,
+                        trickLeftSaberRotation = frame.SaberPos.Rotation
+                    };
                 }
             }
 
@@ -97,7 +96,12 @@ namespace TreeckSabers
                 foreach(TricksFrame frame in segment.Frames)
                 {
                     frameIndex = FindFrameIndexByTime(frames, frame.SongTime, frameIndex);
-                    ApplyPose(frames[frameIndex].rightHand, frame.SaberPos);
+                    ReplayFrame targetFrame = frames[frameIndex];
+
+                    //Create new custom data if it's missing, and apply the trick position
+                    targetFrame.customData ??= new CustomFrameData();
+                    targetFrame.customData.trickRightSaberPosition = frame.SaberPos.Position;
+                    targetFrame.customData.trickRightSaberRotation = frame.SaberPos.Rotation;
                 }
             }
         }
@@ -145,7 +149,7 @@ namespace TreeckSabers
         }
 
 
-        public static void ProcessReplay(Replay replay)
+        public static void ApplyFrames(Replay replay, ref MapElementList<ReplayFrame> frames)
         {
             if(!replay.customData.ContainsKey(key))
             {
@@ -180,7 +184,7 @@ namespace TreeckSabers
             }
 
             //Apply the trick frames to the main replay
-            ApplyTricks(ref replay.frames, tricksReplay);
+            ApplyTricks(ref frames, tricksReplay);
         }
     }
 }

@@ -20,13 +20,11 @@ public class SaberTrailMeshBuilder : MonoBehaviour
         float lifetime = SettingsManager.GetFloat("sabertraillength");
         float trailWidth = SettingsManager.GetFloat("sabertrailwidth");
         int segmentCount = SettingsManager.GetInt("sabertrailsegments");
+        float segmentLength = lifetime / segmentCount;
 
         mesh.Clear();
         vertices = new Vector3[segmentCount * 2];
         uvs = new Vector2[vertices.Length];
-
-        float segmentLength = lifetime / segmentCount;
-        float endTime = TimeManager.CurrentTime - lifetime;
 
         int faceCount = segmentCount - 1;
         int triangleCount = faceCount * 2;
@@ -59,10 +57,10 @@ public class SaberTrailMeshBuilder : MonoBehaviour
             float frameProgress = segmentTime - frame.Time;
             float t = frameProgress / frameDifference;
 
-            Vector3 currentPosition = isRightHand ? frame.rightSaberPosition : frame.leftSaberPosition;
-            Quaternion currentRotation = isRightHand ? frame.rightSaberRotation : frame.leftSaberRotation;
-            Vector3 nextPosition = isRightHand ? nextFrame.rightSaberPosition : nextFrame.leftSaberPosition;
-            Quaternion nextRotation = isRightHand ? nextFrame.rightSaberRotation : nextFrame.leftSaberRotation;
+            Vector3 currentPosition = isRightHand ? frame.GetRightSaberPos() : frame.GetLeftSaberPos();
+            Quaternion currentRotation = isRightHand ? frame.GetRightSaberRot() : frame.GetLeftSaberRot();
+            Vector3 nextPosition = isRightHand ? nextFrame.GetRightSaberPos() : nextFrame.GetLeftSaberPos();
+            Quaternion nextRotation = isRightHand ? nextFrame.GetRightSaberRot() : nextFrame.GetLeftSaberRot();
 
             Vector3 saberPosition = Vector3.Lerp(currentPosition, nextPosition, t);
             Quaternion saberRotation = Quaternion.Lerp(currentRotation, nextRotation, t);
