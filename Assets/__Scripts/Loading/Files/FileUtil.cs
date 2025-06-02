@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using UnityEngine;
 
-public class FileUtil
+public static class FileUtil
 {
     public static byte[] StreamToBytes(Stream sourceStream)
     {

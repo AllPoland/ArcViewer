@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -107,11 +108,9 @@ public class ZipReader : IMapDataLoader
 
     public async Task<LoadedMapData> GetMapData()
     {
-        BeatmapInfo info = null;
-
         MapLoader.LoadingMessage = "Loading Info.dat";
         await Task.Yield();
-        info = GetInfoData(Archive);
+        BeatmapInfo info = GetInfoData(Archive);
 
         if(info == null)
         {
@@ -133,6 +132,8 @@ public class ZipReader : IMapDataLoader
             Lightshows = await LightshowLoader.GetLightshowsAsync(info, null, Archive)
         };
         mapData.Difficulties = await DifficultyLoader.GetDifficultiesAsync(mapData, null, Archive);
+
+        LoadBookmarks(mapData);
 
         return mapData;
     }
@@ -168,6 +169,49 @@ public class ZipReader : IMapDataLoader
         {
             Debug.LogWarning($"Audio data loading failed with error: {err.Message}, {err.StackTrace}");
             ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Failed to load audio metadata! BPM might not line up.");
+            return null;
+        }
+    }
+
+
+    private void LoadBookmarks(LoadedMapData mapData)
+    {
+        const string bookmarkFolder = "Bookmarks";
+        const string bookmarkExtension = ".bookmarks.dat";
+
+        List<BeatmapBookmarkSet> bookmarkSets = new List<BeatmapBookmarkSet>();
+
+        List<ZipArchiveEntry> entries = Archive.GetEntriesInFolder(bookmarkFolder);
+        foreach(ZipArchiveEntry entry in entries)
+        {
+            if(!entry.Name.EndsWith(bookmarkExtension, StringComparison.InvariantCultureIgnoreCase))
+            {
+                //This is not a valid bookmark file
+                continue;
+            }
+
+            BeatmapBookmarkSet bookmarkSet = GetBookmarksFromEntry(entry);
+            if(bookmarkSet != null)
+            {
+                bookmarkSets.Add(bookmarkSet);
+            }
+        }
+
+        BookmarkLoader.ApplyBookmarks(mapData, bookmarkSets);
+    }
+
+
+    private BeatmapBookmarkSet GetBookmarksFromEntry(ZipArchiveEntry entry)
+    {
+        try
+        {
+            using Stream stream = entry?.Open();
+            string bookmarkJson = Encoding.UTF8.GetString(FileUtil.StreamToBytes(stream));
+            return JsonReader.DeserializeObject<BeatmapBookmarkSet>(bookmarkJson);
+        }
+        catch(Exception err)
+        {
+            Debug.LogWarning($"Unable to parse {entry.Name} with error: {err.Message}, {err.StackTrace}");
             return null;
         }
     }

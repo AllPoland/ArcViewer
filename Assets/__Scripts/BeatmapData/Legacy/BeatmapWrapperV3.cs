@@ -63,6 +63,7 @@ public class BeatmapWrapperV3 : BeatmapDifficulty
         burstSliders = Beatmap.burstSliders;
 
         njsEvents = new BeatmapElementArray<BeatmapNjsEvent>();
+        bookmarks = new List<Bookmark>();
 
         basicBeatMapEvents = Beatmap.basicBeatMapEvents;
         colorBoostBeatMapEvents = Beatmap.colorBoostBeatMapEvents;

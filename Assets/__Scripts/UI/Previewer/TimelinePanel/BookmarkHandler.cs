@@ -18,21 +18,17 @@ public class BookmarkHandler : MonoBehaviour
             return;
         }
 
-        if(BeatmapManager.CurrentDifficulty?.beatmapDifficulty?.CustomData?.bookmarks == null)
+        List<Bookmark> newBookmarks = BeatmapManager.CurrentDifficulty?.beatmapDifficulty?.bookmarks;
+        if(newBookmarks == null)
         {
             return;
         }
 
-        BeatmapCustomBookmark[] newBookmarks = BeatmapManager.CurrentDifficulty.beatmapDifficulty.CustomData.bookmarks;
-        foreach(BeatmapCustomBookmark bookmark in newBookmarks)
+        foreach(Bookmark bookmark in newBookmarks)
         {
             BookmarkIcon newBookmark = Instantiate(bookmarkPrefab, bookmarkParent, false);
             newBookmark.SetParentReferences(bookmarkParent, parentCanvas);
-            newBookmark.SetData(
-                bookmark.b,
-                bookmark.n,
-                bookmark.c != null ? new Color(bookmark.c[0], bookmark.c[1], bookmark.c[2]) : Color.white
-            );
+            newBookmark.SetData(bookmark.Beat, bookmark.Label, bookmark.Color);
 
             bookmarks.Add(newBookmark);
         }

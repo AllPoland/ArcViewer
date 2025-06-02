@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -5,12 +6,12 @@ using UnityEngine;
 
 public class FileReader : IMapDataLoader
 {
-    public string Directory;
+    public string MapPath;
 
 
     public FileReader(string directory)
     {
-        Directory = directory;
+        MapPath = directory;
     }
 
 //Suppress warnings about a lack of await when building for WebGL
@@ -39,7 +40,7 @@ public class FileReader : IMapDataLoader
         Debug.Log("Loading audio file.");
         MapLoader.LoadingMessage = "Loading song";
 
-        string audioDirectory = Path.Combine(Directory, info.audio.songFilename);
+        string audioDirectory = Path.Combine(MapPath, info.audio.songFilename);
         AudioClip song = await AudioFileHandler.LoadAudioDirectory(audioDirectory);
         if(song == null)
         {
@@ -51,7 +52,7 @@ public class FileReader : IMapDataLoader
         Debug.Log("Loading cover image.");
         MapLoader.LoadingMessage = "Loading cover image";
 
-        string coverImageDirectory = Path.Combine(Directory, info.coverImageFilename);
+        string coverImageDirectory = Path.Combine(MapPath, info.coverImageFilename);
         byte[] coverImageData = await Task.Run(() => LoadCoverImageData(coverImageDirectory));
 
         return new LoadedMap(mapData, coverImageData, song);
@@ -66,7 +67,7 @@ public class FileReader : IMapDataLoader
 #else
         Debug.Log("Loading info.");
         MapLoader.LoadingMessage = "Loading Info.dat";
-        BeatmapInfo info = await Task.Run(() => JsonReader.LoadInfoAsync(Directory));
+        BeatmapInfo info = await Task.Run(() => JsonReader.LoadInfoAsync(MapPath));
 
         if(info == null)
         {
@@ -76,13 +77,77 @@ public class FileReader : IMapDataLoader
 
         LoadedMapData mapData = new LoadedMapData(info)
         {
-            BpmEvents = await JsonReader.GetBpmEventsAsync(info, Directory),
-            Lightshows = await LightshowLoader.GetLightshowsAsync(info, Directory)
+            BpmEvents = await JsonReader.GetBpmEventsAsync(info, MapPath),
+            Lightshows = await LightshowLoader.GetLightshowsAsync(info, MapPath)
         };
-        mapData.Difficulties = await Task.Run(() => DifficultyLoader.GetDifficultiesAsync(mapData, Directory));
+        mapData.Difficulties = await Task.Run(() => DifficultyLoader.GetDifficultiesAsync(mapData, MapPath));
+
+        try
+        {
+            await LoadBookmarks(mapData);
+        }
+        catch(Exception err)
+        {
+            Debug.LogWarning($"Failed to load bookmarks with error: {err.Message}, {err.StackTrace}");
+        }
 
         return mapData;
 #endif
+    }
+
+
+    private async Task LoadBookmarks(LoadedMapData mapData)
+    {
+        const string bookmarkFolder = "Bookmarks";
+        const string bookmarkExtension = ".bookmarks.dat";
+
+        List<BeatmapBookmarkSet> bookmarkSets = new List<BeatmapBookmarkSet>();
+
+        string bookmarkDirectory = Path.Combine(MapPath, bookmarkFolder);
+        if(!Directory.Exists(bookmarkDirectory))
+        {
+            //No official bookmarks to load
+            BookmarkLoader.ApplyBookmarks(mapData, bookmarkSets);
+            return;
+        }
+
+        foreach(string file in Directory.EnumerateFiles(bookmarkDirectory))
+        {
+            if(!file.EndsWith(bookmarkExtension, StringComparison.InvariantCultureIgnoreCase))
+            {
+                //This is not a valid bookmark file
+                continue;
+            }
+
+            BeatmapBookmarkSet bookmarkSet = await BookmarkSetFromPath(file);
+            if(bookmarkSet != null)
+            {
+                bookmarkSets.Add(bookmarkSet);
+            }
+        }
+
+        BookmarkLoader.ApplyBookmarks(mapData, bookmarkSets);
+    }
+
+
+    private async Task<BeatmapBookmarkSet> BookmarkSetFromPath(string path)
+    {
+        try
+        {
+            string bookmarkJson = await JsonReader.ReadFileAsync(path);
+            if(string.IsNullOrEmpty(bookmarkJson))
+            {
+                //Loading the text from file failed
+                return null;
+            }
+
+            return JsonReader.DeserializeObject<BeatmapBookmarkSet>(bookmarkJson);
+        }
+        catch(Exception err)
+        {
+            Debug.LogWarning($"Failed to read {Path.GetFileName(path)} with error: {err.Message}, {err.StackTrace}");
+            return null;
+        }
     }
 
 

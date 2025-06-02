@@ -24,6 +24,8 @@ public abstract class BeatmapDifficulty
 
     public abstract BeatmapCustomDifficultyData CustomData { get; }
 
+    public List<Bookmark> bookmarks;
+
 
     public static BeatmapDifficulty GetDefault()
     {
@@ -125,7 +127,7 @@ public class BeatmapCustomBookmark
 {
     public float b;
     public string n;
-    public float[] c; 
+    public float[] c;
 }
 
 

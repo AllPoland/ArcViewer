@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO.Compression;
+using System.Linq;
 using UnityEngine;
 
 public static class Extensions
@@ -199,6 +200,24 @@ public static class Extensions
         }
         Debug.LogWarning($"Unable to find zip archive entry {name}!");
         return null;
+    }
+
+
+    public static List<ZipArchiveEntry> GetEntriesInFolder(this ZipArchive archive, string folderName)
+    {
+        List<ZipArchiveEntry> entries = new List<ZipArchiveEntry>();
+
+        foreach(ZipArchiveEntry entry in archive.Entries)
+        {
+            string[] folders = entry.FullName.Split('\\');
+            if(folders.Any(x => x.Equals(folderName, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                //This entry is in the target folder
+                entries.Add(entry);
+            }
+        }
+
+        return entries;
     }
 
 
