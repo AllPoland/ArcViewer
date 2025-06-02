@@ -286,7 +286,7 @@ public static class JsonReader
     {
         if(!File.Exists(location))
         {
-            Debug.LogWarning("Trying to read a file that doesn't exist!");
+            Debug.LogWarning($"Trying to read {Path.GetFileName(location)} which doesn't exist!");
             return "";
         }
 
@@ -297,7 +297,7 @@ public static class JsonReader
         }
         catch(Exception err)
         {
-            Debug.LogWarning($"Unable to read the text from file with error: {err.Message}, {err.StackTrace}.");
+            Debug.LogWarning($"Unable to read the text from {Path.GetFileName(location)} with error: {err.Message}, {err.StackTrace}.");
             return "";
         }
     }

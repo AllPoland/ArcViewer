@@ -209,6 +209,12 @@ public class ColorManager : MonoBehaviour
     }
 
 
+    public void UpdateReplayMode(bool replay)
+    {
+        UpdateCurrentColors();
+    }
+
+
     public void UpdateDifficulty(Difficulty newDifficulty)
     {
         UpdateCurrentColors();
@@ -232,8 +238,9 @@ public class ColorManager : MonoBehaviour
 
     private void Start()
     {
-        SettingsManager.OnSettingsUpdated += UpdateSettings;
+        ReplayManager.OnReplayModeChanged += UpdateReplayMode;
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
 
         UpdateSettings("all");
     }

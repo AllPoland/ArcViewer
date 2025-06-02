@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using TreeckSabers;
 using UnityEngine;
 
 public class PlayerPositionManager : MonoBehaviour
@@ -38,9 +39,11 @@ public class PlayerPositionManager : MonoBehaviour
         "sabertrails",
         "sabertraillength",
         "sabertrailwidth",
-        "sabertrailsegments"
+        "sabertrailsegments",
+        "sabertricks"
     };
 
+    public static bool UseTricks = true;
     private bool useTrails => SettingsManager.GetBool("sabertrails");
     private int trailIndex => Mathf.Clamp(SettingsManager.GetInt("sabertrailtype"), 0, trailTextures.Length - 1);
 
@@ -121,13 +124,13 @@ public class PlayerPositionManager : MonoBehaviour
 
         if(leftSaberActive)
         {
-            leftSaber.transform.localPosition = Vector3.Lerp(currentFrame.leftSaberPosition, nextFrame.leftSaberPosition, t);
-            leftSaber.transform.localRotation = Quaternion.Lerp(currentFrame.leftSaberRotation, nextFrame.leftSaberRotation, t);
+            leftSaber.transform.localPosition = Vector3.Lerp(currentFrame.GetLeftSaberPos(), nextFrame.GetLeftSaberPos(), t);
+            leftSaber.transform.localRotation = Quaternion.Lerp(currentFrame.GetLeftSaberRot(), nextFrame.GetLeftSaberRot(), t);
         }
         if(rightSaberActive)
         {
-            rightSaber.transform.localPosition = Vector3.Lerp(currentFrame.rightSaberPosition, nextFrame.rightSaberPosition, t);
-            rightSaber.transform.localRotation = Quaternion.Lerp(currentFrame.rightSaberRotation, nextFrame.rightSaberRotation, t);
+            rightSaber.transform.localPosition = Vector3.Lerp(currentFrame.GetRightSaberPos(), nextFrame.GetRightSaberPos(), t);
+            rightSaber.transform.localRotation = Quaternion.Lerp(currentFrame.GetRightSaberRot(), nextFrame.GetRightSaberRot(), t);
         }
 
         if(useTrails)
@@ -210,6 +213,8 @@ public class PlayerPositionManager : MonoBehaviour
         else Energy = 0.5f;
 
         ReplayFrames.SortElementsByBeat();
+        TreeckSaberDecoder.ApplyFrames(newReplay, ref ReplayFrames);
+
         UpdateSaberMaterials();
         UpdateSettings("all");
     }
@@ -302,6 +307,8 @@ public class PlayerPositionManager : MonoBehaviour
         {
             return;
         }
+
+        UseTricks = SettingsManager.GetBool("sabertricks");
 
         bool allSettings = setting == "all";
         if(allSettings || trailMaterialSettings.Contains(setting))
@@ -508,16 +515,20 @@ public class ReplayFrame : MapElement
     public Vector3 headPosition;
     public Quaternion headRotation;
 
-    public Vector3 leftSaberPosition;
-    public Quaternion leftSaberRotation;
+    private Vector3 leftSaberPosition;
+    private Quaternion leftSaberRotation;
     
-    public Vector3 rightSaberPosition;
-    public Quaternion rightSaberRotation;
+    private Vector3 rightSaberPosition;
+    private Quaternion rightSaberRotation;
+
+    public CustomFrameData customData = null;
 
     public float DeltaTime;
     public float Energy;
     public int FPS;
     public int AverageFPS;
+
+    private bool useTricks => PlayerPositionManager.UseTricks;
 
     public ReplayFrame(Frame f)
     {
@@ -536,4 +547,54 @@ public class ReplayFrame : MapElement
         Energy = 0f;
         FPS = f.fps;
     }
+
+
+    public Vector3 GetLeftSaberPos()
+    {
+        if(useTricks)
+        {
+            return customData?.trickLeftSaberPosition ?? leftSaberPosition;
+        }
+        else return leftSaberPosition;
+    }
+
+
+    public Quaternion GetLeftSaberRot()
+    {
+        if(useTricks)
+        {
+            return customData?.trickLeftSaberRotation ?? leftSaberRotation;
+        }
+        else return leftSaberRotation;
+    }
+
+
+    public Vector3 GetRightSaberPos()
+    {
+        if(useTricks)
+        {
+            return customData?.trickRightSaberPosition ?? rightSaberPosition;
+        }
+        else return rightSaberPosition;
+    }
+
+
+    public Quaternion GetRightSaberRot()
+    {
+        if(useTricks)
+        {
+            return customData?.trickRightSaberRotation ?? rightSaberRotation;
+        }
+        else return rightSaberRotation;
+    }
+}
+
+
+public class CustomFrameData
+{
+    public Vector3? trickLeftSaberPosition;
+    public Quaternion? trickLeftSaberRotation;
+
+    public Vector3? trickRightSaberPosition;
+    public Quaternion? trickRightSaberRotation;
 }

@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 #pragma warning disable 1998
 public class ReplayLoader
 {
-    private const string beatleaderApiURL = "https://api.beatleader.xyz/";
+    private const string beatleaderApiURL = "https://api.beatleader.com/";
     private const string scoreDirect = "score/";
     private const string userDirect = "player/";
     private const string leaderboardDirect = "leaderboards/hash/";

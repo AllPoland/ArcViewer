@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class ReplayManager : MonoBehaviour
 {
-    public const string BeatLeaderURL = "https://www.beatleader.xyz/";
+    public const string BeatLeaderURL = "https://www.beatleader.com/";
 
     public static bool IsReplayMode { get; private set; }
     public static Replay CurrentReplay { get; private set; }

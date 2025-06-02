@@ -129,7 +129,7 @@ public class JumpManager : MonoBehaviour
             //Interpolate between the current event's NJS and the next event NJS
             float transitionTime = nextEvent.Time - currentTime;
             float t = (TimeManager.CurrentTime - currentTime) / transitionTime;
-            t = BeatSaberEasings.Ease(t, nextEvent.Easing);
+            t = BeatSaberEasings.BeatmapEase(t, nextEvent.Easing);
 
             currentOffset = Mathf.Lerp(currentOffset, nextEvent.RelativeNJS, t);
         }

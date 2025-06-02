@@ -6,7 +6,7 @@ using Unity.Collections;
 
 public class BeatmapManager : MonoBehaviour
 {
-    public static List<Difficulty> Difficulties = new List<Difficulty>();
+    private static List<Difficulty> Difficulties = new List<Difficulty>();
 
     private static BeatmapInfo _info = new BeatmapInfo();
     public static BeatmapInfo Info
@@ -188,6 +188,13 @@ public class BeatmapManager : MonoBehaviour
     }
 
 
+    public static void SetDifficulties(List<Difficulty> difficulties)
+    {
+        Difficulties.Clear();
+        Difficulties.AddRange(difficulties.OrderBy(x => x.difficultyRank));
+    }
+
+
     public void UpdateUIState(UIState newState)
     {
         if(newState != UIState.Previewer)
@@ -238,7 +245,7 @@ public class Difficulty
         beatmapDifficulty = BeatmapDifficulty.GetDefault(),
         noteJumpSpeed = 0,
         spawnOffset = 0,
-        environmentName = "",
+        environmentName = "DefaultEnvironment",
         colorScheme = null,
         mappers = new string[0],
         lighters = new string[0],

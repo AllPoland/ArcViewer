@@ -19,7 +19,7 @@ public class TimeSyncHandler : MonoBehaviour
     public static Action<float> OnTimeScaleChanged;
 
     private const float timeWarpMult = 1f;
-    private const float maxTimeWarp = 0.5f;
+    private const float maxTimeDiscrepancy = 0.05f;
 
 
     public static void CheckSync()
@@ -29,20 +29,19 @@ public class TimeSyncHandler : MonoBehaviour
             return;
         }
 
-        //Warp the map time scale slightly to keep it on track with the music
         float musicTime = SongManager.GetSongTime();
-        float mapTime = TimeManager.CurrentTime;
+        float discrepancy = TimeManager.CurrentTime - musicTime;
 
-        float discrepancy = mapTime - musicTime;
-        float timeWarp = discrepancy * timeWarpMult;
-        TimeManager.TimeScale = TimeScale - (timeWarp * TimeScale);
-
-        if(Mathf.Abs(1f - (TimeManager.TimeScale / TimeScale)) >= maxTimeWarp)
+        if(Mathf.Abs(discrepancy) >= maxTimeDiscrepancy)
         {
             //Immediately snap back in sync if we're way off
             TimeManager.CurrentTime = musicTime;
-            TimeManager.TimeScale = 1f;
-        }  
+            discrepancy = 0f;
+        }
+
+        //Warp the map time scale slightly to keep it on track with the music
+        float timeWarp = discrepancy * timeWarpMult;
+        TimeManager.TimeScale = TimeScale - (timeWarp * TimeScale);
     }
 
 

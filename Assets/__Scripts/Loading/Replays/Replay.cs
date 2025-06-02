@@ -15,6 +15,8 @@ public class Replay
     public List<WallEvent> walls = new List<WallEvent>();
     public List<AutomaticHeight> heights = new List<AutomaticHeight>();
     public List<Pause> pauses = new List<Pause>();
+    public SaberOffsets saberOffsets = new SaberOffsets();
+    public Dictionary<string, byte[]> customData = new Dictionary<string, byte[]>();
 }
 
 public class ReplayInfo
@@ -114,6 +116,14 @@ public class NoteCutInfo
     public float afterCutRating;
 };
 
+public class SaberOffsets
+{
+    public Vector3 LeftSaberLocalPosition;
+    public Quaternion LeftSaberLocalRotation;
+    public Vector3 RightSaberLocalPosition;
+    public Quaternion RightSaberLocalRotation;
+}
+
 public enum StructType
 {
     info = 0,
@@ -121,7 +131,9 @@ public enum StructType
     notes = 2,
     walls = 3,
     heights = 4,
-    pauses = 5
+    pauses = 5,
+    saberOffsets = 6,
+    customData = 7
 }
 
 public class PositionData
@@ -141,21 +153,28 @@ public class AsyncReplayDecoder
 
     public async Task<(ReplayInfo, Task<Replay>)> StartDecodingStream(Stream stream)
     {
-        int magic = await DecodeInt(stream);
-        byte version = await DecodeByte(stream);
-
-        if (magic == 0x442d3d69 && version == 1)
+        try
         {
-            StructType type = (StructType)await DecodeByte(stream);
-            if (type == StructType.info) {
-                replay.info = await DecodeInfo(stream);
-                this.stream = stream;
-                return (replay.info, ContinueDecoding());
-            } else {
+            int magic = await DecodeInt(stream);
+            byte version = await DecodeByte(stream);
+
+            if (magic == 0x442d3d69 && version == 1)
+            {
+                StructType type = (StructType)await DecodeByte(stream);
+                if (type == StructType.info) {
+                    replay.info = await DecodeInfo(stream);
+                    this.stream = stream;
+                    return (replay.info, ContinueDecoding());
+                } else {
+                    return (null, null);
+                }
+            }
+            else
+            {
                 return (null, null);
             }
         }
-        else
+        catch
         {
             return (null, null);
         }
@@ -163,33 +182,46 @@ public class AsyncReplayDecoder
 
     private async Task<Replay> ContinueDecoding() 
     {
-        await Task.Yield();
-        for (int a = (int)StructType.frames; a < ((int)StructType.pauses) + 1; a++) {
-            StructType type = (StructType)await DecodeByte(stream);
+        try
+        {
+            await Task.Yield();
+            for (int a = (int)StructType.frames; a < ((int)StructType.customData) + 1; a++) {
+                StructType type = (StructType)await DecodeByte(stream);
 
-            switch (type)
-            {
-                case StructType.frames:
-                    replay.frames = await DecodeFrames(stream);
-                    break;
-                case StructType.notes:
-                    replay.notes = await DecodeNotes(stream);
-                    break;
-                case StructType.walls:
-                    replay.walls = await DecodeWalls(stream);
-                    break;
-                case StructType.heights:
-                    replay.heights = await DecodeHeight(stream);
-                    break;
-                case StructType.pauses:
-                    replay.pauses = await DecodePauses(stream);
-                    break;
+                switch (type)
+                {
+                    case StructType.frames:
+                        replay.frames = await DecodeFrames(stream);
+                        break;
+                    case StructType.notes:
+                        replay.notes = await DecodeNotes(stream);
+                        break;
+                    case StructType.walls:
+                        replay.walls = await DecodeWalls(stream);
+                        break;
+                    case StructType.heights:
+                        replay.heights = await DecodeHeight(stream);
+                        break;
+                    case StructType.pauses:
+                        replay.pauses = await DecodePauses(stream);
+                        break;
+                    case StructType.saberOffsets:
+                        replay.saberOffsets = await DecodeSaberOffsets(stream);
+                        break;
+                    case StructType.customData:
+                        replay.customData = await DecodeCustomData(stream);
+                        break;
+                }
             }
+
+            Array.Resize(ref replayData, offset);
+
+            return replay;
         }
-
-        Array.Resize(ref replayData, offset);
-
-        return replay;
+        catch
+        {
+            return null;
+        }
     }
 
     private async Task<ReplayInfo> DecodeInfo(Stream stream)
@@ -306,6 +338,28 @@ public class AsyncReplayDecoder
             pause.duration = await DecodeLong(stream);
             pause.time = await DecodeFloat(stream);
             result.Add(pause);
+        }
+        return result;
+    }
+
+    private async Task<SaberOffsets> DecodeSaberOffsets(Stream stream)
+    {
+        var result = new SaberOffsets();
+        result.LeftSaberLocalPosition = await DecodeVector3(stream);
+        result.LeftSaberLocalRotation = await DecodeQuaternion(stream);
+        result.RightSaberLocalPosition = await DecodeVector3(stream);
+        result.RightSaberLocalRotation = await DecodeQuaternion(stream);
+        return result;
+    }
+
+    private async Task<Dictionary<string, byte[]>> DecodeCustomData(Stream stream)
+    {
+        var result = new Dictionary<string, byte[]>();
+        var count = await DecodeInt(stream);
+        for (var i = 0; i < count; i++) {
+            var key = await DecodeString(stream);
+            var value = await DecodeByteArray(stream);
+            result[key] = value;
         }
         return result;
     }
@@ -444,6 +498,14 @@ public class AsyncReplayDecoder
         offset++;
         return BitConverter.ToBoolean(replayData, offset - 1);
     }
+
+    private async Task<byte[]> DecodeByteArray(Stream stream)
+    {
+        var count = await DecodeInt(stream);
+        var result = new byte[count];
+        await stream.ReadAsync(result, 0, count);
+        return result;
+    }
 }
 
 public static class ReplayDecoder
@@ -461,7 +523,7 @@ public static class ReplayDecoder
         {
             Replay replay = new Replay();
 
-            for (int a = 0; a < ((int)StructType.pauses) + 1 && pointer < arrayLength; a++)
+            for (int a = 0; a < ((int)StructType.customData) + 1 && pointer < arrayLength; a++)
             {
                 StructType type = (StructType)buffer[pointer++];
 
@@ -485,7 +547,13 @@ public static class ReplayDecoder
                     case StructType.pauses:
                         replay.pauses = DecodePauses(buffer, ref pointer);
                         break;
-                    }
+                    case StructType.saberOffsets:
+                        replay.saberOffsets = DecodeSaberOffsets(buffer, ref pointer);
+                        break;
+                    case StructType.customData:
+                        replay.customData = DecodeCustomData(buffer, ref pointer);
+                        break;
+                }
             }
 
             return replay;
@@ -498,39 +566,39 @@ public static class ReplayDecoder
 
     private static ReplayInfo DecodeInfo(byte[] buffer, ref int pointer)
     {
-            ReplayInfo result = new ReplayInfo();
+        ReplayInfo result = new ReplayInfo();
 
-            result.version = DecodeString(buffer, ref pointer);
-            result.gameVersion = DecodeString(buffer, ref pointer);
-            result.timestamp = DecodeString(buffer, ref pointer);
+        result.version = DecodeString(buffer, ref pointer);
+        result.gameVersion = DecodeString(buffer, ref pointer);
+        result.timestamp = DecodeString(buffer, ref pointer);
 
-            result.playerID = DecodeString(buffer, ref pointer);
-            result.playerName = DecodeName(buffer, ref pointer);
-            result.platform = DecodeString(buffer, ref pointer);
+        result.playerID = DecodeString(buffer, ref pointer);
+        result.playerName = DecodeName(buffer, ref pointer);
+        result.platform = DecodeString(buffer, ref pointer);
 
-            result.trackingSytem = DecodeString(buffer, ref pointer);
-            result.hmd = DecodeString(buffer, ref pointer);
-            result.controller = DecodeString(buffer, ref pointer);
+        result.trackingSytem = DecodeString(buffer, ref pointer);
+        result.hmd = DecodeString(buffer, ref pointer);
+        result.controller = DecodeString(buffer, ref pointer);
 
-            result.hash = DecodeString(buffer, ref pointer);
-            result.songName = DecodeString(buffer, ref pointer);
-            result.mapper = DecodeString(buffer, ref pointer);
-            result.difficulty = DecodeString(buffer, ref pointer);
-            
-            result.score = DecodeInt(buffer, ref pointer);
-            result.mode = DecodeString(buffer, ref pointer);
-            result.environment = DecodeString(buffer, ref pointer);
-            result.modifiers = DecodeString(buffer, ref pointer);
-            result.jumpDistance = DecodeFloat(buffer, ref pointer);
-            result.leftHanded = DecodeBool(buffer, ref pointer);
-            result.height = DecodeFloat(buffer, ref pointer);
+        result.hash = DecodeString(buffer, ref pointer);
+        result.songName = DecodeString(buffer, ref pointer);
+        result.mapper = DecodeString(buffer, ref pointer);
+        result.difficulty = DecodeString(buffer, ref pointer);
+        
+        result.score = DecodeInt(buffer, ref pointer);
+        result.mode = DecodeString(buffer, ref pointer);
+        result.environment = DecodeString(buffer, ref pointer);
+        result.modifiers = DecodeString(buffer, ref pointer);
+        result.jumpDistance = DecodeFloat(buffer, ref pointer);
+        result.leftHanded = DecodeBool(buffer, ref pointer);
+        result.height = DecodeFloat(buffer, ref pointer);
 
-            result.startTime = DecodeFloat(buffer, ref pointer);
-            result.failTime = DecodeFloat(buffer, ref pointer);
-            result.speed = DecodeFloat(buffer, ref pointer);
+        result.startTime = DecodeFloat(buffer, ref pointer);
+        result.failTime = DecodeFloat(buffer, ref pointer);
+        result.speed = DecodeFloat(buffer, ref pointer);
 
-            return result;
-        }
+        return result;
+    }
 
     private static List<Frame> DecodeFrames(byte[] buffer, ref int pointer)
     {
@@ -613,6 +681,28 @@ public static class ReplayDecoder
         return result;
     }
 
+    private static SaberOffsets DecodeSaberOffsets(byte[] buffer, ref int pointer)
+    {
+        var result = new SaberOffsets();
+        result.LeftSaberLocalPosition = DecodeVector3(buffer, ref pointer);
+        result.LeftSaberLocalRotation = DecodeQuaternion(buffer, ref pointer);
+        result.RightSaberLocalPosition = DecodeVector3(buffer, ref pointer);
+        result.RightSaberLocalRotation = DecodeQuaternion(buffer, ref pointer);
+        return result;
+    }
+
+    private static Dictionary<string, byte[]> DecodeCustomData(byte[] buffer, ref int pointer)
+    {
+        var result = new Dictionary<string, byte[]>();
+        var count = DecodeInt(buffer, ref pointer);
+        for (var i = 0; i < count; i++) {
+            var key = DecodeString(buffer, ref pointer);
+            var value = DecodeByteArray(buffer, ref pointer);
+            result[key] = value;
+        }
+        return result;
+    }
+
     private static NoteEvent DecodeNote(byte[] buffer, ref int pointer)
     {
         NoteEvent result = new NoteEvent();
@@ -653,7 +743,7 @@ public static class ReplayDecoder
         return result;
     }
 
-    private static PositionData DecodeEuler(byte[] buffer, ref int pointer)
+    public static PositionData DecodeEuler(byte[] buffer, ref int pointer)
     {
         PositionData result = new PositionData();
         result.position = DecodeVector3(buffer, ref pointer);
@@ -662,7 +752,7 @@ public static class ReplayDecoder
         return result;
     }
 
-    private static Vector3 DecodeVector3(byte[] buffer, ref int pointer)
+    public static Vector3 DecodeVector3(byte[] buffer, ref int pointer)
     {
         Vector3 result = new Vector3();
         result.x = DecodeFloat(buffer, ref pointer);
@@ -672,7 +762,7 @@ public static class ReplayDecoder
         return result;
     }
 
-    private static Quaternion DecodeQuaternion(byte[] buffer, ref int pointer)
+    public static Quaternion DecodeQuaternion(byte[] buffer, ref int pointer)
     {
         Quaternion result = new Quaternion();
         result.x = DecodeFloat(buffer, ref pointer);
@@ -683,21 +773,21 @@ public static class ReplayDecoder
         return result;
     }
 
-    private static long DecodeLong(byte[] buffer, ref int pointer)
+    public static long DecodeLong(byte[] buffer, ref int pointer)
     {
         long result = BitConverter.ToInt64(buffer, pointer);
         pointer += 8;
         return result;
     }
 
-    private static int DecodeInt(byte[] buffer, ref int pointer)
+    public static int DecodeInt(byte[] buffer, ref int pointer)
     {
         int result = BitConverter.ToInt32(buffer, pointer);
         pointer += 4;
         return result;
     }
 
-    private static string DecodeName(byte[] buffer, ref int pointer)
+    public static string DecodeName(byte[] buffer, ref int pointer)
     {
         int length = BitConverter.ToInt32(buffer, pointer);
         int lengthOffset = 0;
@@ -715,7 +805,7 @@ public static class ReplayDecoder
         return @string;
     }
 
-    private static string DecodeString(byte[] buffer, ref int pointer)
+    public static string DecodeString(byte[] buffer, ref int pointer)
     {
         int length = BitConverter.ToInt32(buffer, pointer);
         if (length > 300 || length < 0)
@@ -728,17 +818,26 @@ public static class ReplayDecoder
         return @string;
     }
 
-    private static float DecodeFloat(byte[] buffer, ref int pointer)
+    public static float DecodeFloat(byte[] buffer, ref int pointer)
     {
         float result = BitConverter.ToSingle(buffer, pointer);
         pointer += 4;
         return result;
     }
 
-    private static bool DecodeBool(byte[] buffer, ref int pointer)
+    public static bool DecodeBool(byte[] buffer, ref int pointer)
     {
         bool result = BitConverter.ToBoolean(buffer, pointer);
         pointer++;
+        return result;
+    }
+
+    public static byte[] DecodeByteArray(byte[] buffer, ref int pointer)
+    {
+        var count = DecodeInt(buffer, ref pointer);
+        var result = new byte[count];
+        Array.Copy(buffer, pointer, result, 0, count);
+        pointer += count;
         return result;
     }
 }

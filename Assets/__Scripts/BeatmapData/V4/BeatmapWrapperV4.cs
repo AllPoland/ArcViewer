@@ -72,6 +72,7 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
         chains = new BeatmapChainArrayV4(Beatmap);
 
         njsEvents = new BeatmapNjsEventArrayV4(Beatmap);
+        bookmarks = new List<Bookmark>();
 
         basicEvents = new BeatmapBasicEventArrayV4(Lightshow);
         colorBoostEvents = new BeatmapColorBoostEventArrayV4(Lightshow);

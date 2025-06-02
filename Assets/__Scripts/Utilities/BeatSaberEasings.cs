@@ -144,6 +144,40 @@ public static class BeatSaberEasings
                 return BeatSaberInOutBounce(t);
         }
     }
+
+
+    public static float BeatmapEase(float t, BeatSaberEasingType easing)
+    {
+        //This is the same as Ease(), except it accounts for illegal easings
+        //when loading the beatmap in game
+        switch(easing)
+        {
+            //All these easings don't show up in game
+            case BeatSaberEasingType.InSine:
+            case BeatSaberEasingType.OutSine:
+            case BeatSaberEasingType.InOutSine:
+            
+            case BeatSaberEasingType.InCubic:
+            case BeatSaberEasingType.OutCubic:
+            case BeatSaberEasingType.InOutCubic:
+
+            case BeatSaberEasingType.InQuart:
+            case BeatSaberEasingType.OutQuart:
+            case BeatSaberEasingType.InOutQuart:
+
+            case BeatSaberEasingType.InQuint:
+            case BeatSaberEasingType.OutQuint:
+            case BeatSaberEasingType.InOutQuint:
+
+            case BeatSaberEasingType.InExpo:
+            case BeatSaberEasingType.OutExpo:
+            case BeatSaberEasingType.InOutExpo:
+                return Ease(t, BeatSaberEasingType.None);
+
+            default:
+                return Ease(t, easing);
+        }
+    }
 }
 
 

@@ -94,7 +94,7 @@ public class MapDirectoryInput : MonoBehaviour
             return;
         }
 
-        if(MapDirectory.StartsWith(UrlArgHandler.BeatLeaderViewerURL))
+        if(MapDirectory.StartsWith(UrlArgHandler.BeatLeaderViewerURL) || MapDirectory.StartsWith(UrlArgHandler.OldBeatLeaderViewerURL))
         {
             //Convert BeatLeader viewer links to ArcViewer parameters
             string url = HttpUtility.UrlDecode(MapDirectory);
