@@ -19,7 +19,9 @@ public class WebLoader
         "https://api.beatleader.xyz",
         "https://cdn.replays.beatleader.xyz/",
         "https://api.beatleader.com",
-        "https://cdn.replays.beatleader.com/"
+        "https://cdn.replays.beatleader.com/",
+        "https://cdn.songs.beatleader.xyz/",
+        "https://cdn.songs.beatleader.com/"
     };
 
     public static ulong DownloadSize;
