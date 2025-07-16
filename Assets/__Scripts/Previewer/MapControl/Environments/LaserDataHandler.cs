@@ -52,7 +52,7 @@ public class LaserDataHandler : MonoBehaviour
             laserLights[i].color = lightHandler.CurrentColor * lightHandler.diffuseMult;
             laserLights[i].origin = lightTransform.position;
             laserLights[i].direction = lightTransform.up;
-            laserLights[i].halfLength = lightTransform.lossyScale.y / 2f;
+            laserLights[i].halfLength = Mathf.Abs(lightTransform.lossyScale.y) / 2f;
         }
 
         //Send the new laser data to the GPU
