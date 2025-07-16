@@ -92,6 +92,7 @@ public class EnvironmentManager : MonoBehaviour
         "PanicEnvironment",
         "TimbalandEnvironment",
         "FitBeatEnvironment",
+        "LinkinParkEnvironment",
         "KaleidoscopeEnvironment"
     };
 
