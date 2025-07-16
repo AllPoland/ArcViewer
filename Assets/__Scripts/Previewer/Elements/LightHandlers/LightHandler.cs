@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class LightHandler : MonoBehaviour
 {
+    public Color CurrentColor = Color.blue;
+
     [Header("Components")]
     [SerializeField] private MeshRenderer meshRenderer;
     [SerializeField] private MeshRenderer glowRenderer;
@@ -12,6 +14,7 @@ public class LightHandler : MonoBehaviour
     [SerializeField] public int id;
     [SerializeField] public float emissionMult = 1f;
     [SerializeField] public float glowMult = 1f;
+    [SerializeField] public float diffuseMult = 1f;
 
     private MaterialPropertyBlock laserProperties;
     private MaterialPropertyBlock glowProperties;
@@ -60,8 +63,8 @@ public class LightHandler : MonoBehaviour
                 nextEvent = GetNextEvent(eventArgs, eventIndex);
             }
 
-            Color eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
-            SetProperties(eventArgs.sender.GetLaserColor(eventColor), eventArgs.sender.GetLaserGlowColor(eventColor));
+            CurrentColor = LightManager.GetEventColor(lightEvent, nextEvent);
+            SetProperties(eventArgs.sender.GetLaserColor(CurrentColor), eventArgs.sender.GetLaserGlowColor(CurrentColor));
         }
     }
 

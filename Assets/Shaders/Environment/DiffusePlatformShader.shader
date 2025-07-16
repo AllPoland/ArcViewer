@@ -1,4 +1,4 @@
-Shader "Custom/PlatformShader"
+Shader "Custom/DiffusePlatformShader"
 {
     Properties
     {
@@ -13,7 +13,7 @@ Shader "Custom/PlatformShader"
         _FogHeightOffset ("Fog Height Offset", float) = 0
         _FogHeightScale ("Fog Height Scale", float) = 1
         _AmbientStrength ("Ambient Light", float) = 1
-        _ReflectionStrength ("Reflection Strength", float) = 1
+        _LightingStrength ("Lighting Brightness", float) = 1
     }
     SubShader
     {
@@ -28,6 +28,14 @@ Shader "Custom/PlatformShader"
 
             #include "UnityCG.cginc"
             #include "BloomFog.cginc"
+
+            struct LaserLight
+            {
+                float4 color;
+                float3 origin;
+                float3 direction;
+                float halfLength;
+            };
 
             struct appdata
             {
@@ -47,6 +55,10 @@ Shader "Custom/PlatformShader"
                 float4 vertex : SV_POSITION;
             };
 
+            //Laser data to calculate diffuse lighting
+            uniform StructuredBuffer<LaserLight> _LaserLights;
+            uniform int _NumLaserLights;
+
             uniform float4 _BloomfogTex_TexelSize;
 
             sampler2D _MainTex;
@@ -60,7 +72,35 @@ Shader "Custom/PlatformShader"
             float _FogStartOffset, _FogScale;
             float _FogHeightOffset, _FogHeightScale;
             float _AmbientStrength;
-            float _ReflectionStrength;
+            float _LightingStrength;
+
+            float3 Project(float3 a, float3 b)
+            {
+                return b * dot(a, b) / dot(b, b);
+            }
+
+            fixed4 GetDiffuseLight(float3 v, float3 n, LaserLight l)
+            {
+                //Project the pixel position onto the laser line
+                float3 relativePos = v - l.origin;
+                float3 projectedPos = Project(relativePos, l.direction);
+                float projectedMagnitude = length(projectedPos);
+
+                //Clamp the projected position onto the laser's length
+                float projectedDistance = min(projectedMagnitude, l.halfLength);
+                float3 lightPos = (projectedPos / projectedMagnitude) * projectedDistance;
+
+                //Find the direction and distance from the pixel position to the point on the laser
+                float3 relativeLightPos = lightPos - relativePos;
+                float lightDistance = max(length(relativeLightPos), 0.001);
+                float3 relativeLightDir = relativeLightPos / lightDistance;
+
+                //Calculate brightness using the normal vector and inverse square law
+                float lightAmount = saturate(dot(relativeLightDir, n));
+                lightAmount /= lightDistance * lightDistance;
+    
+                return fixed4(l.color.rgb * lightAmount * l.color.a, 0);
+            }
 
             v2f vert(appdata v)
             {
@@ -94,29 +134,13 @@ Shader "Custom/PlatformShader"
                 float3x3 TBN = float3x3(normalize(i.tangent), normalize(i.binormal), normalize(i.normal));
                 float3 worldNormal = mul(tangentNormal, TBN);
 
-                //Use the viewspace normal to create fake environment reflections
-                float3 viewNormal = mul((float3x3)UNITY_MATRIX_V, worldNormal);
-                float3 cameraDir = normalize(cameraOffset);
-
-                //Convert coordinates to a pixel grid (to avoid aspect ratio issues)
-                float2 originalFogCoord = (i.fogCoord * 2) - 1;
-                originalFogCoord.y *= bloomfogRes;
-
-                //Push the fog sample pos in the direction of the normal
-                //Distance is based on the angle of reflection
-                float fresnel = dot(cameraDir, worldNormal);
-                float reflectionDist = fresnel * bloomfogRes.x * 0.5;
-                float2 screenReflectPos = originalFogCoord + (viewNormal.xy * reflectionDist);
-
-                //Convert back to UV coordinates to sample the bloomfog
-                screenReflectPos.y /= bloomfogRes;
-                float2 screenReflectUV = (screenReflectPos + 1) * 0.5;
-
-                //Scale reflections with a fresnel effect for more convincing specularity
-                float reflectionMult = _ReflectionStrength * (1.0 - fresnel);
-
-                //Base color is defined strictly by reflections
-                fixed4 col = BLOOM_FOG_SAMPLE(screenReflectUV) * reflectionMult;
+                //Calculate diffuse lighting
+                fixed4 col = fixed4(0,0,0,0);
+                for(int li = 0; li < _NumLaserLights; li++)
+                {
+                    col += GetDiffuseLight(i.worldPos, worldNormal, _LaserLights[li]);
+                }
+                col *= _LightingStrength;
 
                 //Apply ambient lighting based on the up/down facing of the normal
                 fixed4 skyCol = unity_AmbientSky * clamp(worldNormal.y, 0, 1);
