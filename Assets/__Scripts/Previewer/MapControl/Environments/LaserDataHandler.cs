@@ -53,6 +53,8 @@ public class LaserDataHandler : MonoBehaviour
             laserLights[i].origin = lightTransform.position;
             laserLights[i].direction = lightTransform.up;
             laserLights[i].halfLength = Mathf.Abs(lightTransform.lossyScale.y) / 2f;
+            laserLights[i].range = lightHandler.diffuseRange;
+            laserLights[i].falloff = lightHandler.diffuseFalloff;
         }
 
         //Send the new laser data to the GPU
@@ -86,4 +88,6 @@ public struct LaserLight
     public Vector3 origin;
     public Vector3 direction;
     public float halfLength;
+    public float range;
+    public float falloff;
 }

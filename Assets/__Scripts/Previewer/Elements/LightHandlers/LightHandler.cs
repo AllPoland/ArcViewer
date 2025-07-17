@@ -15,6 +15,8 @@ public class LightHandler : MonoBehaviour
     [SerializeField] public float emissionMult = 1f;
     [SerializeField] public float glowMult = 1f;
     [SerializeField] public float diffuseMult = 1f;
+    [SerializeField] public float diffuseRange = 3f;
+    [SerializeField] public float diffuseFalloff = 10f;
 
     private MaterialPropertyBlock laserProperties;
     private MaterialPropertyBlock glowProperties;
@@ -39,6 +41,7 @@ public class LightHandler : MonoBehaviour
         {
             //The current event and next events affect this id, so no need to recalculate anything
             //This will always be the case in vanilla lightshows without lightID
+            CurrentColor = eventArgs.eventColor;
             SetProperties(eventArgs.laserColor, eventArgs.glowColor);
         }
         else

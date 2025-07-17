@@ -269,6 +269,7 @@ public class LightingPropertyEventArgs
     public LightEventType type;
     public int eventIndex;
 
+    public Color eventColor;
     public Color laserColor;
     public Color glowColor;
 }

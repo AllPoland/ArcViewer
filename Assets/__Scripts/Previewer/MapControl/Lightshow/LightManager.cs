@@ -126,6 +126,7 @@ public class LightManager : MonoBehaviour
             nextEvent = nextEvent,
             type = type,
             eventIndex = eventIndex,
+            eventColor = eventColor,
             laserColor = GetLaserColor(eventColor),
             glowColor = GetLaserGlowColor(eventColor)
         };

@@ -35,6 +35,8 @@ Shader "Custom/DiffusePlatformShader"
                 float3 origin;
                 float3 direction;
                 float halfLength;
+                float range;
+                float falloff;
             };
 
             struct appdata
@@ -95,9 +97,10 @@ Shader "Custom/DiffusePlatformShader"
                 float lightDistance = max(length(relativeLightPos), 0.001);
                 float3 relativeLightDir = relativeLightPos / lightDistance;
 
-                //Calculate brightness using the normal vector and inverse square law
+                //Calculate brightness using the normal vector and distance
                 float lightAmount = saturate(dot(relativeLightDir, n));
-                lightAmount /= lightDistance * lightDistance;
+                float falloff = saturate((lightDistance - l.range) / l.falloff);
+                lightAmount *= 1.0 - (falloff * falloff);
     
                 return fixed4(l.color.rgb * lightAmount * l.color.a, 0);
             }
