@@ -14,9 +14,12 @@ public class LightHandler : MonoBehaviour
     [SerializeField] public int id;
     [SerializeField] public float emissionMult = 1f;
     [SerializeField] public float glowMult = 1f;
+
+    [Space]
     [SerializeField] public float diffuseMult = 1f;
-    [SerializeField] public float diffuseRange = 3f;
+    [SerializeField] public float diffuseBrightnessCap = 0f;
     [SerializeField] public float diffuseFalloff = 10f;
+    [SerializeField] public float diffuseFalloffSteepness = 1f;
 
     private MaterialPropertyBlock laserProperties;
     private MaterialPropertyBlock glowProperties;

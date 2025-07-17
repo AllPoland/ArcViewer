@@ -42,8 +42,9 @@ public class LaserDataHandler : MonoBehaviour
         for(int i = 0; i < laserCount; i++)
         {
             LightHandler lightHandler = lasers[i];
-            if(lightHandler == null)
+            if(lightHandler == null || !lightHandler.enabled || !lightHandler.gameObject.activeInHierarchy)
             {
+                laserLights[i].color = Color.clear;
                 continue;
             }
 
@@ -53,8 +54,9 @@ public class LaserDataHandler : MonoBehaviour
             laserLights[i].origin = lightTransform.position;
             laserLights[i].direction = lightTransform.up;
             laserLights[i].halfLength = Mathf.Abs(lightTransform.lossyScale.y) / 2f;
-            laserLights[i].range = lightHandler.diffuseRange;
+            laserLights[i].brightnessCap = lightHandler.diffuseBrightnessCap;
             laserLights[i].falloff = lightHandler.diffuseFalloff;
+            laserLights[i].falloffSteepness = lightHandler.diffuseFalloffSteepness;
         }
 
         //Send the new laser data to the GPU
@@ -88,6 +90,7 @@ public struct LaserLight
     public Vector3 origin;
     public Vector3 direction;
     public float halfLength;
-    public float range;
+    public float brightnessCap;
     public float falloff;
+    public float falloffSteepness;
 }
