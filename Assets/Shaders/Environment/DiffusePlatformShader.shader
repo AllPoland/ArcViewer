@@ -160,7 +160,7 @@ Shader "Custom/DiffusePlatformShader"
                 //Calculate ambient occlusion by multiplying by the inverse of occlusion marker strength
                 for(int oi = 0; oi < MAX_OCCLUSIONS; oi++)
                 {
-                    col *= 1.0 - GetDiffuseLight(i.worldPos, _OcclusionColors[oi], _OcclusionOrigins[oi], _OcclusionDirections[oi], _OcclusionFalloffInfos[oi]);
+                    col *= 1.0 - saturate(GetDiffuseLight(i.worldPos, _OcclusionColors[oi], _OcclusionOrigins[oi], _OcclusionDirections[oi], _OcclusionFalloffInfos[oi]));
                 }
 
                 col *= _LightingStrength;

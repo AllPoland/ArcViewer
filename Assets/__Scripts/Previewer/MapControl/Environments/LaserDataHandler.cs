@@ -22,11 +22,7 @@ public class LaserDataHandler : MonoBehaviour
 
     private void UpdateLaserBuffer()
     {
-#if UNITY_EDITOR
-        float brightnessMult = Application.isPlaying ? SettingsManager.GetFloat("lightglowbrightness") : 1f;
-#else
-        float brightnessMult = SettingsManager.GetFloat("lightglowbrightness");
-#endif
+        float brightnessMult = SettingsManager.Loaded ? SettingsManager.GetFloat("lightglowbrightness") : 1f;
 
         if(laserColors == null || laserColors.Length != MaxLasers)
         {
