@@ -8,11 +8,13 @@ Shader "Custom/DiffusePlatformShader"
         _TextureDistance ("Max Texture Distance", float) = 100.0
         _NormalMap ("Normal Map", 2D) = "bump" {}
         _NormalDistance ("Max Normal Map Distance", float) = 100.0
+        _SpecularMap ("Specular Map", 2D) = "white" {}
         _FogStartOffset ("Fog Start Offset", float) = 0
         _FogScale ("Fog Scale", float) = 1
         _FogHeightOffset ("Fog Height Offset", float) = 0
         _FogHeightScale ("Fog Height Scale", float) = 1
         _AmbientStrength ("Ambient Light", float) = 1
+        _ReflectionStrength ("Reflection Strength", float) = 1
         _LightingStrength ("Lighting Brightness", float) = 1
     }
     SubShader
@@ -70,11 +72,15 @@ Shader "Custom/DiffusePlatformShader"
             sampler2D _NormalMap;
             float _TextureDistance, _NormalDistance;
 
+            sampler2D _SpecularMap;
+            float _SpecularMap_ST;
+
             fixed4 _LaserColor;
             float _ColorMult;
             float _FogStartOffset, _FogScale;
             float _FogHeightOffset, _FogHeightScale;
             float _AmbientStrength;
+            float _ReflectionStrength;
             float _LightingStrength;
 
             float3 Project(float3 a, float3 b)
@@ -123,6 +129,11 @@ Shader "Custom/DiffusePlatformShader"
 
             fixed4 frag(v2f i) : SV_Target
             {
+                fixed4 textureColor = tex2D(_MainTex, i.uv);
+
+                //Alpha clipping
+                clip(textureColor.a - 0.5);
+
                 BLOOM_FOG_INITIALIZE_FRAG(i);
 
                 float3 cameraOffset = _WorldSpaceCameraPos - i.worldPos;
@@ -145,6 +156,30 @@ Shader "Custom/DiffusePlatformShader"
                 }
                 col *= _LightingStrength;
 
+                //Use the viewspace normal to create fake environment reflections
+                float3 viewNormal = mul((float3x3)UNITY_MATRIX_V, worldNormal);
+                float3 cameraDir = normalize(cameraOffset);
+
+                //Convert coordinates to a pixel grid (to avoid aspect ratio issues)
+                float2 originalFogCoord = (i.fogCoord * 2) - 1;
+                originalFogCoord.y *= bloomfogRes;
+
+                //Push the fog sample pos in the direction of the normal
+                //Distance is based on the angle of reflection
+                float fresnel = dot(cameraDir, worldNormal);
+                float reflectionDist = fresnel * bloomfogRes.x * 0.5;
+                float2 screenReflectPos = originalFogCoord + (viewNormal.xy * reflectionDist);
+
+                //Convert back to UV coordinates to sample the bloomfog
+                screenReflectPos.y /= bloomfogRes;
+                float2 screenReflectUV = (screenReflectPos + 1) * 0.5;
+
+                //Scale reflections with a fresnel effect for more convincing specularity
+                float reflectionMult = _ReflectionStrength * tex2D(_SpecularMap, i.uv) * (1.0 - fresnel);
+
+                //Add specular reflections to color
+                col += BLOOM_FOG_SAMPLE(screenReflectUV) * reflectionMult;
+
                 //Apply ambient lighting based on the up/down facing of the normal
                 fixed4 skyCol = unity_AmbientSky * clamp(worldNormal.y, 0, 1);
                 fixed4 equatorCol = unity_AmbientEquator * (1 - abs(worldNormal.y));
@@ -152,7 +187,7 @@ Shader "Custom/DiffusePlatformShader"
                 col += (skyCol + equatorCol + groundCol) * _AmbientStrength;
 
                 //Apply albedo texture
-                col = lerp(col * tex2D(_MainTex, i.uv), col, clamp(cameraDistance / _TextureDistance, 0.001, 1));
+                col = lerp(col * textureColor, col, clamp(cameraDistance / _TextureDistance, 0.001, 1));
 
                 //Add the laser glow
                 col += fixed4(_LaserColor.rgb, 0) * _LaserColor.a * _ColorMult;
