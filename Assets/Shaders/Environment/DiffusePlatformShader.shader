@@ -31,16 +31,8 @@ Shader "Custom/DiffusePlatformShader"
             #include "UnityCG.cginc"
             #include "BloomFog.cginc"
 
-            struct LaserLight
-            {
-                float4 color;
-                float3 origin;
-                float3 direction;
-                float halfLength;
-                float brightnessCap;
-                float falloff;
-                float falloffSteepness;
-            };
+            static const int MAX_LASERS = 15;
+            static const int MAX_OCCLUSIONS = 3;
 
             struct appdata
             {
@@ -61,12 +53,16 @@ Shader "Custom/DiffusePlatformShader"
             };
 
             //Laser data to calculate diffuse lighting
-            uniform StructuredBuffer<LaserLight> _LaserLights;
-            uniform int _NumLaserLights;
+            uniform float4 _LaserColors[MAX_LASERS];
+            uniform float4 _LaserOrigins[MAX_LASERS];
+            uniform float4 _LaserDirections[MAX_LASERS];
+            uniform float4 _LaserFalloffInfos[MAX_LASERS]; // halfLength; brightnessCap; falloff; falloffSteepness;
 
             //Data for fake ambient occlusion
-            uniform StructuredBuffer<LaserLight> _OcclusionMarkers;
-            uniform int _NumOcclusionMarkers;
+            uniform float4 _OcclusionColors[MAX_OCCLUSIONS];
+            uniform float4 _OcclusionOrigins[MAX_OCCLUSIONS];
+            uniform float4 _OcclusionDirections[MAX_OCCLUSIONS];
+            uniform float4 _OcclusionFalloffInfos[MAX_OCCLUSIONS]; // halfLength; brightnessCap; falloff; falloffSteepness;
 
             uniform float4 _BloomfogTex_TexelSize;
 
@@ -92,15 +88,17 @@ Shader "Custom/DiffusePlatformShader"
                 return b * dot(a, b) / dot(b, b);
             }
 
-            fixed4 GetDiffuseLight(float3 v, LaserLight l)
+            fixed4 GetDiffuseLight(float3 v, float4 color, float4 origin, float4 direction, float4 falloffInfo)
             {
+                if (color.a < 0.0001) return fixed4(0,0,0,0);
+
                 //Project the pixel position onto the laser line
-                float3 relativePos = v - l.origin;
-                float3 projectedPos = Project(relativePos, l.direction);
+                float3 relativePos = v - origin.xyz;
+                float3 projectedPos = Project(relativePos, direction.xyz);
                 float projectedMagnitude = length(projectedPos);
 
                 //Clamp the projected position onto the laser's length
-                float projectedDistance = min(projectedMagnitude, l.halfLength);
+                float projectedDistance = min(projectedMagnitude, falloffInfo.x);
                 float3 lightPos = (projectedPos / projectedMagnitude) * projectedDistance;
 
                 //Find the direction and distance from the pixel position to the point on the laser
@@ -109,10 +107,10 @@ Shader "Custom/DiffusePlatformShader"
                 float3 relativeLightDir = relativeLightPos / lightDistance;
 
                 //Calculate brightness using only the distance
-                float falloffFactor = lightDistance / l.falloff;
-                float lightAmount = 1.0 / (l.brightnessCap + (lightDistance / l.falloffSteepness) + (falloffFactor * falloffFactor));
+                float falloffFactor = lightDistance / falloffInfo.z;
+                float lightAmount = 1.0 / (falloffInfo.y + (lightDistance / falloffInfo.w) + (falloffFactor * falloffFactor));
     
-                return fixed4(l.color.rgb * lightAmount * l.color.a, 0);
+                return fixed4(color.rgb * lightAmount * color.a, 0);
             }
 
             v2f vert(appdata v)
@@ -154,15 +152,15 @@ Shader "Custom/DiffusePlatformShader"
 
                 //Calculate diffuse lighting
                 fixed4 col = fixed4(0,0,0,0);
-                for(int li = 0; li < _NumLaserLights; li++)
+                for(int li = 0; li < MAX_LASERS; li++)
                 {
-                    col += GetDiffuseLight(i.worldPos, _LaserLights[li]);
+                    col += GetDiffuseLight(i.worldPos, _LaserColors[li], _LaserOrigins[li], _LaserDirections[li], _LaserFalloffInfos[li]);
                 }
 
                 //Calculate ambient occlusion by multiplying by the inverse of occlusion marker strength
-                for(int oi = 0; oi < _NumOcclusionMarkers; oi++)
+                for(int oi = 0; oi < MAX_OCCLUSIONS; oi++)
                 {
-                    col *= 1.0 - GetDiffuseLight(i.worldPos, _OcclusionMarkers[oi]);
+                    col *= 1.0 - GetDiffuseLight(i.worldPos, _OcclusionColors[oi], _OcclusionOrigins[oi], _OcclusionDirections[oi], _OcclusionFalloffInfos[oi]);
                 }
 
                 col *= _LightingStrength;

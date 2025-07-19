@@ -1,35 +1,23 @@
-using System.Runtime.InteropServices;
 using UnityEngine;
 
 [ExecuteInEditMode]
 public class LaserDataHandler : MonoBehaviour
 {
+    public const int MaxLasers = 15;
+    public const int MaxOcclusions = 3;
+
     [SerializeField] private LightHandler[] lasers;
     [SerializeField] private OcclusionMarker[] occlusionMarkers;
     
-    private LaserLight[] laserLights;
-    private ComputeBuffer laserBuffer;
-    private int laserCount;
+    private Vector4[] laserColors;
+    private Vector4[] laserOrigins;
+    private Vector4[] laserDirections;
+    private Vector4[] laserFalloffInfos;
 
-    private LaserLight[] occlusions;
-    private ComputeBuffer occlusionBuffer;
-    private int occlusionCount;
-
-
-    private void ClearLaserBuffer()
-    {
-        laserBuffer?.Dispose();
-        laserCount = 0;
-        Shader.SetGlobalInt("_NumLaserLights", 0);
-    }
-
-
-    private void ClearOcclusionBuffer()
-    {
-        occlusionBuffer?.Dispose();
-        occlusionCount = 0;
-        Shader.SetGlobalInt("_NumOcclusionMarkers", 0);
-    }
+    private Vector4[] occlusionColors;
+    private Vector4[] occlusionOrigins;
+    private Vector4[] occlusionDirections;
+    private Vector4[] occlusionFalloffInfos;
 
 
     private void UpdateLaserBuffer()
@@ -40,90 +28,109 @@ public class LaserDataHandler : MonoBehaviour
         float brightnessMult = SettingsManager.GetFloat("lightglowbrightness");
 #endif
 
-        if(brightnessMult < Mathf.Epsilon || lasers == null || lasers.Length == 0)
+        if(laserColors == null || laserColors.Length != MaxLasers)
         {
-            ClearLaserBuffer();
-            return;
-        }
-
-        if(lasers.Length != laserCount)
-        {
-            //Update the buffer to contain the new amount of lasers
-            ClearLaserBuffer();
-            laserBuffer = new ComputeBuffer(lasers.Length, Marshal.SizeOf(typeof(LaserLight)));
-            laserCount = lasers.Length;
-            Shader.SetGlobalInt("_NumLaserLights", laserCount);
-
             //Populate the new array of lasers
-            laserLights = new LaserLight[laserCount];
+            laserColors = new Vector4[MaxLasers];
+            laserOrigins = new Vector4[MaxLasers];
+            laserDirections = new Vector4[MaxLasers];
+            laserFalloffInfos = new Vector4[MaxLasers];
+
+            if(lasers.Length > MaxLasers)
+            {
+                Debug.LogWarning($"{lasers.Length} light emitters is too many! Only {MaxLasers} are allowed.");
+            }
         }
 
-        for(int i = 0; i < laserCount; i++)
+        for(int i = 0; i < MaxLasers; i++)
         {
+            if(i >= lasers.Length)
+            {
+                laserColors[i] = Color.clear;
+                continue;
+            }
+
             LightHandler lightHandler = lasers[i];
             if(lightHandler == null || !lightHandler.enabled || !lightHandler.gameObject.activeInHierarchy)
             {
-                laserLights[i].color = Color.clear;
+                laserColors[i] = Color.clear;
                 continue;
             }
 
             Transform lightTransform = lightHandler.transform;
 
-            laserLights[i].color = lightHandler.CurrentColor * lightHandler.diffuseMult * brightnessMult;
-            laserLights[i].origin = lightTransform.position;
-            laserLights[i].direction = lightTransform.up;
-            laserLights[i].halfLength = Mathf.Abs(lightTransform.lossyScale.y) / 2f;
-            laserLights[i].brightnessCap = lightHandler.diffuseBrightnessCap;
-            laserLights[i].falloff = lightHandler.diffuseFalloff;
-            laserLights[i].falloffSteepness = lightHandler.diffuseFalloffSteepness;
+            laserColors[i] = lightHandler.CurrentColor * lightHandler.diffuseMult * brightnessMult;
+            laserOrigins[i] = lightTransform.position;
+            laserDirections[i] = lightTransform.up;
+
+            Vector4 falloffInfo = new Vector4
+            {
+                x = Mathf.Abs(lightTransform.lossyScale.y) / 2f,
+                y = lightHandler.diffuseBrightnessCap,
+                z = lightHandler.diffuseFalloff,
+                w = lightHandler.diffuseFalloffSteepness
+            };
+            laserFalloffInfos[i] = falloffInfo;
         }
 
         //Send the new laser data to the GPU
-        laserBuffer.SetData(laserLights);
-        Shader.SetGlobalBuffer("_LaserLights", laserBuffer);
+        Shader.SetGlobalVectorArray("_LaserColors", laserColors);
+        Shader.SetGlobalVectorArray("_LaserOrigins", laserOrigins);
+        Shader.SetGlobalVectorArray("_LaserDirections", laserDirections);
+        Shader.SetGlobalVectorArray("_LaserFalloffInfos", laserFalloffInfos);
     }
 
 
     private void UpdateOcclusionBuffer()
     {
-        if(occlusionMarkers == null || occlusionMarkers.Length == 0)
+        if(occlusionColors == null || occlusionColors.Length != MaxOcclusions)
         {
-            ClearOcclusionBuffer();
-            return;
-        }
-    
-        if(occlusionMarkers.Length != occlusionCount)
-        {
-            ClearOcclusionBuffer();
-            occlusionBuffer = new ComputeBuffer(occlusionMarkers.Length, Marshal.SizeOf(typeof(LaserLight)));
-            occlusionCount = occlusionMarkers.Length;
-            Shader.SetGlobalInt("_NumOcclusionMarkers", occlusionCount);
+            occlusionColors = new Vector4[MaxOcclusions];
+            occlusionOrigins = new Vector4[MaxOcclusions];
+            occlusionDirections = new Vector4[MaxOcclusions];
+            occlusionFalloffInfos = new Vector4[MaxOcclusions];
 
-            occlusions = new LaserLight[occlusionCount];
+            if(occlusionMarkers.Length > MaxOcclusions)
+            {
+                Debug.LogWarning($"{occlusionMarkers.Length} occlusion markers is too many! Only {MaxOcclusions} are allowed.");
+            }
         }
 
-        for(int i = 0; i < occlusionCount; i++)
+        for(int i = 0; i < MaxOcclusions; i++)
         {
+            if(i >= occlusionMarkers.Length)
+            {
+                occlusionColors[i] = Color.clear;
+                continue;
+            }
+
             OcclusionMarker occlusionMarker = occlusionMarkers[i];
             if(occlusionMarker == null || !occlusionMarker.enabled || !occlusionMarker.gameObject.activeInHierarchy)
             {
-                occlusions[i].color = Color.clear;
+                occlusionColors[i] = Color.clear;
                 continue;
             }
 
             Transform occlusionTransform = occlusionMarker.transform;
 
-            occlusions[i].color = Color.white * occlusionMarker.intensity;
-            occlusions[i].origin = occlusionTransform.position;
-            occlusions[i].direction = occlusionTransform.up;
-            occlusions[i].halfLength = Mathf.Abs(occlusionTransform.lossyScale.y) / 2f;
-            occlusions[i].brightnessCap = occlusionMarker.brightnessCap;
-            occlusions[i].falloff = occlusionMarker.falloff;
-            occlusions[i].falloffSteepness = occlusionMarker.falloffSteepness;
+            occlusionColors[i] = Color.white * occlusionMarker.intensity;
+            occlusionOrigins[i] = occlusionTransform.position;
+            occlusionDirections[i] = occlusionTransform.up;
+
+            Vector4 falloffInfo = new Vector4
+            {
+                x = Mathf.Abs(occlusionTransform.lossyScale.y) / 2f,
+                y = occlusionMarker.brightnessCap,
+                z = occlusionMarker.falloff,
+                w = occlusionMarker.falloffSteepness
+            };
+            occlusionFalloffInfos[i] = falloffInfo;
         }
 
-        occlusionBuffer.SetData(occlusions);
-        Shader.SetGlobalBuffer("_OcclusionMarkers", occlusionBuffer);
+        Shader.SetGlobalVectorArray("_OcclusionColors", occlusionColors);
+        Shader.SetGlobalVectorArray("_OcclusionOrigins", occlusionOrigins);
+        Shader.SetGlobalVectorArray("_OcclusionDirections", occlusionDirections);
+        Shader.SetGlobalVectorArray("_OcclusionFalloffInfos", occlusionFalloffInfos);
     }
 
 
@@ -144,23 +151,4 @@ public class LaserDataHandler : MonoBehaviour
     {
         UpdateBuffers();
     }
-
-
-    private void OnDisable()
-    {
-        ClearLaserBuffer();
-        ClearOcclusionBuffer();
-    }
-}
-
-
-public struct LaserLight
-{
-    public Vector4 color;
-    public Vector3 origin;
-    public Vector3 direction;
-    public float halfLength;
-    public float brightnessCap;
-    public float falloff;
-    public float falloffSteepness;
 }
