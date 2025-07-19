@@ -64,6 +64,10 @@ Shader "Custom/DiffusePlatformShader"
             uniform StructuredBuffer<LaserLight> _LaserLights;
             uniform int _NumLaserLights;
 
+            //Data for fake ambient occlusion
+            uniform StructuredBuffer<LaserLight> _OcclusionMarkers;
+            uniform int _NumOcclusionMarkers;
+
             uniform float4 _BloomfogTex_TexelSize;
 
             sampler2D _MainTex;
@@ -88,7 +92,7 @@ Shader "Custom/DiffusePlatformShader"
                 return b * dot(a, b) / dot(b, b);
             }
 
-            fixed4 GetDiffuseLight(float3 v, float3 n, LaserLight l)
+            fixed4 GetDiffuseLight(float3 v, LaserLight l)
             {
                 //Project the pixel position onto the laser line
                 float3 relativePos = v - l.origin;
@@ -152,8 +156,15 @@ Shader "Custom/DiffusePlatformShader"
                 fixed4 col = fixed4(0,0,0,0);
                 for(int li = 0; li < _NumLaserLights; li++)
                 {
-                    col += GetDiffuseLight(i.worldPos, worldNormal, _LaserLights[li]);
+                    col += GetDiffuseLight(i.worldPos, _LaserLights[li]);
                 }
+
+                //Calculate ambient occlusion by multiplying by the inverse of occlusion marker strength
+                for(int oi = 0; oi < _NumOcclusionMarkers; oi++)
+                {
+                    col *= 1.0 - GetDiffuseLight(i.worldPos, _OcclusionMarkers[oi]);
+                }
+
                 col *= _LightingStrength;
 
                 //Use the viewspace normal to create fake environment reflections
