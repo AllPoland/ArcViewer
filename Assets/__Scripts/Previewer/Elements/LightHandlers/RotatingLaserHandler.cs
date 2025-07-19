@@ -3,14 +3,14 @@ using UnityEngine;
 
 public class RotatingLaserHandler : MonoBehaviour
 {
-    [SerializeField] private List<Transform> targets;
-    [SerializeField] private LightEventType eventType;
-    [SerializeField] private RotationAxis rotationAxis;
+    [SerializeField] protected List<Transform> targets;
+    [SerializeField] protected LightEventType eventType;
+    [SerializeField] protected RotationAxis rotationAxis;
 
-    private List<Vector3> defaultRotations = new List<Vector3>();
+    protected List<Vector3> defaultRotations = new List<Vector3>();
 
 
-    public void UpdateLaserRotations(LaserSpeedEvent laserSpeedEvent, LightEventType type)
+    public virtual void UpdateLaserRotations(LaserSpeedEvent laserSpeedEvent, LightEventType type)
     {
         if(type != eventType)
         {
@@ -32,7 +32,7 @@ public class RotatingLaserHandler : MonoBehaviour
     }
 
 
-    private void ResetRotations()
+    protected void ResetRotations()
     {
         for(int i = 0; i < targets.Count; i++)
         {
@@ -41,7 +41,7 @@ public class RotatingLaserHandler : MonoBehaviour
     }
 
 
-    private void SetLaserRotation(Transform target, float angle, Vector3 defaultRotation)
+    protected void SetLaserRotation(Transform target, float angle, Vector3 defaultRotation)
     {
         Vector3 rotation = defaultRotation;
         switch(rotationAxis)
@@ -60,7 +60,7 @@ public class RotatingLaserHandler : MonoBehaviour
     }
 
 
-    private void Start()
+    protected virtual void Start()
     {
         LightManager.OnLaserRotationsChanged += UpdateLaserRotations;
 
@@ -72,13 +72,13 @@ public class RotatingLaserHandler : MonoBehaviour
     }
 
 
-    private void OnDisable()
+    protected virtual void OnDestroy()
     {
         LightManager.OnLaserRotationsChanged -= UpdateLaserRotations;
     }
 
 
-    enum RotationAxis
+    public enum RotationAxis
     {
         X,
         Y,
