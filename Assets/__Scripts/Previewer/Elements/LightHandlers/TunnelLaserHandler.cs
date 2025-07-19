@@ -37,14 +37,17 @@ public class TunnelLaserController : RotatingLaserHandler
         if(laserSpeedEvent == null)
         {
             //This means there haven't been any speed events (or there aren't any)
-            ResetRotations();
+            for(int i = 0; i < targets.Count; i++)
+            {
+                SetLaserRotation(targets[i], step * i, defaultRotations[i]);
+            }
             return;
         }
 
         for(int i = 0; i < targets.Count; i++)
         {
             float angle;
-            if(laserModeParity)
+            if(laserModeParity || laserSpeedEvent.RotationSpeed < Mathf.Epsilon)
             {
                 //The laser mode is set to non-chaotic, so use the step mode
                 angle = laserSpeedEvent.GetLaserRotationWithStep(TimeManager.CurrentTime, rotateClockwiseDefault, step, i);
