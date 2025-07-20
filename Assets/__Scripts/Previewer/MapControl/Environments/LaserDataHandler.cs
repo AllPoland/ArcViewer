@@ -38,18 +38,32 @@ public class LaserDataHandler : MonoBehaviour
             }
         }
 
+        bool dirty = false;
         for(int i = 0; i < MaxLasers; i++)
         {
             if(i >= lasers.Length)
             {
-                laserColors[i] = Color.clear;
+                if(laserColors[i] != Vector4.zero)
+                {
+                    laserColors[i] = Vector4.zero;
+                    dirty = true;
+                }
                 continue;
             }
 
             LightHandler lightHandler = lasers[i];
             if(lightHandler == null || !lightHandler.enabled || !lightHandler.gameObject.activeInHierarchy)
             {
-                laserColors[i] = Color.clear;
+                if(laserColors[i] != Vector4.zero)
+                {
+                    laserColors[i] = Vector4.zero;
+                    dirty = true;
+                }
+                continue;
+            }
+
+            if(!lightHandler.Dirty)
+            {
                 continue;
             }
 
@@ -67,13 +81,19 @@ public class LaserDataHandler : MonoBehaviour
                 w = lightHandler.diffuseFalloffSteepness
             };
             laserFalloffInfos[i] = falloffInfo;
+
+            lightHandler.Dirty = false;
+            dirty = true;
         }
 
-        //Send the new laser data to the GPU
-        Shader.SetGlobalVectorArray("_LaserColors", laserColors);
-        Shader.SetGlobalVectorArray("_LaserOrigins", laserOrigins);
-        Shader.SetGlobalVectorArray("_LaserDirections", laserDirections);
-        Shader.SetGlobalVectorArray("_LaserFalloffInfos", laserFalloffInfos);
+        if(dirty)
+        {
+            //Send the new laser data to the GPU
+            Shader.SetGlobalVectorArray("_LaserColors", laserColors);
+            Shader.SetGlobalVectorArray("_LaserOrigins", laserOrigins);
+            Shader.SetGlobalVectorArray("_LaserDirections", laserDirections);
+            Shader.SetGlobalVectorArray("_LaserFalloffInfos", laserFalloffInfos);
+        }
     }
 
 
@@ -92,18 +112,32 @@ public class LaserDataHandler : MonoBehaviour
             }
         }
 
+        bool dirty = false;
         for(int i = 0; i < MaxOcclusions; i++)
         {
             if(i >= occlusionMarkers.Length)
             {
-                occlusionColors[i] = Color.clear;
+                if(occlusionColors[i] != Vector4.zero)
+                {
+                    occlusionColors[i] = Vector4.zero;
+                    dirty = true;
+                }
                 continue;
             }
 
             OcclusionMarker occlusionMarker = occlusionMarkers[i];
             if(occlusionMarker == null || !occlusionMarker.enabled || !occlusionMarker.gameObject.activeInHierarchy)
             {
-                occlusionColors[i] = Color.clear;
+                if(occlusionColors[i] != Vector4.zero)
+                {
+                    occlusionColors[i] = Vector4.zero;
+                    dirty = true;
+                }
+                continue;
+            }
+
+            if(!occlusionMarker.Dirty)
+            {
                 continue;
             }
 
@@ -121,12 +155,18 @@ public class LaserDataHandler : MonoBehaviour
                 w = occlusionMarker.falloffSteepness
             };
             occlusionFalloffInfos[i] = falloffInfo;
+
+            occlusionMarker.Dirty = false;
+            dirty = true;
         }
 
-        Shader.SetGlobalVectorArray("_OcclusionColors", occlusionColors);
-        Shader.SetGlobalVectorArray("_OcclusionOrigins", occlusionOrigins);
-        Shader.SetGlobalVectorArray("_OcclusionDirections", occlusionDirections);
-        Shader.SetGlobalVectorArray("_OcclusionFalloffInfos", occlusionFalloffInfos);
+        if(dirty)
+        {
+            Shader.SetGlobalVectorArray("_OcclusionColors", occlusionColors);
+            Shader.SetGlobalVectorArray("_OcclusionOrigins", occlusionOrigins);
+            Shader.SetGlobalVectorArray("_OcclusionDirections", occlusionDirections);
+            Shader.SetGlobalVectorArray("_OcclusionFalloffInfos", occlusionFalloffInfos);
+        }
     }
 
 

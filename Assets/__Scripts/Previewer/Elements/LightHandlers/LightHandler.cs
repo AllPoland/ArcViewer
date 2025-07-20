@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class LightHandler : MonoBehaviour
 {
     public Color CurrentColor = Color.blue;
+    [NonSerialized] public bool Dirty = true;
 
     [Header("Components")]
     [SerializeField] private MeshRenderer meshRenderer;
@@ -31,6 +33,18 @@ public class LightHandler : MonoBehaviour
     private int nextEventIndex = -1;
 
 
+    private void SetCurrentColor(Color newColor)
+    {
+        if(CurrentColor == newColor)
+        {
+            return;
+        }
+
+        CurrentColor = newColor;
+        Dirty = true;
+    }
+
+
     private void UpdateLight(LightingPropertyEventArgs eventArgs)
     {
         if(eventArgs.type != type)
@@ -44,7 +58,7 @@ public class LightHandler : MonoBehaviour
         {
             //The current event and next events affect this id, so no need to recalculate anything
             //This will always be the case in vanilla lightshows without lightID
-            CurrentColor = eventArgs.eventColor;
+            SetCurrentColor(eventArgs.eventColor);
             SetProperties(eventArgs.laserColor, eventArgs.glowColor);
         }
         else
@@ -69,7 +83,7 @@ public class LightHandler : MonoBehaviour
                 nextEvent = GetNextEvent(eventArgs, eventIndex);
             }
 
-            CurrentColor = LightManager.GetEventColor(lightEvent, nextEvent);
+            SetCurrentColor(LightManager.GetEventColor(lightEvent, nextEvent));
             SetProperties(eventArgs.sender.GetLaserColor(CurrentColor), eventArgs.sender.GetLaserGlowColor(CurrentColor));
         }
     }
@@ -213,6 +227,8 @@ public class LightHandler : MonoBehaviour
     {
         LightManager.OnLightPropertiesChanged += UpdateLight;
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
+
+        Dirty = true;
     }
 
 
