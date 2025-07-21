@@ -96,7 +96,7 @@ Shader "Custom/PlatformShader"
 
                 //Use the viewspace normal to create fake environment reflections
                 float3 viewNormal = mul((float3x3)UNITY_MATRIX_V, worldNormal);
-                float3 cameraDir = normalize(cameraOffset);
+                float3 cameraDir = cameraOffset / cameraDistance;
 
                 //Convert coordinates to a pixel grid (to avoid aspect ratio issues)
                 float2 originalFogCoord = (i.fogCoord * 2) - 1;
@@ -110,6 +110,7 @@ Shader "Custom/PlatformShader"
 
                 //Convert back to UV coordinates to sample the bloomfog
                 screenReflectPos.y /= bloomfogRes;
+                // screenReflectPos.y = (screenReflectPos.y / bloomfogRes).x;
                 float2 screenReflectUV = (screenReflectPos + 1) * 0.5;
 
                 //Scale reflections with a fresnel effect for more convincing specularity

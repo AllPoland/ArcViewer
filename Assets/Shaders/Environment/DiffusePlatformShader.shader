@@ -167,7 +167,7 @@ Shader "Custom/DiffusePlatformShader"
 
                 //Use the viewspace normal to create fake environment reflections
                 float3 viewNormal = mul((float3x3)UNITY_MATRIX_V, worldNormal);
-                float3 cameraDir = normalize(cameraOffset);
+                float3 cameraDir = cameraOffset / cameraDistance;
 
                 //Convert coordinates to a pixel grid (to avoid aspect ratio issues)
                 float2 originalFogCoord = (i.fogCoord * 2) - 1;
