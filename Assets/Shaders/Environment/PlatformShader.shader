@@ -96,7 +96,7 @@ Shader "Custom/PlatformShader"
 
                 //Use the viewspace normal to create fake environment reflections
                 float3 viewNormal = mul((float3x3)UNITY_MATRIX_V, worldNormal);
-                float3 cameraDir = normalize(cameraOffset);
+                float3 cameraDir = cameraOffset / cameraDistance;
 
                 //Convert coordinates to a pixel grid (to avoid aspect ratio issues)
                 float2 originalFogCoord = (i.fogCoord * 2) - 1;
@@ -110,6 +110,7 @@ Shader "Custom/PlatformShader"
 
                 //Convert back to UV coordinates to sample the bloomfog
                 screenReflectPos.y /= bloomfogRes;
+                // screenReflectPos.y = (screenReflectPos.y / bloomfogRes).x;
                 float2 screenReflectUV = (screenReflectPos + 1) * 0.5;
 
                 //Scale reflections with a fresnel effect for more convincing specularity
@@ -118,14 +119,14 @@ Shader "Custom/PlatformShader"
                 //Base color is defined strictly by reflections
                 fixed4 col = BLOOM_FOG_SAMPLE(screenReflectUV) * reflectionMult;
 
-                //Apply albedo texture
-                col = lerp(col * tex2D(_MainTex, i.uv), col, clamp(cameraDistance / _TextureDistance, 0.001, 1));
-
                 //Apply ambient lighting based on the up/down facing of the normal
                 fixed4 skyCol = unity_AmbientSky * clamp(worldNormal.y, 0, 1);
                 fixed4 equatorCol = unity_AmbientEquator * (1 - abs(worldNormal.y));
                 fixed4 groundCol = unity_AmbientGround * abs(clamp(worldNormal.y, -1, 0));
                 col += (skyCol + equatorCol + groundCol) * _AmbientStrength;
+
+                //Apply albedo texture
+                col = lerp(col * tex2D(_MainTex, i.uv), col, clamp(cameraDistance / _TextureDistance, 0.001, 1));
 
                 //Add the laser glow
                 col += fixed4(_LaserColor.rgb, 0) * _LaserColor.a * _ColorMult;

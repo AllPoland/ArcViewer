@@ -92,8 +92,8 @@ Material:
     - _AlphaClip: 0
     - _AmbientColorFalloff: 1
     - _AmbientFalloff: 0.1
-    - _AmbientReflectionStrength: 0.1
-    - _AmbientStrength: 0.5
+    - _AmbientReflectionStrength: 0
+    - _AmbientStrength: 1
     - _Blend: 0
     - _BumpScale: 1
     - _ClearCoatMask: 0
@@ -129,7 +129,8 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.08, g: 0.08, b: 0.08, a: 1}
+    - _BaseAmbient: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _BaseColor: {r: 0.5294118, g: 0.5294118, b: 0.5294118, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Emission: {r: 0, g: 0, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

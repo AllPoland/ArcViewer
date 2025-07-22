@@ -22,6 +22,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: KDASideTrack
   m_Shader: {fileID: 4800000, guid: fa927beadd2f5bb4bb39b5720fbc803e, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -30,6 +32,7 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -109,7 +112,7 @@ Material:
     m_Floats:
     - _AlphaClip: 0
     - _AmbientReflectionStrength: 0
-    - _AmbientStrength: 0.075
+    - _AmbientStrength: 0.2
     - _Blend: 0
     - _BumpScale: 1
     - _ClearCoatMask: 0
@@ -163,3 +166,4 @@ Material:
     - _Tiling: {r: 4, g: 133.333, b: 0, a: 0}
     - _UVScale: {r: 1, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

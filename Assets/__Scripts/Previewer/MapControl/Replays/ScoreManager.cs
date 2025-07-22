@@ -523,8 +523,9 @@ public class ScoreManager : MonoBehaviour
     {
         if(replayMode)
         {
+            bool showHud = SettingsManager.GetBool("showhud");
             ScoringEvents.Clear();
-            hudObject.SetActive(true);
+            hudObject.SetActive(showHud);
 
             foreach(NoteEvent noteEvent in ReplayManager.CurrentReplay.notes)
             {
@@ -543,9 +544,12 @@ public class ScoreManager : MonoBehaviour
                 ScoringEvents.InsertSorted(new ScoringEvent(wallEvent));
             }
 
-            TimeManager.OnBeatChanged += UpdateBeat;
             ObjectManager.OnObjectsLoaded += UpdateObjects;
-            UpdateBeat(TimeManager.CurrentBeat);
+            if(showHud)
+            {
+                TimeManager.OnBeatChanged += UpdateBeat;
+                UpdateBeat(TimeManager.CurrentBeat);
+            }
         }
         else
         {
@@ -576,7 +580,7 @@ public class ScoreManager : MonoBehaviour
             currentColorSettings = colorSettings[colorSettingsIndex];
         }
 
-        if(ReplayManager.IsReplayMode)
+        if(ReplayManager.IsReplayMode && SettingsManager.GetBool("showhud"))
         {
             ClearIndicators();
             UpdateBeat(TimeManager.CurrentBeat);
@@ -596,6 +600,24 @@ public class ScoreManager : MonoBehaviour
     private void UpdateSettings(string setting)
     {
         bool allSettings = setting == "all";
+        if(allSettings || setting == "showhud")
+        {
+            bool showHud = SettingsManager.GetBool("showhud");
+            bool shouldEnable = ReplayManager.IsReplayMode && showHud;
+
+            hudObject.gameObject.SetActive(shouldEnable);
+            if(shouldEnable)
+            {
+                TimeManager.OnBeatChanged += UpdateBeat;
+                UpdateBeat(TimeManager.CurrentBeat);
+            }
+            else
+            {
+                TimeManager.OnBeatChanged -= UpdateBeat;
+                ClearIndicators();
+            }
+        }
+
         if(colorSettings.Length > 0 && (allSettings || setting == "scorecolortype" || setting == "customhsvconfig"))
         {
             UpdateScoreColorSettings();

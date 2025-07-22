@@ -7,6 +7,13 @@ public class HeadsetHandler : MonoBehaviour
     private MaterialPropertyBlock headsetProperties;
 
 
+    public void SetColor(Color color)
+    {
+        headsetProperties.SetColor("_BaseColor", color);
+        meshRenderer.SetPropertyBlock(headsetProperties);
+    }
+
+
     public void SetAlpha(float alpha)
     {
         headsetProperties.SetFloat("_Alpha", alpha);

@@ -233,7 +233,7 @@ public class LaserSpeedEvent : LightEvent
 
         float timeDifference = currentTime - Time;
 
-        LaserSpeedEvent.LaserRotationData rotationData = RotationValues[laserID];
+        LaserRotationData rotationData = RotationValues[laserID];
         float rotationAmount = RotationSpeed * timeDifference;
         if(rotationData.direction)
         {
@@ -242,6 +242,29 @@ public class LaserSpeedEvent : LightEvent
         }
 
         return (rotationData.startPosition + rotationAmount) % 360;
+    }
+
+
+    public float GetLaserRotationWithStep(float currentTime, bool direction, float step, int laserID)
+    {
+        if(RotationValues.Count == 0)
+        {
+            Debug.LogWarning("No randomized laser values!");
+            return 0f;
+        }
+
+        float timeDifference = currentTime - Time;
+
+        LaserRotationData rotationData = RotationValues[0];
+        float rotationAmount = RotationSpeed * timeDifference;
+        if(direction)
+        {
+            //A true direction means clockwise rotation (negative euler angle)
+            rotationAmount = -rotationAmount;
+        }
+
+        float startPosition = rotationData.startPosition + (step * laserID);
+        return (startPosition + rotationAmount) % 360;
     }
 }
 
@@ -269,6 +292,7 @@ public class LightingPropertyEventArgs
     public LightEventType type;
     public int eventIndex;
 
+    public Color eventColor;
     public Color laserColor;
     public Color glowColor;
 }

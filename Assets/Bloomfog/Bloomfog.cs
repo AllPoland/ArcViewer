@@ -17,10 +17,6 @@ public class Bloomfog : ScriptableRendererFeature
         public float bloomCaptureExtraFov = 0f;
         public float threshold = 1f;
         public float brightnessMult = 1f;
-        public float attenuation = 1f;
-        public float fogOffset = 0f;
-        public float fogHeight = 0f;
-        public float fogStartY = 0f;
 
         [Header("Blur Settings")]
         public Material blurMaterial;
@@ -56,11 +52,6 @@ public class Bloomfog : ScriptableRendererFeature
     {
         bloomFogPass = new BloomFogPass(settings);
         bloomFogPass.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
-
-        Shader.SetGlobalFloat("_CustomFogAttenuation", settings.attenuation);
-        Shader.SetGlobalFloat("_CustomFogOffset", settings.fogOffset);
-        Shader.SetGlobalFloat("_CustomFogHeightFogHeight", settings.fogHeight);
-        Shader.SetGlobalFloat("_CustomFogHeightFogStartY", settings.fogStartY);
     }
 
 

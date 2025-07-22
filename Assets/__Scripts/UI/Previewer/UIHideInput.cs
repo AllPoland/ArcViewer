@@ -22,7 +22,7 @@ public class UIHideInput : MonoBehaviour
     public static event Action<bool> OnUIVisibleChanged;
 
 
-    private void SetUIVisible(bool visible)
+    public static void SetUIVisible(bool visible)
     {
         if(visible != UIVisible)
         {

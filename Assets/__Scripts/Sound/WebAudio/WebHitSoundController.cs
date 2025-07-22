@@ -1,3 +1,4 @@
+#if UNITY_WEBGL && !UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -38,6 +39,9 @@ public class WebHitSoundController : MonoBehaviour
     [DllImport("__Internal")]
     public static extern bool IsHitSoundBadCut(int id);
 
+    public static float CurrentHitSoundVolume;
+    public static float CurrentChainSoundVolume;
+
     private static WebHitSoundController instance;
     private static HashSet<int> soundIDs = new HashSet<int>();
     private static int lowestOpenID = 0;
@@ -53,6 +57,9 @@ public class WebHitSoundController : MonoBehaviour
 
         // This just keeps the inspector sane
         instance.gameObject.hideFlags = HideFlags.HideAndDontSave;
+
+        CurrentHitSoundVolume = 1f;
+        CurrentChainSoundVolume = 0.8f;
 
         InitHitSoundController();
     }
@@ -125,3 +132,4 @@ public class WebHitSoundController : MonoBehaviour
         }
     }
 }
+#endif

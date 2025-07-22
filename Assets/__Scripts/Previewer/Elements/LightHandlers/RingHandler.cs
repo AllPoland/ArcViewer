@@ -24,7 +24,7 @@ public class RingHandler : MonoBehaviour
 
     public void UpdateRingRotations(RingRotationEventArgs eventArgs)
     {
-        if(eventArgs.affectBigRings != bigRing)
+        if((!bigRing && !eventArgs.affectSmallRings) || (bigRing && !eventArgs.affectBigRings))
         {
             return;
         }

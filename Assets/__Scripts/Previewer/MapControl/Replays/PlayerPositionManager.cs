@@ -338,6 +338,10 @@ public class PlayerPositionManager : MonoBehaviour
         {
             headset.SetAlpha(SettingsManager.GetFloat("headsetalpha"));
         }
+        if(allSettings || setting == "headsetcolor")
+        {
+            headset.SetColor(SettingsManager.GetColor("headsetcolor"));
+        }
     }
 
 

@@ -92,6 +92,7 @@ public class EnvironmentManager : MonoBehaviour
         "PanicEnvironment",
         "TimbalandEnvironment",
         "FitBeatEnvironment",
+        "LinkinParkEnvironment",
         "KaleidoscopeEnvironment"
     };
 
@@ -142,6 +143,12 @@ public class EnvironmentManager : MonoBehaviour
                 Debug.Log($"Target scene was changed from {CurrentSceneIndex} to {targetSceneIndex} while loading.");
             }
         }
+
+        //Set the bloomfog settings
+        Shader.SetGlobalFloat("_CustomFogAttenuation", 1f / CurrentEnvironmentParameters.FogAttenuation);
+        Shader.SetGlobalFloat("_CustomFogOffset", CurrentEnvironmentParameters.FogOffset);
+        Shader.SetGlobalFloat("_CustomFogHeightFogHeight", CurrentEnvironmentParameters.FogHeight);
+        Shader.SetGlobalFloat("_CustomFogHeightFogStartY", CurrentEnvironmentParameters.FogStartY);
 
         Debug.Log("Environment loaded.");
         Loading = false;
@@ -247,6 +254,12 @@ public class EnvironmentManager : MonoBehaviour
 public class EnvironmentLightParameters
 {
     public string EnvironmentName = "DefaultEnvironment";
+
+    [Space]
+    public float FogAttenuation = 1000f;
+    public float FogOffset = 0f;
+    public float FogHeight = 25f;
+    public float FogStartY = -80f;
 
     [Space]
     public int RotatingLaserCount = 4;

@@ -28,6 +28,8 @@ public class UIUpdater : MonoBehaviour
                 CoverImageHandler.Instance.ClearImage();
             }
 
+            TimeManager.Loop = false;
+
             Resources.UnloadUnusedAssets();
         }
 

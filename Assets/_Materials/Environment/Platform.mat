@@ -9,6 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Platform
   m_Shader: {fileID: 4800000, guid: fa927beadd2f5bb4bb39b5720fbc803e, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
   - _EMISSION
@@ -16,9 +18,10 @@ Material:
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2000
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -106,7 +109,7 @@ Material:
     m_Floats:
     - _AlphaClip: 0
     - _AmbientReflectionStrength: 1
-    - _AmbientStrength: 0.075
+    - _AmbientStrength: 0.2
     - _Anisotropy: 0
     - _Blend: 0
     - _BlendOp: 0
@@ -178,6 +181,7 @@ Material:
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
     - _SubsurfaceColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &711588064870321066
 MonoBehaviour:
   m_ObjectHideFlags: 11

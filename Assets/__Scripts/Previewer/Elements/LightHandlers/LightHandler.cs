@@ -1,8 +1,12 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class LightHandler : MonoBehaviour
 {
+    public Color CurrentColor = Color.blue;
+    [NonSerialized] public bool Dirty = true;
+
     [Header("Components")]
     [SerializeField] private MeshRenderer meshRenderer;
     [SerializeField] private MeshRenderer glowRenderer;
@@ -13,6 +17,12 @@ public class LightHandler : MonoBehaviour
     [SerializeField] public float emissionMult = 1f;
     [SerializeField] public float glowMult = 1f;
 
+    [Space]
+    [SerializeField] public float diffuseMult = 1f;
+    [SerializeField] public float diffuseBrightnessCap = 0f;
+    [SerializeField] public float diffuseFalloff = 10f;
+    [SerializeField] public float diffuseFalloffSteepness = 1f;
+
     private MaterialPropertyBlock laserProperties;
     private MaterialPropertyBlock glowProperties;
 
@@ -21,6 +31,18 @@ public class LightHandler : MonoBehaviour
 
     private int lastEventIndex = -1;
     private int nextEventIndex = -1;
+
+
+    private void SetCurrentColor(Color newColor)
+    {
+        if(CurrentColor == newColor)
+        {
+            return;
+        }
+
+        CurrentColor = newColor;
+        Dirty = true;
+    }
 
 
     private void UpdateLight(LightingPropertyEventArgs eventArgs)
@@ -36,6 +58,7 @@ public class LightHandler : MonoBehaviour
         {
             //The current event and next events affect this id, so no need to recalculate anything
             //This will always be the case in vanilla lightshows without lightID
+            SetCurrentColor(eventArgs.eventColor);
             SetProperties(eventArgs.laserColor, eventArgs.glowColor);
         }
         else
@@ -60,8 +83,8 @@ public class LightHandler : MonoBehaviour
                 nextEvent = GetNextEvent(eventArgs, eventIndex);
             }
 
-            Color eventColor = LightManager.GetEventColor(lightEvent, nextEvent);
-            SetProperties(eventArgs.sender.GetLaserColor(eventColor), eventArgs.sender.GetLaserGlowColor(eventColor));
+            SetCurrentColor(LightManager.GetEventColor(lightEvent, nextEvent));
+            SetProperties(eventArgs.sender.GetLaserColor(CurrentColor), eventArgs.sender.GetLaserGlowColor(CurrentColor));
         }
     }
 
@@ -204,6 +227,8 @@ public class LightHandler : MonoBehaviour
     {
         LightManager.OnLightPropertiesChanged += UpdateLight;
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateDifficulty;
+
+        Dirty = true;
     }
 
 

@@ -12,11 +12,7 @@ public class StatsPanel : MonoBehaviour
 
     [Space]
     [SerializeField] private TextMeshProUGUI njsEventsText;
-    [SerializeField] private TextMeshProUGUI currentNJSText;
-
-    [Space]
     [SerializeField] private TextMeshProUGUI bpmEventsText;
-    [SerializeField] private TextMeshProUGUI currentBPMText;
 
     [Space]
     [SerializeField] private TextMeshProUGUI npsText;
@@ -61,39 +57,15 @@ public class StatsPanel : MonoBehaviour
     }
 
 
-    private void UpdateCurrentNJS()
-    {
-        string njs = ObjectManager.Instance.jumpManager.NJS.Round(3).ToString();
-        currentNJSText.text = $"Current NJS: {njs}";
-    }
-
-
-    private void UpdateCurrentBPM()
-    {
-        string bpm = TimeManager.CurrentBPM.Round(3).ToString();
-        currentBPMText.text = $"Current BPM: {bpm}";
-    }
-
-
     private void OnEnable()
     {
         MapStats.OnStatsUpdated += UpdateText;
-
         UpdateText();
-        UpdateCurrentNJS();
-        UpdateCurrentBPM();
     }
 
 
     private void OnDisable()
     {
         MapStats.OnStatsUpdated -= UpdateText;
-    }
-
-
-    private void LateUpdate()
-    {
-        UpdateCurrentNJS();
-        UpdateCurrentBPM();
     }
 }

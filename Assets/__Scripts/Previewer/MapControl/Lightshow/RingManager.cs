@@ -4,6 +4,7 @@ using UnityEngine;
 
 public static class RingManager
 {
+    public static MapElementList<RingRotationEvent> AllRingRotationEvents = new MapElementList<RingRotationEvent>();
     public static MapElementList<RingRotationEvent> SmallRingRotationEvents = new MapElementList<RingRotationEvent>();
     public static MapElementList<RingRotationEvent> BigRingRotationEvents = new MapElementList<RingRotationEvent>();
 
@@ -44,19 +45,26 @@ public static class RingManager
 
     private static void UpdateRingRotations()
     {
-        int lastIndex = SmallRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= TimeManager.CurrentBeat);
+        int lastIndex = AllRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= TimeManager.CurrentBeat);
 
         RingRotationEventArgs eventArgs = new RingRotationEventArgs
         {
-            events = SmallRingRotationEvents,
+            events = AllRingRotationEvents,
             currentEventIndex = lastIndex,
+            affectSmallRings = false,
             affectBigRings = false
         };
         OnRingRotationsChanged?.Invoke(eventArgs);
 
-        //Need to update big rings separately
+        //Need to update big and small rings separately
+        eventArgs.events = SmallRingRotationEvents;
+        eventArgs.currentEventIndex = SmallRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= TimeManager.CurrentBeat);
+        eventArgs.affectSmallRings = true;
+        OnRingRotationsChanged?.Invoke(eventArgs);
+
         eventArgs.events = BigRingRotationEvents;
         eventArgs.currentEventIndex = BigRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= TimeManager.CurrentBeat);
+        eventArgs.affectSmallRings = false;
         eventArgs.affectBigRings = true;
         OnRingRotationsChanged?.Invoke(eventArgs);
     }
@@ -89,10 +97,9 @@ public static class RingManager
         {
             events = new List<RingRotationEvent>(),
             currentEventIndex = -1,
-            affectBigRings = false
+            affectSmallRings = true,
+            affectBigRings = true
         };
-        OnRingRotationsChanged?.Invoke(eventArgs);
-        eventArgs.affectBigRings = true;
         OnRingRotationsChanged?.Invoke(eventArgs);
 
         OnRingZoomPositionChanged?.Invoke(StartRingZoomStep);
@@ -101,10 +108,30 @@ public static class RingManager
 
     public static void PopulateRingEventData()
     {
+        SetRingRotationParity();
         PopulateRingRotationEvents(ref SmallRingRotationEvents, DefaultSmallRingRotationAmount, DefaultSmallRingMaxStep, SmallRingStartAngle, SmallRingStartStep);
         PopulateRingRotationEvents(ref BigRingRotationEvents, DefaultBigRingRotationAmount, DefaultBigRingMaxStep, BigRingStartAngle, BigRingStartStep);
 
         PopulateRingZoomEvents();
+    }
+
+
+    private static void SetRingRotationParity()
+    {
+        for(int i = 0; i < AllRingRotationEvents.Count; i++)
+        {
+            RingRotationEvent current = AllRingRotationEvents[i];
+            if(i == 0)
+            {
+                //The first ring rotation event toggles parity from false to true
+                current.Parity = true;
+            }
+            else
+            {
+                RingRotationEvent previous = AllRingRotationEvents[i - 1];
+                current.Parity = !previous.Parity;
+            }
+        }
     }
 
 
@@ -182,6 +209,9 @@ public class RingRotationEvent : LightEvent
     public float TargetAngle;
     public float StartAngle;
     public float StartStep;
+
+    //Used for certain behaviors in some environments (like linkin tunnel lasers)
+    public bool Parity;
 
     public bool CustomDirection = false;
     public bool CustomRotation = false;
@@ -333,5 +363,6 @@ public class RingRotationEventArgs
 {
     public List<RingRotationEvent> events;
     public int currentEventIndex;
+    public bool affectSmallRings;
     public bool affectBigRings;
 }
