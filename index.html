@@ -23,7 +23,7 @@
     </div>
   </div>
   <script src="TemplateData/Scripts/oggdecode.js"></script>
-  <script src="Build/ArcViewer.loader.js"></script>
+  <script src="Build/ArcViewerTest.loader.js"></script>
   <script>
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       // Mobile device style: fill the whole browser client area with the game canvas:
@@ -44,13 +44,13 @@
 
     var gameInstance = null;
     createUnityInstance(document.querySelector("#unity-canvas"), {
-      dataUrl: "Build/ArcViewer.data",
-      frameworkUrl: "Build/ArcViewer.framework.js",
-      codeUrl: "Build/ArcViewer.wasm",
+      dataUrl: "Build/ArcViewerTest.data",
+      frameworkUrl: "Build/ArcViewerTest.framework.js",
+      codeUrl: "Build/ArcViewerTest.wasm",
       streamingAssetsUrl: "StreamingAssets",
       companyName: "AllPolanDev",
       productName: "ArcViewer",
-      productVersion: "0.7.2",
+      productVersion: "0.7.3",
         // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
       }, (progress) => {
