@@ -82,6 +82,11 @@ public class UrlArgHandler : MonoBehaviour
     private static DifficultyRank? diffRank;
     private static bool noProxy;
 
+    private static bool firstPerson;
+    private static bool uiOff;
+    private static bool autoPlay;
+    private static bool loop;
+
     [SerializeField] private MapLoader mapLoader;
 
 
@@ -126,6 +131,18 @@ public class UrlArgHandler : MonoBehaviour
                 mapPath = value;
                 break;
 #endif
+            case "firstPerson":
+                firstPerson = bool.TryParse(value, out firstPerson) ? firstPerson : false;
+                break;
+            case "uiOff":
+                uiOff = bool.TryParse(value, out uiOff) ? uiOff : false;
+                break;
+            case "autoPlay":
+                autoPlay = bool.TryParse(value, out autoPlay) ? autoPlay : false;
+                break;
+            case "loop":
+                loop = bool.TryParse(value, out loop) ? loop : false;
+                break;
         }
     }
 
@@ -185,6 +202,26 @@ public class UrlArgHandler : MonoBehaviour
         }
 #endif
 
+        if(uiOff)
+        {
+            UIHideInput.SetUIVisible(false);
+        }
+
+        if(firstPerson)
+        {
+            ReplayManager.OnReplayModeChanged += SetFirstPerson;
+        }
+
+        if(loop)
+        {
+            TimeManager.Loop = true;
+        }
+
+        if(autoPlay)
+        {
+            BeatmapManager.OnBeatmapDifficultyChanged += StartPlaying;
+        }
+
         //Only apply start time and diff when a map is also included in the arguments
         if(setTime && startTime > 0)
         {
@@ -214,8 +251,6 @@ public class UrlArgHandler : MonoBehaviour
         }
 
         ResetArguments();
-
-        url = HttpUtility.UrlDecode(url);
 
         List<KeyValuePair<string, string>> parameters = UrlUtility.ParseUrlParams(url);
         if(parameters.Count == 0)
@@ -262,6 +297,23 @@ public class UrlArgHandler : MonoBehaviour
         }
 
         ApplyArguments();
+    }
+
+
+    private void SetFirstPerson(bool replayMode)
+    {
+        if(replayMode)
+        {
+            SettingsManager.SetRule("firstpersonreplay", true);
+        }
+        ReplayManager.OnReplayModeChanged -= SetFirstPerson;
+    }
+
+
+    private void StartPlaying(Difficulty difficulty)
+    {
+        TimeManager.SetPlaying(true);
+        BeatmapManager.OnBeatmapDifficultyChanged -= StartPlaying;
     }
 
 
@@ -313,11 +365,18 @@ public class UrlArgHandler : MonoBehaviour
         noProxy = false;
         replayURL = "";
         replayID = "";
+
+        firstPerson = false;
+        uiOff = false;
+        autoPlay = false;
+        loop = false;
     }
 
 
     public void ClearSubscriptions()
     {
+        BeatmapManager.OnBeatmapDifficultyChanged -= StartPlaying;
+        ReplayManager.OnReplayModeChanged -= SetFirstPerson;
         MapLoader.OnMapLoaded -= SetTime;
         MapLoader.OnMapLoaded -= SetDifficulty;
     }
@@ -336,6 +395,15 @@ public class UrlArgHandler : MonoBehaviour
 
         LoadedCharacteristic = newDifficulty.characteristic;
         LoadedDiffRank = newDifficulty.difficultyRank;
+    }
+
+
+    public void UpdateUIState(UIState newState)
+    {
+        if(newState == UIState.MapSelection)
+        {
+            ClearSubscriptions();
+        }
     }
 
 
@@ -393,6 +461,7 @@ public class UrlArgHandler : MonoBehaviour
             Debug.LogWarning("The system doesn't support command-line arguments!");
         }
 #endif
+        UIStateManager.OnUIStateChanged += UpdateUIState;
         MapLoader.OnLoadingFailed += ClearSubscriptions;
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateLoadedDifficulty;
     }

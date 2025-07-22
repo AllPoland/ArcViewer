@@ -8,6 +8,13 @@ public class TimeManager : MonoBehaviour
     public static float BaseBPM => BeatmapManager.Info.audio.bpm;
     public static float TimeScale = 1f;
 
+    public static bool Scrubbing;
+    public static bool ForcePause;
+
+    public static bool Playing { get; private set; }
+
+    public static bool Loop = false;
+
     public static List<BpmChange> BpmChanges = new List<BpmChange>();
 
     public static event Action<float> OnBeatChangedEarly;
@@ -26,11 +33,23 @@ public class TimeManager : MonoBehaviour
         {
             if(value >= SongLength)
             {
-                _currentTime = SongLength;
-                CurrentBeat = BeatFromTime(_currentTime);
+                if(Loop && Playing)
+                {
+                    //We're set to loop, so return to the start
+                    _currentTime = 0f;
+                    CurrentBeat = BeatFromTime(_currentTime);
+                }
+                else
+                {
+                    //Not looping, so sit at the end and stop
+                    _currentTime = SongLength;
+                    CurrentBeat = BeatFromTime(_currentTime);
+                }
 
                 InvokeBeatChanged();
-                SetPlaying(false);
+
+                //Stop playing if we aren't set to loop
+                SetPlaying(Loop && Playing);
                 return;
             }
 
@@ -119,10 +138,6 @@ public class TimeManager : MonoBehaviour
     }
 
 
-    public static bool Scrubbing;
-    public static bool ForcePause;
-
-    public static bool Playing { get; private set; }
     public static void SetPlaying(bool newPlaying)
     {
         Playing = newPlaying && !ForcePause;

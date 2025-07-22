@@ -4,12 +4,31 @@ using System.Web;
 
 public static class UrlUtility
 {
+    //Array of all parameters specific to ArcViewer, which are most likely not
+    //part of a sub-url
+    public static readonly string[] useKeys =
+    {
+        "url",
+        "id",
+        "t",
+        "mode",
+        "difficulty",
+        "noProxy",
+        "replayURL",
+        "scoreID",
+        "scoreId",
+        "link",
+        "mapLink",
+        "time",
+        "firstPerson",
+        "uiOff",
+        "autoPlay",
+        "loop"
+    };
+
+
     public static List<KeyValuePair<string, string>> CombineUrlParams(List<KeyValuePair<string, string>> parameters)
     {
-        //Array of all parameters specific to ArcViewer, which are most likely not
-        //part of a sub-url
-        string[] useKeys = {"url", "id", "t", "mode", "difficulty", "noProxy", "replayURL", "scoreID", "scoreId", "link", "mapLink", "time"};
-
         List<KeyValuePair<string, string>> combined = new List<KeyValuePair<string, string>>();
 
         for(int i = 0; i < parameters.Count; i++)
