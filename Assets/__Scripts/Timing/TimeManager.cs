@@ -38,18 +38,20 @@ public class TimeManager : MonoBehaviour
                     //We're set to loop, so return to the start
                     _currentTime = 0f;
                     CurrentBeat = BeatFromTime(_currentTime);
+                    InvokeBeatChanged();
+
+                    //Stop and restart the song so it can properly start playing again
+                    SetPlaying(false);
+                    SetPlaying(true);
                 }
                 else
                 {
                     //Not looping, so sit at the end and stop
                     _currentTime = SongLength;
                     CurrentBeat = BeatFromTime(_currentTime);
+                    InvokeBeatChanged();
+                    SetPlaying(false);
                 }
-
-                InvokeBeatChanged();
-
-                //Stop playing if we aren't set to loop
-                SetPlaying(Loop && Playing);
                 return;
             }
 
