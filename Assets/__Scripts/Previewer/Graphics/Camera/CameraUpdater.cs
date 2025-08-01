@@ -135,10 +135,11 @@ public class CameraUpdater : MonoBehaviour
             //Smooth out camera motions
             //This is a rare case where I actually don't want this to be deterministic
             //Cause then scrubbing would suck
-            float smoothAmount = SettingsManager.GetFloat("fpcamerasmoothing");
+            float smoothAmount = SettingsManager.GetFloat("fpcameramovementsmoothing");
+            float rotSmoothAmount = SettingsManager.GetFloat("fpcamerarotationsmoothing");
 
             cameraPosition = Vector3.SmoothDamp(cameraPosition, headPosition, ref fpCameraVelocity, smoothAmount);
-            cameraRotation = cameraRotation.SmoothDamp(headRotation, ref fpCameraRotationDeriv, smoothAmount);
+            cameraRotation = cameraRotation.SmoothDamp(headRotation, ref fpCameraRotationDeriv, rotSmoothAmount);
         }
         else
         {
