@@ -82,7 +82,6 @@ public class UrlArgHandler : MonoBehaviour
     private static DifficultyRank? diffRank;
     private static bool noProxy;
 
-    private static bool firstPerson;
     private static bool uiOff;
     private static bool autoPlay;
     private static bool loop;
@@ -133,9 +132,6 @@ public class UrlArgHandler : MonoBehaviour
                 mapPath = value;
                 break;
 #endif
-            case "firstPerson":
-                firstPerson = bool.TryParse(value, out firstPerson) ? firstPerson : false;
-                break;
             case "uiOff":
                 uiOff = bool.TryParse(value, out uiOff) ? uiOff : false;
                 break;
@@ -211,11 +207,6 @@ public class UrlArgHandler : MonoBehaviour
         if(uiOff)
         {
             UIHideInput.SetUIVisible(false);
-        }
-
-        if(firstPerson)
-        {
-            ReplayManager.OnReplayModeChanged += SetFirstPerson;
         }
 
         if(loop)
@@ -321,16 +312,6 @@ public class UrlArgHandler : MonoBehaviour
     }
 
 
-    private void SetFirstPerson(bool replayMode)
-    {
-        if(replayMode)
-        {
-            SettingsManager.SetRule("firstpersonreplay", true);
-        }
-        ReplayManager.OnReplayModeChanged -= SetFirstPerson;
-    }
-
-
     private void StartPlaying(Difficulty difficulty)
     {
         TimeManager.SetPlaying(true);
@@ -387,7 +368,6 @@ public class UrlArgHandler : MonoBehaviour
         replayURL = "";
         replayID = "";
 
-        firstPerson = false;
         uiOff = false;
         autoPlay = false;
         loop = false;
@@ -399,7 +379,6 @@ public class UrlArgHandler : MonoBehaviour
     public void ClearSubscriptions()
     {
         BeatmapManager.OnBeatmapDifficultyChanged -= StartPlaying;
-        ReplayManager.OnReplayModeChanged -= SetFirstPerson;
         MapLoader.OnMapLoaded -= SetTime;
         MapLoader.OnMapLoaded -= SetDifficulty;
     }

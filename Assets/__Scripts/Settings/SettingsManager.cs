@@ -58,19 +58,6 @@ public class SettingsManager : MonoBehaviour
     private bool saving;
 
 
-    public static void CheckShouldUseOverrides()
-    {
-        bool hadOverrides = UseOverrides;
-        UseOverrides = Overrides != null && GetBool("allowoverride", false);
-
-        if(UseOverrides != hadOverrides)
-        {
-            //Overrides have been enabled/disabled, update settings
-            OnSettingsUpdated?.Invoke("all");
-        }
-    }
-
-
     private async Task WriteFileAsync(string text, string path)
     {
         await File.WriteAllTextAsync(path, text);
@@ -149,6 +136,19 @@ public class SettingsManager : MonoBehaviour
         dirtyTime = autoSaveLength;
     }
 #endif
+
+
+    public static void CheckShouldUseOverrides()
+    {
+        bool hadOverrides = UseOverrides;
+        UseOverrides = Overrides != null && GetBool("allowoverride", false);
+
+        if(UseOverrides != hadOverrides)
+        {
+            //Overrides have been enabled/disabled, update settings
+            OnSettingsUpdated?.Invoke("all");
+        }
+    }
 
 
     public static bool GetBool(string name, bool useOverride = true)
