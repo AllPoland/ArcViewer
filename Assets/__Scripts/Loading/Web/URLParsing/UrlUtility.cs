@@ -23,7 +23,8 @@ public static class UrlUtility
         "firstPerson",
         "uiOff",
         "autoPlay",
-        "loop"
+        "loop",
+        "settingsOverride"
     };
 
 

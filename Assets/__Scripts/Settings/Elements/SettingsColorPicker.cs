@@ -21,7 +21,7 @@ public class SettingsColorPicker : MonoBehaviour
         SerializedOption<bool> option = requiredSetting.Value;
         if(changedSetting == "all" || changedSetting == option.Name)
         {
-            colorPicker.Interactable = option.Value == SettingsManager.GetBool(option.Name);
+            colorPicker.Interactable = option.Value == SettingsManager.GetBool(option.Name, false);
         }
     }
 
@@ -41,7 +41,7 @@ public class SettingsColorPicker : MonoBehaviour
             colorPicker = GetComponent<ColorPicker>();
         }
 
-        colorPicker.Value = SettingsManager.GetColor(rule);
+        colorPicker.Value = SettingsManager.GetColor(rule, false);
         colorPicker.OnValueChanged.AddListener(SetValue);
 
         if(requiredSetting.Enabled)

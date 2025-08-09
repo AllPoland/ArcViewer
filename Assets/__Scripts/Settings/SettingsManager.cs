@@ -23,10 +23,23 @@ public class SettingsManager : MonoBehaviour
         }
     }
 
+    private static Settings _overrides;
+    public static Settings Overrides
+    {
+        get => _overrides;
+
+        set
+        {
+            _overrides = value;
+            UseOverrides = _overrides != null;
+        }
+    }
+
     public static event Action<string> OnSettingsUpdated;
     public static event Action OnSettingsReset;
 
     public static bool Loaded { get; private set; }
+    public static bool UseOverrides { get; private set; }
 
 #if !UNITY_WEBGL || UNITY_EDITOR
     private const string settingsFile = "UserSettings.json";
@@ -43,6 +56,12 @@ public class SettingsManager : MonoBehaviour
 
 #if !UNITY_WEBGL || UNITY_EDITOR
     private bool saving;
+
+
+    public static void ForceSettingsUpdate()
+    {
+        OnSettingsUpdated?.Invoke("all");
+    }
 
 
     private async Task WriteFileAsync(string text, string path)
@@ -125,9 +144,15 @@ public class SettingsManager : MonoBehaviour
 #endif
 
 
-    public static bool GetBool(string name)
+    public static bool GetBool(string name, bool useOverride = true)
     {
         bool value;
+
+        if(useOverride && UseOverrides && Overrides.Bools.TryGetValue(name, out value))
+        {
+            return value;
+        }
+
 #if UNITY_WEBGL && !UNITY_EDITOR
         if(CurrentSettings.Bools.TryGetValue(name, out value))
         {
@@ -169,9 +194,15 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-    public static int GetInt(string name)
+    public static int GetInt(string name, bool useOverride = true)
     {
         int value;
+
+        if(useOverride && UseOverrides && Overrides.Ints.TryGetValue(name, out value))
+        {
+            return value;
+        }
+
 #if UNITY_WEBGL && !UNITY_EDITOR
         if(CurrentSettings.Ints.TryGetValue(name, out value))
         {
@@ -213,9 +244,15 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-    public static float GetFloat(string name)
+    public static float GetFloat(string name, bool useOverride = true)
     {
         float value;
+
+        if(useOverride && UseOverrides && Overrides.Floats.TryGetValue(name, out value))
+        {
+            return value;
+        }
+
 #if UNITY_WEBGL && !UNITY_EDITOR
         if(CurrentSettings.Floats.TryGetValue(name, out value))
         {
@@ -257,11 +294,11 @@ public class SettingsManager : MonoBehaviour
     }
 
 
-    public static Color GetColor(string name)
+    public static Color GetColor(string name, bool useOverride = true)
     {
-        float r = GetFloat(name + ".r");
-        float g = GetFloat(name + ".g");
-        float b = GetFloat(name + ".b");
+        float r = GetFloat(name + ".r", useOverride);
+        float g = GetFloat(name + ".g", useOverride);
+        float b = GetFloat(name + ".b", useOverride);
         return new Color(r, g, b);
     }
 
@@ -283,6 +320,12 @@ public class SettingsManager : MonoBehaviour
 #else
         SetDirty();
 #endif
+
+        if(UseOverrides && Overrides.Bools.ContainsKey(name))
+        {
+            //Allow the user to veto the override by changing the setting
+            Overrides.Bools.Remove(name);
+        }
 
         if(notify)
         {
@@ -308,6 +351,12 @@ public class SettingsManager : MonoBehaviour
 #else
         SetDirty();
 #endif
+
+        if(UseOverrides && Overrides.Ints.ContainsKey(name))
+        {
+            //Allow the user to veto the override by changing the setting
+            Overrides.Ints.Remove(name);
+        }
 
         if(notify)
         {
@@ -338,6 +387,12 @@ public class SettingsManager : MonoBehaviour
 #else
         SetDirty();
 #endif
+
+        if(UseOverrides && Overrides.Floats.ContainsKey(name))
+        {
+            //Allow the user to veto the override by changing the setting
+            Overrides.Floats.Remove(name);
+        }
 
         if(notify)
         {
@@ -372,6 +427,9 @@ public class SettingsManager : MonoBehaviour
         CurrentSettings = Settings.GetDefaultSettings();
         SetDirty();
 #endif
+
+        //Also clear overrides
+        Overrides = null;
         
         //Some settings should still persist or else they'll be annoying
         SetRule("staticlightswarningacknowledged", staticLightsWarningAcknowledged, false);
@@ -507,6 +565,62 @@ public class Settings
         }
 
         return dictionary;
+    }
+
+
+    public Settings ExportOverrides()
+    {
+        Settings overrides = new Settings();
+
+        foreach(KeyValuePair<string, bool> pair in Bools)
+        {
+            //Compare against the default value
+            bool defaultValue;
+            if(!DefaultSettings.Bools.TryGetValue(pair.Key, out defaultValue))
+            {
+                defaultValue = false;
+            }
+
+            if(pair.Value != defaultValue)
+            {
+                //This setting is different from default, add it to the overrides
+                overrides.Bools.Add(pair.Key, pair.Value);
+            }
+        }
+
+        foreach(KeyValuePair<string, int> pair in Ints)
+        {
+            //Compare against the default value
+            int defaultValue;
+            if(!DefaultSettings.Ints.TryGetValue(pair.Key, out defaultValue))
+            {
+                defaultValue = 0;
+            }
+
+            if(pair.Value != defaultValue)
+            {
+                //This setting is different from default, add it to the overrides
+                overrides.Ints.Add(pair.Key, pair.Value);
+            }
+        }
+
+        foreach(KeyValuePair<string, float> pair in Floats)
+        {
+            //Compare against the default value
+            float defaultValue;
+            if(!DefaultSettings.Floats.TryGetValue(pair.Key, out defaultValue))
+            {
+                defaultValue = 0f;
+            }
+
+            if(pair.Value != defaultValue)
+            {
+                //This setting is different from default, add it to the overrides
+                overrides.Floats.Add(pair.Key, pair.Value);
+            }
+        }
+
+        return overrides;
     }
 }
 

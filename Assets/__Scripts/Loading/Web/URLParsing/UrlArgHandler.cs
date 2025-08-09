@@ -87,6 +87,8 @@ public class UrlArgHandler : MonoBehaviour
     private static bool autoPlay;
     private static bool loop;
 
+    private static string settingsOverride;
+
     [SerializeField] private MapLoader mapLoader;
 
 
@@ -142,6 +144,10 @@ public class UrlArgHandler : MonoBehaviour
                 break;
             case "loop":
                 loop = bool.TryParse(value, out loop) ? loop : false;
+                break;
+
+            case "settingsOverride":
+                settingsOverride = value;
                 break;
         }
     }
@@ -231,6 +237,25 @@ public class UrlArgHandler : MonoBehaviour
         if(setDiff && (mode != null || diffRank != null))
         {
             MapLoader.OnMapLoaded += SetDifficulty;
+        }
+
+        if(!string.IsNullOrEmpty(settingsOverride))
+        {
+            try
+            {
+                //Parse the overrides and send them to SettingsManager
+                Settings newOverrides = JsonReader.DeserializeObject<Settings>(settingsOverride);
+                SettingsManager.Overrides = newOverrides;
+
+                //Force a settings update to apply the overrides
+                SettingsManager.ForceSettingsUpdate();
+            }
+            catch(Exception err)
+            {
+                Debug.LogWarning($"Failed to parse settings override with error: {err.Message}, {err.StackTrace}");
+                SettingsManager.Overrides = null;
+                SettingsManager.ForceSettingsUpdate();
+            }
         }
     }
 
@@ -370,6 +395,8 @@ public class UrlArgHandler : MonoBehaviour
         uiOff = false;
         autoPlay = false;
         loop = false;
+
+        settingsOverride = null;
     }
 
 
