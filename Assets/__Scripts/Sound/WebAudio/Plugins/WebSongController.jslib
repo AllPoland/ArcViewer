@@ -12,6 +12,9 @@ var SongController = {
         this.soundStartTime = 0;
         this.soundOffset = 0;
 
+        this.lastContextTime = null;
+        this.lastFrameTime = null;
+
         this.gainNode = SongCtx.createGain();
         this.gainNode.gain.setValueAtTime(0.0001, SongCtx.currentTime);
         this.gainNode.connect(SongCtx.destination);
@@ -125,6 +128,9 @@ var SongController = {
             newClip.start(this.lastPlayed - startTime, 0);
         }
 
+        this.lastContextTime = null;
+        this.lastFrameTime = null;
+
         delete (this.clip);
         this.clip = newClip;
         this.playing = true;
@@ -158,6 +164,9 @@ var SongController = {
 
             oldGain.disconnect(oldCtx.destination);
 
+            this.lastContextTime = null;
+            this.lastFrameTime = null;
+
             delete (oldGain);
             oldCtx.close();
             delete (oldCtx);
@@ -165,7 +174,20 @@ var SongController = {
     },
 
     GetSongTime: function () {
-        const passedTime = SongCtx.currentTime - this.lastPlayed;
+        //Use the high-precision performance.now() method to calculate a frame delta
+        const frameTime = performance.now() / 1000;
+        const delta = this.lastFrameTime != null ? Math.max(0, frameTime - this.lastFrameTime) : 0;
+
+        let currentTime = SongCtx.currentTime;
+        if(this.lastContextTime && currentTime - this.lastContextTime < 0.0001) {
+            //Use frame delta if we have not proceeded a full AudioCtx timestep
+            currentTime = this.lastContextTime + delta;
+        }
+
+        this.lastContextTime = currentTime;
+        this.lastFrameTime = frameTime;
+
+        const passedTime = currentTime - this.lastPlayed;
         return this.soundStartTime + (passedTime * this.playbackSpeed);
     },
 
