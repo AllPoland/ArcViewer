@@ -9,13 +9,18 @@ public class UISettingsUpdater : MonoBehaviour
     private float defaultReferenceHeight;
 
 
-    private void UpdateUISettings(string setting)
+    private void UpdateSettings(string setting)
     {
         bool allSettings = setting == "all";
         if(allSettings || setting == "uiscale")
         {
             float newReferenceHeight = defaultReferenceHeight * (1 / SettingsManager.GetFloat("uiscale"));
             canvasScaler.referenceResolution = new Vector2(canvasScaler.referenceResolution.x, newReferenceHeight);
+        }
+
+        if(allSettings || setting == "allowoverride")
+        {
+            SettingsManager.CheckShouldUseOverrides();
         }
     }
 
@@ -25,10 +30,10 @@ public class UISettingsUpdater : MonoBehaviour
         canvasScaler = canvas.GetComponent<CanvasScaler>();
         defaultReferenceHeight = canvasScaler.referenceResolution.y;
 
-        SettingsManager.OnSettingsUpdated += UpdateUISettings;
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
         if(SettingsManager.Loaded)
         {
-            UpdateUISettings("all");
+            UpdateSettings("all");
         }
     }
 }

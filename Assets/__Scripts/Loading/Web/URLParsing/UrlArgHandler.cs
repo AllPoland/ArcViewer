@@ -246,15 +246,11 @@ public class UrlArgHandler : MonoBehaviour
                 //Parse the overrides and send them to SettingsManager
                 Settings newOverrides = JsonReader.DeserializeObject<Settings>(settingsOverride);
                 SettingsManager.Overrides = newOverrides;
-
-                //Force a settings update to apply the overrides
-                SettingsManager.ForceSettingsUpdate();
             }
             catch(Exception err)
             {
                 Debug.LogWarning($"Failed to parse settings override with error: {err.Message}, {err.StackTrace}");
                 SettingsManager.Overrides = null;
-                SettingsManager.ForceSettingsUpdate();
             }
         }
     }

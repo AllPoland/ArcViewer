@@ -31,7 +31,7 @@ public class SettingsManager : MonoBehaviour
         set
         {
             _overrides = value;
-            UseOverrides = _overrides != null;
+            CheckShouldUseOverrides();
         }
     }
 
@@ -58,9 +58,16 @@ public class SettingsManager : MonoBehaviour
     private bool saving;
 
 
-    public static void ForceSettingsUpdate()
+    public static void CheckShouldUseOverrides()
     {
-        OnSettingsUpdated?.Invoke("all");
+        bool hadOverrides = UseOverrides;
+        UseOverrides = Overrides != null && GetBool("allowoverride", false);
+
+        if(UseOverrides != hadOverrides)
+        {
+            //Overrides have been enabled/disabled, update settings
+            OnSettingsUpdated?.Invoke("all");
+        }
     }
 
 
