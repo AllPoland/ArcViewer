@@ -161,8 +161,7 @@ public class EnvironmentManager : MonoBehaviour
     {
         if(SettingsManager.GetBool("environmentoverride"))
         {
-            int customIndex = SettingsManager.GetInt("customenvironment");
-            customIndex = Mathf.Clamp(customIndex, 0, supportedEnvironments.Length - 1);
+            int customIndex = Mathf.Clamp(SettingsManager.GetInt("customenvironment"), 0, supportedEnvironments.Length - 1);
             environmentName = supportedEnvironments[customIndex];
         }
 

@@ -20,10 +20,10 @@ public static class UrlUtility
         "link",
         "mapLink",
         "time",
-        "firstPerson",
         "uiOff",
         "autoPlay",
-        "loop"
+        "loop",
+        "settingsOverride"
     };
 
 

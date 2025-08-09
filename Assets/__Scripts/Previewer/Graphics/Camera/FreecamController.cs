@@ -14,7 +14,7 @@ public class FreecamController : MonoBehaviour
     private void UpdateInput()
     {
         Vector2 delta = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
-        delta *= SettingsManager.GetFloat("freecamsensitivity");
+        delta *= Mathf.Clamp(SettingsManager.GetFloat("freecamsensitivity"), 0.1f, 3f);
 
         verticalRotation = Mathf.Clamp(verticalRotation - delta.y, -90f, 90f);
         horizontalRotation += delta.x;

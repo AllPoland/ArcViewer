@@ -11,16 +11,36 @@ public class OpenSettingsButton : MonoBehaviour
     [Space]
     [SerializeField] private Sprite openSprite;
     [SerializeField] private Sprite closedSprite;
+    [SerializeField] private Sprite overrideSprite;
+
+    [Space]
     [SerializeField] private string openTooltip;
     [SerializeField] private string closedTooltip;
+    [SerializeField] private string overrideTooltip;
 
     private SettingsMenu settingsMenu;
 
 
     public void UpdateTooltip(bool open)
     {
-        image.sprite = open ? openSprite : closedSprite;
-        tooltip.Text = open ? openTooltip : closedTooltip;
+        if(!open && SettingsManager.UseOverrides)
+        {
+            image.sprite = overrideSprite;
+            tooltip.Text = overrideTooltip;
+        }
+        else
+        {
+            image.sprite = open ? openSprite : closedSprite;
+            tooltip.Text = open ? openTooltip : closedTooltip;
+        }
+
+        tooltip.ForceUpdate();
+    }
+
+
+    private void UpdateSettings(string setting)
+    {
+        UpdateTooltip(SettingsMenu.Open);
     }
 
 
@@ -37,5 +57,7 @@ public class OpenSettingsButton : MonoBehaviour
     {
         settingsMenu = GetComponent<SettingsMenu>();
         SettingsMenu.OnOpenUpdated += UpdateTooltip;
+
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
     }
 }

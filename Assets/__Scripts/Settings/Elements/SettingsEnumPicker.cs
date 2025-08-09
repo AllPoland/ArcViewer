@@ -20,7 +20,7 @@ public class SettingsEnumPicker : MonoBehaviour
         SerializedOption<bool> option = requiredSetting.Value;
         if(changedSetting == "all" || changedSetting == option.Name)
         {
-            enumPicker.SetInteractable(option.Value == SettingsManager.GetBool(option.Name));
+            enumPicker.SetInteractable(option.Value == SettingsManager.GetBool(option.Name, false));
         }
     }
 
@@ -38,7 +38,7 @@ public class SettingsEnumPicker : MonoBehaviour
         enumPicker = GetComponent<EnumPicker>();
 
         enumPicker.OnValueChanged += SetValue;
-        enumPicker.SetValueWithoutNotify(SettingsManager.GetInt(rule));
+        enumPicker.SetValueWithoutNotify(SettingsManager.GetInt(rule, false));
 
         if(requiredSetting.Enabled)
         {

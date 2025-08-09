@@ -24,7 +24,7 @@ public class SettingsCheckBox : MonoBehaviour
     {
         if(changedSetting == "all" || changedSetting == rule)
         {
-            toggle.SetIsOnWithoutNotify(SettingsManager.GetBool(rule));
+            toggle.SetIsOnWithoutNotify(SettingsManager.GetBool(rule, false));
         }
 
         if(requiredSetting.Enabled)
@@ -39,7 +39,7 @@ public class SettingsCheckBox : MonoBehaviour
         SerializedOption<bool> option = requiredSetting.Value;
         if(changedSetting == "all" || changedSetting == option.Name)
         {
-            toggle.interactable = option.Value == SettingsManager.GetBool(option.Name);
+            toggle.interactable = option.Value == SettingsManager.GetBool(option.Name, false);
             label.color = toggle.interactable ? enabledColor : disabledColor;
         }
     }

@@ -8,7 +8,7 @@ public class DialogueHandler : MonoBehaviour
 
     public static List<DialogueBox> OpenBoxes = new List<DialogueBox>();
     public static bool LogActive => Instance.logCanvas.activeInHierarchy;
-    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy || Instance.staticLightsWarningPanel.activeInHierarchy || Instance.customHsvPanel.activeInHierarchy || LogActive;
+    public static bool DialogueActive => OpenBoxes.Count > 0 || Instance.infoPanel.activeInHierarchy || Instance.staticLightsWarningPanel.activeInHierarchy || Instance.customHsvPanel.activeInHierarchy || Instance.overrideExportPanel.activeInHierarchy || LogActive;
     public static bool PopupActive => DialogueActive || Instance.sharePanel.activeInHierarchy || Instance.jumpSettingsPanel.activeInHierarchy || Instance.statsPanel.activeInHierarchy;
 
     [SerializeField] private GameObject dialogueBoxPrefab;
@@ -21,6 +21,7 @@ public class DialogueHandler : MonoBehaviour
     public GameObject statsPanel;
     public GameObject staticLightsWarningPanel;
     public GameObject customHsvPanel;
+    public GameObject overrideExportPanel;
 
 
     public static void ShowDialogueBox(DialogueBoxType type, string text, Action<DialogueResponse> callback = null)
@@ -97,6 +98,12 @@ public class DialogueHandler : MonoBehaviour
                 if(infoPanel.activeInHierarchy)
                 {
                     SetInfoPanelActive(false);
+                    return;
+                }
+
+                if(overrideExportPanel.activeInHierarchy)
+                {
+                    overrideExportPanel.SetActive(false);
                     return;
                 }
 

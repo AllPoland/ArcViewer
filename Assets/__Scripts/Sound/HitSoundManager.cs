@@ -15,8 +15,8 @@ public class HitSoundManager : MonoBehaviour
 
     public static bool RandomPitch => SettingsManager.GetBool("randomhitsoundpitch");
     public static bool Spatial => SettingsManager.GetBool("spatialhitsounds");
-    public static float ScheduleBuffer => SettingsManager.GetFloat("hitsoundbuffer");
-    public static bool DynamicPriority => SettingsManager.GetBool("dynamicsoundpriority");
+    public static float ScheduleBuffer => Mathf.Clamp(SettingsManager.GetFloat("hitsoundbuffer", false), 0f, 0.5f);
+    public static bool DynamicPriority => SettingsManager.GetBool("dynamicsoundpriority", false);
 
 #if !UNITY_WEBGL || UNITY_EDITOR
     public float HitSoundVolume

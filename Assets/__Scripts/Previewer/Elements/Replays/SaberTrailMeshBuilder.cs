@@ -17,9 +17,9 @@ public class SaberTrailMeshBuilder : MonoBehaviour
 
     public void SetFrames(List<ReplayFrame> frames, int startIndex)
     {
-        float lifetime = SettingsManager.GetFloat("sabertraillength");
-        float trailWidth = SettingsManager.GetFloat("sabertrailwidth");
-        int segmentCount = SettingsManager.GetInt("sabertrailsegments");
+        float lifetime = Mathf.Clamp01(SettingsManager.GetFloat("sabertraillength"));
+        float trailWidth = Mathf.Clamp01(SettingsManager.GetFloat("sabertrailwidth"));
+        int segmentCount = Mathf.Clamp(SettingsManager.GetInt("sabertrailsegments"), 10, 100);
         float segmentLength = lifetime / segmentCount;
 
         mesh.Clear();

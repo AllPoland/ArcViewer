@@ -68,7 +68,7 @@ public class WallManager : MapElementManager<Wall>
             {
                 w.WallHandler.SetColor(WallColor);
             }
-            w.WallHandler.SetAlpha(SettingsManager.GetFloat("wallopacity"));
+            w.WallHandler.SetAlpha(Mathf.Clamp01(SettingsManager.GetFloat("wallopacity")));
 
             RenderedObjects.Add(w);
         }

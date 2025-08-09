@@ -82,10 +82,11 @@ public class UrlArgHandler : MonoBehaviour
     private static DifficultyRank? diffRank;
     private static bool noProxy;
 
-    private static bool firstPerson;
     private static bool uiOff;
     private static bool autoPlay;
     private static bool loop;
+
+    private static string settingsOverride;
 
     [SerializeField] private MapLoader mapLoader;
 
@@ -131,9 +132,6 @@ public class UrlArgHandler : MonoBehaviour
                 mapPath = value;
                 break;
 #endif
-            case "firstPerson":
-                firstPerson = bool.TryParse(value, out firstPerson) ? firstPerson : false;
-                break;
             case "uiOff":
                 uiOff = bool.TryParse(value, out uiOff) ? uiOff : false;
                 break;
@@ -142,6 +140,10 @@ public class UrlArgHandler : MonoBehaviour
                 break;
             case "loop":
                 loop = bool.TryParse(value, out loop) ? loop : false;
+                break;
+
+            case "settingsOverride":
+                settingsOverride = value;
                 break;
         }
     }
@@ -207,11 +209,6 @@ public class UrlArgHandler : MonoBehaviour
             UIHideInput.SetUIVisible(false);
         }
 
-        if(firstPerson)
-        {
-            ReplayManager.OnReplayModeChanged += SetFirstPerson;
-        }
-
         if(loop)
         {
             TimeManager.Loop = true;
@@ -231,6 +228,21 @@ public class UrlArgHandler : MonoBehaviour
         if(setDiff && (mode != null || diffRank != null))
         {
             MapLoader.OnMapLoaded += SetDifficulty;
+        }
+
+        if(!string.IsNullOrEmpty(settingsOverride))
+        {
+            try
+            {
+                //Parse the overrides and send them to SettingsManager
+                Settings newOverrides = JsonReader.DeserializeObject<Settings>(settingsOverride);
+                SettingsManager.Overrides = newOverrides;
+            }
+            catch(Exception err)
+            {
+                Debug.LogWarning($"Failed to parse settings override with error: {err.Message}, {err.StackTrace}");
+                SettingsManager.Overrides = null;
+            }
         }
     }
 
@@ -300,16 +312,6 @@ public class UrlArgHandler : MonoBehaviour
     }
 
 
-    private void SetFirstPerson(bool replayMode)
-    {
-        if(replayMode)
-        {
-            SettingsManager.SetRule("firstpersonreplay", true);
-        }
-        ReplayManager.OnReplayModeChanged -= SetFirstPerson;
-    }
-
-
     private void StartPlaying(Difficulty difficulty)
     {
         TimeManager.SetPlaying(true);
@@ -366,17 +368,17 @@ public class UrlArgHandler : MonoBehaviour
         replayURL = "";
         replayID = "";
 
-        firstPerson = false;
         uiOff = false;
         autoPlay = false;
         loop = false;
+
+        settingsOverride = null;
     }
 
 
     public void ClearSubscriptions()
     {
         BeatmapManager.OnBeatmapDifficultyChanged -= StartPlaying;
-        ReplayManager.OnReplayModeChanged -= SetFirstPerson;
         MapLoader.OnMapLoaded -= SetTime;
         MapLoader.OnMapLoaded -= SetDifficulty;
     }

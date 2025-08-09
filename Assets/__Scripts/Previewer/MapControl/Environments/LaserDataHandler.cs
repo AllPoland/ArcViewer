@@ -20,9 +20,9 @@ public class LaserDataHandler : MonoBehaviour
     private Vector4[] occlusionFalloffInfos;
 
 
-    private void UpdateLaserBuffer()
+    private void UpdateLaserBuffer(bool forceUpdate = false)
     {
-        float brightnessMult = SettingsManager.Loaded ? SettingsManager.GetFloat("lightglowbrightness") : 1f;
+        float brightnessMult = SettingsManager.Loaded ? Mathf.Clamp(SettingsManager.GetFloat("lightglowbrightness"), 0f, 2f) : 1f;
 
         if(laserColors == null || laserColors.Length != MaxLasers)
         {
@@ -62,7 +62,7 @@ public class LaserDataHandler : MonoBehaviour
                 continue;
             }
 
-            if(!lightHandler.Dirty)
+            if(!lightHandler.Dirty && !forceUpdate)
             {
                 continue;
             }
@@ -97,7 +97,7 @@ public class LaserDataHandler : MonoBehaviour
     }
 
 
-    private void UpdateOcclusionBuffer()
+    private void UpdateOcclusionBuffer(bool forceUpdate = false)
     {
         if(occlusionColors == null || occlusionColors.Length != MaxOcclusions)
         {
@@ -136,7 +136,7 @@ public class LaserDataHandler : MonoBehaviour
                 continue;
             }
 
-            if(!occlusionMarker.Dirty)
+            if(!occlusionMarker.Dirty && !forceUpdate)
             {
                 continue;
             }
@@ -170,6 +170,16 @@ public class LaserDataHandler : MonoBehaviour
     }
 
 
+    private void UpdateSettings(string setting)
+    {
+        if(setting == "all" || setting == "lightglowbrightness")
+        {
+            //Force update the laser buffer to account for change in brightness settings
+            UpdateLaserBuffer(true);
+        }
+    }
+
+
     private void UpdateBuffers()
     {
         UpdateLaserBuffer();
@@ -185,6 +195,13 @@ public class LaserDataHandler : MonoBehaviour
 
     private void OnEnable()
     {
+        SettingsManager.OnSettingsUpdated += UpdateSettings;
         UpdateBuffers();
+    }
+
+
+    private void OnDisable()
+    {
+        SettingsManager.OnSettingsUpdated -= UpdateSettings;
     }
 }

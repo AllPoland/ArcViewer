@@ -72,7 +72,7 @@ public class SettingsSlider : MonoBehaviour
     {
         if(changedSetting == "all" || changedSetting == rule)
         {
-            float newValue = integerValue ? SettingsManager.GetInt(rule) : SettingsManager.GetFloat(rule);
+            float newValue = integerValue ? SettingsManager.GetInt(rule, false) : SettingsManager.GetFloat(rule, false);
             SetSliderValue(newValue);
             UpdateText(newValue);
         }
@@ -89,7 +89,7 @@ public class SettingsSlider : MonoBehaviour
         SerializedOption<bool> option = requiredSetting.Value;
         if(changedSetting == "all" || changedSetting == option.Name)
         {
-            slider.interactable = option.Value == SettingsManager.GetBool(option.Name);
+            slider.interactable = option.Value == SettingsManager.GetBool(option.Name, false);
             valueInput.interactable = slider.interactable;
             Color textColor = slider.interactable ? enabledColor : disabledColor;
             nameLabel.color = textColor;

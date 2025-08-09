@@ -8,7 +8,7 @@ public class StaticLightsWarning : MonoBehaviour
 
     public void CheckShowWarning()
     {
-        if(!SettingsManager.GetBool("staticlightswarningacknowledged"))
+        if(!SettingsManager.GetBool("staticlightswarningacknowledged", false))
         {
             ShowPanel();
         }
@@ -25,7 +25,7 @@ public class StaticLightsWarning : MonoBehaviour
 
     public void ClosePanel()
     {
-        bool staticLights = SettingsManager.GetBool("staticlights");
+        bool staticLights = SettingsManager.GetBool("staticlights", false);
         string staticString = staticLights ? "enabled" : "disabled";
         DialogueHandler.ShowDialogueBox(DialogueBoxType.Ok, $"Static lights has been {staticString}.\nYou can change this at any time with the button in the bottom right corner.");
 

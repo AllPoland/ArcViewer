@@ -16,7 +16,7 @@ public static class LightshowLoader
 #if UNITY_WEBGL && !UNITY_EDITOR
         return await LoadLightshowsAsync(info, directory, archive);
 #else
-        if(SettingsManager.GetBool("concurrentloading"))
+        if(SettingsManager.GetBool("concurrentloading", false))
         {
             return await LoadLightshowsConcurrent(info, directory, archive);
         }

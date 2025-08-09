@@ -33,7 +33,7 @@ public class ObjectManager : MonoBehaviour
     public bool doLookAnimation => ReplayManager.IsReplayMode && (forceGameAccuracy || SettingsManager.GetBool("lookanimations"));
 
     public const float DefaultPlayerHeight = 1.8f;
-    public float PlayerHeightSetting => SettingsManager.GetFloat("playerheight");
+    public float PlayerHeightSetting => Mathf.Clamp(SettingsManager.GetFloat("playerheight"), 1.2f, 2.4f);
     public float playerHeight => ReplayManager.IsReplayMode ? ReplayManager.PlayerHeight : PlayerHeightSetting;
     public float playerHeightOffset => Mathf.Clamp((playerHeight - DefaultPlayerHeight) / 2, -0.2f, 0.6f);
 
