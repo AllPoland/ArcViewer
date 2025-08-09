@@ -442,8 +442,21 @@ public class SettingsManager : MonoBehaviour
     }
 
 
+    private void UpdateUIState(UIState newState)
+    {
+        if(UseOverrides && newState == UIState.MapSelection)
+        {
+            //Clear settings overrides when exiting a map
+            Overrides = null;
+            OnSettingsUpdated?.Invoke("all");
+        }
+    }
+
+
     private void Awake()
     {
+        UIStateManager.OnUIStateChanged += UpdateUIState;
+
         //Update the default settings
         Settings.DefaultSettings.Bools = Settings.SerializedOptionsToDictionary<bool>(defaultBools);
         Settings.DefaultSettings.Ints = Settings.SerializedOptionsToDictionary<int>(defaultInts);
