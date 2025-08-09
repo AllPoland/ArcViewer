@@ -4,7 +4,6 @@ using UnityEngine;
 public class AudioSettingsUpdater : MonoBehaviour
 {
     [SerializeField] private HitSoundManager hitSoundManager;
-    [SerializeField] private ObjectSettingsUpdater objectSettingsUpdater;
 
     [Space]
     [SerializeField] private AudioClip[] hitSounds;
@@ -26,15 +25,15 @@ public class AudioSettingsUpdater : MonoBehaviour
         bool allSettings = setting == "all";
         if(allSettings || setting == "musicvolume")
         {
-            SongManager.Instance.MusicVolume = SettingsManager.GetFloat("musicvolume");
+            SongManager.Instance.MusicVolume = Mathf.Clamp01(SettingsManager.GetFloat("musicvolume"));
         }
 
         if(allSettings || setting == "hitsoundvolume" || setting == "chainvolume")
         {
-            float hitSoundVolume = SettingsManager.GetFloat("hitsoundvolume");
+            float hitSoundVolume = Mathf.Clamp01(SettingsManager.GetFloat("hitsoundvolume"));
 #if !UNITY_WEBGL || UNITY_EDITOR
             hitSoundManager.HitSoundVolume = hitSoundVolume;
-            hitSoundManager.ChainVolume = SettingsManager.GetFloat("chainvolume") * hitSoundVolume;
+            hitSoundManager.ChainVolume = Mathf.Clamp01(SettingsManager.GetFloat("chainvolume")) * hitSoundVolume;
 #else
             float chainSoundVolume = SettingsManager.GetFloat("chainvolume");
 

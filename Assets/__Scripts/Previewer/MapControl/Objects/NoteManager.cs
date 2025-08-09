@@ -167,7 +167,7 @@ public class NoteManager : MapElementManager<Note>
                 n.NoteHandler.SetArrowProperties(isRed ? redArrowProperties : blueArrowProperties);
             }
 
-            float noteSize = SettingsManager.GetFloat("notesize");
+            float noteSize = Mathf.Clamp(SettingsManager.GetFloat("notesize"), 0.5f, 1f);
             n.Visual.transform.localScale = Vector3.one * noteSize;
 
             n.Visual.SetActive(true);

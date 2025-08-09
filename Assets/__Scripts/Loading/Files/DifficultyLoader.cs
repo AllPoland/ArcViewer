@@ -16,7 +16,7 @@ public static class DifficultyLoader
 #if UNITY_WEBGL && !UNITY_EDITOR
         return await LoadDifficultiesAsync(mapData, directory, archive);
 #else
-        if(SettingsManager.GetBool("concurrentloading"))
+        if(SettingsManager.GetBool("concurrentloading", false))
         {
             return await LoadDifficultiesConcurrent(mapData, directory, archive);
         }

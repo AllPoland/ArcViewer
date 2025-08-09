@@ -147,14 +147,14 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     private float GetMusicVolume()
     {
-        float musicVolume = SettingsManager.GetFloat(musicRule);
+        float musicVolume = Mathf.Clamp01(SettingsManager.GetFloat(musicRule));
         return (float)Math.Round(musicVolume, 2);
     }
 
 
     private float GetHitsoundVolume()
     {
-        float hitsoundVolume = SettingsManager.GetFloat(hitsoundRule);
+        float hitsoundVolume = Mathf.Clamp01(SettingsManager.GetFloat(hitsoundRule));
         return (float)Math.Round(hitsoundVolume, 2);
     }
 

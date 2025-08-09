@@ -303,9 +303,9 @@ public class SettingsManager : MonoBehaviour
 
     public static Color GetColor(string name, bool useOverride = true)
     {
-        float r = GetFloat(name + ".r", useOverride);
-        float g = GetFloat(name + ".g", useOverride);
-        float b = GetFloat(name + ".b", useOverride);
+        float r = Mathf.Clamp01(GetFloat(name + ".r", useOverride));
+        float g = Mathf.Clamp01(GetFloat(name + ".g", useOverride));
+        float b = Mathf.Clamp01(GetFloat(name + ".b", useOverride));
         return new Color(r, g, b);
     }
 

@@ -274,7 +274,7 @@ public class PlayerPositionManager : MonoBehaviour
             return;
         }
 
-        float brightness = SettingsManager.GetFloat("sabertrailbrightness");
+        float brightness = Mathf.Clamp(SettingsManager.GetFloat("sabertrailbrightness"), 0f, 2f);
         Texture2D trail = trailTextures[trailIndex];
 
         leftSaber.SetTrailProperties(NoteManager.LeftSaberColor, brightness, trail);
@@ -325,7 +325,7 @@ public class PlayerPositionManager : MonoBehaviour
         }
         if(allSettings || setting == "saberwidth")
         {
-            float width = SettingsManager.GetFloat("saberwidth");
+            float width = Mathf.Clamp(SettingsManager.GetFloat("saberwidth"), 0f, 2f);
             leftSaber.SetWidth(width);
             rightSaber.SetWidth(width);
         }
@@ -336,7 +336,7 @@ public class PlayerPositionManager : MonoBehaviour
         }
         if(allSettings || setting == "headsetalpha")
         {
-            headset.SetAlpha(SettingsManager.GetFloat("headsetalpha"));
+            headset.SetAlpha(Mathf.Clamp01(SettingsManager.GetFloat("headsetalpha")));
         }
         if(allSettings || setting == "headsetcolor")
         {

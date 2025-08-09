@@ -63,7 +63,7 @@ public class CameraUpdater : MonoBehaviour
 
         foreach(Camera camera in affectedCameras)
         {
-            camera.fieldOfView = fov;
+            camera.fieldOfView = Mathf.Clamp(fov, 40f, 100f);
         }
     }
 
@@ -72,13 +72,13 @@ public class CameraUpdater : MonoBehaviour
     {
         firstPerson = false;
 
-        float cameraZ = SettingsManager.GetFloat("cameraposition");
-        int cameraTilt = SettingsManager.GetInt("cameratilt");
+        float cameraZ = Mathf.Clamp(SettingsManager.GetFloat("cameraposition"), -4f, 0f);
+        int cameraTilt = Mathf.Clamp(SettingsManager.GetInt("cameratilt"), -30, 30);
 
         //Players' eyes aren't at the top of their head, so the camera is placed
         //10cm below the given player height
         const float eyeOffset = -0.1f;
-        float cameraY = SettingsManager.GetFloat("playerheight") + eyeOffset;
+        float cameraY = Mathf.Clamp(SettingsManager.GetFloat("playerheight"), 1.2f, 2.4f) + eyeOffset;
 
         cameraTransform.localPosition = new Vector3(0f, cameraY, cameraZ);
         cameraTransform.eulerAngles = new Vector3(-cameraTilt, 0f, 0f);
@@ -89,9 +89,9 @@ public class CameraUpdater : MonoBehaviour
     {
         firstPerson = false;
 
-        float cameraY = SettingsManager.GetFloat("replaycameraheight");
-        float cameraZ = SettingsManager.GetFloat("replaycameraposition");
-        int cameraTilt = SettingsManager.GetInt("replaycameratilt");
+        float cameraY = Mathf.Clamp(SettingsManager.GetFloat("replaycameraheight"), 0.5f, 3f);
+        float cameraZ = Mathf.Clamp(SettingsManager.GetFloat("replaycameraposition"), -5f, 0f);
+        int cameraTilt = Mathf.Clamp(SettingsManager.GetInt("replaycameratilt"), -30, 30);
 
         cameraTransform.localPosition = new Vector3(0f, cameraY, cameraZ);
         cameraTransform.eulerAngles = new Vector3(-cameraTilt, 0f, 0f);
@@ -115,7 +115,7 @@ public class CameraUpdater : MonoBehaviour
         Vector3 headPosition = PlayerPositionManager.HeadPosition;
         Quaternion headRotation = PlayerPositionManager.HeadRotation;
 
-        float cameraOffset = SettingsManager.GetFloat("fpcameraposition");
+        float cameraOffset = Mathf.Clamp(SettingsManager.GetFloat("fpcameraposition"), 0f, 3f);
         headPosition.z -= cameraOffset;
 
         Vector3 eulerAngles = headRotation.eulerAngles;
@@ -123,7 +123,7 @@ public class CameraUpdater : MonoBehaviour
         {
             eulerAngles.x = 0f;
         }
-        int xRotOffset = SettingsManager.GetInt("fpcamerarotoffset");
+        int xRotOffset = Mathf.Clamp(SettingsManager.GetInt("fpcamerarotoffset"), -30, 30);
         eulerAngles.x -= xRotOffset;
 
         headRotation = Quaternion.Euler(eulerAngles);
@@ -135,8 +135,8 @@ public class CameraUpdater : MonoBehaviour
             //Smooth out camera motions
             //This is a rare case where I actually don't want this to be deterministic
             //Cause then scrubbing would suck
-            float smoothAmount = SettingsManager.GetFloat("fpcameramovementsmoothing");
-            float rotSmoothAmount = SettingsManager.GetFloat("fpcamerarotationsmoothing");
+            float smoothAmount = Mathf.Clamp01(SettingsManager.GetFloat("fpcameramovementsmoothing"));
+            float rotSmoothAmount = Mathf.Clamp01(SettingsManager.GetFloat("fpcamerarotationsmoothing"));
 
             cameraPosition = Vector3.SmoothDamp(cameraPosition, headPosition, ref fpCameraVelocity, smoothAmount);
             cameraRotation = cameraRotation.SmoothDamp(headRotation, ref fpCameraRotationDeriv, rotSmoothAmount);

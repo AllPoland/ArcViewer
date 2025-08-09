@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class ArcManager : MapElementManager<Arc>
 {
-    public static float ArcSegmentDensity => SettingsManager.GetInt("arcdensity");
+    public static float ArcSegmentDensity => Mathf.Clamp(SettingsManager.GetInt("arcdensity"), 30, 150);
 
     [Header("Components")]
     [SerializeField] private ObjectPool<ArcHandler> arcPool;
@@ -89,7 +89,7 @@ public class ArcManager : MapElementManager<Arc>
             a.CalculateBaseCurve();
             a.arcHandler.SetArcPoints(a.BaseCurve);
             a.arcHandler.SetGradient(a.CurveLength, arcEndFadeStart, arcEndFadeEnd);
-            a.arcHandler.SetWidth(SettingsManager.GetFloat("arcwidth") / 2);
+            a.arcHandler.SetWidth(Mathf.Clamp01(SettingsManager.GetFloat("arcwidth")) / 2);
 
             RenderedObjects.Add(a);
         }
@@ -97,7 +97,7 @@ public class ArcManager : MapElementManager<Arc>
         bool fadeAnimation = SettingsManager.GetBool("arcfadeanimation");
         bool textureAnimation = SettingsManager.GetBool("arctextureanimation");
 
-        float alpha = SettingsManager.GetFloat("arcbrightness");
+        float alpha = Mathf.Clamp(SettingsManager.GetFloat("arcbrightness"), 0f, 2f);
         if(fadeAnimation)
         {
             if(!a.HasHeadAttachment)

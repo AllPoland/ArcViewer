@@ -11,7 +11,7 @@ public class EnvironmentLightingUpdater : MonoBehaviour
         "ambientlightbrightness"
     };
 
-    private float ambientBrightness => ambientLightBrightness * SettingsManager.GetFloat("ambientlightbrightness");
+    private float ambientBrightness => ambientLightBrightness * Mathf.Clamp(SettingsManager.GetFloat("ambientlightbrightness"), 0f, 2f);
 
 
     private void SetGradient(ColorPalette colors, float brightness)

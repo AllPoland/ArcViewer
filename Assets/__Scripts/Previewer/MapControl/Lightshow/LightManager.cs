@@ -9,7 +9,7 @@ public class LightManager : MonoBehaviour
     private static bool _staticLights;
     public static bool StaticLights
     {
-        get => _staticLights || Scrubbing || EnvironmentManager.CurrentSceneIndex < 0 || EnvironmentManager.Loading || SettingsManager.GetBool("staticlights");
+        get => _staticLights || Scrubbing || EnvironmentManager.CurrentSceneIndex < 0 || EnvironmentManager.Loading || SettingsManager.GetBool("staticlights", false);
         set
         {
             _staticLights = value;
@@ -17,7 +17,7 @@ public class LightManager : MonoBehaviour
         }
     }
 
-    private static bool Scrubbing => TimeManager.Scrubbing && SettingsManager.GetBool("staticlightswhilescrubbing");
+    private static bool Scrubbing => TimeManager.Scrubbing && SettingsManager.GetBool("staticlightswhilescrubbing", false);
 
     private static bool _boostActive;
     public static bool BoostActive
@@ -362,7 +362,7 @@ public class LightManager : MonoBehaviour
 
     public void UpdateLightParameters()
     {
-        lightGlowBrightness = SettingsManager.GetFloat("lightglowbrightness");
+        lightGlowBrightness = Mathf.Clamp(SettingsManager.GetFloat("lightglowbrightness"), 0f, 2f);
         if(StaticLights)
         {
             SetStaticLayout();
@@ -421,14 +421,14 @@ public class LightManager : MonoBehaviour
             return;
         }
 
-        if(SettingsManager.GetBool("skiplights"))
+        if(SettingsManager.GetBool("skiplights", false))
         {
             StaticLights = true;
             return;
         }
 
         //Avoid loading lightshows with too many events (to avoid crashes)
-        int maxEvents = SettingsManager.GetInt("maxlightevents");
+        int maxEvents = SettingsManager.GetInt("maxlightevents", false);
         if(maxEvents > 0 && newDifficulty.beatmapDifficulty.BasicEvents.Length > maxEvents)
         {
             ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "Disabled the lightshow because it has too many events.");

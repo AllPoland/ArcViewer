@@ -81,11 +81,11 @@ public class CacheManager : MonoBehaviour
         bool allSettings = setting == "all";
         if(allSettings || setting == "cachesize")
         {
-            MapCache.MaxCacheSize = SettingsManager.GetInt("cachesize");
+            MapCache.MaxCacheSize = SettingsManager.GetInt("cachesize", false);
         }
         if(allSettings || setting == "replaycachesize")
         {
-            ReplayCache.MaxCacheSize = SettingsManager.GetInt("replaycachesize");
+            ReplayCache.MaxCacheSize = SettingsManager.GetInt("replaycachesize", false);
         }
     }
 
