@@ -209,6 +209,11 @@ public class BeatmapInfoColorScheme
 
     public static Color? ColorFromHex(string hex)
     {
+        if(string.IsNullOrEmpty(hex))
+        {
+            return null;
+        }
+
         hex = hex.TrimStart('#');
 
         if(hex.Length < 6)
