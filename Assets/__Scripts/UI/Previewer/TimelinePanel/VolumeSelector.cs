@@ -6,7 +6,6 @@ using TMPro;
 
 public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    [SerializeField] private Image image;
     [SerializeField] private GameObject sliderContainer;
 
     [Space]
@@ -19,10 +18,29 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     [SerializeField] private Color defaultColor;
     [SerializeField] private Color highlightedColor;
 
+    [Space]
+    [SerializeField] private Image mainImage;
+    [SerializeField] private Image musicImage;
+    [SerializeField] private Image hitsoundImage;
+
+    [Space]
+    [SerializeField] private Sprite mainActiveSprite;
+    [SerializeField] private Sprite mainMutedSprite;
+    [SerializeField] private Sprite musicActiveSprite;
+    [SerializeField] private Sprite musicMutedSprite;
+    [SerializeField] private Sprite hitsoundActiveSprite;
+    [SerializeField] private Sprite hitsoundMutedSprite;
+
+
     private bool hovered;
     private bool clicked;
     private bool musicTextSelected;
     private bool hitsoundTextSelected;
+    private bool muted;
+    private bool musicMuted;
+    private bool hitsoundMuted;
+    private float savedMusicVolume;
+    private float savedHitsoundVolume;
 
     private const float sliderStepScale = 0.05f;
     private const string musicRule = "musicvolume";
@@ -31,7 +49,7 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     public void ShowSliders()
     {
-        image.color = highlightedColor;
+        mainImage.color = highlightedColor;
 
         sliderContainer.SetActive(true);
         UpdateValueDisplay();
@@ -43,9 +61,76 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         //Don't hide the slider if the mouse is over us, or if we're still clicked on
         if(hovered || clicked || musicTextSelected || hitsoundTextSelected) return;
 
-        image.color = defaultColor;
+        mainImage.color = defaultColor;
 
         sliderContainer.SetActive(false);
+    }
+
+
+    public void OnMuteButtonClick()
+    {
+        if(muted)
+        {
+            SetMusicVolume(savedMusicVolume);
+            SetHitsoundVolume(savedHitsoundVolume);
+        }
+        else
+        {
+            if (!musicMuted)
+                savedMusicVolume = GetMusicVolume();
+            if (!hitsoundMuted)
+                savedHitsoundVolume = GetHitsoundVolume();
+            SetMusicVolume(0f);
+            SetHitsoundVolume(0f);
+        }
+
+        musicMuted = hitsoundMuted = muted = !muted;
+
+        UpdateSprites();
+    }
+
+
+    public void OnMuteMusicButtonClick()
+    {
+        if(musicMuted)
+        {
+            SetMusicVolume(savedMusicVolume);
+            muted = false;
+        }
+        else
+        {
+            savedMusicVolume = GetMusicVolume();
+            SetMusicVolume(0f);
+        }
+
+        musicMuted = !musicMuted;
+
+        if(musicMuted && hitsoundMuted)
+            muted = true;
+
+        UpdateSprites();
+    }
+
+
+    public void OnMuteHitSoundsButtonClick()
+    {
+        if(hitsoundMuted)
+        {
+            SetHitsoundVolume(savedHitsoundVolume);
+            muted = false;
+        }
+        else
+        {
+            savedHitsoundVolume = GetHitsoundVolume();
+            SetHitsoundVolume(0f);
+        }
+
+        hitsoundMuted = !hitsoundMuted;
+
+        if(musicMuted && hitsoundMuted)
+            muted = true;
+
+        UpdateSprites();
     }
 
 
@@ -159,8 +244,18 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     }
 
 
+    private void UpdateSprites()
+    {
+        mainImage.sprite = muted ? mainMutedSprite : mainActiveSprite;
+        musicImage.sprite = musicMuted ? musicMutedSprite : musicActiveSprite;
+        hitsoundImage.sprite = hitsoundMuted ? hitsoundMutedSprite : hitsoundActiveSprite;
+    }
+
+
     private void UpdateValueDisplay()
     {
+        UpdateSprites();
+
         float musicVolume = GetMusicVolume();
         float hitsoundVolume = GetHitsoundVolume();
 
