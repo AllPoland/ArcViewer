@@ -815,6 +815,8 @@ public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
     public MapElementList<T> CustomRTObjects = new MapElementList<T>();
     public List<T> RenderedObjects = new List<T>();
 
+    private MapElementList<T>.CheckInRangeDelegate visualInSpawnRange;
+
     public ObjectManager objectManager => ObjectManager.Instance;
     public JumpManager jumpManager => objectManager.jumpManager;
 
@@ -824,6 +826,19 @@ public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
 
     public abstract void UpdateObjects(MapElementList<T> objects);
     public abstract float GetSpawnTime(T visual);
+
+
+    private MapElementList<T>.CheckInRangeDelegate VisualInSpawnRangeDelegate
+    {
+        get
+        {
+            if(visualInSpawnRange == null)
+            {
+                visualInSpawnRange = VisualInSpawnRange;
+            }
+            return visualInSpawnRange;
+        }
+    }
 
 
     public virtual void UpdateVisuals()
@@ -858,5 +873,5 @@ public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
     }
 
 
-    public int GetStartIndex(float currentTime, MapElementList<T> objects) => objects.GetFirstIndex(currentTime, VisualInSpawnRange);
+    public int GetStartIndex(float currentTime, MapElementList<T> objects) => objects.GetFirstIndex(currentTime, VisualInSpawnRangeDelegate);
 }

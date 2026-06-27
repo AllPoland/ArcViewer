@@ -10,6 +10,18 @@ public static class RingManager
 
     public static MapElementList<RingZoomEvent> RingZoomEvents = new MapElementList<RingZoomEvent>();
 
+    private static readonly List<RingRotationEvent> emptyRingRotationEvents = new List<RingRotationEvent>();
+    private static readonly RingRotationEventArgs ringRotationEventArgs = new RingRotationEventArgs();
+    private static readonly RingRotationEventArgs staticRingRotationEventArgs = new RingRotationEventArgs
+    {
+        events = emptyRingRotationEvents,
+        currentEventIndex = -1,
+        affectSmallRings = true,
+        affectBigRings = true
+    };
+    private static readonly MapElementList<RingRotationEvent>.CheckInRangeDelegate ringRotationEventInRange = RingRotationEventInRange;
+    private static readonly MapElementList<RingZoomEvent>.CheckInRangeDelegate ringZoomEventInRange = RingZoomEventInRange;
+
     public static event Action<RingRotationEventArgs> OnRingRotationsChanged;
     public static event Action<float> OnRingZoomPositionChanged;
 
@@ -45,25 +57,23 @@ public static class RingManager
 
     private static void UpdateRingRotations()
     {
-        int lastIndex = AllRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= TimeManager.CurrentBeat);
+        int lastIndex = AllRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, ringRotationEventInRange);
 
-        RingRotationEventArgs eventArgs = new RingRotationEventArgs
-        {
-            events = AllRingRotationEvents,
-            currentEventIndex = lastIndex,
-            affectSmallRings = false,
-            affectBigRings = false
-        };
+        RingRotationEventArgs eventArgs = ringRotationEventArgs;
+        eventArgs.events = AllRingRotationEvents;
+        eventArgs.currentEventIndex = lastIndex;
+        eventArgs.affectSmallRings = false;
+        eventArgs.affectBigRings = false;
         OnRingRotationsChanged?.Invoke(eventArgs);
 
         //Need to update big and small rings separately
         eventArgs.events = SmallRingRotationEvents;
-        eventArgs.currentEventIndex = SmallRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= TimeManager.CurrentBeat);
+        eventArgs.currentEventIndex = SmallRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, ringRotationEventInRange);
         eventArgs.affectSmallRings = true;
         OnRingRotationsChanged?.Invoke(eventArgs);
 
         eventArgs.events = BigRingRotationEvents;
-        eventArgs.currentEventIndex = BigRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= TimeManager.CurrentBeat);
+        eventArgs.currentEventIndex = BigRingRotationEvents.GetLastIndex(TimeManager.CurrentTime, ringRotationEventInRange);
         eventArgs.affectSmallRings = false;
         eventArgs.affectBigRings = true;
         OnRingRotationsChanged?.Invoke(eventArgs);
@@ -78,7 +88,7 @@ public static class RingManager
             return;
         }
 
-        int lastIndex = RingZoomEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= TimeManager.CurrentBeat);
+        int lastIndex = RingZoomEvents.GetLastIndex(TimeManager.CurrentTime, ringZoomEventInRange);
         if(lastIndex < 0)
         {
             //No ring zoom has taken affect, set defaults
@@ -93,17 +103,16 @@ public static class RingManager
 
     public static void SetStaticRings()
     {
-        RingRotationEventArgs eventArgs = new RingRotationEventArgs
-        {
-            events = new List<RingRotationEvent>(),
-            currentEventIndex = -1,
-            affectSmallRings = true,
-            affectBigRings = true
-        };
-        OnRingRotationsChanged?.Invoke(eventArgs);
+        OnRingRotationsChanged?.Invoke(staticRingRotationEventArgs);
 
         OnRingZoomPositionChanged?.Invoke(StartRingZoomStep);
     }
+
+
+    private static bool RingRotationEventInRange(RingRotationEvent ringRotationEvent) => ringRotationEvent.Beat <= TimeManager.CurrentBeat;
+
+
+    private static bool RingZoomEventInRange(RingZoomEvent ringZoomEvent) => ringZoomEvent.Beat <= TimeManager.CurrentBeat;
 
 
     public static void PopulateRingEventData()
