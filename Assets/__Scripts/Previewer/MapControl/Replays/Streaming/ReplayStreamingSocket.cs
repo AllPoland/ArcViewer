@@ -22,7 +22,9 @@ public abstract class ReplayStreamingSocket : IDisposable
     public abstract void HandleMessage(byte[] message);
 
 
+#pragma warning disable CS1998 //Suppress warnings about lack of await
     public virtual async Task OnSocketConnect() { }
+#pragma warning restore CS1998
 
 
     public void ConnectAndStreamData(Uri uri)
