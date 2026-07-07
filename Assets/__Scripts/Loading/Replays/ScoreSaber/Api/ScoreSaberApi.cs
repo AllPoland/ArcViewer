@@ -10,12 +10,12 @@ public static class ScoreSaberApi
 {
     public static string ReplayURLFromID(string scoreID)
     {
-        return $"{ApiConfig.ScoreSaberApiURL}scores/{Uri.EscapeDataString(scoreID)}/replay";
+        return $"{ReplaySources.ScoreSaber.ApiURL}scores/{Uri.EscapeDataString(scoreID)}/replay";
     }
 
     public static async Task<ScoreSaberScoreResponse> ScoreFromID(string scoreID, bool showErrors = true)
     {
-        string url = $"{ApiConfig.ScoreSaberApiURL}scores/{Uri.EscapeDataString(scoreID)}?includeScoreStats=false";
+        string url = $"{ReplaySources.ScoreSaber.ApiURL}scores/{Uri.EscapeDataString(scoreID)}?includeScoreStats=false";
 #if UNITY_WEBGL && !UNITY_EDITOR
         url = WebLoader.GetCorsURL(url);
 #endif

@@ -1,9 +1,31 @@
+using System;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public static class ScoreSaberSource
+public class ScoreSaberSource : ReplaySource
 {
-    public static ReplaySourceInfo Create(ScoreSaberScoreResponse response = null)
+    public override ReplaySourceType SourceType => ReplaySourceType.ScoreSaber;
+    public override string Name => "ScoreSaber";
+    public override string[] InputPrefixes => new[] { "ss:", "scoresaber:" };
+    public override string BaseURL => "https://scoresaber.com/";
+    public override string ApiURL => "https://scoresaber.com/api/v2/";
+    public override string[] CorsURLs => new[] { BaseURL, ApiURL, "https://watch.scoresaber.com", "https://cdn.scoresaber.com" };
+
+
+    public override bool MatchesHost(string host)
+    {
+        return host.Equals("scoresaber.com", StringComparison.InvariantCultureIgnoreCase)
+            || host.Equals("watch.scoresaber.com", StringComparison.InvariantCultureIgnoreCase);
+    }
+
+
+    public override ReplaySourceInfo CreateInfo()
+    {
+        return CreateInfo(null);
+    }
+
+
+    public ReplaySourceInfo CreateInfo(ScoreSaberScoreResponse response)
     {
         ScoreSaberPlayerInfo player = response?.GetPlayer();
         ScoreSaberLeaderboardInfo leaderboard = response?.leaderboard;
@@ -21,12 +43,12 @@ public static class ScoreSaberSource
 
         if(!string.IsNullOrEmpty(info.PlayerID))
         {
-            info.PlayerProfileURL = $"{ApiConfig.ScoreSaberBaseURL}u/{info.PlayerID}";
+            info.PlayerProfileURL = $"{BaseURL}u/{info.PlayerID}";
         }
 
         if(leaderboard?.map?.id > 0 && leaderboard.id > 0)
         {
-            info.LeaderboardURL = $"{ApiConfig.ScoreSaberBaseURL}map/{leaderboard.map.id}/difficulty/{leaderboard.id}";
+            info.LeaderboardURL = $"{BaseURL}map/{leaderboard.map.id}/difficulty/{leaderboard.id}";
         }
 
         info.LoadSourceData = replay => LoadSourceDataAsync(info, replay);
@@ -34,7 +56,7 @@ public static class ScoreSaberSource
     }
 
 
-    public static async Task<ResolvedScore> ResolveScoreAsync(string scoreID, string mapURL, string mapID, bool showErrors = true)
+    public override async Task<ResolvedScore> ResolveScoreAsync(string scoreID, string mapURL, string mapID, bool showErrors = true)
     {
         ScoreSaberScoreResponse apiResponse = await ScoreSaberApi.ScoreFromID(scoreID, showErrors);
         if(apiResponse == null || apiResponse.score == null || !apiResponse.score.hasReplay)
@@ -42,7 +64,7 @@ public static class ScoreSaberSource
             return null;
         }
 
-        ReplaySourceInfo sourceInfo = Create(apiResponse);
+        ReplaySourceInfo sourceInfo = CreateInfo(apiResponse);
 
         if(string.IsNullOrEmpty(mapID))
         {
@@ -59,7 +81,7 @@ public static class ScoreSaberSource
     }
 
 
-    public static async Task LoadSourceDataAsync(ReplaySourceInfo source, Replay replay)
+    public async Task LoadSourceDataAsync(ReplaySourceInfo source, Replay replay)
     {
         if(source == null || replay == null)
         {
@@ -69,7 +91,7 @@ public static class ScoreSaberSource
         if(!string.IsNullOrEmpty(replay.info?.playerID))
         {
             source.PlayerID = replay.info.playerID;
-            source.PlayerProfileURL = $"{ApiConfig.ScoreSaberBaseURL}u/{source.PlayerID}";
+            source.PlayerProfileURL = $"{BaseURL}u/{source.PlayerID}";
         }
 
         if(string.IsNullOrEmpty(source.AvatarURL)) return;

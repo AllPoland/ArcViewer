@@ -6,47 +6,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public static class ApiConfig
-{
-    private const string DefaultBeatLeaderBaseURL = "https://beatleader.com/";
-    private const string DefaultScoreSaberBaseURL = "https://scoresaber.com/";
-
-    public static readonly string BeatLeaderBaseURL = GetURL(DefaultBeatLeaderBaseURL);
-    public static readonly string ScoreSaberBaseURL = GetURL(DefaultScoreSaberBaseURL);
-    public static readonly string BeatLeaderApiURL = GetSubdomainURL(BeatLeaderBaseURL, "api");
-    public static readonly string ScoreSaberApiURL = GetPathURL(ScoreSaberBaseURL, "api/v2/");
-
-    public static readonly string[] CorsURLs =
-    {
-        BeatLeaderBaseURL,
-        BeatLeaderApiURL,
-        ScoreSaberBaseURL,
-        ScoreSaberApiURL
-    };
-
-    private static string GetURL(string defaultURL)
-    {
-        return defaultURL.EndsWith("/") ? defaultURL : $"{defaultURL}/";
-    }
-
-    private static string GetSubdomainURL(string baseURL, string subdomain)
-    {
-        Uri uri = new Uri(baseURL);
-        UriBuilder builder = new UriBuilder(uri)
-        {
-            Host = $"{subdomain}.{uri.Host}",
-            Path = ""
-        };
-
-        return builder.Uri.ToString();
-    }
-
-    private static string GetPathURL(string baseURL, string path)
-    {
-        return new Uri(new Uri(baseURL), path).ToString();
-    }
-}
-
 #pragma warning disable CS4014 //Suppress warnings about lack of await for uwr.SendWebRequest()
 public class WebLoader
 {
@@ -63,13 +22,11 @@ public class WebLoader
         "https://api.beatleader.com",
         "https://cdn.replays.beatleader.com/",
         "https://cdn.songs.beatleader.xyz/",
-        "https://cdn.songs.beatleader.com/",
-        "https://scoresaber.com",
-        "https://cdn.scoresaber.com"
+        "https://cdn.songs.beatleader.com/"
     };
 
     public static string[] WhitelistURLs => DefaultWhitelistURLs
-        .Concat(ApiConfig.CorsURLs)
+        .Concat(ReplaySources.All.SelectMany(x => x.CorsURLs))
         .Where(x => !string.IsNullOrEmpty(x))
         .Distinct()
         .ToArray();
@@ -98,27 +55,51 @@ public class WebLoader
     }
 
 
-    public static float GetProgress()
+    //Aggregates progress across all concurrent downloads so they don't fight over the loading bar
+    private static void UpdateDownloadProgress()
     {
         if(ActiveRequests.Count == 0)
         {
-            return 1f;
+            DownloadSize = 0;
+            MapLoader.Progress = 0;
+            return;
         }
 
-        float progress = 0f;
+        ulong totalSize = 0;
+        ulong totalDownloaded = 0;
+        float progressSum = 0f;
+        bool sizesKnown = true;
+
         foreach(UnityWebRequest request in ActiveRequests)
         {
-            progress += request.downloadProgress;
+            //GetResponseHeader returns the file size in a string,
+            //or null if the headers haven't been receieved yet
+            string sizeHeader = request.GetResponseHeader("Content-Length");
+            if(ulong.TryParse(sizeHeader, out ulong size) && size > 0)
+            {
+                totalSize += size;
+                totalDownloaded += request.downloadedBytes;
+            }
+            else sizesKnown = false;
+
+            progressSum += Mathf.Max(request.downloadProgress, 0f);
         }
-        return progress / ActiveRequests.Count;
+
+        DownloadSize = sizesKnown ? totalSize : 0;
+        if(sizesKnown && totalSize > 0)
+        {
+            MapLoader.Progress = (float)totalDownloaded / totalSize;
+        }
+        else
+        {
+            //Without every download size, fall back to averaging request progress
+            MapLoader.Progress = progressSum / ActiveRequests.Count;
+        }
     }
 
 
     public static async Task<MemoryStream> StreamFromURL(string url, bool noProxy, bool sendError = true)
     {
-        MapLoader.Progress = 0;
-        DownloadSize = 0;
-
 #if UNITY_WEBGL && !UNITY_EDITOR
         if(!noProxy)
         {
@@ -142,18 +123,7 @@ public class WebLoader
 
             while(!request.isDone)
             {
-                if(DownloadSize == 0)
-                {
-                    //GetRequestHeader returns the file size in a string,
-                    //or null if the headers haven't been receieved yet
-                    string sizeHeader = request.GetResponseHeader("Content-Length");
-
-                    ulong outValue;
-                    DownloadSize = ulong.TryParse(sizeHeader, out outValue) ? outValue : 0;
-                }
-
-                MapLoader.Progress = GetProgress();
-
+                UpdateDownloadProgress();
                 await Task.Yield();
             }
 
@@ -195,6 +165,7 @@ public class WebLoader
                 request.Dispose();
                 uwr = ActiveRequests.Count > 0 ? ActiveRequests[^1] : null;
             }
+            UpdateDownloadProgress();
         }
         
         return null;

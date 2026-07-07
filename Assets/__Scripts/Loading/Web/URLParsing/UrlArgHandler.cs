@@ -188,14 +188,14 @@ public class UrlArgHandler : MonoBehaviour
 
         if(!string.IsNullOrEmpty(ssScoreId))
         {
-            StartCoroutine(mapLoader.LoadScoreSaberReplayIDCoroutine(ssScoreId, mapURL, mapID, noProxy));
+            mapLoader.LoadReplayFromScore(ReplaySources.ScoreSaber, ssScoreId, mapURL, mapID, noProxy);
             LoadedSSScoreId = ssScoreId;
 
             setTime = true;
         }
         else if(!string.IsNullOrEmpty(replayID))
         {
-            StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, mapURL, mapID, noProxy));
+            mapLoader.LoadReplayFromScore(ReplaySources.BeatLeader, replayID, mapURL, mapID, noProxy);
             LoadedBLReplayID = replayID;
 
             //Don't set the diff cause that depends on the replay
@@ -203,14 +203,14 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(replayURL))
         {
-            StartCoroutine(mapLoader.LoadReplayURLCoroutine(replayURL, null, mapURL, mapID, noProxy));
+            mapLoader.LoadReplayURL(replayURL, null, mapURL, mapID, noProxy);
             LoadedReplayURL = replayURL;
 
             setTime = true;
         }
         else if(!string.IsNullOrEmpty(mapID))
         {
-            StartCoroutine(mapLoader.LoadMapIDCoroutine(mapID));
+            mapLoader.LoadMapID(mapID);
             LoadedMapID = mapID;
 
             setTime = true;
@@ -218,7 +218,7 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
-            StartCoroutine(mapLoader.LoadMapZipURLCoroutine(mapURL, null, null, noProxy));
+            mapLoader.LoadMapURL(mapURL, noProxy: noProxy);
             LoadedMapURL = mapURL;
 
             setTime = true;
@@ -343,8 +343,8 @@ public class UrlArgHandler : MonoBehaviour
 
     private void StartPlaying(Difficulty difficulty)
     {
-        BeatmapManager.OnBeatmapDifficultyChanged -= StartPlaying;
         TimeManager.SetPlaying(true);
+        BeatmapManager.OnBeatmapDifficultyChanged -= StartPlaying;
     }
 
 
