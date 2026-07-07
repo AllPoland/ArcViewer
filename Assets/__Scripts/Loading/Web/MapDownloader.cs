@@ -18,30 +18,42 @@ public class PreparedMapLoad
 //so MapLoader only has to orchestrate the loading workflow
 public static class MapDownloader
 {
-    public static Task<PreparedMapLoad> PrepareMapLoadAsync(ResolvedScore resolved, bool noProxy)
+    public static async Task<PreparedMapLoad> PrepareMapLoadAsync(ResolvedScore resolved, bool noProxy)
     {
         string mapHash = resolved.SourceInfo?.MapHash;
         if(!string.IsNullOrEmpty(resolved.MapURL))
         {
-            return PrepareMapURLAsync(resolved.MapURL, resolved.MapID, mapHash, noProxy, false);
+            return await PrepareMapURLAsync(resolved.MapURL, resolved.MapID, mapHash, noProxy, false);
         }
 
         if(!string.IsNullOrEmpty(resolved.MapID))
         {
-            return PrepareMapIDAsync(resolved.MapID, mapHash, noProxy);
+            if(resolved.SourceInfo?.SourceType == ReplaySourceType.ScoreSaber && !string.IsNullOrEmpty(mapHash))
+            {
+                PreparedMapLoad cdnMap = await PrepareMapHashCdnAsync(mapHash, resolved.MapID, noProxy, false);
+                if(cdnMap != null)
+                {
+                    return cdnMap;
+                }
+
+                Debug.Log("Hash-derived BeatSaver CDN map download failed. Falling back to BeatSaver ID lookup.");
+            }
+
+            return await PrepareMapIDAsync(resolved.MapID, mapHash, noProxy);
         }
 
         if(!string.IsNullOrEmpty(mapHash))
         {
-            return PrepareMapHashAsync(mapHash, noProxy);
+            return await PrepareMapHashAsync(mapHash, noProxy);
         }
 
         if(resolved.SourceInfo?.HasFallbackMap == true)
         {
-            return PrepareMapURLAsync(resolved.SourceInfo.FallbackMapDownloadURL, resolved.SourceInfo.FallbackMapID, mapHash, noProxy, false);
+            return await PrepareMapURLAsync(
+                resolved.SourceInfo.FallbackMapDownloadURL, resolved.SourceInfo.FallbackMapID, mapHash, noProxy, false);
         }
 
-        return Task.FromResult<PreparedMapLoad>(null);
+        return null;
     }
 
 
@@ -84,6 +96,19 @@ public static class MapDownloader
         }
 
         return await PrepareMapURLsAsync(mapURLs, mapID, mapHash, noProxy, true);
+    }
+
+
+    private static Task<PreparedMapLoad> PrepareMapHashCdnAsync(
+        string mapHash, string mapID, bool noProxy, bool ignoreMapForSharing)
+    {
+        string[] mapURLs = BeatSaverHandler.GetBeatSaverMapCdnURLs(mapHash);
+        if(mapURLs == null || mapURLs.Length == 0)
+        {
+            return Task.FromResult<PreparedMapLoad>(null);
+        }
+
+        return PrepareMapURLsAsync(mapURLs, mapID, mapHash, noProxy, ignoreMapForSharing);
     }
 
 

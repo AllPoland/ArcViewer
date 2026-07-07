@@ -540,7 +540,14 @@ public class MapLoader : MonoBehaviour
 
 
     private async Task LoadReplayURLAsync(
-        string url, string id, string mapURL, string mapID, bool noProxy, Task<PreparedMapLoad> mapTask, CancellationToken token)
+        string url,
+        string id,
+        string mapURL,
+        string mapID,
+        bool noProxy,
+        Task<PreparedMapLoad> mapTask,
+        CancellationToken token,
+        Task<Stream> replayStreamTask = null)
     {
         Debug.Log($"Searching for replay from: {url}");
 
@@ -548,6 +555,7 @@ public class MapLoader : MonoBehaviour
         CachedFile cachedFile = CacheManager.GetCachedReplay(url);
         if(!string.IsNullOrEmpty(cachedFile?.FilePath))
         {
+            DiscardReplayStreamTask(replayStreamTask);
             Debug.Log("Found replay in cache.");
             await LoadReplayDirectoryAsync(cachedFile.FilePath, cachedFile.ExtraData, token);
             return;
@@ -556,7 +564,22 @@ public class MapLoader : MonoBehaviour
 
         LoadingMessage = "Downloading replay";
 
-        Stream replayStream = await WebLoader.LoadFileURL(url, noProxy);
+        Stream replayStream = null;
+        if(replayStreamTask != null)
+        {
+            try
+            {
+                replayStream = await replayStreamTask;
+            }
+            catch(Exception err)
+            {
+                Debug.LogWarning($"Speculative replay download failed with error: {err.Message}, {err.StackTrace}");
+            }
+        }
+        if(replayStream == null && !token.IsCancellationRequested)
+        {
+            replayStream = await WebLoader.LoadFileURL(url, noProxy);
+        }
         if(token.IsCancellationRequested)
         {
             replayStream?.Dispose();
@@ -592,6 +615,50 @@ public class MapLoader : MonoBehaviour
 #endif
 
             await SetReplayAsync(replay, mapURL, mapID, noProxy, mapTask, token);
+        }
+    }
+
+
+    private static Task<Stream> StartSilentReplayDownload(string url, bool noProxy)
+    {
+        if(string.IsNullOrEmpty(url))
+        {
+            return null;
+        }
+
+#if !UNITY_WEBGL || UNITY_EDITOR
+        CachedFile cachedFile = CacheManager.GetCachedReplay(url);
+        if(!string.IsNullOrEmpty(cachedFile?.FilePath))
+        {
+            return null;
+        }
+#endif
+
+        return WebLoader.LoadFileURL(url, noProxy, false);
+    }
+
+
+    private static void DiscardReplayStreamTask(Task<Stream> replayStreamTask)
+    {
+        if(replayStreamTask == null)
+        {
+            return;
+        }
+
+        _ = DiscardReplayStreamTaskAsync(replayStreamTask);
+    }
+
+
+    private static async Task DiscardReplayStreamTaskAsync(Task<Stream> replayStreamTask)
+    {
+        try
+        {
+            Stream replayStream = await replayStreamTask;
+            replayStream?.Dispose();
+        }
+        catch(Exception err)
+        {
+            Debug.LogWarning($"Discarded replay download failed with error: {err.Message}, {err.StackTrace}");
         }
     }
 
@@ -646,6 +713,9 @@ public class MapLoader : MonoBehaviour
 
         LoadingMessage = $"Fetching replay from {source.Name}";
 
+        string scoreSaberReplayURL = source.SourceType == ReplaySourceType.ScoreSaber ? ScoreSaberApi.ReplayURLFromID(id) : null;
+        Task<Stream> scoreSaberReplayTask = StartSilentReplayDownload(scoreSaberReplayURL, noProxy);
+
         ResolvedScore resolved = null;
         try
         {
@@ -658,11 +728,13 @@ public class MapLoader : MonoBehaviour
 
         if(token.IsCancellationRequested)
         {
+            DiscardReplayStreamTask(scoreSaberReplayTask);
             return;
         }
 
         if(resolved == null || string.IsNullOrEmpty(resolved.ReplayURL))
         {
+            DiscardReplayStreamTask(scoreSaberReplayTask);
             Debug.Log($"Empty or nonexistent {source.Name} replay URL!");
             SetMap(LoadedMap.Empty);
             return;
@@ -676,8 +748,17 @@ public class MapLoader : MonoBehaviour
         SetLoadedScoreID(source, id);
 
         string replayID = source.SourceType == ReplaySourceType.BeatLeader ? id : null;
+        Task<Stream> replayStreamTask = null;
+        if(scoreSaberReplayTask != null)
+        {
+            if(string.Equals(scoreSaberReplayURL, resolved.ReplayURL, StringComparison.Ordinal))
+            {
+                replayStreamTask = scoreSaberReplayTask;
+            }
+            else DiscardReplayStreamTask(scoreSaberReplayTask);
+        }
         Task<PreparedMapLoad> mapTask = MapDownloader.PrepareMapLoadAsync(resolved, noProxy);
-        await LoadReplayURLAsync(resolved.ReplayURL, replayID, resolved.MapURL, resolved.MapID, noProxy, mapTask, token);
+        await LoadReplayURLAsync(resolved.ReplayURL, replayID, resolved.MapURL, resolved.MapID, noProxy, mapTask, token, replayStreamTask);
     }
 
 

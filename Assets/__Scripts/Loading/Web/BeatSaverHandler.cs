@@ -18,6 +18,23 @@ public static class BeatSaverHandler
     private const string hashDirect = "maps/hash/";
 
 
+    public static string[] GetBeatSaverMapCdnURLs(string hash)
+    {
+        if(string.IsNullOrEmpty(hash))
+        {
+            return Array.Empty<string>();
+        }
+
+        string[] urls = new string[BeatSaverCdnURLs.Length];
+        string lowercaseHash = hash.ToLowerInvariant();
+        for(int i = 0; i < BeatSaverCdnURLs.Length; i++)
+        {
+            urls[i] = $"https://{BeatSaverCdnURLs[i]}/{lowercaseHash}.zip";
+        }
+        return urls;
+    }
+
+
     public static async Task<(string[], string)> GetBeatSaverMapHash(string hash)
     {
         string json = await GetApiResponse(hashDirect, hash, false);
@@ -37,13 +54,11 @@ public static class BeatSaverHandler
             Debug.Log("BeatSaver response doesn't contain this outdated version!");
 
             //Return an array of potential urls for this map
-            string[] urls = new string[BeatSaverCdnURLs.Length + 1];
-            for(int i = 0; i < BeatSaverCdnURLs.Length; i++)
-            {
-                urls[i] = $"https://{BeatSaverCdnURLs[i]}/{hash.ToLower()}.zip";
-            }
+            string[] cdnURLs = GetBeatSaverMapCdnURLs(hash);
+            string[] urls = new string[cdnURLs.Length + 1];
+            Array.Copy(cdnURLs, urls, cdnURLs.Length);
             //End with the url for the latest map version as a fallback
-            urls[BeatSaverCdnURLs.Length] = url;
+            urls[cdnURLs.Length] = url;
 
             return (urls, response.id);
         }
