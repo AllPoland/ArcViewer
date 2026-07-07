@@ -36,6 +36,10 @@ public class MapLoader : MonoBehaviour
     //so stale tasks can't clobber newer loads
     private CancellationTokenSource loadCancelSource;
 
+    //A list of concurrent tasks to await before switching scenes
+    //Add tasks to this to avoid potential race conditions related to the scene switch
+    private List<Task> awaitBeforeSceneSwitch = new List<Task>();
+
 
     private CancellationToken BeginLoading(string message = null)
     {
@@ -343,6 +347,8 @@ public class MapLoader : MonoBehaviour
         ReplayManager.SetReplay(replay);
 
         Task sourceDataTask = LoadSourceDataAsync(sourceInfo, replay);
+        awaitBeforeSceneSwitch.Add(sourceDataTask);
+
         if(mapTask != null)
         {
             if(await TryLoadPreparedMapAsync(mapTask, true, token))
@@ -387,6 +393,8 @@ public class MapLoader : MonoBehaviour
                 try
                 {
                     await sourceDataTask;
+                    awaitBeforeSceneSwitch.Remove(sourceDataTask);
+                    sourceDataTask.Dispose();
                 }
                 catch(Exception err)
                 {
@@ -407,7 +415,7 @@ public class MapLoader : MonoBehaviour
                 }
                 else UrlArgHandler.LoadedMapURL = sourceInfo.FallbackMapDownloadURL;
 
-                Task<PreparedMapLoad> fallbackTask = MapDownloader.PrepareMapURLAsync(
+                using Task<PreparedMapLoad> fallbackTask = MapDownloader.PrepareMapURLAsync(
                     sourceInfo.FallbackMapDownloadURL, sourceInfo.FallbackMapID, mapHash, noProxy, false);
                 if(!await TryLoadPreparedMapAsync(fallbackTask, false, token))
                 {
@@ -734,7 +742,7 @@ public class MapLoader : MonoBehaviour
         SetLoadedScoreID(source, id);
 
         string replayID = source.SourceType == ReplaySourceType.BeatLeader ? id : null;
-        Task<PreparedMapLoad> mapTask = MapDownloader.PrepareMapLoadAsync(resolved, noProxy);
+        using Task<PreparedMapLoad> mapTask = MapDownloader.PrepareMapLoadAsync(resolved, noProxy);
         await LoadReplayURLAsync(resolved.ReplayURL, replayID, resolved.MapURL, resolved.MapID, noProxy, mapTask, token);
     }
 
@@ -785,15 +793,59 @@ public class MapLoader : MonoBehaviour
     }
 
 
-    private void SetMap(LoadedMap newMap)
+    private async void SetMap(LoadedMap newMap)
     {
-        CancelPendingLoads();
-        LoadingMessage = "";
-        Loading = false;
-
-        if(newMap.Info == null || newMap.Difficulties.Count == 0 || newMap.Song == null)
+        try
         {
-            Debug.LogWarning("Failed to load map file.");
+            foreach(Task task in awaitBeforeSceneSwitch)
+            {
+                await task;
+                task.Dispose();
+            }
+            awaitBeforeSceneSwitch.Clear();
+
+            CancelPendingLoads();
+            LoadingMessage = "";
+            Loading = false;
+
+            if(newMap.Info == null || newMap.Difficulties.Count == 0 || newMap.Song == null)
+            {
+                Debug.LogWarning("Failed to load map file.");
+
+                if(newMap.Song != null)
+                {
+#if !UNITY_WEBGL || UNITY_EDITOR
+                    newMap.Song.UnloadAudioData();
+                    Destroy(newMap.Song);
+#else
+                    newMap.Song.Dispose();
+#endif
+                }
+                UIStateManager.CurrentState = UIState.MapSelection;
+                OnLoadingFailed?.Invoke();
+
+                return;
+            }
+
+            UIStateManager.CurrentState = UIState.Previewer;
+
+            BeatmapManager.Info = newMap.Info;
+            SongManager.Instance.MusicClip = newMap.Song;
+
+            if(newMap.CoverImageData != null && newMap.CoverImageData.Length > 0)
+            {
+                CoverImageHandler.Instance.SetImageFromData(newMap.CoverImageData);
+            }
+            else CoverImageHandler.Instance.ClearImage();
+
+            BeatmapManager.SetDifficulties(newMap.Difficulties);
+            BeatmapManager.CurrentDifficulty = BeatmapManager.GetDefaultDifficulty();
+
+            OnMapLoaded?.Invoke();
+        }
+        catch(Exception err)
+        {
+            Debug.LogError($"Failed to set map scene with error: {err.Message}\n    {err.StackTrace}");
 
             if(newMap.Song != null)
             {
@@ -806,25 +858,11 @@ public class MapLoader : MonoBehaviour
             }
             UIStateManager.CurrentState = UIState.MapSelection;
             OnLoadingFailed?.Invoke();
-
-            return;
         }
-
-        UIStateManager.CurrentState = UIState.Previewer;
-
-        BeatmapManager.Info = newMap.Info;
-        SongManager.Instance.MusicClip = newMap.Song;
-
-        if(newMap.CoverImageData != null && newMap.CoverImageData.Length > 0)
+        finally
         {
-            CoverImageHandler.Instance.SetImageFromData(newMap.CoverImageData);
+            awaitBeforeSceneSwitch.Clear();
         }
-        else CoverImageHandler.Instance.ClearImage();
-
-        BeatmapManager.SetDifficulties(newMap.Difficulties);
-        BeatmapManager.CurrentDifficulty = BeatmapManager.GetDefaultDifficulty();
-
-        OnMapLoaded?.Invoke();
     }
 
 

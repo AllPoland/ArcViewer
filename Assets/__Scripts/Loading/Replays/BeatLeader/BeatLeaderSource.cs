@@ -123,14 +123,16 @@ public class BeatLeaderSource : ReplaySource
         }
 
         string mapHash = replay.info.hash;
-        if(!string.IsNullOrEmpty(mapHash) && mapHash.Length > 40)
-        {
-            mapHash = mapHash[..40];
-        }
-
         if(!string.IsNullOrEmpty(mapHash))
         {
             Debug.Log("Getting replay leaderboard info.");
+
+            // Sometimes BL hash field has extra text beyond the hash itself (which is always 40 characters long)
+            if(mapHash.Length > 40)
+            {
+                mapHash = mapHash[..40];
+            }
+
             BeatLeaderLeaderboardResponse leaderboard = await BeatLeaderApi.LeaderboardFromHash(mapHash);
             if(leaderboard != null)
             {
