@@ -35,6 +35,13 @@ public static class BeatSaverHandler
     }
 
 
+    public static bool IsBeatSaverID(string id)
+    {
+        const string IDchars = "0123456789abcdef";
+        return !id.ToLower().Any(x => !IDchars.Contains(x));
+    }
+
+
     public static async Task<(string[], string)> GetBeatSaverMapHash(string hash)
     {
         string json = await GetApiResponse(hashDirect, hash, false);

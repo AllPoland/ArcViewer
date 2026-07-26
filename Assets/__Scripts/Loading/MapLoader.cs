@@ -1089,9 +1089,8 @@ public class MapLoader : MonoBehaviour
         }
         else
         {
-            const string IDchars = "0123456789abcdef";
             //If the directory doesn't contain any characters that aren't hexadecimal, that means it's probably an ID
-            if(!input.ToLower().Any(x => !IDchars.Contains(x)))
+            if(BeatSaverHandler.IsBeatSaverID(input))
             {
                 LoadMapID(input);
                 UrlArgHandler.LoadedMapID = input;

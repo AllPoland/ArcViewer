@@ -84,11 +84,20 @@ public class BeatLeaderSource : ReplaySource
             mapURL = apiResponse.song.downloadUrl;
             UrlArgHandler.ignoreMapForSharing = true;
         }
-        if(string.IsNullOrEmpty(mapID) && !string.IsNullOrEmpty(apiResponse.song?.id))
+
+        bool useResponseID = string.IsNullOrEmpty(mapID) && !string.IsNullOrEmpty(apiResponse.song?.id);
+        if(useResponseID)
         {
-            mapID = apiResponse.song.id;
-            UrlArgHandler.ignoreMapForSharing = true;
+            // Beatleader adds x to the ID for each map reupload
+            string id = apiResponse.song.id.TrimEnd('x');
+            // Some maps on BeatLeader's self-hosted CDN have non-BeatSaver IDs, we should ignore these
+            if(BeatSaverHandler.IsBeatSaverID(id))
+            {
+                mapID = id;
+                UrlArgHandler.ignoreMapForSharing = true;
+            }
         }
+
         if(!string.IsNullOrEmpty(apiResponse.song?.hash))
         {
             string mapHash = apiResponse.song.hash;
