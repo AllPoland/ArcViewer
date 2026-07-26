@@ -76,26 +76,37 @@ public class BeatLeaderSource : ReplaySource
             return null;
         }
 
-        bool useMapID = !string.IsNullOrEmpty(mapID) && mapID != apiResponse.song?.id;
-        bool useResponseURL = !useMapID && string.IsNullOrEmpty(mapURL) && !string.IsNullOrEmpty(apiResponse.song?.downloadUrl);
+        ReplaySourceInfo sourceInfo = CreateInfo();
 
-        if(useResponseURL && !BeatSaverHandler.BeatSaverCdnURLs.Any(x => apiResponse.song.downloadUrl.Contains(x)))
+        bool useResponseURL = string.IsNullOrEmpty(mapURL) && !string.IsNullOrEmpty(apiResponse.song?.downloadUrl);
+        if(useResponseURL)
         {
-            mapURL = System.Web.HttpUtility.UrlDecode(apiResponse.song.downloadUrl);
+            mapURL = apiResponse.song.downloadUrl;
             UrlArgHandler.ignoreMapForSharing = true;
-
-            if(mapID == apiResponse.song.id)
+        }
+        if(string.IsNullOrEmpty(mapID) && !string.IsNullOrEmpty(apiResponse.song?.id))
+        {
+            mapID = apiResponse.song.id;
+            UrlArgHandler.ignoreMapForSharing = true;
+        }
+        if(!string.IsNullOrEmpty(apiResponse.song?.hash))
+        {
+            string mapHash = apiResponse.song.hash;
+            // Sometimes BL hash field has extra text beyond the hash itself (which is always 40 characters long)
+            if(mapHash.Length > 40)
             {
-                mapID = null;
+                mapHash = mapHash[..40];
             }
+            sourceInfo.MapHash = mapHash;
+            UrlArgHandler.ignoreMapForSharing = true;
         }
 
         return new ResolvedScore
         {
-            ReplayURL = System.Web.HttpUtility.UrlDecode(apiResponse.replay),
+            ReplayURL = apiResponse.replay,
             MapURL = mapURL,
             MapID = mapID,
-            SourceInfo = CreateInfo()
+            SourceInfo = sourceInfo
         };
     }
 
