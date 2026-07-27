@@ -234,7 +234,7 @@ public class MapDirectoryInput : MonoBehaviour
         {
             placeholderText.text = theSoupPlaceholder;
         }
-        else if(!ReplayManager.IsReplayMode && SettingsManager.GetBool("replaymode"))
+        else if(!ReplayManager.IsReplayMode && SettingsManager.GetInt("replaymode") > 0)
         {
 #if UNITY_WEBGL
             placeholderText.text = webGLReplayPlaceholder;

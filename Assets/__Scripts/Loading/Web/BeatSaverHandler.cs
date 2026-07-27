@@ -37,6 +37,7 @@ public static class BeatSaverHandler
 
     public static bool IsBeatSaverID(string id)
     {
+        //BeatSaver IDs are hexidecimals, so really this is just checking if the string is a hex
         const string IDchars = "0123456789abcdef";
         return !id.ToLower().Any(x => !IDchars.Contains(x));
     }

@@ -1068,34 +1068,46 @@ public class MapLoader : MonoBehaviour
             return;
         }
 
-        if(SettingsManager.GetBool("replaymode")
-            && ReplaySources.TryParsePrefixedScoreID(input, out ReplaySource source, out string scoreID))
+        if(!ReplayManager.IsReplayMode)
         {
-            //Prefixed score IDs are unambiguous, so they always load a new replay,
-            //even when another replay is waiting on the map prompt
-            LoadReplayFromScore(source, scoreID);
+            int replayMode = SettingsManager.GetInt("replaymode");
+            if(replayMode > 0)
+            {
+                string scoreID = input;
+                ReplaySourceType type = (ReplaySourceType)replayMode;
+                ReplaySource source = ReplaySources.FromType(type);
 
-            SetLoadedScoreID(source, scoreID);
+                if(source == null)
+                {
+                    // For some reason wasn't able to match a source from the set type
+                    if(ReplaySources.TryParsePrefixedScoreID(input, out ReplaySource inferredSource, out string inferredID))
+                    {
+                        source = inferredSource;
+                        scoreID = inferredID;
+                    }
+                }
+
+                if(source != null)
+                {
+                    LoadReplayFromScore(source, scoreID);
+                    SetLoadedScoreID(source, scoreID);
+                    return;
+                }
+
+                //If somehow we still don't find a valid source, we can at least try something
+                if(!input.Any(x => !char.IsDigit(x)))
+                {
+                    LoadReplayScoreAuto(input);
+                    return;
+                }
+            }
+        }
+
+        if(BeatSaverHandler.IsBeatSaverID(input))
+        {
+            LoadMapID(input);
+            UrlArgHandler.LoadedMapID = input;
             return;
-        }
-
-        if(!ReplayManager.IsReplayMode && SettingsManager.GetBool("replaymode"))
-        {
-            if(!input.Any(x => !char.IsDigit(x)))
-            {
-                LoadReplayScoreAuto(input);
-                return;
-            }
-        }
-        else
-        {
-            //If the directory doesn't contain any characters that aren't hexadecimal, that means it's probably an ID
-            if(BeatSaverHandler.IsBeatSaverID(input))
-            {
-                LoadMapID(input);
-                UrlArgHandler.LoadedMapID = input;
-                return;
-            }
         }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
