@@ -28,6 +28,9 @@ public class UIColorManager : MonoBehaviour
     [field:SerializeField] public float TransparentBackgroundOpacity { get; private set; }
 
     [Space]
+    [SerializeField] public Color[] ReplayModeColors;
+
+    [Space]
     [SerializeField] private float transitionTime = 0.5f;
 
     private bool initializedSettings = false;
@@ -70,10 +73,24 @@ public class UIColorManager : MonoBehaviour
     }
 
 
+    public static void SetReplayModeColor(int replayMode, bool animate = true)
+    {
+        // A replay mode of 0 means no replay at all, so essentially the colors are 1-indexed
+        replayMode--;
+        if(replayMode >= 0 && replayMode < Instance.ReplayModeColors.Length)
+        {
+            SetUIColor(Instance.ReplayModeColors[replayMode], animate);
+        }
+        else SetUIColor(Instance.ReplayModeColor, animate);
+    }
+
+
     private void UpdateSettings(string setting)
     {
         if(setting == "all" || setting == "replaymode" || setting == "useuicolor" || setting == "uicolor" || setting == TheSoup.Rule)
         {
+            int replayMode = SettingsManager.GetInt("replaymode");
+
             if(SettingsManager.GetBool("useuicolor"))
             {
                 bool animate = (setting == "useuicolor" || setting == "all") && initializedSettings;
@@ -83,9 +100,9 @@ public class UIColorManager : MonoBehaviour
             {
                 SetUIColor(SoupColor, initializedSettings);
             }
-            else if(ReplayManager.IsReplayMode || (UIStateManager.CurrentState != UIState.Previewer && SettingsManager.GetBool("replaymode")))
+            else if(ReplayManager.IsReplayMode || (UIStateManager.CurrentState != UIState.Previewer && replayMode > 0))
             {
-                SetUIColor(ReplayModeColor, initializedSettings);
+                SetReplayModeColor(replayMode, initializedSettings);
             }
             else SetUIColor(PreviewModeColor, initializedSettings);
 
