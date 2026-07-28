@@ -74,6 +74,12 @@ public class TimeManager : MonoBehaviour
                 return BaseBPM;
             }
 
+            if(BpmChanges[0].Beat > CurrentBeat)
+            {
+                //Failsafe in the event there's no BPM change we've passed
+                return BaseBPM;
+            }
+
             BpmChange lastChange = BpmChanges.FindLast(x => x.Beat < CurrentBeat);
             if(lastChange.BPM <= 0)
             {
@@ -99,6 +105,12 @@ public class TimeManager : MonoBehaviour
             return RawTimeFromBeat(beat, BaseBPM);
         }
 
+        if(BpmChanges[0].Beat > beat)
+        {
+            //Failsafe in the event there's no BPM change we've passed
+            return RawTimeFromBeat(beat, BaseBPM);
+        }
+
         BpmChange lastChange = BpmChanges.FindLast(x => x.Beat < beat);
         return lastChange.Time + RawTimeFromBeat(beat - lastChange.Beat, lastChange.BPM);
     }
@@ -109,6 +121,12 @@ public class TimeManager : MonoBehaviour
         if(BpmChanges.Count == 0)
         {
             return RawBeatFromTime(time, BaseBPM);
+        }
+
+        if(BpmChanges[0].Time > time)
+        {
+            //Failsafe in the event there's no BPM change we've passed
+            return RawTimeFromBeat(time, BaseBPM);
         }
 
         BpmChange lastChange = BpmChanges.FindLast(x => x.Time < time);
