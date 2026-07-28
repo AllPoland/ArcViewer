@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -13,27 +14,6 @@ public class ScoreManager : MonoBehaviour
     public static int MaxScore { get; private set; }
     public static int TotalScore => ScoringEvents.Count > 0 ? ScoringEvents.Last.TotalScore : 0;
 
-    public const int MaxNoteScore = 115;
-    public const int MaxChainHeadScore = 85;
-    public const int MaxChainLinkScore = 20;
-
-    public const int PreSwingValue = 70;
-    public const int PostSwingValue = 30;
-
-    public static readonly byte[] ComboMultipliers = new byte[]
-    {
-        1,
-        2,
-        4,
-        8
-    };
-    public static readonly byte[] HitsNeededForComboIncrease = new byte[]
-    {
-        2,
-        4,
-        8,
-        255
-    };
 
     [Header("Components")]
     [SerializeField] private GameObject hudObject;
@@ -81,6 +61,9 @@ public class ScoreManager : MonoBehaviour
 
     private ScoreColorSettings currentColorSettings = new ScoreColorSettings();
 
+    public static bool IsScoreSaberLegacyReplay => ReplayManager.IsReplayMode
+        && ReplayManager.CurrentReplay?.scoreSaberLegacyScoreData != null;
+
 
     public static void InitializeMapScore()
     {
@@ -127,11 +110,11 @@ public class ScoreManager : MonoBehaviour
                 continue;
             }
 
-            if(maxComboMult < ComboMultipliers.Length - 1 && currentEvent.scoringType != ScoringType.NoScore)
+            if(maxComboMult < ScoringUtils.ComboMultipliers.Length - 1 && currentEvent.scoringType != ScoringType.NoScore)
             {
                 //Increment max combo, which is used to calculate max score
                 maxComboProgress++;
-                if(maxComboProgress >= HitsNeededForComboIncrease[maxComboMult])
+                if(maxComboProgress >= ScoringUtils.HitsNeededForComboIncrease[maxComboMult])
                 {
                     maxComboMult++;
                     maxComboProgress = 0;
@@ -146,18 +129,20 @@ public class ScoreManager : MonoBehaviour
                 case ScoringType.ArcHead:
                 case ScoringType.ArcTail:
                 case ScoringType.ArcHeadArcTail:
-                    maxEventScore = MaxNoteScore;
+                    maxEventScore = ScoringUtils.MaxNoteScore;
                     break;
                 case ScoringType.ChainHead:
+                case ScoringType.ChainHeadArcHead:
                 case ScoringType.ChainHeadArcTail:
-                    maxEventScore = MaxChainHeadScore;
+                case ScoringType.ChainHeadArcHeadArcTail:
+                    maxEventScore = ScoringUtils.MaxChainHeadScore;
                     break;
                 case ScoringType.ChainLink:
                 case ScoringType.ChainLinkArcHead:
-                    maxEventScore = MaxChainLinkScore;
+                    maxEventScore = ScoringUtils.MaxChainLinkScore;
                     break;
             }
-            maxScore += maxEventScore * ComboMultipliers[maxComboMult];
+            maxScore += maxEventScore * ScoringUtils.ComboMultipliers[maxComboMult];
 
             if(currentEvent.IsBadHit)
             {
@@ -173,11 +158,11 @@ public class ScoreManager : MonoBehaviour
             else
             {
                 combo++;
-                if(comboMult < ComboMultipliers.Length - 1)
+                if(comboMult < ScoringUtils.ComboMultipliers.Length - 1)
                 {
                     //Combo is below max, and should be incremented
                     comboProgress++;
-                    if(comboProgress >= HitsNeededForComboIncrease[comboMult])
+                    if(comboProgress >= ScoringUtils.HitsNeededForComboIncrease[comboMult])
                     {
                         //Combo multiplier has increased
                         comboMult++;
@@ -185,22 +170,22 @@ public class ScoreManager : MonoBehaviour
                     }
                 }
 
-                currentScore += currentEvent.ScoreGained * ComboMultipliers[comboMult];
+                currentScore += currentEvent.ScoreGained * ScoringUtils.ComboMultipliers[comboMult];
 
                 //Count this hit towards the FC score
-                if(fcComboMult < ComboMultipliers.Length - 1 && currentEvent.scoringType != ScoringType.NoScore)
+                if(fcComboMult < ScoringUtils.ComboMultipliers.Length - 1 && currentEvent.scoringType != ScoringType.NoScore)
                 {
                     //Increment FC combo, which is used to calculate FC percentage
                     fcComboProgress++;
-                    if(fcComboProgress >= HitsNeededForComboIncrease[fcComboMult])
+                    if(fcComboProgress >= ScoringUtils.HitsNeededForComboIncrease[fcComboMult])
                     {
                         fcComboMult++;
                         fcComboProgress = 0;
                     }
                 }
 
-                fcScore += currentEvent.ScoreGained * ComboMultipliers[fcComboMult];
-                maxScoreNoMisses += maxEventScore * ComboMultipliers[fcComboMult];
+                fcScore += currentEvent.ScoreGained * ScoringUtils.ComboMultipliers[fcComboMult];
+                maxScoreNoMisses += maxEventScore * ScoringUtils.ComboMultipliers[fcComboMult];
             }
 
             currentEvent.TotalScore = currentScore;
@@ -214,7 +199,7 @@ public class ScoreManager : MonoBehaviour
 
             currentEvent.ScorePercentage = maxScore == 0 ? 100f : ((float)currentScore / maxScore) * 100;
             currentEvent.FCScorePercentage = maxScoreNoMisses == 0 ? 100f : ((float)fcScore / maxScoreNoMisses) * 100;
-            // Debug.Log($"Event #{i} | Time: {Math.Round(currentEvent.Time, 2)} | Type: {currentEvent.scoringType} | Score: {currentEvent.ScoreGained} | Total score: {currentScore} | Max score: {maxScore} | Combo: {combo} | Combo mult: {ComboMultipliers[comboMult]}x");
+            // Debug.Log($"Event #{i} | Time: {Math.Round(currentEvent.Time, 2)} | Type: {currentEvent.scoringType} | Score: {currentEvent.ScoreGained} | Total score: {currentScore} | Max score: {maxScore} | Combo: {combo} | Combo mult: {ScoringUtils.ComboMultipliers[comboMult]}x");
         }
 
         if(inferCount > 0)
@@ -223,7 +208,7 @@ public class ScoreManager : MonoBehaviour
             ErrorHandler.Instance.ShowPopup(ErrorType.Warning, $"Couldn't match {inferCount} replay notes to the map!");
         }
 
-        if(currentScore != ReplayManager.CurrentReplay.info.score)
+        if(!IsScoreSaberLegacyReplay && currentScore != ReplayManager.CurrentReplay.info.score)
         {
             Debug.LogWarning($"Calculated score does not match the metadata score: {ReplayManager.CurrentReplay.info.score}!");
         }
@@ -233,12 +218,37 @@ public class ScoreManager : MonoBehaviour
         //Energy needs to be calculated per-frame because of walls
         //I know it's super jank and spaghetti to have that happen in a class called
         //"PlayerPositionManager" but I don't care
-        PlayerPositionManager.InitializeEnergyValues(ScoringEvents);
+        if(!IsScoreSaberLegacyReplay)
+        {
+            PlayerPositionManager.InitializeEnergyValues(ScoringEvents);
+        }
     }
 
 
     public void UpdateObjects()
     {
+        Replay replay = ReplayManager.CurrentReplay;
+        if(ScoreSaberLegacyConverter.NeedsConversion(replay))
+        {
+            ScoreSaberLegacyConverter.Convert(replay, BeatmapManager.CurrentDifficulty.beatmapDifficulty);
+
+            // rebuild scoring events from the synthetic notes
+            ScoringEvents.Clear();
+            foreach(NoteEvent noteEvent in replay.notes)
+            {
+                ScoringEvent newEvent = new ScoringEvent(noteEvent);
+                if(ScoringEvents.Last != null && noteEvent.eventTime < ScoringEvents.Last.Time)
+                {
+                    ScoringEvents.InsertSorted(newEvent);
+                }
+                else ScoringEvents.Add(newEvent);
+            }
+
+            // retrigger ObjectManager to process notes with the new events
+            ObjectManager.Instance.UpdateDifficulty(BeatmapManager.CurrentDifficulty);
+            return;
+        }
+
         InitializeMapScore();
         UpdateBeat(TimeManager.CurrentBeat);
     }
@@ -274,6 +284,22 @@ public class ScoreManager : MonoBehaviour
     }
 
 
+    private static string FormatScore(int score)
+    {
+        string digits = score.ToString();
+        string result = "";
+        int end = digits.Length;
+        for(int i = end - 1; i >= 0; i -= 3)
+        {
+            int start = Mathf.Max(i - 2, 0);
+            string chunk = digits.Substring(start, end - start);
+            result = result.Length == 0 ? chunk : chunk + ' ' + result;
+            end = start;
+        }
+        return result;
+    }
+
+
     private static string GetPercentageString(float percentage)
     {
         float roundedPercentage = (float)Math.Round(percentage, 2);
@@ -301,17 +327,21 @@ public class ScoreManager : MonoBehaviour
         {
             return new ScoreTextInfo(0, badColor);
         }
-        else if(scoringEvent.scoringType == ScoringType.ChainLink)
+        else if(scoringEvent.scoringType == ScoringType.ChainLink
+            || scoringEvent.scoringType == ScoringType.ChainLinkArcHead)
         {
-            return new ScoreTextInfo(MaxChainLinkScore, currentColorSettings.chainLinkColor);
+            return new ScoreTextInfo(ScoringUtils.MaxChainLinkScore, currentColorSettings.chainLinkColor);
         }
         else
         {
             int scoreGained = scoringEvent.ScoreGained;
-            if(scoringEvent.scoringType == ScoringType.ChainHead)
+            if(scoringEvent.scoringType == ScoringType.ChainHead
+                || scoringEvent.scoringType == ScoringType.ChainHeadArcHead
+                || scoringEvent.scoringType == ScoringType.ChainHeadArcTail
+                || scoringEvent.scoringType == ScoringType.ChainHeadArcHeadArcTail)
             {
                 //Adjust for the missing post swing points on chain heads
-                scoreGained += PostSwingValue;
+                scoreGained += ScoringUtils.PostSwingValue;
             }
             return currentColorSettings.GetScoreTextInfo(scoringEvent);
         }
@@ -427,6 +457,12 @@ public class ScoreManager : MonoBehaviour
 
     private void UpdateBeat(float beat)
     {
+        if(IsScoreSaberLegacyReplay)
+        {
+            UpdateBeatScoreSaberLegacy();
+            return;
+        }
+
         ClearOutsideIndicators();
         int lastIndex = ScoringEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
 
@@ -472,39 +508,83 @@ public class ScoreManager : MonoBehaviour
         }
         gradeText.text = GradeFromPercentage(effectivePercentage);
 
-        //The score gets a space inserted between every 3 decimals
-        string baseScoreString = currentScore.ToString();
-        string scoreString = "";
-        int maxIndex = baseScoreString.Length;
-        for(int i = maxIndex - 1; i >= 0; i -= 3)
-        {
-            //Gather the next digits, up to 3 if they're available
-            //(logic is funky cause this needs to be done backwards)
-            int startIndex = Mathf.Max(i - 2, 0);
-            int length = Mathf.Min(3, maxIndex - startIndex);
-            string substring = baseScoreString.Substring(startIndex, length);
-            if(scoreString == "")
-            {
-                //No space if the string is empty
-                scoreString = substring;
-            }
-            else scoreString = substring + ' ' + scoreString;
-
-            //Make sure none of these digits are used by the next round
-            maxIndex = startIndex;
-        }
-
-        scoreText.text = scoreString;
+        scoreText.text = FormatScore(currentScore);
 
         scorePercentageText.text = GetPercentageString(currentPercentage);
         fcPercentageText.text = $"FC : {GetPercentageString(currentFCPercentage)}";
 
-        multiplierText.text = multiplierPrefix + ComboMultipliers[currentComboMult].ToString();
-        comboProgressFill.fillAmount = (float)currentComboProgress / HitsNeededForComboIncrease[currentComboMult];
+        multiplierText.text = multiplierPrefix + ScoringUtils.ComboMultipliers[currentComboMult].ToString();
+        comboProgressFill.fillAmount = (float)currentComboProgress / ScoringUtils.HitsNeededForComboIncrease[currentComboMult];
         FCBars.gameObject.SetActive(currentMisses <= 0);
 
         float healthBarWidth = energyBar.sizeDelta.x;
         energyBarFill.sizeDelta = new Vector2(healthBarWidth * PlayerPositionManager.Energy, energyBarFill.sizeDelta.y);
+    }
+
+
+    private void UpdateBeatScoreSaberLegacy()
+    {
+        Replay replay = ReplayManager.CurrentReplay;
+        List<LegacyScoreFrame> legacyData = replay.scoreSaberLegacyScoreData;
+        if(legacyData == null || legacyData.Count == 0) return;
+
+        // update flying score indicators from synthetic events
+        ClearOutsideIndicators();
+        int lastEventIndex = ScoringEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
+        if(lastEventIndex >= 0)
+        {
+            UpdateScoreIndicators(lastEventIndex);
+        }
+
+        // find the last legacy frame at or before current time
+        int legacyScore = 0;
+        int legacyCombo = 0;
+        for(int i = 0; i < legacyData.Count; i++)
+        {
+            if(legacyData[i].time > TimeManager.CurrentTime) break;
+
+            legacyScore = legacyData[i].score;
+            legacyCombo = legacyData[i].combo;
+        }
+
+        int misses = lastEventIndex >= 0 ? ScoringEvents[lastEventIndex].Misses : 0;
+
+        byte comboMult = 0;
+        byte comboProgress = 0;
+        for(int c = 0; c < legacyCombo; c++)
+            ScoringUtils.ManuallyAdvanceCombo(ref comboMult, ref comboProgress);
+
+        // find max score at current time from precomputed HUD data
+        int maxScore = 0;
+        List<LegacyHUDData.MaxScoreFrame> maxScores = replay.scoreSaberLegacyHUDData?.maxScores;
+        if(maxScores != null)
+        {
+            for(int i = maxScores.Count - 1; i >= 0; i--)
+            {
+                if(maxScores[i].time <= TimeManager.CurrentTime)
+                {
+                    maxScore = maxScores[i].maxScore;
+                    break;
+                }
+            }
+        }
+
+        float percentage = maxScore > 0 ? Mathf.Min(((float)legacyScore / maxScore) * 100, 100f) : 100f;
+
+        scoreText.text = FormatScore(legacyScore);
+        comboText.text = legacyCombo.ToString();
+        missText.text = misses.ToString();
+
+        scorePercentageText.text = GetPercentageString(percentage);
+        gradeText.text = GradeFromPercentage(percentage);
+
+        multiplierText.text = multiplierPrefix + ScoringUtils.ComboMultipliers[comboMult].ToString();
+        comboProgressFill.fillAmount = (float)comboProgress / ScoringUtils.HitsNeededForComboIncrease[comboMult];
+        FCBars.gameObject.SetActive(misses <= 0);
+
+        // hide elements we can't calculate for legacy replays
+        fcPercentageText.gameObject.SetActive(false);
+        energyBar.gameObject.SetActive(false);
     }
 
 
@@ -513,6 +593,10 @@ public class ScoreManager : MonoBehaviour
         ClearIndicators();
         ScoringEvents.Clear();
         hudObject.SetActive(false);
+
+        missText.gameObject.SetActive(true);
+        energyBar.gameObject.SetActive(true);
+        fcPercentageText.gameObject.SetActive(SettingsManager.GetBool("fcacc"));
 
         TimeManager.OnBeatChanged -= UpdateBeat;
         ObjectManager.OnObjectsLoaded -= UpdateObjects;
@@ -526,6 +610,11 @@ public class ScoreManager : MonoBehaviour
             bool showHud = SettingsManager.GetBool("showhud");
             ScoringEvents.Clear();
             hudObject.SetActive(showHud);
+
+            if(IsScoreSaberLegacyReplay)
+            {
+                ErrorHandler.Instance.ShowPopup(ErrorType.Warning, "This is a legacy ScoreSaber replay. Some data is synthesised and may not be fully accurate.");
+            }
 
             foreach(NoteEvent noteEvent in ReplayManager.CurrentReplay.notes)
             {

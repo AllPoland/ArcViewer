@@ -556,36 +556,37 @@ public class ObjectManager : MonoBehaviour
                     //Find the replay event that matches this note
                     //This needs to be done by calculating object ID
                     //scoringType*10000 + lineIndex*1000 + noteLineLayer*100 + colorType*10 + cutDirection
-                    ScoringType scoringType;
                     if(newNote.IsChainHead)
                     {
                         if(hasTail)
                         {
-                            scoringType = ScoringType.ChainHeadArcTail;
+                            newNote.ScoringType = ScoringType.ChainHeadArcTail;
                         }
-                        else scoringType = ScoringType.ChainHead;
+                        else newNote.ScoringType = ScoringType.ChainHead;
                     }
                     else if(hasHead)
                     {
                         if(hasTail)
                         {
-                            scoringType = ScoringType.ArcHeadArcTail;
+                            newNote.ScoringType = ScoringType.ArcHeadArcTail;
                         }
-                        else scoringType = ScoringType.ArcHead;
+                        else newNote.ScoringType = ScoringType.ArcHead;
                     }
                     else if(hasTail)
                     {
-                        scoringType = ScoringType.ArcTail;
+                        newNote.ScoringType = ScoringType.ArcTail;
                     }
-                    else scoringType = ScoringType.Note;
+                    else newNote.ScoringType = ScoringType.Note;
 
-                    int noteID = ((int)scoringType * 10000) + (n.x * 1000) + (n.y * 100) + (n.c * 10) + n.d;
+                    int noteID = ((int)newNote.ScoringType * 10000) + (n.x * 1000) + (n.y * 100) + (n.c * 10) + n.d;
+                    newNote.ScoreEventID = noteID;
+
                     ScoringEvent matchingEvent = scoringEventsOnBeat.Find(x => x.ID == noteID);
 
                     if(matchingEvent == null)
                     {
                         //Unable to match the note with its "correct" ID, try brute forcing all scoring types
-                        matchingEvent = ScoringEvent.BruteForceMatchNote(scoringEventsOnBeat, ref scoringType, noteID, hasTail, hasHead, newNote.IsChainHead);
+                        matchingEvent = ScoringEvent.MatchNote(scoringEventsOnBeat, newNote.ScoringType, noteID);
                     }
 
                     if(matchingEvent == null || matchingEvent.noteEventType == NoteEventType.miss)
@@ -600,7 +601,7 @@ public class ObjectManager : MonoBehaviour
                         newNote.WasBadCut = matchingEvent.noteEventType == NoteEventType.bad;
                         newNote.HitOffset = matchingEvent.HitTimeOffset;
                     }
-                    matchingEvent?.SetEventValues(scoringType, worldPosition);
+                    matchingEvent?.SetEventValues(newNote.ScoringType, worldPosition);
 
                     //Remove this event so it doesn't get reused by multiple notes
                     scoringEventsOnBeat.Remove(matchingEvent);
@@ -650,6 +651,8 @@ public class ObjectManager : MonoBehaviour
 
                     //Ignore the 1s place since direction doesn't matter
                     int noteID = ((int)ScoringType.NoScore * 10000) + (b.x * 1000) + (b.y * 100) + (bombColor * 10);
+                    newBomb.ScoreEventID = noteID;
+
                     ScoringEvent matchingEvent = scoringEventsOnBeat.Find(x => x.ID - (x.ID % 10) == noteID);
 
                     if(matchingEvent == null)
@@ -812,6 +815,8 @@ public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
     public MapElementList<T> CustomRTObjects = new MapElementList<T>();
     public List<T> RenderedObjects = new List<T>();
 
+    private MapElementList<T>.CheckInRangeDelegate visualInSpawnRange;
+
     public ObjectManager objectManager => ObjectManager.Instance;
     public JumpManager jumpManager => objectManager.jumpManager;
 
@@ -821,6 +826,19 @@ public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
 
     public abstract void UpdateObjects(MapElementList<T> objects);
     public abstract float GetSpawnTime(T visual);
+
+
+    private MapElementList<T>.CheckInRangeDelegate VisualInSpawnRangeDelegate
+    {
+        get
+        {
+            if(visualInSpawnRange == null)
+            {
+                visualInSpawnRange = VisualInSpawnRange;
+            }
+            return visualInSpawnRange;
+        }
+    }
 
 
     public virtual void UpdateVisuals()
@@ -855,5 +873,5 @@ public abstract class MapElementManager<T> : MonoBehaviour where T : MapElement
     }
 
 
-    public int GetStartIndex(float currentTime, MapElementList<T> objects) => objects.GetFirstIndex(currentTime, VisualInSpawnRange);
+    public int GetStartIndex(float currentTime, MapElementList<T> objects) => objects.GetFirstIndex(currentTime, VisualInSpawnRangeDelegate);
 }

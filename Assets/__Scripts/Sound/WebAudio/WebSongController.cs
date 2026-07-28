@@ -55,7 +55,8 @@ public class WebSongController : MonoBehaviour
 #if UNITY_WEBGL && !UNITY_EDITOR
         if (!initialized)
         {
-            InitSongController(SettingsManager.GetFloat("musicvolume"));
+            float musicVolume = SettingsManager.GetBool("enablemusic") ? Mathf.Clamp01(SettingsManager.GetFloat("musicvolume")) : 0f;
+            InitSongController(musicVolume);
             initialized = true;
         }
 #endif

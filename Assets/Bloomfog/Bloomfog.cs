@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
+#pragma warning disable CS0672 //Disable depreciation warnings
+
 public class Bloomfog : ScriptableRendererFeature
 {
     //These are static fields for graphics settings to access

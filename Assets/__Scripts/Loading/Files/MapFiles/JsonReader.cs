@@ -18,10 +18,19 @@ public static class JsonReader
         string infoPath = Path.Combine(directory, "Info.dat");
         string json = await ReadFileAsync(infoPath);
 
-        if(json == "")
+        if(string.IsNullOrEmpty(json))
         {
             Debug.LogWarning("Empty data in Info.dat!");
-            return null;
+
+            Debug.Log("Trying lowercase info.dat.");
+            infoPath = Path.Combine(directory, "info.dat");
+            json = await ReadFileAsync(infoPath);
+
+            if(string.IsNullOrEmpty(json))
+            {
+                Debug.LogWarning("Empty data in both Info.dat and info.dat!");
+                return null;
+            }
         }
 
         Debug.Log("Parsing Info.dat.");

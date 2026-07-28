@@ -64,6 +64,9 @@ public class LightManager : MonoBehaviour
     };
 
     private static MapElementList<BoostEvent> boostEvents = new MapElementList<BoostEvent>();
+    private static readonly MapElementList<BoostEvent>.CheckInRangeDelegate boostEventInRange = BoostEventInRange;
+    private static readonly MapElementList<LightEvent>.CheckInRangeDelegate lightEventInRange = LightEventInRange;
+    private static readonly MapElementList<LaserSpeedEvent>.CheckInRangeDelegate laserSpeedEventInRange = LaserSpeedEventInRange;
 
     public MapElementList<LightEvent> backLaserEvents = new MapElementList<LightEvent>();
     public MapElementList<LightEvent> ringEvents = new MapElementList<LightEvent>();
@@ -76,6 +79,15 @@ public class LightManager : MonoBehaviour
 
     [SerializeField] private float lightEmission;
 
+    private readonly LightingPropertyEventArgs[] lightPropertyEventArgs =
+    {
+        new LightingPropertyEventArgs { type = LightEventType.BackLasers },
+        new LightingPropertyEventArgs { type = LightEventType.Rings },
+        new LightingPropertyEventArgs { type = LightEventType.LeftRotatingLasers },
+        new LightingPropertyEventArgs { type = LightEventType.RightRotatingLasers },
+        new LightingPropertyEventArgs { type = LightEventType.CenterLights }
+    };
+
 
     public void UpdateLights(float beat)
     {
@@ -84,7 +96,7 @@ public class LightManager : MonoBehaviour
             return;
         }
 
-        int lastBoostEvent = boostEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= beat);
+        int lastBoostEvent = boostEvents.GetLastIndex(TimeManager.CurrentTime, boostEventInRange);
         BoostActive = lastBoostEvent >= 0 ? boostEvents[lastBoostEvent].Value : false;
 
         RingManager.UpdateRings();
@@ -102,7 +114,7 @@ public class LightManager : MonoBehaviour
 
     private void UpdateLightEventType(LightEventType type, MapElementList<LightEvent> events)
     {
-        int lastIndex = events.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
+        int lastIndex = events.GetLastIndex(TimeManager.CurrentTime, lightEventInRange);
         bool foundEvent = lastIndex >= 0;
 
         LightEvent currentEvent = foundEvent ? events[lastIndex] : null;
@@ -118,30 +130,37 @@ public class LightManager : MonoBehaviour
     {
         Color eventColor = GetEventColor(lightEvent, nextEvent);
 
-        LightingPropertyEventArgs eventArgs = new LightingPropertyEventArgs
-        {
-            sender = this,
-            eventList = events,
-            lightEvent = lightEvent,
-            nextEvent = nextEvent,
-            type = type,
-            eventIndex = eventIndex,
-            eventColor = eventColor,
-            laserColor = GetLaserColor(eventColor),
-            glowColor = GetLaserGlowColor(eventColor)
-        };
+        LightingPropertyEventArgs eventArgs = lightPropertyEventArgs[(int)type];
+        eventArgs.sender = this;
+        eventArgs.eventList = events;
+        eventArgs.lightEvent = lightEvent;
+        eventArgs.nextEvent = nextEvent;
+        eventArgs.type = type;
+        eventArgs.eventIndex = eventIndex;
+        eventArgs.eventColor = eventColor;
+        eventArgs.laserColor = GetLaserColor(eventColor);
+        eventArgs.glowColor = GetLaserGlowColor(eventColor);
         OnLightPropertiesChanged?.Invoke(eventArgs);
     }
 
 
     private void UpdateLaserSpeedEventType(LightEventType type, MapElementList<LaserSpeedEvent> events)
     {
-        int lastIndex = events.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
+        int lastIndex = events.GetLastIndex(TimeManager.CurrentTime, laserSpeedEventInRange);
         bool foundEvent = lastIndex >= 0;
 
         LaserSpeedEvent lastEvent = foundEvent ? events[lastIndex] : null;
         OnLaserRotationsChanged?.Invoke(lastEvent, type);
     }
+
+
+    private static bool BoostEventInRange(BoostEvent boostEvent) => boostEvent.Beat <= TimeManager.CurrentBeat;
+
+
+    private static bool LightEventInRange(LightEvent lightEvent) => lightEvent.Time <= TimeManager.CurrentTime;
+
+
+    private static bool LaserSpeedEventInRange(LaserSpeedEvent laserSpeedEvent) => laserSpeedEvent.Time <= TimeManager.CurrentTime;
 
 
     public Color GetLaserColor(Color baseColor)

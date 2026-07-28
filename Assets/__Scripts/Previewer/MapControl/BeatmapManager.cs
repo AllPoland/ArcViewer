@@ -63,7 +63,7 @@ public class BeatmapManager : MonoBehaviour
                 DefaultHJD /= 2;
             }
 
-            if(ReplayManager.IsReplayMode)
+            if(ReplayManager.IsReplayMode && ReplayManager.CurrentReplay.info.jumpDistance > 0)
             {
                 DefaultJumpDistance = ReplayManager.CurrentReplay.info.jumpDistance;
             }

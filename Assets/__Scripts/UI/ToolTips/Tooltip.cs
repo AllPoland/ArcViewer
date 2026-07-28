@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    public string Text = "";
+    [TextArea(1, 5)] public string Text = "";
 
 
     public void ShowTooltip()

@@ -24,12 +24,19 @@ public class BeatmapInfoV2
     public string[] _environmentNames;
     public ColorSchemeContainerV2[] _colorSchemes;
 
-    public bool HasFields => !string.IsNullOrEmpty(_version) || !string.IsNullOrEmpty(_songName)
-        || !string.IsNullOrEmpty(_songSubName) || !string.IsNullOrEmpty(_songAuthorName)
-        || !string.IsNullOrEmpty(_levelAuthorName) || !string.IsNullOrEmpty(_songFilename)
-        || !string.IsNullOrEmpty(_coverImageFilename) || !string.IsNullOrEmpty(_environmentName)
-        || !string.IsNullOrEmpty(_allDirectionsEnvironmentName) || _difficultyBeatmapSets != null
-        || _environmentNames != null || _colorSchemes != null;
+    public bool HasFields =>
+        !string.IsNullOrEmpty(_version)
+        || !string.IsNullOrEmpty(_songName)
+        || !string.IsNullOrEmpty(_songSubName)
+        || !string.IsNullOrEmpty(_songAuthorName)
+        || !string.IsNullOrEmpty(_levelAuthorName)
+        || !string.IsNullOrEmpty(_songFilename)
+        || !string.IsNullOrEmpty(_coverImageFilename)
+        || !string.IsNullOrEmpty(_environmentName)
+        || !string.IsNullOrEmpty(_allDirectionsEnvironmentName)
+        || _difficultyBeatmapSets.Length > 0
+        || _environmentNames.Length > 0
+        || _colorSchemes.Length > 0;
 
 
     public BeatmapInfoV2()

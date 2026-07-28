@@ -34,17 +34,17 @@ public class ScoreColorSettings
         var builder = new StringBuilder();
         var formatString = judgement.text;
         var nextPercentIndex = formatString.IndexOf('%');
-        while (nextPercentIndex != -1)
+        while(nextPercentIndex != -1)
         {
             builder.Append(formatString.Substring(0, nextPercentIndex));
-            if (formatString.Length == nextPercentIndex + 1)
+            if(formatString.Length == nextPercentIndex + 1)
             {
                 formatString += " ";
             }
 
             var specifier = formatString[nextPercentIndex + 1];
 
-            switch (specifier)
+            switch(specifier)
             {
                 case 'b':
                     builder.Append(scoringEvent.PreSwingScore);
@@ -136,9 +136,12 @@ public class ScoreColorSettings
     public ScoreTextInfo GetScoreTextInfo(ScoringEvent scoringEvent)
     {
         int scoreGained = scoringEvent.ScoreGained;
-        if(scoringEvent.scoringType == ScoringType.ChainHead)
+        if(scoringEvent.scoringType == ScoringType.ChainHead
+            || scoringEvent.scoringType == ScoringType.ChainHeadArcHead
+            || scoringEvent.scoringType == ScoringType.ChainHeadArcTail
+            || scoringEvent.scoringType == ScoringType.ChainHeadArcHeadArcTail)
         {
-            scoreGained += ScoreManager.PostSwingValue;
+            scoreGained += ScoringUtils.PostSwingValue;
         }
 
         for(int i = 0; i < scoreJudgements.Count; i++)

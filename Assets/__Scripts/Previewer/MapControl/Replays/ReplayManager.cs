@@ -6,8 +6,6 @@ using UnityEngine;
 
 public class ReplayManager : MonoBehaviour
 {
-    public const string BeatLeaderURL = "https://www.beatleader.com/";
-
     public static bool IsReplayMode { get; private set; }
     public static Replay CurrentReplay { get; private set; }
 
@@ -17,8 +15,7 @@ public class ReplayManager : MonoBehaviour
     public static Color? PlayerLeftSaberColor { get; private set; }
     public static Color? PlayerRightSaberColor { get; private set; }
 
-    public static BeatleaderUser PlayerInfo;
-    public static string LeaderboardID = "";
+    public static ReplaySourceInfo SourceInfo;
 
     public static event Action<bool> OnReplayModeChanged;
     public static event Action<AnimatedAvatar> OnAvatarUpdated;
@@ -43,7 +40,7 @@ public class ReplayManager : MonoBehaviour
     public static float FailTime = 0f;
     public static bool HasFailed => Failed && TimeManager.CurrentTime >= FailTime;
 
-    private static MapElementList<PlayerHeightEvent> playerHeightEvents = new MapElementList<PlayerHeightEvent>();
+    public static MapElementList<PlayerHeightEvent> PlayerHeightEvents = new MapElementList<PlayerHeightEvent>();
 
     private static bool animatingAvatar = false;
     private static Coroutine animateAvatarCoroutine;
@@ -114,12 +111,12 @@ public class ReplayManager : MonoBehaviour
         newReplay.pauses.OrderBy(x => x.time);
         newReplay.walls.OrderBy(x => x.time);
 
-        playerHeightEvents.Clear();
+        PlayerHeightEvents.Clear();
         for(int i = 0; i < newReplay.heights.Count; i++)
         {
-            playerHeightEvents.Add(new PlayerHeightEvent(newReplay.heights[i]));
+            PlayerHeightEvents.Add(new PlayerHeightEvent(newReplay.heights[i]));
         }
-        playerHeightEvents.SortElementsByBeat();
+        PlayerHeightEvents.SortElementsByBeat();
 
         IsReplayMode = true;
         CurrentReplay = newReplay;
@@ -208,31 +205,12 @@ public class ReplayManager : MonoBehaviour
     }
 
 
-    public static void SetPlayerCustomColors(BeatleaderUser user)
+    public static void ApplyCustomColorsFromSource()
     {
-        if(user.profileSettings == null)
+        if(SourceInfo != null && SourceInfo.HasCustomColors)
         {
-            ClearPlayerCustomColors();
-            return;
-        }
-
-        BeatleaderUserProfileSettings profileSettings = user.profileSettings;
-        if(string.IsNullOrEmpty(profileSettings.leftSaberColor) || string.IsNullOrEmpty(profileSettings.rightSaberColor))
-        {
-            ClearPlayerCustomColors();
-            return;
-        }
-
-        Color leftSaberColor;
-        Color rightSaberColor;
-
-        bool parsedLeftColor = ColorUtility.TryParseHtmlString(profileSettings.leftSaberColor, out leftSaberColor);
-        bool parsedRightColor = ColorUtility.TryParseHtmlString(profileSettings.rightSaberColor, out rightSaberColor);
-
-        if(parsedLeftColor && parsedRightColor)
-        {
-            PlayerLeftSaberColor = leftSaberColor;
-            PlayerRightSaberColor = rightSaberColor;
+            PlayerLeftSaberColor = SourceInfo.LeftSaberColor;
+            PlayerRightSaberColor = SourceInfo.RightSaberColor;
         }
         else
         {
@@ -250,9 +228,9 @@ public class ReplayManager : MonoBehaviour
 
     private static void UpdatePlayerHeight(float beat)
     {
-        int lastHeightIndex = playerHeightEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
+        int lastHeightIndex = PlayerHeightEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Time <= TimeManager.CurrentTime);
         PlayerHeight = lastHeightIndex >= 0
-            ? playerHeightEvents[lastHeightIndex].Height
+            ? PlayerHeightEvents[lastHeightIndex].Height
             : CurrentReplay.info.height;
         
         if(PlayerHeight <= 0.001)
@@ -269,7 +247,7 @@ public class ReplayManager : MonoBehaviour
     }
 
 
-    private static void Reset()
+    public static void Reset()
     {
         IsReplayMode = false;
         CurrentReplay = null;
@@ -285,8 +263,7 @@ public class ReplayManager : MonoBehaviour
         ClearAvatar();
         ClearPlayerCustomColors();
 
-        PlayerInfo = null;
-        LeaderboardID = "";
+        SourceInfo = null;
 
         TimeManager.OnBeatChangedEarly -= UpdateBeat;
     }

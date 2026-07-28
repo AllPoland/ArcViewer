@@ -55,7 +55,26 @@ public class ScoringEvent : MapElement
     {
         Initialized = false;
 
-        ID = noteEvent.noteID;
+        // ScoreSaber-specific logic. This should probably get a clearer definition later
+        if(noteEvent.lineIndex >= 0)
+        {
+            int st = noteEvent.noteScoringType;
+            int c = noteEvent.colorType;
+            int d = noteEvent.cutDirection;
+            if(noteEvent.eventType == NoteEventType.bomb)
+            {
+                st = (int)ScoringType.NoScore;
+                c = 3;
+                d = 3;
+            }
+            ID = st * 10000 + noteEvent.lineIndex * 1000 + noteEvent.lineLayer * 100 + c * 10 + d;
+        }
+        else
+        {
+            // BSOR V1 logic
+            ID = noteEvent.noteID;
+        }
+
         IsWall = false;
         Time = noteEvent.eventTime;
         ObjectTime = noteEvent.spawnTime;
@@ -97,10 +116,10 @@ public class ScoringEvent : MapElement
     {
         if(scoringType == ScoringType.ChainLink || scoringType == ScoringType.ChainLinkArcHead)
         {
-            ScoreGained = ScoreManager.MaxChainLinkScore;
+            ScoreGained = ScoringUtils.MaxChainLinkScore;
             PreSwingScore = 0;
             PostSwingScore = 0;
-            MaxSwingScore = ScoreManager.MaxChainLinkScore;
+            MaxSwingScore = ScoringUtils.MaxChainLinkScore;
             return;
         }
         
@@ -108,31 +127,33 @@ public class ScoringEvent : MapElement
         {
             //Arc heads get post swing for free
             PostSwingAmount = 1f;
-            MaxSwingScore = ScoreManager.MaxNoteScore;
+            MaxSwingScore = ScoringUtils.MaxNoteScore;
         }
         else if(scoringType == ScoringType.ArcTail)
         {
             //Arc tails get pre swing for free
             PreSwingAmount = 1f;
-            MaxSwingScore = ScoreManager.MaxNoteScore;
+            MaxSwingScore = ScoringUtils.MaxNoteScore;
         }
         else if(scoringType == ScoringType.ArcHeadArcTail || scoringType == ScoringType.ChainHeadArcTail)
         {
             //Arc head/tails get both pre and post swing for free
             PreSwingAmount = 1f;
             PostSwingAmount = 1f;
-            MaxSwingScore = ScoreManager.MaxNoteScore;
+            MaxSwingScore = ScoringUtils.MaxNoteScore;
         }
-        else if(scoringType == ScoringType.ChainHead)
+        else if(scoringType == ScoringType.ChainHead
+            || scoringType == ScoringType.ChainHeadArcHead
+            || scoringType == ScoringType.ChainHeadArcHeadArcTail)
         {
             //Chain heads don't get post swing points at all
             PostSwingAmount = 0f;
-            MaxSwingScore = ScoreManager.MaxChainHeadScore;
+            MaxSwingScore = ScoringUtils.MaxChainHeadScore;
         }
-        else MaxSwingScore = ScoreManager.MaxNoteScore;
+        else MaxSwingScore = ScoringUtils.MaxNoteScore;
 
-        PreSwingScore = Mathf.RoundToInt(Mathf.Clamp01(PreSwingAmount) * ScoreManager.PreSwingValue);
-        PostSwingScore = Mathf.RoundToInt(Mathf.Clamp01(PostSwingAmount) * ScoreManager.PostSwingValue);
+        PreSwingScore = Mathf.RoundToInt(Mathf.Clamp01(PreSwingAmount) * ScoringUtils.PreSwingValue);
+        PostSwingScore = Mathf.RoundToInt(Mathf.Clamp01(PostSwingAmount) * ScoringUtils.PostSwingValue);
         AccuracyScore = GetAccScoreFromCenterDistance(Mathf.Abs(SwingCenterDistance));
         ScoreGained = PreSwingScore + PostSwingScore + AccuracyScore;
     }
@@ -190,98 +211,70 @@ public class ScoringEvent : MapElement
     }
 
 
-    public static ScoringEvent BruteForceMatchNote(List<ScoringEvent> scoringEvents, ref ScoringType scoringType, int noteID, bool hasTail, bool hasHead, bool isChainHead)
+    public static ScoringEvent MatchNote(List<ScoringEvent> scoringEvents, ScoringType scoringType, int noteID)
     {
+        ScoringType originalType = scoringType;
+
         int noTypeID = noteID - (int)scoringType * 10000;
+
+        foreach(ScoringType replayScoringType in CompatibleReplayScoringTypes(scoringType))
+        {
+            int replayNoteID = noTypeID + (int)replayScoringType * 10000;
+            ScoringEvent scoringEvent = scoringEvents.Find(x => x.ID == replayNoteID);
+            if(scoringEvent != null)
+            {
+                return scoringEvent;
+            }
+        }
+
         if(scoringType == ScoringType.Note)
         {
-            //Note scoringType can also count as 0 sometimes (very scuffed)
-            noteID = noTypeID;
-            return scoringEvents.Find(x => x.ID == noteID);
-        }
-        
-        ScoringEvent scoringEvent;
-        if(scoringType == ScoringType.ArcHeadArcTail)
-        {
-            if(isChainHead)
-            {
-                //Try ChainHeadArcTail
-                noteID = noTypeID + (int)ScoringType.ChainHeadArcTail * 10000;
-                scoringEvent = scoringEvents.Find(x => x.ID == noteID);
-                if(scoringEvent != null)
-                {
-                    scoringType = ScoringType.ChainHeadArcTail;
-                    return scoringEvent;
-                }
-
-                //Try just chain head
-                noteID = noTypeID + (int) ScoringType.ChainHead * 10000;
-                scoringEvent = scoringEvents.Find(x => x.ID == noteID);
-                if(scoringEvent != null)
-                {
-                    scoringType = ScoringType.ChainHead;
-                    return scoringEvent;
-                }
-            }
-
-            //Replays pre-1.40 can only include head *or* tail
-            noteID = noTypeID + (int)ScoringType.ArcHead * 10000;
-            scoringEvent = scoringEvents.Find(x => x.ID == noteID);
-            if(scoringEvent != null)
-            {
-                scoringType = ScoringType.ArcHead;
-                return scoringEvent;
-            }
-
-            //If this last check fails, we'll return null regardless
-            noteID = noTypeID + (int)ScoringType.ArcTail * 10000;
-            scoringType = ScoringType.ArcTail;
-            return scoringEvents.Find(x => x.ID == noteID);
+            //older replay ids can omit the scoring type for normal notes
+            return scoringEvents.Find(x => x.ID == noTypeID);
         }
 
-        if(scoringType == ScoringType.ChainHeadArcTail)
-        {
-            //Try just chain head
-            noteID = noTypeID + (int) ScoringType.ChainHead * 10000;
-            scoringEvent = scoringEvents.Find(x => x.ID == noteID);
-            if(scoringEvent != null)
-            {
-                scoringType = ScoringType.ChainHead;
-                return scoringEvent;
-            }
-
-            if(hasHead)
-            {
-                //Try just arc head
-                noteID = noTypeID + (int)ScoringType.ArcHead * 10000;
-                scoringEvent = scoringEvents.Find(x => x.ID == noteID);
-                if(scoringEvent != null)
-                {
-                    scoringType = ScoringType.ArcHead;
-                    return scoringEvent;
-                }
-            }
-
-            //If this last check fails, we'll return null regardless
-            noteID = noTypeID + (int)ScoringType.ArcTail * 10000;
-            scoringType = ScoringType.ArcTail;
-            return scoringEvents.Find(x => x.ID == noteID);
-        }
-
-        if(scoringType == ScoringType.ChainHead && hasHead)
-        {
-            //Try just arc head
-            noteID = noTypeID + (int)ScoringType.ArcHead * 10000;
-            scoringEvent = scoringEvents.Find(x => x.ID == noteID);
-            if(scoringEvent != null)
-            {
-                scoringType = ScoringType.ArcHead;
-                return scoringEvent;
-            }
-        }
-
-        //Nothing matched
         return null;
+    }
+
+
+    private static IEnumerable<ScoringType> CompatibleReplayScoringTypes(ScoringType scoringType)
+    {
+        // same aliases as the scoresaber pc mod
+        switch(scoringType)
+        {
+            case ScoringType.ArcHeadArcTail:
+                yield return ScoringType.ArcHeadArcTail;
+                yield return ScoringType.ArcHead;
+                yield return ScoringType.ArcTail;
+                break;
+
+            case ScoringType.ChainHeadArcHead:
+                yield return ScoringType.ChainHeadArcHead;
+                yield return ScoringType.ArcHead;
+                break;
+
+            case ScoringType.ChainHeadArcTail:
+                yield return ScoringType.ChainHeadArcTail;
+                yield return ScoringType.ChainHead;
+                yield return ScoringType.ArcTail;
+                break;
+
+            case ScoringType.ChainHeadArcHeadArcTail:
+                yield return ScoringType.ChainHeadArcHeadArcTail;
+                yield return ScoringType.ChainHeadArcTail;
+                yield return ScoringType.ArcHead;
+                break;
+
+            case ScoringType.ChainLinkArcHead:
+                yield return ScoringType.ChainLinkArcHead;
+                yield return ScoringType.ChainLink;
+                yield return ScoringType.ArcHead;
+                break;
+
+            default:
+                yield return scoringType;
+                break;
+        }
     }
 }
 
@@ -297,5 +290,7 @@ public enum ScoringType
     ChainLink = 7,
     ArcHeadArcTail = 8,
     ChainHeadArcTail = 9,
-    ChainLinkArcHead = 10
+    ChainLinkArcHead = 10,
+    ChainHeadArcHead = 11,
+    ChainHeadArcHeadArcTail = 12
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class MapElement
@@ -221,5 +222,32 @@ public class MapElementList<T> : IEnumerable<T> where T : MapElement
         int result = GetLastIndex(-1f, checkMethod);
         lastStartIndex = 0;
         return result;
+    }
+
+
+    public List<T> GetObjectsAtTime(float time)
+    {
+        const float epsilon = 0.001f;
+
+        List<T> rv = new List<T>();
+        int startIdx = Elements.FindIndex(x => x.Time >= time - epsilon);
+        if(startIdx < 0)
+        {
+            return rv;
+        }
+
+        rv.Add(Elements[startIdx]);
+
+        for(int i = startIdx + 1; i < Elements.Count; i++)
+        {
+            T element = Elements[i];
+            if(element.Time > time + epsilon)
+            {
+                return rv;
+            }
+            else rv.Add(element);
+        }
+
+        return rv;
     }
 }

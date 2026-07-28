@@ -12,6 +12,10 @@ public class QuickSettingButton : MonoBehaviour
     [SerializeField] private Color settingOnColor;
 
     [Space]
+    [SerializeField] private Sprite settingOffSprite;
+    [SerializeField] private Sprite settingOnSprite;
+
+    [Space]
     [SerializeField] private string settingOffTooltip;
     [SerializeField] private string settingOnTooltip;
 
@@ -27,7 +31,16 @@ public class QuickSettingButton : MonoBehaviour
 
     private void UpdateButton(bool settingOn)
     {
-        buttonImage.color = settingOn ? settingOnColor : settingOffColor;
+        if (settingOn && settingOnSprite)
+        {
+            buttonImage.sprite = settingOnSprite;
+        }
+        else if (!settingOn && settingOffSprite)
+        {
+            buttonImage.sprite = settingOffSprite;
+        }
+        else buttonImage.color = settingOn ? settingOnColor : settingOffColor;
+
         tooltip.Text = settingOn ? settingOnTooltip : settingOffTooltip;
     }
 

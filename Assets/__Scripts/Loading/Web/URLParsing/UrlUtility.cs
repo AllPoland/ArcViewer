@@ -4,8 +4,7 @@ using System.Web;
 
 public static class UrlUtility
 {
-    //Array of all parameters specific to ArcViewer, which are most likely not
-    //part of a sub-url
+    //Array of all parameters specific to ArcViewer, which are most likely not part of a sub-url
     public static readonly string[] useKeys =
     {
         "url",
@@ -17,6 +16,8 @@ public static class UrlUtility
         "replayURL",
         "scoreID",
         "scoreId",
+        "ssScoreId",
+        "ssScoreID",
         "link",
         "mapLink",
         "time",

@@ -22,10 +22,16 @@ public class BeatmapInfo
     //Set to false for converted info V2, since audio metadata was not used
     [NonSerialized] public bool useAudioMetadata = true;
 
-    public bool HasFields => !string.IsNullOrEmpty(version) || song != null
-        || audio != null || !string.IsNullOrEmpty(songPreviewFilename)
-        || !string.IsNullOrEmpty(coverImageFilename) || environmentNames != null
-        || colorSchemes != null || difficultyBeatmaps != null;
+    public bool HasFields =>
+        !string.IsNullOrEmpty(song.subTitle)
+        || !string.IsNullOrEmpty(song.title)
+        || !string.IsNullOrEmpty(song.author)
+        || !string.IsNullOrEmpty(audio.audioDataFilename)
+        || !string.IsNullOrEmpty(audio.songFilename)
+        || !string.IsNullOrEmpty(songPreviewFilename)
+        || !string.IsNullOrEmpty(coverImageFilename)
+        || colorSchemes.Length > 0
+        || difficultyBeatmaps.Length > 0;
 
 
     public BeatmapInfo()
