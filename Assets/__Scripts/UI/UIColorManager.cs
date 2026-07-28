@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 
 public class UIColorManager : MonoBehaviour
@@ -100,7 +101,19 @@ public class UIColorManager : MonoBehaviour
             {
                 SetUIColor(SoupColor, initializedSettings);
             }
-            else if(ReplayManager.IsReplayMode || (UIStateManager.CurrentState != UIState.Previewer && replayMode > 0))
+            else if(ReplayManager.IsReplayMode)
+            {
+                // Make sure the color matches the actual replay source being used, not the setting
+                int sourceIdx = Array.FindIndex(ReplaySources.All, x => x.SourceType == ReplayManager.SourceInfo.SourceType);
+                // Replay source colors are 1-indexed because 0 means no replay
+                int sourceMode = sourceIdx + 1;
+                if(sourceMode <= 0)
+                {
+                    SetReplayModeColor(replayMode, initializedSettings);
+                }
+                else SetReplayModeColor(sourceMode, initializedSettings);
+            }
+            else if(UIStateManager.CurrentState != UIState.Previewer && replayMode > 0)
             {
                 SetReplayModeColor(replayMode, initializedSettings);
             }
