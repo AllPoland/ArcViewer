@@ -1074,31 +1074,27 @@ public class MapLoader : MonoBehaviour
             if(replayMode > 0)
             {
                 string scoreID = input;
-                ReplaySourceType type = (ReplaySourceType)replayMode;
-                ReplaySource source = ReplaySources.FromType(type);
 
-                if(source == null)
+                bool isRawID = !scoreID.Any(x => !char.IsDigit(x));
+                if(isRawID)
                 {
-                    // For some reason wasn't able to match a source from the set type
-                    if(ReplaySources.TryParsePrefixedScoreID(input, out ReplaySource inferredSource, out string inferredID))
-                    {
-                        source = inferredSource;
-                        scoreID = inferredID;
-                    }
-                }
+                    // Just parse the ID based on the user's chosen source
+                    ReplaySourceType type = (ReplaySourceType)replayMode;
+                    ReplaySource source = ReplaySources.FromType(type);
 
-                if(source != null)
-                {
                     LoadReplayFromScore(source, scoreID);
                     SetLoadedScoreID(source, scoreID);
                     return;
                 }
-
-                //If somehow we still don't find a valid source, we can at least try something
-                if(!input.Any(x => !char.IsDigit(x)))
+                else
                 {
-                    LoadReplayScoreAuto(input);
-                    return;
+                    // Try parsing an ID with a source prefix
+                    if(ReplaySources.TryParsePrefixedScoreID(input, out ReplaySource source, out string inferredID))
+                    {
+                        LoadReplayFromScore(source, inferredID);
+                        SetLoadedScoreID(source, inferredID);
+                        return;
+                    }
                 }
             }
         }
