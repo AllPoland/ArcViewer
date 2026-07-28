@@ -4,7 +4,7 @@ An open source 3D Beat Saber map previewer, designed to give users an accurate r
 ## Features
 - **Quickly load maps** from local zips/directories, direct URLs, or BeatSaver IDs and links
 
-- **View Replays** from local/online .bsor files, or BeatLeader score IDs
+- **View Replays** from both BeatLeader and ScoreSaber score IDs, or from local/online replay files
 
 - **Game-accurate visuals** with properly recreated proportions and spawn animations
 
