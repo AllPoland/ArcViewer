@@ -188,6 +188,8 @@ public class Bomb : HitSoundEmitter
 {
     public float StartY;
 
+    public int ScoreEventID;
+
     public BombHandler BombHandler;
     public MaterialPropertyBlock CustomMaterialProperties;
 

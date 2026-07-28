@@ -1,23 +1,20 @@
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ModeSwitchButtons : MonoBehaviour
 {
-    [SerializeField] private Button previewModeButton;
-    [SerializeField] private Button replayModeButton;
+    [SerializeField] private TMP_Dropdown dropdown;
 
 
-    private void SetReplayMode(bool replayMode)
+    public void SetReplayMode(int replayMode)
     {
         SettingsManager.SetRule("replaymode", replayMode);
     }
 
 
-    private void UpdateButtons()
+    private void UpdateDropdown()
     {
-        bool isReplayMode = SettingsManager.GetBool("replaymode");
-        previewModeButton.gameObject.SetActive(isReplayMode);
-        replayModeButton.gameObject.SetActive(!isReplayMode);
+        dropdown.SetValueWithoutNotify(SettingsManager.GetInt("replaymode"));
     }
 
 
@@ -25,20 +22,8 @@ public class ModeSwitchButtons : MonoBehaviour
     {
         if(setting == "all" || setting == "replaymode")
         {
-            UpdateButtons();
+            UpdateDropdown();
         }   
-    }
-
-
-    public void SetPreviewMode()
-    {
-        SetReplayMode(false);
-    }
-
-
-    public void SetReplayMode()
-    {
-        SetReplayMode(true);
     }
 
 
@@ -47,7 +32,7 @@ public class ModeSwitchButtons : MonoBehaviour
         SettingsManager.OnSettingsUpdated += UpdateSettings;
         if(SettingsManager.Loaded)
         {
-            UpdateButtons();
+            UpdateDropdown();
         }
     }
 

@@ -13,6 +13,8 @@ public class JumpManager : MonoBehaviour
 
     public MapElementList<NjsEvent> NjsEvents = new MapElementList<NjsEvent>();
 
+    private static readonly MapElementList<NjsEvent>.CheckInRangeDelegate njsEventInRange = NjsEventInRange;
+
     private ObjectManager objectManager => ObjectManager.Instance;
     private bool useVariableNJS => objectManager.forceGameAccuracy || SettingsManager.GetBool("variablenjs");
 
@@ -192,7 +194,7 @@ public class JumpManager : MonoBehaviour
             return;
         }
 
-        int lastIndex = NjsEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= beat);
+        int lastIndex = NjsEvents.GetLastIndex(TimeManager.CurrentTime, njsEventInRange);
 
         bool foundEvent = lastIndex >= 0;
         NjsEvent currentEvent = foundEvent ? NjsEvents[lastIndex] : null;
@@ -231,6 +233,9 @@ public class JumpManager : MonoBehaviour
         SetNjsEvents(currentOffset, currentTime, nextEvent);
         UpdateEffectiveNJS();
     }
+
+
+    private static bool NjsEventInRange(NjsEvent njsEvent) => njsEvent.Beat <= TimeManager.CurrentBeat;
 
 
     public void UpdateDifficulty(Difficulty newDifficulty)

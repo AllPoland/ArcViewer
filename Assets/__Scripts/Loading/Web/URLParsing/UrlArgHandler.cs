@@ -42,15 +42,16 @@ public class UrlArgHandler : MonoBehaviour
         }
     }
 
-    private static string _loadedReplayID;
-    public static string LoadedReplayID
+    private static string _loadedBLReplayID;
+    public static string LoadedBLReplayID
     {
-        get => _loadedReplayID;
+        get => _loadedBLReplayID;
 
         set
         {
-            _loadedReplayID = value;
+            _loadedBLReplayID = value;
             _loadedReplayURL = null;
+            _loadedSSScoreId = null;
         }
     }
 
@@ -62,9 +63,25 @@ public class UrlArgHandler : MonoBehaviour
         set
         {
             _loadedReplayURL = value;
-            _loadedReplayID = null;
+            _loadedBLReplayID = null;
+            _loadedSSScoreId = null;
         }
     }
+
+    private static string _loadedSSScoreId;
+    public static string LoadedSSScoreId
+    {
+        get => _loadedSSScoreId;
+
+        set
+        {
+            _loadedSSScoreId = value;
+            _loadedBLReplayID = null;
+            _loadedReplayURL = null;
+        }
+    }
+
+    public static bool IsScoreSaberReplay => !string.IsNullOrEmpty(_loadedSSScoreId);
 
     public static DifficultyCharacteristic? LoadedCharacteristic;
     public static DifficultyRank? LoadedDiffRank;
@@ -77,6 +94,7 @@ public class UrlArgHandler : MonoBehaviour
 #endif
     private static string replayID;
     private static string replayURL;
+    private static string ssScoreId;
     private static float startTime;
     private static DifficultyCharacteristic? mode;
     private static DifficultyRank? diffRank;
@@ -111,6 +129,10 @@ public class UrlArgHandler : MonoBehaviour
                 break;
             case "replayURL":
                 replayURL = value;
+                break;
+            case "ssScoreId":
+            case "ssScoreID":
+                ssScoreId = value;
                 break;
             case "t":
                 if(!float.TryParse(value, out startTime)) startTime = 0;
@@ -164,24 +186,31 @@ public class UrlArgHandler : MonoBehaviour
             replayURL = null;
         }
 
-        if(!string.IsNullOrEmpty(replayID))
+        if(!string.IsNullOrEmpty(ssScoreId))
         {
-            StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, mapURL, mapID, noProxy));
-            LoadedReplayID = replayID;
+            mapLoader.LoadReplayFromScore(ReplaySources.ScoreSaber, ssScoreId, mapURL, mapID, noProxy);
+            LoadedSSScoreId = ssScoreId;
+
+            setTime = true;
+        }
+        else if(!string.IsNullOrEmpty(replayID))
+        {
+            mapLoader.LoadReplayFromScore(ReplaySources.BeatLeader, replayID, mapURL, mapID, noProxy);
+            LoadedBLReplayID = replayID;
 
             //Don't set the diff cause that depends on the replay
             setTime = true;
         }
         else if(!string.IsNullOrEmpty(replayURL))
         {
-            StartCoroutine(mapLoader.LoadReplayURLCoroutine(replayURL, null, mapURL, mapID, noProxy));
+            mapLoader.LoadReplayURL(replayURL, null, mapURL, mapID, noProxy);
             LoadedReplayURL = replayURL;
 
             setTime = true;
         }
         else if(!string.IsNullOrEmpty(mapID))
         {
-            StartCoroutine(mapLoader.LoadMapIDCoroutine(mapID));
+            mapLoader.LoadMapID(mapID);
             LoadedMapID = mapID;
 
             setTime = true;
@@ -189,7 +218,7 @@ public class UrlArgHandler : MonoBehaviour
         }
         else if(!string.IsNullOrEmpty(mapURL))
         {
-            StartCoroutine(mapLoader.LoadMapZipURLCoroutine(mapURL, null, null, noProxy));
+            mapLoader.LoadMapURL(mapURL, noProxy: noProxy);
             LoadedMapURL = mapURL;
 
             setTime = true;
@@ -367,6 +396,7 @@ public class UrlArgHandler : MonoBehaviour
         noProxy = false;
         replayURL = "";
         replayID = "";
+        ssScoreId = "";
 
         uiOff = false;
         autoPlay = false;

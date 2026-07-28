@@ -98,6 +98,7 @@ public class ChainManager : MapElementManager<ChainLink>
                 int linkY = isLastElement ? originalSlider.ty : originalSlider.y;
 
                 int linkID = ((int)ScoringType.ChainLink * 10000) + (linkX * 1000) + (linkY * 100) + (c.Color * 10) + 8;
+                newLink.ScoreEventID = linkID;
 
                 ScoringEvent matchingEvent = scoringEventsOnBeat.Find(x => x.ID == linkID && !usedScoringEvents.Contains(x));
                 if(matchingEvent == null && isLastElement)
@@ -146,7 +147,10 @@ public class ChainManager : MapElementManager<ChainLink>
                     }
 
                     Vector2 worldPosition = objectManager.ObjectSpaceToWorldSpace(newLink.Position);
-                    matchingEvent.SetEventValues(ScoringType.ChainLink, worldPosition);
+                    ScoringType linkScoringType = matchingEvent.ID / 10000 == (int)ScoringType.ChainLinkArcHead
+                        ? ScoringType.ChainLinkArcHead
+                        : ScoringType.ChainLink;
+                    matchingEvent.SetEventValues(linkScoringType, worldPosition);
 
                     usedScoringEvents.Add(matchingEvent);
                 }
@@ -411,6 +415,8 @@ public class ChainLink : HitSoundEmitter
     public int Color;
     public float Angle;
     public float StartY;
+
+    public int ScoreEventID;
 
     public ChainLinkHandler ChainLinkHandler;
     public MaterialPropertyBlock CustomNoteProperties;

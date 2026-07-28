@@ -111,25 +111,25 @@ namespace TreeckSabers
         {
             TricksHandReplay handReplay = new TricksHandReplay();
 
-            int segmentCount = ReplayDecoder.DecodeInt(buffer, ref pointer);
+            int segmentCount = BsorDecoder.DecodeInt(buffer, ref pointer);
             handReplay.Segments = new TricksSegment[segmentCount];
 
             for(int s = 0; s < segmentCount; s++)
             {
                 TricksSegment segment = new TricksSegment();
 
-                int frameCount = ReplayDecoder.DecodeInt(buffer, ref pointer);
+                int frameCount = BsorDecoder.DecodeInt(buffer, ref pointer);
                 segment.Frames = new TricksFrame[frameCount];
 
                 for(int f = 0; f < frameCount; f++)
                 {
                     segment.Frames[f] = new TricksFrame
                     {
-                        SongTime = ReplayDecoder.DecodeFloat(buffer, ref pointer),
+                        SongTime = BsorDecoder.DecodeFloat(buffer, ref pointer),
                         SaberPos = new ReeTransform
                         {
-                            Position = ReplayDecoder.DecodeVector3(buffer, ref pointer),
-                            Rotation = ReplayDecoder.DecodeQuaternion(buffer, ref pointer)
+                            Position = BsorDecoder.DecodeVector3(buffer, ref pointer),
+                            Rotation = BsorDecoder.DecodeQuaternion(buffer, ref pointer)
                         }
                     };
                 }
@@ -143,7 +143,7 @@ namespace TreeckSabers
 
         private static void DecodeTricksReplay(byte[] buffer, ref int pointer, ref TricksReplay replay)
         {
-            replay.Version = ReplayDecoder.DecodeInt(buffer, ref pointer);
+            replay.Version = BsorDecoder.DecodeInt(buffer, ref pointer);
             replay.LeftSaber = DecodeHandReplay(buffer, ref pointer);
             replay.RightSaber = DecodeHandReplay(buffer, ref pointer);
         }
@@ -163,7 +163,7 @@ namespace TreeckSabers
             byte[] buffer = replay.customData[key];
             int pointer = 0;
 
-            int magic = ReplayDecoder.DecodeInt(buffer, ref pointer);
+            int magic = BsorDecoder.DecodeInt(buffer, ref pointer);
             if(magic != expectedMagic)
             {
                 //This data does not include the magic number and is invalid
