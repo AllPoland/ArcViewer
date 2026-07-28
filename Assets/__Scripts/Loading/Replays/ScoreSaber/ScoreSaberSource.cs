@@ -9,7 +9,8 @@ public class ScoreSaberSource : ReplaySource
     public override string[] InputPrefixes => new[] { "ss:", "scoresaber:" };
     public override string BaseURL => "https://scoresaber.com/";
     public override string ApiURL => "https://scoresaber.com/api/v2/";
-    public override string[] CorsURLs => new[] { BaseURL, ApiURL, "https://watch.scoresaber.com", "https://cdn.scoresaber.com" };
+    public override string[] CorsURLs => new string[0];
+    // public override string[] CorsURLs => new[] { BaseURL, ApiURL, "https://watch.scoresaber.com", "https://cdn.scoresaber.com" };
 
 
     public override bool MatchesHost(string host)
