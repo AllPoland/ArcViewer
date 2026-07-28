@@ -360,7 +360,8 @@ public class PlayerPositionManager : MonoBehaviour
         switch(scoringEvent.noteEventType)
         {
             case NoteEventType.bad:
-                if(scoringEvent.scoringType == ScoringType.ChainLink)
+                if(scoringEvent.scoringType == ScoringType.ChainLink
+                    || scoringEvent.scoringType == ScoringType.ChainLinkArcHead)
                 {
                     return chainLinkBadcutDamageAmount;
                 }
@@ -369,7 +370,8 @@ public class PlayerPositionManager : MonoBehaviour
             case NoteEventType.miss:
             case NoteEventType.bomb:
             default:
-                if(scoringEvent.scoringType == ScoringType.ChainLink)
+                if(scoringEvent.scoringType == ScoringType.ChainLink
+                    || scoringEvent.scoringType == ScoringType.ChainLinkArcHead)
                 {
                     return chainLinkMissDamageAmount;
                 }

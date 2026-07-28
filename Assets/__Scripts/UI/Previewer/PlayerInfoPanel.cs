@@ -1,12 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 public class PlayerInfoPanel : MonoBehaviour
 {
-    private const string userDirect = "u/";
-
     [SerializeField] private RawImage avatarImage;
     [SerializeField] private RectTransform infoContainer;
 
@@ -17,6 +16,7 @@ public class PlayerInfoPanel : MonoBehaviour
     [Space]
     [SerializeField] private Tooltip modifierTooltip;
     [SerializeField] private Button playerProfileButton;
+    [SerializeField] private Tooltip playerProfileTooltip;
     [SerializeField] private Button animateAvatarButton;
 
     private readonly Dictionary<string, string> modifierDescriptions = new Dictionary<string, string>
@@ -57,9 +57,9 @@ public class PlayerInfoPanel : MonoBehaviour
 
     private void UpdateInfoText()
     {
-        BeatleaderUser user = ReplayManager.PlayerInfo;
+        string username = ReplayManager.SourceInfo?.PlayerName
+            ?? ReplayManager.CurrentReplay?.info.playerName;
 
-        string username = user?.name ?? ReplayManager.CurrentReplay?.info.playerName;
         if(!string.IsNullOrEmpty(username))
         {
             infoText.gameObject.SetActive(true);
@@ -82,26 +82,28 @@ public class PlayerInfoPanel : MonoBehaviour
         modifierText.text = string.Join(", ", modifiers);
         modifierText.rectTransform.sizeDelta = modifierText.GetPreferredValues();
 
-        string tooltip = "";
-        foreach(string modifier in modifiers)
-        {
-            if(modifierDescriptions.TryGetValue(modifier.ToLower(), out string description))
+        modifierTooltip.Text = string.Join("<br>", modifiers
+            .Select(m =>
             {
-                if(tooltip == "")
-                {
-                    tooltip += description;
-                }
-                else tooltip += "<br>" + description;
-            }
-        }
-        modifierTooltip.Text = tooltip;
+                string description;
+                return modifierDescriptions.TryGetValue(m.ToLower(), out description) ? description : null;
+            })
+            .Where(d => d != null));
     }
 
 
     private void UpdateButtons()
     {
-        bool enableUserButton = !string.IsNullOrEmpty(ReplayManager.PlayerInfo?.id);
+        bool enableUserButton = ReplayManager.SourceInfo?.HasPlayerProfile ?? false;
         playerProfileButton.gameObject.SetActive(enableUserButton);
+
+        if(enableUserButton && playerProfileTooltip != null)
+        {
+            string sourceName = ReplayManager.SourceInfo.SourceName;
+            playerProfileTooltip.Text = string.IsNullOrEmpty(sourceName)
+                ? "Open this player's profile"
+                : $"Open this player's {sourceName} profile";
+        }
     }
 
 
@@ -128,10 +130,10 @@ public class PlayerInfoPanel : MonoBehaviour
 
     public void OpenPlayerProfile()
     {
-        if(!string.IsNullOrEmpty(ReplayManager.PlayerInfo?.id))
+        ReplaySourceInfo source = ReplayManager.SourceInfo;
+        if(source != null && source.HasPlayerProfile)
         {
-            string url = string.Concat(ReplayManager.BeatLeaderURL, userDirect, ReplayManager.PlayerInfo.id);
-            Application.OpenURL(url);
+            Application.OpenURL(source.PlayerProfileURL);
         }
     }
 

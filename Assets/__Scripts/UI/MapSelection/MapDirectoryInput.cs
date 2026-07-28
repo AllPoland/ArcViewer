@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,6 +9,8 @@ using TMPro;
 
 public class MapDirectoryInput : MonoBehaviour
 {
+    private const string ScoreSaberHost = "watch.scoresaber.com";
+
     [SerializeField] private MapLoader mapLoader;
     [SerializeField] private UrlArgHandler urlArgHandler;
     [SerializeField] private TMP_InputField directoryField;
@@ -74,6 +78,97 @@ public class MapDirectoryInput : MonoBehaviour
     }
 
 
+    private static string GetQueryValue(List<KeyValuePair<string, string>> parameters, params string[] names)
+    {
+        foreach(string name in names)
+        {
+            KeyValuePair<string, string> match = parameters.FirstOrDefault(x => x.Key == name);
+            if(!string.IsNullOrEmpty(match.Value))
+            {
+                return match.Value;
+            }
+        }
+
+        return null;
+    }
+
+
+    private static string GetScoreSaberScoreID(Uri uri)
+    {
+        string[] segments = uri.AbsolutePath.Split('/').Where(x => !string.IsNullOrEmpty(x)).ToArray();
+        for(int i = 0; i < segments.Length - 1; i++)
+        {
+            if(!segments[i].Equals("scores", System.StringComparison.InvariantCultureIgnoreCase))
+            {
+                continue;
+            }
+
+            string scoreID = segments[i + 1];
+            if(scoreID.All(char.IsDigit))
+            {
+                return scoreID;
+            }
+        }
+
+        return null;
+    }
+
+
+    private bool TryLoadScoreSaberURL(string rawUrl)
+    {
+        if(!Uri.TryCreate(HttpUtility.UrlDecode(rawUrl), UriKind.Absolute, out Uri uri))
+        {
+            return false;
+        }
+
+        string host = uri.Host;
+        if(host.StartsWith("www.", StringComparison.InvariantCultureIgnoreCase))
+        {
+            host = host[4..];
+        }
+        if(!host.Equals(ScoreSaberHost, System.StringComparison.InvariantCultureIgnoreCase))
+        {
+            return false;
+        }
+
+        List<KeyValuePair<string, string>> parameters = UrlUtility.ParseUrlParams(uri.ToString());
+        string scoreID = GetQueryValue(parameters, "ssScoreId", "ssScoreID", "scoreID", "scoreId");
+        if(string.IsNullOrEmpty(scoreID))
+        {
+            scoreID = GetScoreSaberScoreID(uri);
+        }
+
+        if(string.IsNullOrEmpty(scoreID) || !scoreID.All(char.IsDigit))
+        {
+            return false;
+        }
+
+        List<string> convertedArgs = new List<string> { CombineArgument("ssScoreId", scoreID) };
+
+        string time = GetQueryValue(parameters, "t", "time");
+        if(!string.IsNullOrEmpty(time))
+        {
+            convertedArgs.Add(CombineArgument("t", time));
+        }
+
+        string mapID = GetQueryValue(parameters, "id");
+        if(!string.IsNullOrEmpty(mapID))
+        {
+            convertedArgs.Add(CombineArgument("id", mapID));
+        }
+
+        string mapURL = GetQueryValue(parameters, "url");
+        if(!string.IsNullOrEmpty(mapURL))
+        {
+            convertedArgs.Add(CombineArgument("url", mapURL));
+        }
+
+        string newQuery = string.Join('&', convertedArgs);
+        urlArgHandler.LoadMapFromShareableURL($"{UrlArgHandler.ArcViewerURL}?{newQuery}");
+        return true;
+    }
+
+
     public void LoadMap()
     {
         if(MapDirectory == "")
@@ -116,6 +211,11 @@ public class MapDirectoryInput : MonoBehaviour
             }
         }
 
+        if(TryLoadScoreSaberURL(MapDirectory))
+        {
+            return;
+        }
+
         mapLoader.LoadMapInput(MapDirectory);
     }
 
@@ -134,7 +234,7 @@ public class MapDirectoryInput : MonoBehaviour
         {
             placeholderText.text = theSoupPlaceholder;
         }
-        else if(!ReplayManager.IsReplayMode && SettingsManager.GetBool("replaymode"))
+        else if(!ReplayManager.IsReplayMode && SettingsManager.GetInt("replaymode") > 0)
         {
 #if UNITY_WEBGL
             placeholderText.text = webGLReplayPlaceholder;

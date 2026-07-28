@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MapLinkButtons : MonoBehaviour
 {
@@ -7,12 +8,15 @@ public class MapLinkButtons : MonoBehaviour
     [SerializeField] private GameObject mapDownloadButton;
     [SerializeField] private GameObject leaderboardButton;
 
+    [Space]
+    [SerializeField] private Image leaderboardIcon;
+    [SerializeField] private Tooltip leaderboardTooltip;
+    [SerializeField] private Sprite beatLeaderIcon;
+    [SerializeField] private Sprite scoreSaberIcon;
+
     private const string beatSaverURL = "https://beatsaver.com/";
     private const string mapDirect = "maps/";
     
-    private const string leaderboardDirect = "leaderboard/global/";
-
-
     public void OpenBeatSaverLink()
     {
         if(string.IsNullOrEmpty(UrlArgHandler.LoadedMapID))
@@ -44,7 +48,8 @@ public class MapLinkButtons : MonoBehaviour
 
     public void OpenLeaderboardLink()
     {
-        if(string.IsNullOrEmpty(ReplayManager.LeaderboardID))
+        ReplaySourceInfo source = ReplayManager.SourceInfo;
+        if(source == null || !source.HasLeaderboard)
         {
             Debug.LogWarning("Tried to open a leaderboard link with no URL!");
             ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Replay has no leaderboard URL!");
@@ -52,41 +57,51 @@ public class MapLinkButtons : MonoBehaviour
             return;
         }
 
-        string leaderboardURl = string.Concat(ReplayManager.BeatLeaderURL, leaderboardDirect, ReplayManager.LeaderboardID);
-        Application.OpenURL(leaderboardURl);
+        Application.OpenURL(source.LeaderboardURL);
+    }
+
+
+    private void UpdateLeaderboardAppearance(ReplaySourceInfo source)
+    {
+        if(leaderboardIcon != null)
+        {
+            leaderboardIcon.sprite = source.SourceType switch
+            {
+                ReplaySourceType.ScoreSaber => scoreSaberIcon,
+                _ => beatLeaderIcon
+            };
+        }
+
+        if(leaderboardTooltip != null)
+        {
+            leaderboardTooltip.Text = string.IsNullOrEmpty(source.SourceName)
+                ? "Open this map's leaderboard page"
+                : $"Open this map's {source.SourceName} leaderboard page";
+        }
     }
 
 
     private void UpdateShareButton()
     {
-        if(ReplayManager.IsReplayMode)
-        {
-            bool enable = !string.IsNullOrEmpty(UrlArgHandler.LoadedReplayID) || !string.IsNullOrEmpty(UrlArgHandler.LoadedReplayURL);
-            shareButton.SetActive(enable);
-        }
-        else
-        {
-            bool enable = !string.IsNullOrEmpty(UrlArgHandler.LoadedMapID) || !string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL);
-            shareButton.SetActive(enable);
-        }
+        bool enable = ReplayManager.IsReplayMode
+            ? !string.IsNullOrEmpty(UrlArgHandler.LoadedBLReplayID) || !string.IsNullOrEmpty(UrlArgHandler.LoadedReplayURL) || !string.IsNullOrEmpty(UrlArgHandler.LoadedSSScoreId)
+            : !string.IsNullOrEmpty(UrlArgHandler.LoadedMapID) || !string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL);
+        shareButton.SetActive(enable);
     }
 
 
     private void OnEnable()
     {
-        beatSaverButton.SetActive(false);
-        mapDownloadButton.SetActive(false);
+        bool hasMapID = !string.IsNullOrEmpty(UrlArgHandler.LoadedMapID);
+        beatSaverButton.SetActive(hasMapID);
+        mapDownloadButton.SetActive(!hasMapID && !string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL));
 
-        if(!string.IsNullOrEmpty(UrlArgHandler.LoadedMapID))
+        bool hasLeaderboard = ReplayManager.SourceInfo?.HasLeaderboard ?? false;
+        leaderboardButton.SetActive(hasLeaderboard);
+        if(hasLeaderboard)
         {
-            beatSaverButton.SetActive(true);
+            UpdateLeaderboardAppearance(ReplayManager.SourceInfo);
         }
-        else if(!string.IsNullOrEmpty(UrlArgHandler.LoadedMapURL))
-        {
-            mapDownloadButton.SetActive(true);
-        }
-
-        leaderboardButton.SetActive(!string.IsNullOrEmpty(ReplayManager.LeaderboardID));
         UpdateShareButton();
     }
 }

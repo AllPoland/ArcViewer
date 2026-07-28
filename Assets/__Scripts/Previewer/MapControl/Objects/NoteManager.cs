@@ -568,6 +568,9 @@ public class Note : HitSoundEmitter
     public bool IsDot;
     public bool IsChainHead;
 
+    public int ScoreEventID;
+    public ScoringType ScoringType;
+
     public Vector3 EndHeadPosition;
 
     public NoteHandler NoteHandler;

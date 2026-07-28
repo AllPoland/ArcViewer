@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -12,7 +13,7 @@ public class WebLoader
 
     //Domains listed in this array will bypass the CORS proxy
     //Map sources that include CORS headers should be added here for faster downloads
-    public static readonly string[] WhitelistURLs = new string[]
+    private static readonly string[] DefaultWhitelistURLs = new string[]
     {
         "https://r2cdn.beatsaver.com",
         "https://cdn.beatsaver.com",
@@ -24,13 +25,20 @@ public class WebLoader
         "https://cdn.songs.beatleader.com/"
     };
 
+    public static string[] WhitelistURLs => DefaultWhitelistURLs
+        .Concat(ReplaySources.All.SelectMany(x => x.CorsURLs))
+        .Where(x => !string.IsNullOrEmpty(x))
+        .Distinct()
+        .ToArray();
+
     public static ulong DownloadSize;
     public static UnityWebRequest uwr;
+    private static readonly List<UnityWebRequest> ActiveRequests = new List<UnityWebRequest>();
 
 
     public static string GetCorsURL(string url)
     {
-        if(WhitelistURLs.Any(x => url.StartsWith(x)))
+        if(WhitelistURLs.Any(x => url.StartsWith(x, StringComparison.OrdinalIgnoreCase)))
         {
             return url;
         }
@@ -47,11 +55,51 @@ public class WebLoader
     }
 
 
+    //Aggregates progress across all concurrent downloads so they don't fight over the loading bar
+    private static void UpdateDownloadProgress()
+    {
+        if(ActiveRequests.Count == 0)
+        {
+            DownloadSize = 0;
+            MapLoader.Progress = 0;
+            return;
+        }
+
+        ulong totalSize = 0;
+        ulong totalDownloaded = 0;
+        float progressSum = 0f;
+        bool sizesKnown = true;
+
+        foreach(UnityWebRequest request in ActiveRequests)
+        {
+            //GetResponseHeader returns the file size in a string,
+            //or null if the headers haven't been receieved yet
+            string sizeHeader = request.GetResponseHeader("Content-Length");
+            if(ulong.TryParse(sizeHeader, out ulong size) && size > 0)
+            {
+                totalSize += size;
+                totalDownloaded += request.downloadedBytes;
+            }
+            else sizesKnown = false;
+
+            progressSum += Mathf.Max(request.downloadProgress, 0f);
+        }
+
+        DownloadSize = sizesKnown ? totalSize : 0;
+        if(sizesKnown && totalSize > 0)
+        {
+            MapLoader.Progress = (float)totalDownloaded / totalSize;
+        }
+        else
+        {
+            //Without every download size, fall back to averaging request progress
+            MapLoader.Progress = progressSum / ActiveRequests.Count;
+        }
+    }
+
+
     public static async Task<MemoryStream> StreamFromURL(string url, bool noProxy, bool sendError = true)
     {
-        MapLoader.Progress = 0;
-        DownloadSize = 0;
-
 #if UNITY_WEBGL && !UNITY_EDITOR
         if(!noProxy)
         {
@@ -63,34 +111,25 @@ public class WebLoader
         }
 #endif
 
+        UnityWebRequest request = null;
         try
         {
-            //Download request
-            uwr = UnityWebRequest.Get(url);
+            request = UnityWebRequest.Get(url);
+            ActiveRequests.Add(request);
+            uwr = request;
 
             Debug.Log("Starting download.");
-            uwr.SendWebRequest();
+            request.SendWebRequest();
 
-            while(!uwr.isDone)
+            while(!request.isDone)
             {
-                if(DownloadSize == 0)
-                {
-                    //GetRequestHeader returns the file size in a string,
-                    //or null if the headers haven't been receieved yet
-                    string sizeHeader = uwr.GetResponseHeader("Content-Length");
-
-                    ulong outValue;
-                    DownloadSize = ulong.TryParse(sizeHeader, out outValue) ? outValue : 0;
-                }
-
-                MapLoader.Progress = uwr.downloadProgress;
-
+                UpdateDownloadProgress();
                 await Task.Yield();
             }
 
-            if(uwr.result != UnityWebRequest.Result.Success)
+            if(request.result != UnityWebRequest.Result.Success)
             {
-                if(uwr.error == "Request aborted")
+                if(request.error == "Request aborted")
                 {
                     Debug.Log("Download cancelled.");
                     if(sendError)
@@ -100,10 +139,10 @@ public class WebLoader
                 }
                 else
                 {
-                    Debug.LogWarning($"{uwr.error}");
+                    Debug.LogWarning($"{request.error}");
                     if(sendError)
                     {
-                        ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Download failed! {uwr.error}");
+                        ErrorHandler.Instance.QueuePopup(ErrorType.Error, $"Download failed! {request.error}");
                     }
                 }
 
@@ -111,7 +150,7 @@ public class WebLoader
             }
             else
             {
-                return new MemoryStream(uwr.downloadHandler.data);
+                return new MemoryStream(request.downloadHandler.data);
             }
         }
         catch(Exception e)
@@ -120,12 +159,13 @@ public class WebLoader
         }
         finally
         {
-            if(uwr != null)
+            if(request != null)
             {
-                uwr.Dispose();
-                uwr = null;
+                ActiveRequests.Remove(request);
+                request.Dispose();
+                uwr = ActiveRequests.Count > 0 ? ActiveRequests[^1] : null;
             }
-            MapLoader.Progress = 0;
+            UpdateDownloadProgress();
         }
         
         return null;
@@ -134,9 +174,12 @@ public class WebLoader
 
     public static void CancelDownload()
     {
-        if(uwr != null && !uwr.isDone)
+        foreach(UnityWebRequest request in ActiveRequests)
         {
-            uwr.Abort();
+            if(request != null && !request.isDone)
+            {
+                request.Abort();
+            }
         }
     }
 }
